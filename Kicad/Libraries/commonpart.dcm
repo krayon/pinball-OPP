@@ -1,0 +1,48 @@
+EESchema-DOCLIB  Version 2.0  Date: 8/31/2012 2:54:31 PM
+#
+$CMP BRIDGE
+D Pont de Diodes
+K Pont Diode
+$ENDCMP
+#
+$CMP CONN2X13
+K CONN
+$ENDCMP
+#
+$CMP CONN2X7
+K CONN
+$ENDCMP
+#
+$CMP DB9_SHIELD
+K CONN
+$ENDCMP
+#
+$CMP DIODE
+D Diode simple
+K DEV DIODE
+$ENDCMP
+#
+$CMP DUAL_LED
+K LED
+$ENDCMP
+#
+$CMP DUALDIODE
+D Diode simple
+K DEV DIODE
+$ENDCMP
+#
+$CMP POT
+D Potentionmetre
+K R
+$ENDCMP
+#
+$CMP SPADE_187
+D Symbole general de connecteur
+K CONN
+$ENDCMP
+#
+$CMP VGA_SHIELD
+K CONN
+$ENDCMP
+#
+#End Doc Library

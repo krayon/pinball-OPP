@@ -1,0 +1,242 @@
+# EESchema Netlist Version 1.1 created  3/26/2012 4:26:24 PM
+(
+ ( /4F6CDA93 C2 C1 1uF
+  ( 1 +3.3V )
+  ( 2 GND )
+ )
+ ( /4F6CDAB6 C2 C2 1uF
+  ( 1 +3.3V )
+  ( 2 GND )
+ )
+ ( /4F6CDACA C2 C3 1uF
+  ( 1 +3.3V )
+  ( 2 GND )
+ )
+ ( /4F6CDC99 C2 C4 1uF
+  ( 1 +5V )
+  ( 2 GND )
+ )
+ ( /4F6CCA61 DB25FD J1 DB25
+  ( 1 N-000050 )
+  ( 2 N-000051 )
+  ( 3 N-000038 )
+  ( 4 N-000009 )
+  ( 5 N-000037 )
+  ( 6 /CE* )
+  ( 7 /OE* )
+  ( 8 /WE* )
+  ( 9 /A16 )
+  ( 10 ? )
+  ( 11 ? )
+  ( 12 ? )
+  ( 13 ? )
+  ( 14 /A17 )
+  ( 15 ? )
+  ( 16 N-000035 )
+  ( 17 ? )
+  ( 18 GND )
+  ( 19 GND )
+  ( 20 GND )
+  ( 21 GND )
+  ( 22 GND )
+  ( 23 GND )
+  ( 24 GND )
+  ( 25 GND )
+ )
+ ( /4F6CCB1A DIP-32__600 P1 SUPP32
+  ( 1 ? )
+  ( 2 /A16 )
+  ( 3 /A15 )
+  ( 4 /A12 )
+  ( 5 /A7 )
+  ( 6 /A6 )
+  ( 7 /A5 )
+  ( 8 /A4 )
+  ( 9 /A3 )
+  ( 10 /A2 )
+  ( 11 /A1 )
+  ( 12 /A0 )
+  ( 13 /D0 )
+  ( 14 /D1 )
+  ( 15 /D2 )
+  ( 16 GND )
+  ( 17 /D3 )
+  ( 18 /D4 )
+  ( 19 /D5 )
+  ( 20 /D6 )
+  ( 21 /D7 )
+  ( 22 /CE* )
+  ( 23 /A10 )
+  ( 24 /OE* )
+  ( 25 /A11 )
+  ( 26 /A9 )
+  ( 27 /A8 )
+  ( 28 /A13 )
+  ( 29 /A14 )
+  ( 30 N-000030 )
+  ( 31 /WE* )
+  ( 32 +5V )
+ )
+ ( /4F70BBA4 th1x2x100-lock P3 CONN_2
+  ( 1 +3.3V )
+  ( 2 GND )
+ )
+ ( /4F708706 R3 R1 10K
+  ( 1 +3.3V )
+  ( 2 N-000010 )
+ )
+ ( /4F705ED2 R3 R2 10K
+  ( 1 +3.3V )
+  ( 2 N-000048 )
+ )
+ ( /4F705ECA R3 R3 10K
+  ( 1 +3.3V )
+  ( 2 N-000040 )
+ )
+ ( /4F70C4D7 R3 R4 0
+  ( 1 N-000030 )
+  ( 2 /A17 )
+ )
+ ( /4F70CCD2 R3 R5 0
+  ( 1 N-000035 )
+  ( 2 N-000049 )
+ )
+ ( /4F70D097 R3 R6 0
+  ( 1 +3.3V )
+  ( 2 +3.3V )
+ )
+ ( /4F70D08C R3 R7 0
+  ( 1 +3.3V )
+  ( 2 +3.3V )
+ )
+ ( /4F708510 DIP-16__300 U1 74LV595
+  ( 1 /D6 )
+  ( 2 /D5 )
+  ( 3 /D4 )
+  ( 4 /D3 )
+  ( 5 /D2 )
+  ( 6 /D1 )
+  ( 7 /D0 )
+  ( 8 GND )
+  ( 9 N-000013 )
+  ( 10 N-000010 )
+  ( 11 N-000051 )
+  ( 12 N-000038 )
+  ( 13 N-000009 )
+  ( 14 N-000037 )
+  ( 15 /D7 )
+  ( 16 +3.3V )
+ )
+ ( /4F6CCE45 DIP-16__300 U2 74LV595
+  ( 1 /A14 )
+  ( 2 /A13 )
+  ( 3 /A12 )
+  ( 4 /A11 )
+  ( 5 /A10 )
+  ( 6 /A9 )
+  ( 7 /A8 )
+  ( 8 GND )
+  ( 9 N-000046 )
+  ( 10 N-000048 )
+  ( 11 N-000050 )
+  ( 12 N-000049 )
+  ( 13 GND )
+  ( 14 N-000013 )
+  ( 15 /A15 )
+  ( 16 +3.3V )
+ )
+ ( /4F6CCE4F DIP-16__300 U3 74LV595
+  ( 1 /A6 )
+  ( 2 /A5 )
+  ( 3 /A4 )
+  ( 4 /A3 )
+  ( 5 /A2 )
+  ( 6 /A1 )
+  ( 7 /A0 )
+  ( 8 GND )
+  ( 9 ? )
+  ( 10 N-000040 )
+  ( 11 N-000050 )
+  ( 12 N-000049 )
+  ( 13 GND )
+  ( 14 N-000046 )
+  ( 15 /A7 )
+  ( 16 +3.3V )
+ )
+)
+*
+{ Allowed footprints by component:
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$component C2
+ SM*
+ C?
+ C1-1
+$endlist
+$component C3
+ SM*
+ C?
+ C1-1
+$endlist
+$component C4
+ SM*
+ C?
+ C1-1
+$endlist
+$component J1
+ DB25*
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R3
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R4
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R5
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R6
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R7
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$endfootprintlist
+}

@@ -1,0 +1,26 @@
+In the following instructions replace xxxxxx with the project name.  For example, if
+the project name is application, the project file for Kicad is application.pro.
+
+1.  Create a directory that will contain the library parts.  It should be stored in a
+directory at ..\Libraries.  Highlight the directory, right-click,TortoiseSVN->Export.
+Under URL of repository:
+Choose http://eng-svn/svn/Eng/Projects/002XX_ApplicationSW/00206_KicadLibrary/rev/revxx.yy.zz
+that matches the parts libary revision listed in the table.  This extracts all the files from
+the repository.
+
+Version		Notes:
+01.00.00	Initial parts library.
+01.01.00	Added Diode and LM3480 parts.  Fixed pinout of MCP1702.  Added footprints for
+		SMA, SMDiode and 1x2 and 2x10 2mm Hirose right angle connectors.
+01.02.00	Added BC847, DMC4040SD, and NC schematic symbols.  Changed POT pinout to match
+		the footprint pinout.  Added S08 and SOT363 footprints.
+01.03.00	Added fiducial and SOT23 footprints.  Made silkscreen for 2x10x2mm larger
+		for keepout area.
+01.04.00	Added footprints for d2pak, emsop10, equivvalence, escoic8, msoic8, sm1210,
+		sm2220, sm2512, smc8x10mm, sml_2.38x8.91x6.65mm, sml_2x2x10, smt-dil-2x10x100,
+		smt-dil-2x13x100, smt-dil-2x5x100, so24, so8fl, sod128, soic8, th2x12x4.2mm,
+		th2x3x4.2mm, th2x7.4.2mm, tssop16, and vgaf-ra.  Added components for Dual_LED,
+		VGA_shield, dual Dioide, 74LVC4245A, conn2x12PCPWR, conn2x3PCP6MB,  DAC7578,
+		dual_LED, dualdiode, ESDA6V1U1RL, IXDF604, LM3409, LM3478, MCF5221x-64,
+		MCP4725, MCP6N11, NTMD5838NL, NTMFS4821N, NTMS4177P, PCA8574PW, SIP21106, 
+		TPS772xx, VGA_shield, and conn2x7.  Modified conn2x20PCPWR.
