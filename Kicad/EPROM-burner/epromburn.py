@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-testVers = '00.00.03'
+testVers = '00.00.04'
 
 import parallel
 import sys
@@ -87,11 +87,7 @@ def sendAddrData(addrData):
 def eraseFlash():
     print "\nErasing flash."
     sendAddrData(0x5555aa)
-    #print "\nSent 0x5555aa"
-    #ch = msvcrt.getch()
     sendAddrData(0x2aaa55)
-    #print "\nSent 0x2aaa55"
-    #ch = msvcrt.getch()
     sendAddrData(0x555580)
     sendAddrData(0x5555aa)
     sendAddrData(0x2aaa55)
@@ -149,6 +145,3 @@ while not end:
         writeByte(data)
 print "\nFinished flash write."
 fileHndl.close()
-print "\nPress any key to close window"
-ch = msvcrt.getch()
-sys.exit(0)
