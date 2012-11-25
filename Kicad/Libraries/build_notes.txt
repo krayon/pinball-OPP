@@ -24,3 +24,12 @@ Version		Notes:
 		dual_LED, dualdiode, ESDA6V1U1RL, IXDF604, LM3409, LM3478, MCF5221x-64,
 		MCP4725, MCP6N11, NTMD5838NL, NTMFS4821N, NTMS4177P, PCA8574PW, SIP21106, 
 		TPS772xx, VGA_shield, and conn2x7.  Modified conn2x20PCPWR.
+01.05.00	Added msop10, dualdiode, +12V1, +12V2, GND1, GND2, MCP4728, and NVT2006.
+01.06.00	Parts have been added for 1.5mm mounting holes, 26 awg wire mounting holes,
+		and footprints for QFN10, SC70, SOD123F, SOT23-5, th2x5x100, tssop28, and usb_b.
+		Defined power points for 1.9V, 2.9V, double diodes, MC9S08QG (ended up not using
+		it), MMA7660FC, NCP600, and NTJD5121N.
+01.06.01	Fixed BC847 part have correct pin names. Fix 00_vgaf-ra.  It was originally
+		pinned out with connector on bottom of the board instead of the top.Added
+		footprint for SOIC16.  Added DMG6602SVT, MMBD7000, and MAX202 chip.
+01.06.02	Added CONN1x18, 7SEGDISP, NX5DV330, and PCA9535.

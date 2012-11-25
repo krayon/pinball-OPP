@@ -1,8 +1,18 @@
-EESchema-DOCLIB  Version 2.0  Date: 8/31/2012 2:54:31 PM
+EESchema-DOCLIB  Version 2.0  Date: 11/17/2012 6:50:44 PM
+#
+$CMP 39SF0X0
+D Flash, 128Kx8, 256Kx8, 512Kx8
+K Flash
+$ENDCMP
 #
 $CMP BRIDGE
 D Pont de Diodes
 K Pont Diode
+$ENDCMP
+#
+$CMP CONN1X18
+D Symbole general de connexion
+K CONN
 $ENDCMP
 #
 $CMP CONN2X13
@@ -19,6 +29,11 @@ $ENDCMP
 #
 $CMP DIODE
 D Diode simple
+K DEV DIODE
+$ENDCMP
+#
+$CMP DOUBLE_DIODE
+D Double diode Shottky (Serie)
 K DEV DIODE
 $ENDCMP
 #
