@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2012-01-19 BZR 3256)-stable date = 11/20/2012 3:07:13 PM
+Cmp-Mod V01 Created by CvPcb (2012-01-19 BZR 3256)-stable date = 11/27/2012 8:56:46 AM
 
 BeginCmp
 TimeStamp = /5094A63B/50A6DF94;
@@ -172,21 +172,21 @@ BeginCmp
 TimeStamp = /5094A63B/5094A7BD;
 Reference = P502;
 ValeurCmp = CONN_3X2;
-IdModule  = 00_smt-dil-2x3x100;
+IdModule  = pin_array_3x2;
 EndCmp
 
 BeginCmp
 TimeStamp = /5094A63B/5094A7A0;
 Reference = P503;
 ValeurCmp = CONN_4;
-IdModule  = 00_th1x4x100-lock;
+IdModule  = 00_th1x4x100ra-lock;
 EndCmp
 
 BeginCmp
 TimeStamp = /5094A63B/509EF99A;
 Reference = P504;
 ValeurCmp = CONN_4;
-IdModule  = 00_th1x4x100-lock;
+IdModule  = 00_th1x4x100ra-lock;
 EndCmp
 
 BeginCmp
@@ -215,6 +215,34 @@ TimeStamp = /5094A63B/50A8242E;
 Reference = P508;
 ValeurCmp = CONN_2;
 IdModule  = PIN_ARRAY_2X1;
+EndCmp
+
+BeginCmp
+TimeStamp = /5094A63B/50B4C476;
+Reference = P509;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100ra-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /5094A63B/50B4C500;
+Reference = P510;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100ra-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /5094A63B/50B4C509;
+Reference = P511;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100ra-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /5094A63B/50B4C504;
+Reference = P512;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100ra-lock;
 EndCmp
 
 BeginCmp

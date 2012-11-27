@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 11/18/2012 8:37:23 PM
+EESchema Schematic File Version 2  date 11/27/2012 11:36:53 AM
 LIBS:commonpart
 LIBS:power
 LIBS:device
@@ -37,7 +37,7 @@ $Descr A4 11700 8267
 encoding utf-8
 Sheet 2 5
 Title "Display Driver"
-Date "19 nov 2012"
+Date "27 nov 2012"
 Rev "A"
 Comp "Open Pinball Project"
 Comment1 ""
@@ -61,7 +61,7 @@ Wire Wire Line
 	7650 5800 7800 5800
 Connection ~ 7800 4000
 Wire Wire Line
-	7800 4000 7800 5800
+	7800 5800 7800 4000
 Connection ~ 7450 4000
 Wire Wire Line
 	8450 4000 8450 4100
@@ -74,10 +74,10 @@ Wire Wire Line
 	6450 2400 6800 2400
 Connection ~ 6800 800 
 Wire Wire Line
-	6800 800  6800 2400
+	6800 2400 6800 800 
 Connection ~ 8450 800 
 Wire Wire Line
-	8850 800  8850 2700
+	8850 2700 8850 800 
 Wire Wire Line
 	8850 800  5450 800 
 Connection ~ 6450 800 
@@ -208,9 +208,9 @@ Connection ~ 11100 2500
 Wire Wire Line
 	11100 2300 11000 2300
 Wire Wire Line
-	9700 2500 9800 2500
+	9800 2500 9700 2500
 Wire Wire Line
-	9700 2700 9700 2500
+	9700 2500 9700 2700
 Wire Wire Line
 	7450 1900 7450 2100
 Wire Wire Line
@@ -272,7 +272,7 @@ Wire Wire Line
 Wire Wire Line
 	9700 5700 9800 5700
 Wire Wire Line
-	11100 5500 11000 5500
+	11000 5500 11100 5500
 Connection ~ 11100 5700
 Wire Wire Line
 	11100 5700 11000 5700
@@ -282,7 +282,7 @@ Wire Wire Line
 	11000 5600 11100 5600
 Connection ~ 11100 5600
 Wire Wire Line
-	11100 5900 11100 5500
+	11100 5500 11100 5900
 Connection ~ 11100 5800
 Wire Wire Line
 	9800 5800 9700 5800

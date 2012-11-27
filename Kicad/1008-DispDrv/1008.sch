@@ -1,4 +1,4 @@
-EESchema Schematic File Version 2  date 11/18/2012 8:37:23 PM
+EESchema Schematic File Version 2  date 11/27/2012 11:36:53 AM
 LIBS:commonpart
 LIBS:power
 LIBS:device
@@ -37,7 +37,7 @@ $Descr A 11000 8500
 encoding utf-8
 Sheet 1 5
 Title "Display Driver"
-Date "19 nov 2012"
+Date "27 nov 2012"
 Rev "A"
 Comp "Open Pinball Project"
 Comment1 ""
