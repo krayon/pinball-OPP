@@ -1,0 +1,25 @@
+In the following instructions replace xxxxxx with the project name.  For example, if
+the project name is application, the project file for CodeWarrior is application.mcp.
+
+1.  Create a directory that is going to contain the library files.
+
+2.  Highlight the directory, right-click,TortoiseSVN->Export.  Under URL of repository:
+Choose https://open-pinball-project.googlecode.com/svn/trunk/CodeWarrior8bit/0100-StdLib
+This extracts all the files from the repository.
+
+3.  Start CodeWarrior IDE
+
+4.  Under File->Open... Browse to the directory and choose xxxxxx.mcp
+
+5.  Project->Make
+
+6.  The linker will output a file called xxxxxx.sx in the "project\bin" directory.
+
+Version		Proc		App CRC32	Image CRC32	Notes:
+00.00.00	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	First checkin, added SPI.  CRC32 tool not implemented yet.
+00.00.01	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed storing of NV events.
+00.00.02	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	i2c fixes for slaves, single byte msgs, SPI read fixes.
+00.00.03	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed ADC clock for 32MHz freescale parts.
+00.00.04	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed i2c master xmt/rcv stop generation.
+00.00.05	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed elapsed time if 1ms overflow happens during 1st ms.
+
