@@ -179,7 +179,7 @@ _start_boot:                ; Setup the serial port to be 19.2, 8, N, 1
       org   BOOT_SECT_ADDR
       
       dc.l  $ffffffff   ;Serial number
-      dc.l    1000200   ;Product ID
+      dc.l       1008   ;Product ID
       dc.l  $ffffffff   ;Reserved
       dc.l  $ffffffff   ;Reserved
       

@@ -53,19 +53,12 @@
 #define PROJINTRPTS_H
 
 #define APP_START_ADDR    0x8000
-#define POPULATED_INTS    (INTRPT_RESET | INTRPT_TPM2_OVFL | INTRPT_ADC |       \
-                            INTRPT_I2C_CTL | INTRPT_SCI1_RCV | INTRPT_SCI1_XMT)
+#define POPULATED_INTS    (INTRPT_RESET | INTRPT_TPM2_OVFL | INTRPT_I2C_CTL)
 
 void _Startup(void); 
 #define main_vector _Startup
 interrupt void stdltime_timer2_isr(void);
 #define vector14 stdltime_timer2_isr
-interrupt void stdlser_rcv_port1_isr(void);
-#define vector17 stdlser_rcv_port1_isr
-interrupt void stdlser_xmt_port1_isr(void);
-#define vector18 stdlser_xmt_port1_isr
-interrupt void stdladc_adc_complete_isr(void);
-#define vector23 stdladc_adc_complete_isr
 interrupt void stdli2c_i2c_complete_isr(void);
 #define vector24 stdli2c_i2c_complete_isr
 

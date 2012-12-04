@@ -32,4 +32,4 @@ a hand controller.
 
 
 Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
-00.00.00	MC9S08SH32	00.00.00	0x5ea146db	0xf0e82365	0x25f6ecf6	Initial version
+00.00.01	MC9S08SH32	00.00.05	0xaf315628	0xf00c168a	0xff3cbf04	Initial version

@@ -48,34 +48,24 @@
  */
  
 #include "stdtypes.h"
-#include "dispglob.h"
 #include "stdlintf.h"
+#include "dispglob.h"
 #include "derivative.h" /* include for petting the watchdog */
 
 #define STDL_FILE_ID        2
 
-#define MAX_SEND_SIZE       2
-#define MAX_RCV_SIZE        2
-
-typedef enum
-{
-  I2CPROC_I2C_IDLE          = 0x00,
-  I2CPROC_I2C_BUSY          = 0x01,
-} I2CPROC_I2C_E;
+#define MAX_SEND_SIZE       3
 
 typedef enum
 {
   I2C_STATE_IDLE            = 0x00,
   I2C_STATE_SEND            = 0x01,
 } I2C_STATE_E;
-/* Warning: State machine.  It uses increment to move to next state */
 
 typedef struct
 {
-  I2C_STATE_E               state;
+  volatile I2C_STATE_E      state;
   U8                        txBuf[MAX_SEND_SIZE];
-  U8                        rxBuf[MAX_RCV_SIZE];
-  volatile I2CPROC_I2C_E    i2cState;
   STDLI_I2C_RESP_E          msgStatus;
   STDLI_I2C_XFER_T          i2cMsg;
   STDLI_TIMER_EVENT_T       timeEvt;
@@ -86,8 +76,41 @@ I2C_GLOB_T                  i2c_glob;
 U8                          charLkup[MAX_CHAR_ID] = {
   0x3f /* 0 */, 0x06 /* 1 */, 0x6b /* 2 */, 0x4f /* 3 */, 0x66 /* 4 */,
   0x1b /* 5 */, 0x7d /* 6 */, 0x07 /* 7 */, 0x7f /* 8 */, 0x67 /* 9 */,
+  0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 
   0x73 /* P */, 0x79 /* E */, 0x37 /* N */, 0x38 /* L */, 0x77 /* A */,
-  0x1e /* J */, 0x39 /* C */, 0x00 /* blank */ };
+  0x1e /* J */, 0x39 /* C */ };
+
+U8                          i2cAddrLkup[DISPG_NUM_DISP][CHARS_PER_DISP/2] = {
+  { 0x20, 0x22, 0x24 }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
+  { 0x28, 0x2a, 0x2c }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
+  { 0xa0, 0xa2, 0xa4 }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
+  { 0xa8, 0xaa, 0xac }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
+  { 0x40, 0x42, 0x00 }  /* Note:  First addr dig2,3, 2nd 5,6, last digit invalid */
+};
+
+U8                          bitToPlayer[NUM_UPDATE_BITS] = {
+  DISPG_PLAYER1, DISPG_PLAYER1, DISPG_PLAYER1,
+  DISPG_PLAYER2, DISPG_PLAYER2, DISPG_PLAYER2,
+  DISPG_PLAYER3, DISPG_PLAYER3, DISPG_PLAYER3,
+  DISPG_PLAYER4, DISPG_PLAYER4, DISPG_PLAYER4,
+  DISPG_CREDIT_MATCH, DISPG_CREDIT_MATCH
+};
+
+U8                          bitToOffset[NUM_UPDATE_BITS] = {
+  0x01, 0x04, 0x00,
+  0x01, 0x04, 0x00,
+  0x01, 0x04, 0x00,
+  0x01, 0x04, 0x00,
+  0x01, 0x04
+};
+
+U8                          bitToIndex[NUM_UPDATE_BITS] = {
+  0x00, 0x01, 0x02,
+  0x00, 0x01, 0x02,
+  0x00, 0x01, 0x02,
+  0x00, 0x01, 0x02,
+  0x00, 0x01
+};
 
 /* Prototypes */
 void i2cproc_i2c_xfer_done(
@@ -119,9 +142,6 @@ void i2cproc_set_digit(
  */
 void i2cproc_init_i2c(void) 
 {
-  STDLI_ERR_E               error;
-  
-  i2c_glob.i2cState = I2CPROC_I2C_IDLE;
   i2c_glob.i2cMsg.i2cDone_fp = i2cproc_i2c_xfer_done;
   i2c_glob.i2cMsg.cbParm = 0;
   i2c_glob.state = I2C_STATE_IDLE;
@@ -151,6 +171,69 @@ void i2cproc_init_i2c(void)
  */
 void i2cproc_task(void)
 {
+  U16                       tmpU16;
+  U8                        updIndex;
+  U8                        player;
+  U8                        offset;
+  U8                        index;
+  STDLI_ERR_E               error;
+  
+#define WRITE_PORT          0x02  
+  
+  /* Check if i2c bus is idle */
+  if (i2c_glob.state == I2C_STATE_IDLE)
+  {
+    /* Check if any of the update display bits are set */
+    if (dispg_glob.updDispBits)
+    {
+      /* Find the display bit that is set */
+      tmpU16 = dispg_glob.updDispBits;
+      for (updIndex = 0; updIndex < NUM_UPDATE_BITS; updIndex++)
+      {
+        if (tmpU16 & (1 << updIndex))
+        {
+          break;
+        }
+      }
+      if (updIndex < NUM_UPDATE_BITS)
+      {
+        /* Clear the update bit */
+        DisableInterrupts;
+        dispg_glob.updDispBits &= ~(1 << updIndex);
+        EnableInterrupts;
+        
+        /* Look up the digits that are changing */
+        player = bitToPlayer[updIndex];
+        offset = bitToOffset[updIndex];
+        index = bitToIndex[updIndex];
+        i2c_glob.i2cMsg.addr = i2cAddrLkup[player][index];
+        i2c_glob.i2cMsg.data_p = &i2c_glob.txBuf[0];
+        i2c_glob.i2cMsg.numDataBytes = 3;
+        i2c_glob.txBuf[0] = WRITE_PORT;
+        
+        /* Fill out the txBuf */
+        if (offset != 0x00)
+        {
+          i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][offset]];
+          i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][offset + 1]];
+        }
+        else
+        {
+          /* Updating chars 1 and 4 */
+          i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][0]];
+          i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][3]];
+        }
+        
+        /* Call the stdlib to send the msg */
+        error = stdli2c_send_i2c_msg(&i2c_glob.i2cMsg);
+        if (error)
+        {
+          /* HRS:  Should deal with errors */
+          error++;
+        }
+      }
+    }
+  }
 } /* End i2cproc_task */
 
 /*
@@ -179,5 +262,8 @@ void i2cproc_i2c_xfer_done(
   U16                       cbParam,
   STDLI_I2C_RESP_E          status)
 {
+  cbParam = 0;
+  i2c_glob.msgStatus = status;
+  i2c_glob.state = I2C_STATE_IDLE;
 } /* End i2cproc_i2c_xfer_done */
 
