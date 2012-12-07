@@ -19,12 +19,9 @@
  *               PPP     OOOOOOOO     PPP
  *              PPPPP      OOOO      PPPPP
  *
- * @file:   errintf.h
+ * @file:   projintrpts.h
  * @author: Hugh Spahr
  * @date:   11/30/2012
- *
- * @note:   Open Pinball Project
- *          Copyright© 2012, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,21 +39,30 @@
  *===============================================================================
  */
 /**
- * This is the interface file that contains all the errors.
+ * Project interrupts contains all of the interrupts that are used on the
+ *  Freescale processor for a project.  POPULATED_INTS contains a bitfield
+ *  with a bit set for each interrupt used.  For each interrupt, a function
+ *  prototype, and a macro must be defined setting the function to the correct
+ *  vector.  APP_START_ADDR contains the starting address of the flash memory
+ *  for the Freescale processor.
  *
  *===============================================================================
  */
-#ifndef ERRINTF_H
-#define ERRINTF_H
+ 
+#ifndef PROJINTRPTS_H
+#define PROJINTRPTS_H
 
-/* ERRI_ is used to indicate errors found in this file.
- */
-typedef enum
-{
-  /* Errors common to all groups */
-  ERRI_NO_ERROR             = 0x00,
-  ERRI_BAD_PASSED_PARM      = 0x01,
-  ERRI_SW_FAILURE           = 0x02,
-} ERRI_ERROR_E;
+#define APP_START_ADDR    0x8000
+#define POPULATED_INTS    (INTRPT_RESET | INTRPT_TPM2_OVFL |      \
+                             INTRPT_SCI1_RCV | INTRPT_SCI1_XMT)
+
+void _Startup(void); 
+#define main_vector _Startup
+interrupt void stdltime_timer2_isr(void);
+#define vector14 stdltime_timer2_isr
+interrupt void stdlser_rcv_port1_isr(void);
+#define vector17 stdlser_rcv_port1_isr
+interrupt void stdlser_xmt_port1_isr(void);
+#define vector18 stdlser_xmt_port1_isr
 
 #endif
