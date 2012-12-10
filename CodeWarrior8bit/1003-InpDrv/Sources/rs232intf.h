@@ -120,9 +120,9 @@ typedef enum
 
 typedef enum
 {
-  FALL_EDGE                 = 0x00,
-  RISE_EDGE                 = 0x01,
-  STATE_INPUT               = 0x02,
+  STATE_INPUT               = 0x00,
+  FALL_EDGE                 = 0x01,
+  RISE_EDGE                 = 0x02,
 } RS232I_CFG_INP_TYPE_E;
  
 #endif

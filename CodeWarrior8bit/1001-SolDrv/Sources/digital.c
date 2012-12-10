@@ -107,17 +107,17 @@ typedef struct
 
 typedef struct
 {
-  DIG_SOL_T                 sol[SOLG_NUM_SOL];
+  DIG_SOL_T                 sol[RS232I_NUM_SOL];
 } DIGITAL_GLOB_T;
 
 DIGITAL_GLOB_T              dig_glob;
 
-const U8                    SWITCH_LOOKUP[SOLG_NUM_SOL] =
+const U8                    SWITCH_LOOKUP[RS232I_NUM_SOL] =
   { PC_INP_SW1, PC_INP_SW2, PC_INP_SW3, PC_INP_SW4,
     PC_INP_SW5, PC_INP_SW6, PC_INP_SW7, PC_INP_SW8 
   };
 
-const BOOL                  SOL_PORT_A[SOLG_NUM_SOL] =
+const BOOL                  SOL_PORT_A[RS232I_NUM_SOL] =
   { TRUE, TRUE, TRUE, TRUE, FALSE, FALSE, FALSE, FALSE };
 
 /*
@@ -144,7 +144,7 @@ void digital_init(void)
 {
   DIG_SOL_T                 *sol_p;
   
-  for (sol_p = &dig_glob.sol[0]; sol_p < &dig_glob.sol[SOLG_NUM_SOL]; sol_p++)
+  for (sol_p = &dig_glob.sol[0]; sol_p < &dig_glob.sol[RS232I_NUM_SOL]; sol_p++)
   {
     sol_p->state = SOL_STATE_IDLE;
   }
@@ -186,14 +186,12 @@ void digital_task(void)
   
 #define PWM_PERIOD          16
 
-solg_glob.procCtl = 0;
-  
   if (solg_glob.state == SOL_STATE_NORM)
   {
     /* Grab the solenoid inputs */
     inputs = PTCD;    
     for (index = 0, sol_p = &dig_glob.sol[0], solCfg_p = &solg_glob.solCfg[0];
-      index < SOLG_NUM_SOL; sol_p++, index++, solCfg_p++)
+      index < RS232I_NUM_SOL; sol_p++, index++, solCfg_p++)
     {
       /* If using the switch as a trigger input, check it.  Note: switches active low */
       if ((solCfg_p->type & USE_SWITCH) && ((inputs & SWITCH_LOOKUP[index]) == 0))

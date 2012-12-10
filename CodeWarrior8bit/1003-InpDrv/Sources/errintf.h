@@ -19,7 +19,7 @@
  *               PPP     OOOOOOOO     PPP
  *              PPPPP      OOOO      PPPPP
  *
- * @file:   solglob.h
+ * @file:   errintf.h
  * @author: Hugh Spahr
  * @date:   11/30/2012
  *
@@ -42,58 +42,21 @@
  *===============================================================================
  */
 /**
- * Global file for the display controller.  It contains prototypes and enumerations
- * that are shared between files.
+ * This is the interface file that contains all the errors.
  *
  *===============================================================================
  */
+#ifndef ERRINTF_H
+#define ERRINTF_H
 
-#ifndef SOLGLOB_H
-#define SOLGLOB_H
- 
-#include "stdtypes.h"
-#include "errintf.h"
-
-#define SOLG_WARNING       0x000  /* Used to create 12 bit event IDs */
-#define SOLG_ERROR         0xe00  /* Used to create 12 bit event IDs */
-
-#define FLASH_SECT_SIZE     0x0200
-#define SERNUM_ADDR         0xfc00
-#define BOOT_SECTOR_ADDR    0xfc00
-
-#define SOLG_SWITCH_THRESH  50    /* Switch threshold in usecs */
-
+/* ERRI_ is used to indicate errors found in this file.
+ */
 typedef enum
 {
-  SOL_STATE_INIT            = 0x00,
-  SOL_STATE_NORM            = 0x01,
-} SOL_STATE_E;
-
-typedef struct
-{
-  RS232I_CFG_SOL_TYPE_E     type;
-  U8                        initialKick;
-  RS232I_DUTY_E             dutyCycle;
-} SOLG_CFG_T;
-
-typedef struct
-{
-  SOL_STATE_E               state;
-  U8                        procCtl;
-  U8                        validSwitch;
-  SOLG_CFG_T                solCfg[RS232I_NUM_SOL];
-  STDLI_ELAPSED_TIME_T      elapsedTime;
-} SOLG_GLOB_T;
-
-#ifndef SOLG_INSTANTIATE
- extern
-#endif
-  SOLG_GLOB_T               solg_glob;
-
-void rs232proc_init(void);
-void rs232proc_task(void);
-
-void digital_init(void);
-void digital_task(void);
+  /* Errors common to all groups */
+  ERRI_NO_ERROR             = 0x00,
+  ERRI_BAD_PASSED_PARM      = 0x01,
+  ERRI_SW_FAILURE           = 0x02,
+} ERRI_ERROR_E;
 
 #endif

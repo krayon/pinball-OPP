@@ -42,7 +42,7 @@
  *===============================================================================
  */
 /**
- * This is the serial port processing for the solenoid driver board.  It
+ * This is the serial port processing for the input driver board.  It
  * uses the first serial port.
  *
  *===============================================================================
@@ -54,7 +54,7 @@
 #include "interrupt.h"      /* For prod ID, version num */
 #define RS232I_INSTANTIATE
 #include "rs232intf.h"
-#include "solglob.h"
+#include "inpglob.h"
 
 #define STDL_FILE_ID        2
 
@@ -92,7 +92,7 @@ RS232_GLOB_T                rs232_glob;
 void rs232proc_rx_ser_char(
   U16                       cbParam,
   U8                        data);
-void rs232proc_force_boot_mode(void);
+void digital_set_init_state(void);
 
 /*
  * ===============================================================================
@@ -259,20 +259,18 @@ void rs232proc_task(void)
             /* Reset the processor */
             asm DCB 0x8D ;    /* Use illegal instruction to cause reset */
           }
-          else if (data == RS232I_CONFIG_SOL)
+          else if (data == RS232I_CONFIG_INP)
           {
             rs232_glob.state = RS232_RCV_DATA_CMD;
           }
-          else if (data == RS232I_KICK_SOL)
-          {
-            rs232_glob.state = RS232_RCV_DATA_CMD;
-          }
-          else if (data == RS232I_READ_SOL_INP)
+          else if (data == RS232I_READ_INP_BRD)
           {
             rs232_glob.state = RS232_STRIP_CMD;
             DisableInterrupts;
-            txBuf[2] = solg_glob.validSwitch;
-            solg_glob.validSwitch = 0;
+            /* After sending an edge, clear the bit */
+            txBuf[2] = (inpg_glob.inpSwitch >> 8) & 0xff;
+            txBuf[3] = inpg_glob.inpSwitch & 0xff;
+            inpg_glob.inpSwitch &= inpg_glob.stateMask;
             EnableInterrupts;
             (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 3);
           }
@@ -335,25 +333,14 @@ void rs232proc_task(void)
           rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
         }
       }
-      else if (rs232_glob.currCmd == RS232I_CONFIG_SOL)
+      else if (rs232_glob.currCmd == RS232I_CONFIG_INP)
       {
         /* Store data directly in structure */
-        ((U8 *)&solg_glob.solCfg[0])[rs232_glob.currIndex++] = data;
+        ((U8 *)&inpg_glob.inpCfg[0])[rs232_glob.currIndex++] = data;
         if (rs232_glob.currIndex >= rs232_glob.cmdLen)
         {
-          solg_glob.state = SOL_STATE_NORM;
-          rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-        }
-      }
-      else if (rs232_glob.currCmd == RS232I_KICK_SOL)
-      {
-        rs232_glob.rxBuf[rs232_glob.currIndex++] = data;
-        if (rs232_glob.currIndex >= rs232_glob.cmdLen)
-        {
-          DisableInterrupts;
-          solg_glob.procCtl = (solg_glob.procCtl & ~rs232_glob.rxBuf[1]) |
-            rs232_glob.rxBuf[0];
-          EnableInterrupts;
+          inpg_glob.state = INP_STATE_NORM;
+          digital_set_init_state();
           rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
         }
       }

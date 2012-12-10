@@ -4,7 +4,7 @@ the project name is application, the project file for CodeWarrior is application
 1.  Create a directory that is going to contain the application files.
 
 2.  Highlight the directory, right-click,TortoiseSVN->Export.  Under URL of repository:
-Choose https://open-pinball-project.googlecode.com/svn/tag/tagxx.yy.xx/CodeWarrior8bit/1001-SolDrv
+Choose https://open-pinball-project.googlecode.com/svn/tag/tagxx.yy.xx/CodeWarrior8bit/1003-InpDrv
 where xx is major revision, yy is minor revision, and zz is engineering revision.
 This extracts all the files from the repository.
 
@@ -28,10 +28,8 @@ https://open-pinball-project.googlecode.com/svn/trunk/Eclipse/0202-HexMerge/Debu
 
 10. Run "build.bat".  This will create "xxxxxxBoot.sx which contains the bootloader
 and the application code, and "xxxxxxUpgrade.sx" which contains S records for upgrading
-a solenoid driver.
+a input controller.
 
 
 Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
-00.00.01	MC9S08SE08	00.00.05	0x894c6ae4	0x96c451a6	0xd390dfe1	Initial version
-00.00.02	MC9S08SE08	00.00.05	0xcec54f9b	0xea4c0b75	0x7e49371d	Added more rs232 cmds for input board.  Moved NUM_SOL
-												declaration to RS232I.  
+00.00.01	MC9S08SE08	00.00.05	0xdce94158	0xb9d49d83	0x7bd99710	Initial version

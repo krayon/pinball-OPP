@@ -19,12 +19,9 @@
  *               PPP     OOOOOOOO     PPP
  *              PPPPP      OOOO      PPPPP
  *
- * @file:   solglob.h
+ * @file:   projintrpts.h
  * @author: Hugh Spahr
  * @date:   11/30/2012
- *
- * @note:   Open Pinball Project
- *          Copyright© 2012, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,58 +39,30 @@
  *===============================================================================
  */
 /**
- * Global file for the display controller.  It contains prototypes and enumerations
- * that are shared between files.
+ * Project interrupts contains all of the interrupts that are used on the
+ *  Freescale processor for a project.  POPULATED_INTS contains a bitfield
+ *  with a bit set for each interrupt used.  For each interrupt, a function
+ *  prototype, and a macro must be defined setting the function to the correct
+ *  vector.  APP_START_ADDR contains the starting address of the flash memory
+ *  for the Freescale processor.
  *
  *===============================================================================
  */
-
-#ifndef SOLGLOB_H
-#define SOLGLOB_H
  
-#include "stdtypes.h"
-#include "errintf.h"
+#ifndef PROJINTRPTS_H
+#define PROJINTRPTS_H
 
-#define SOLG_WARNING       0x000  /* Used to create 12 bit event IDs */
-#define SOLG_ERROR         0xe00  /* Used to create 12 bit event IDs */
+#define APP_START_ADDR    0x8000
+#define POPULATED_INTS    (INTRPT_RESET | INTRPT_TPM2_OVFL |      \
+                             INTRPT_SCI1_RCV | INTRPT_SCI1_XMT)
 
-#define FLASH_SECT_SIZE     0x0200
-#define SERNUM_ADDR         0xfc00
-#define BOOT_SECTOR_ADDR    0xfc00
-
-#define SOLG_SWITCH_THRESH  50    /* Switch threshold in usecs */
-
-typedef enum
-{
-  SOL_STATE_INIT            = 0x00,
-  SOL_STATE_NORM            = 0x01,
-} SOL_STATE_E;
-
-typedef struct
-{
-  RS232I_CFG_SOL_TYPE_E     type;
-  U8                        initialKick;
-  RS232I_DUTY_E             dutyCycle;
-} SOLG_CFG_T;
-
-typedef struct
-{
-  SOL_STATE_E               state;
-  U8                        procCtl;
-  U8                        validSwitch;
-  SOLG_CFG_T                solCfg[RS232I_NUM_SOL];
-  STDLI_ELAPSED_TIME_T      elapsedTime;
-} SOLG_GLOB_T;
-
-#ifndef SOLG_INSTANTIATE
- extern
-#endif
-  SOLG_GLOB_T               solg_glob;
-
-void rs232proc_init(void);
-void rs232proc_task(void);
-
-void digital_init(void);
-void digital_task(void);
+void _Startup(void); 
+#define main_vector _Startup
+interrupt void stdltime_timer2_isr(void);
+#define vector14 stdltime_timer2_isr
+interrupt void stdlser_rcv_port1_isr(void);
+#define vector17 stdlser_rcv_port1_isr
+interrupt void stdlser_xmt_port1_isr(void);
+#define vector18 stdlser_xmt_port1_isr
 
 #endif

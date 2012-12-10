@@ -17,7 +17,7 @@
  *                           HHH     SSSS     HHH
  *                          HHHHH            HHHHH
  *
- * @file:   version.h
+ * @file:   stdtypes.h
  * @author: Hugh Spahr
  * @date:   4/22/2008
  *
@@ -26,22 +26,37 @@
  *===============================================================================
  */
 /**
- * The version file keeps the current version of the software.  These defines
- *  are used to fill out the APP_START_T found at the end of interrupt.h.
+ * These are the standard types that are used by the sample application.
  *
  *===============================================================================
  */
-#ifndef VERSION_H
-#define VERSION_H
+#ifndef STDTYPES_H
+#define STDTYPES_H
 
-#define MAJ_VERSION 0
-#define MIN_VERSION 0
-#define SUB_VERSION 2
+typedef enum 
+{
+  FALSE = 0,
+  TRUE = !FALSE,
+} BOOL;
 
-const char vers_programVersion[10] = {
-   'v', (char)((MAJ_VERSION/10) + 0x30), (char)(MAJ_VERSION - ((MAJ_VERSION/10)*10) + 0x30),
-   '.', (char)((MIN_VERSION/10) + 0x30), (char)(MIN_VERSION - ((MIN_VERSION/10)*10) + 0x30),
-   '.', (char)((SUB_VERSION/10) + 0x30), (char)(SUB_VERSION - ((SUB_VERSION/10)*10) + 0x30),
-   0x00 };
-   
+typedef unsigned char            U8;
+typedef char                     S8;
+typedef volatile unsigned char   R8;
+typedef unsigned int             U16;
+typedef int                      S16;
+typedef volatile unsigned int    R16;
+typedef unsigned long            U32;
+typedef long                     S32;
+typedef volatile unsigned long   R32;
+typedef int                      INT;
+typedef unsigned int             UINT;
+
+#define MAX_U8          0xff
+#define MAX_U16         0xffff
+#define MAX_U32         0xffffffff
+
+#define MAX_U8_DIGITS   3
+#define MAX_U24_DIGITS  7
+#define MAX_U32_DIGITS  10
+
 #endif

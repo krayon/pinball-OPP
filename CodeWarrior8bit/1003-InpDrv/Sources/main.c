@@ -21,7 +21,7 @@
  *
  * @file:   main.c
  * @author: Hugh Spahr
- * @date:   12/06/2012
+ * @date:   12/10/2012
  *
  * @note:   Open Pinball Project
  *          Copyright© 2012, Hugh Spahr
@@ -52,11 +52,11 @@
 #include "derivative.h" /* include peripheral declarations */
 #include "stdlintf.h"
 #include "rs232intf.h"
-#define SOLG_INSTANTIATE
-#include "solglob.h"
+#define INPG_INSTANTIATE
+#include "inpglob.h"
 
 #include "version.h"
-#define PROD_ID             1001
+#define PROD_ID             1003
 #define INTERRUPT_INSTANTIATE
 #include "interrupt.h"
 
@@ -97,8 +97,6 @@ void main(void)
 #define MAGIC_NUM_ADDR      0x80
 #define PB_XTRA_4           0x80
 
-  SOLG_CFG_T                *solCfg_p;
-  
   SOPT1  = INIT_SOPT1;
   SOPT2  = INIT_SOPT2;
   SPMSC1 = INIT_SPMSC1;    
@@ -115,16 +113,9 @@ void main(void)
 
   EnableInterrupts; /* enable interrupts */
   
-  solg_glob.procCtl = 0;
-  solg_glob.validSwitch = 0;
-  for (solCfg_p = &solg_glob.solCfg[0];
-    solCfg_p < &solg_glob.solCfg[RS232I_NUM_SOL]; solCfg_p++)
-  {
-    solCfg_p->type = 0;
-    solCfg_p->initialKick = 0;
-    solCfg_p->dutyCycle = 0;
-  }
-    
+  inpg_glob.state = INP_STATE_INIT;
+  inpg_glob.inpSwitch = 0;
+  inpg_glob.stateMask = 0;
 
   /* Start the clock running, then start the sys tick timer for 10ms */
   stdltime_start_timing_clock(TIMER_FAST_OSC);
