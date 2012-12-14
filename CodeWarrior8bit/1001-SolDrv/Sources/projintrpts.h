@@ -52,7 +52,7 @@
 #ifndef PROJINTRPTS_H
 #define PROJINTRPTS_H
 
-#define APP_START_ADDR    0x8000
+#define APP_START_ADDR    0xe000
 #define POPULATED_INTS    (INTRPT_RESET | INTRPT_TPM2_OVFL |      \
                              INTRPT_SCI1_RCV | INTRPT_SCI1_XMT)
 

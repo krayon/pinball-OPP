@@ -135,9 +135,12 @@ void digital_init(void)
   }
   
   /* Set up input lines */
-  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_PULLUP, 0x0f, 0);
-  stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_PULLUP, 0xf0, 0);
-  stdldigio_config_dig_port(STDLI_DIG_PORT_C | STDLI_DIG_PULLUP, 0xff, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_PULLUP |
+    STDLI_DIG_SMALL_MODEL, 0x0f, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_PULLUP |
+    STDLI_DIG_SMALL_MODEL, 0xf0, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_C | STDLI_DIG_PULLUP |
+    STDLI_DIG_SMALL_MODEL, 0xff, 0);
 
 } /* End digital_init */
 

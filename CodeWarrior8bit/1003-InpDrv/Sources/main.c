@@ -103,7 +103,8 @@ void main(void)
   SPMSC2 = INIT_SPMSC2;
 
   /* Look if should jump back to bootloader and stay there */
-  stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_PULLUP, PB_XTRA_4, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_PULLUP |
+    STDLI_DIG_SMALL_MODEL, PB_XTRA_4, 0);
   if ((PTBD & PB_XTRA_4) == 0)
   {
     *(U8 *)MAGIC_NUM_ADDR = MAGIC_NUM;

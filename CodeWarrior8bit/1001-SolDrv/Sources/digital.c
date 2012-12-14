@@ -150,11 +150,14 @@ void digital_init(void)
   }
   
   /* Set up solenoid drivers */
-  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT, PA_SOL_MASK, 0);
-  stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_OUT, PB_SOL_MASK, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT |
+    STDLI_DIG_SMALL_MODEL, PA_SOL_MASK, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_OUT |
+    STDLI_DIG_SMALL_MODEL, PB_SOL_MASK, 0);
   
   /* Set up digital/solenoid inputs */
-  stdldigio_config_dig_port(STDLI_DIG_PORT_C | STDLI_DIG_PULLUP, 0xff, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_C | STDLI_DIG_PULLUP |
+    STDLI_DIG_SMALL_MODEL, 0xff, 0);
 
 } /* End digital_init */
 

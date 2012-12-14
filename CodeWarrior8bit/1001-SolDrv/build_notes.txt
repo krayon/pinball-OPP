@@ -34,4 +34,5 @@ a solenoid driver.
 Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
 00.00.01	MC9S08SE08	00.00.05	0x894c6ae4	0x96c451a6	0xd390dfe1	Initial version
 00.00.02	MC9S08SE08	00.00.05	0xcec54f9b	0xea4c0b75	0x7e49371d	Added more rs232 cmds for input board.  Moved NUM_SOL
-												declaration to RS232I.  
+												declaration to RS232I.
+00.00.03	MC9S08SE08	00.00.05	0x822561f7	0x35225f5f	0xf70f9b36	Fix location of APP_TABLE.  Processor should use small memory model.  
