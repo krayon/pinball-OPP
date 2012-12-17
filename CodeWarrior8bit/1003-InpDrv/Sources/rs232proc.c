@@ -126,7 +126,7 @@ void rs232proc_init(void)
   rs232_glob.serInfo.txBufSize = TX_BUF_SIZE;
   rs232_glob.serInfo.rxSerChar_fp = rs232proc_rx_ser_char;
   rs232_glob.serInfo.cbParm = 0;
-  stdlser_init_ser_port(STDLI_SER_PORT_1 | STDLI_FAST_OSC,
+  stdlser_init_ser_port(STDLI_SER_PORT_1,
     &rs232_glob.serInfo);
   
 } /* End rs232proc_init */
@@ -363,7 +363,7 @@ void rs232proc_task(void)
         (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 2);
         rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
       }
-      else if ((data & CARD_ID_TYPE_MASK) == CARD_ID_SOL_CARD)
+      else if ((data & CARD_ID_TYPE_MASK) == CARD_ID_INP_CARD)
       {
         rs232_glob.myAddr = data;
         (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &data, 1);

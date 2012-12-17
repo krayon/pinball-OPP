@@ -36,3 +36,4 @@ Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
 00.00.02	MC9S08SE08	00.00.05	0xcec54f9b	0xea4c0b75	0x7e49371d	Added more rs232 cmds for input board.  Moved NUM_SOL
 												declaration to RS232I.
 00.00.03	MC9S08SE08	00.00.05	0x822561f7	0x35225f5f	0xf70f9b36	Fix location of APP_TABLE.  Processor should use small memory model.  
+00.00.04	MC9S08SE08	00.00.05	0x42cfef95	0x7fdd1b3c	0x4f73b023	Change osc to slow.
