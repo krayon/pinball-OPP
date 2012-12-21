@@ -85,7 +85,7 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
  ={ 4,  /* RS232I_GET_SER_NUM */    4,  /* RS232I_GET_PROD_ID */
     4,  /* RS232I_GET_VERS */       4,  /* RS232I_SET_SER_NUM */
     0,  /* RS232I_RESET */          0,  /* RS232I_GO_BOOT */
-    24, /* RS232I_CONFIG */         2,  /* RS232I_KICK_SOL */
+    24, /* RS232I_CONFIG_SOL */     2,  /* RS232I_KICK_SOL */
     1,  /* RS232I_READ_SOL_INP */   16, /* RS232I_CONFIG_INP */
     2,  /* RS232I_READ_INP_BRD */
   }

@@ -97,6 +97,8 @@ void main(void)
 #define MAGIC_NUM_ADDR      0x80
 #define PB_XTRA_4           0x80
 
+  U8      data;
+  
   SOPT1  = INIT_SOPT1;
   SOPT2  = INIT_SOPT2;
   SPMSC1 = INIT_SPMSC1;    
@@ -119,7 +121,7 @@ void main(void)
   inpg_glob.stateMask = 0;
 
   /* Start the clock running, then start the sys tick timer for 10ms */
-  stdltime_start_timing_clock(TIMER_FAST_OSC);
+  stdltime_start_timing_clock(0);
   stdltime_start_tick(10);
     
   /* Initialization functions */
@@ -127,11 +129,15 @@ void main(void)
   stdlser_ser_module_init();
   rs232proc_init();
   
+  data = 0xff;
   for(;;)
-  { 
+  {
+     
     rs232proc_task();
     digital_task();
     
+    data ^= 0xff;
+    /* (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &data, 1); */
     __RESET_WATCHDOG(); /* feeds the dog */
   }/* loop forever */
   

@@ -100,6 +100,7 @@ typedef struct
 
 typedef struct
 {
+  U8                        currInp;
   DIG_INP_T                 inp[RS232I_NUM_INP];
 } DIGITAL_GLOB_T;
 
@@ -133,6 +134,7 @@ void digital_init(void)
   {
     inp_p->state = INP_STATE;
   }
+  dig_glob.currInp = 0;
   
   /* Set up input lines */
   stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_PULLUP |
@@ -172,113 +174,119 @@ void digital_task(void)
   {
     /* Grab the inputs */
     inputs = PTCD | (((U16)((PTAD & 0x0f) | (PTBD & 0xf0))) << 8);
-    for (index = 0, inp_p = &dig_glob.inp[0]; index < RS232I_NUM_INP; inp_p++, index++)
+    index = dig_glob.currInp;
+    inp_p = &dig_glob.inp[index];
+
+    if (inpg_glob.inpCfg[index] == FALL_EDGE)
     {
-      if (inpg_glob.inpCfg[index] == FALL_EDGE)
+      if (inp_p->state == INP_LOW)
       {
-        if (inp_p->state == INP_LOW)
+        if (inputs & (1 << index))
         {
-          if (inputs & (1 << index))
-          {
-            inp_p->state = INP_VERIFY_VALID_HIGH;
-            stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
-          }
-        }
-        else if (inp_p->state == INP_VERIFY_VALID_HIGH)
-        {
-          if (inputs & (1 << index))
-          {
-            stdltime_get_elapsed_time(&inp_p->elapsedTime);
-            if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
-            {
-              inp_p->state = INP_HIGH;
-            }
-          }
-          else
-          {
-            inp_p->state = INP_LOW;
-          }
-        }
-        else if (inp_p->state == INP_HIGH)
-        {
-          if ((inputs & (1 << index)) == 0)
-          {
-            inp_p->state = INP_VERIFY_VALID_LOW;
-            stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
-          }
-        }
-        else if (inp_p->state == INP_VERIFY_VALID_LOW)
-        {
-          if ((inputs & (1 << index)) == 0)
-          {
-            stdltime_get_elapsed_time(&inp_p->elapsedTime);
-            if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
-            {
-              inp_p->state = INP_LOW;
-              DisableInterrupts;
-              inpg_glob.inpSwitch |= (1 << index);
-              EnableInterrupts;
-            }
-          }
-          else
-          {
-            inp_p->state = INP_HIGH;
-          }
+          inp_p->state = INP_VERIFY_VALID_HIGH;
+          stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
         }
       }
-      else if (inpg_glob.inpCfg[index] == RISE_EDGE)
+      else if (inp_p->state == INP_VERIFY_VALID_HIGH)
       {
-        if (inp_p->state == INP_LOW)
+        if (inputs & (1 << index))
         {
-          if (inputs & (1 << index))
-          {
-            inp_p->state = INP_VERIFY_VALID_HIGH;
-            stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
-          }
-        }
-        else if (inp_p->state == INP_VERIFY_VALID_HIGH)
-        {
-          if (inputs & (1 << index))
-          {
-            stdltime_get_elapsed_time(&inp_p->elapsedTime);
-            if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
-            {
-              inp_p->state = INP_HIGH;
-              DisableInterrupts;
-              inpg_glob.inpSwitch |= (1 << index);
-              EnableInterrupts;
-            }
-          }
-          else
-          {
-            inp_p->state = INP_LOW;
-          }
-        }
-        else if (inp_p->state == INP_HIGH)
-        {
-          if ((inputs & (1 << index)) == 0)
-          {
-            inp_p->state = INP_VERIFY_VALID_LOW;
-            stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
-          }
-        }
-        else if (inp_p->state == INP_VERIFY_VALID_LOW)
-        {
-          if ((inputs & (1 << index)) == 0)
-          {
-            stdltime_get_elapsed_time(&inp_p->elapsedTime);
-            if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
-            {
-              inp_p->state = INP_LOW;
-            }
-          }
-          else
+          stdltime_get_elapsed_time(&inp_p->elapsedTime);
+          if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
           {
             inp_p->state = INP_HIGH;
           }
+        }
+        else
+        {
+          inp_p->state = INP_LOW;
+        }
+      }
+      else if (inp_p->state == INP_HIGH)
+      {
+        if ((inputs & (1 << index)) == 0)
+        {
+          inp_p->state = INP_VERIFY_VALID_LOW;
+          stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
+        }
+      }
+      else if (inp_p->state == INP_VERIFY_VALID_LOW)
+      {
+        if ((inputs & (1 << index)) == 0)
+        {
+          stdltime_get_elapsed_time(&inp_p->elapsedTime);
+          if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
+          {
+            inp_p->state = INP_LOW;
+            DisableInterrupts;
+            inpg_glob.inpSwitch |= (1 << index);
+            EnableInterrupts;
+          }
+        }
+        else
+        {
+          inp_p->state = INP_HIGH;
         }
       }
     }
+    else if (inpg_glob.inpCfg[index] == RISE_EDGE)
+    {
+      if (inp_p->state == INP_LOW)
+      {
+        if (inputs & (1 << index))
+        {
+          inp_p->state = INP_VERIFY_VALID_HIGH;
+          stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
+        }
+      }
+      else if (inp_p->state == INP_VERIFY_VALID_HIGH)
+      {
+        if (inputs & (1 << index))
+        {
+          stdltime_get_elapsed_time(&inp_p->elapsedTime);
+          if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
+          {
+            inp_p->state = INP_HIGH;
+            DisableInterrupts;
+            inpg_glob.inpSwitch |= (1 << index);
+            EnableInterrupts;
+          }
+        }
+        else
+        {
+          inp_p->state = INP_LOW;
+        }
+      }
+      else if (inp_p->state == INP_HIGH)
+      {
+        if ((inputs & (1 << index)) == 0)
+        {
+          inp_p->state = INP_VERIFY_VALID_LOW;
+          stdltime_get_curr_time(&inp_p->elapsedTime.startTime);
+        }
+      }
+      else if (inp_p->state == INP_VERIFY_VALID_LOW)
+      {
+        if ((inputs & (1 << index)) == 0)
+        {
+          stdltime_get_elapsed_time(&inp_p->elapsedTime);
+          if (inp_p->elapsedTime.elapsedTime.usec >= INPG_SWITCH_THRESH)
+          {
+            inp_p->state = INP_LOW;
+          }
+        }
+        else
+        {
+          inp_p->state = INP_HIGH;
+        }
+      }
+    }
+    index++;
+    if (index >= RS232I_NUM_INP)
+    {
+      index = 0;
+    }
+    dig_glob.currInp = index;
     DisableInterrupts;
     inpg_glob.inpSwitch = (inpg_glob.inpSwitch & ~inpg_glob.stateMask) |
       (inputs & inpg_glob.stateMask);

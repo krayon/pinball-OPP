@@ -105,6 +105,7 @@ void main(void)
   SPMSC2 = INIT_SPMSC2;
 
   /* Look if should jump back to bootloader and stay there */
+  /* HRS currently disabled
   stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_PULLUP |
     STDLI_DIG_SMALL_MODEL, PB_XTRA_4, 0);
   if ((PTBD & PB_XTRA_4) == 0)
@@ -112,7 +113,7 @@ void main(void)
     *(U8 *)MAGIC_NUM_ADDR = MAGIC_NUM;
     asm ldhx  #$fffe
     asm jmp   ,x
-  }
+  } */
 
   EnableInterrupts; /* enable interrupts */
   
@@ -128,7 +129,7 @@ void main(void)
     
 
   /* Start the clock running, then start the sys tick timer for 10ms */
-  stdltime_start_timing_clock(TIMER_FAST_OSC);
+  stdltime_start_timing_clock(0);
   stdltime_start_tick(10);
     
   /* Initialization functions */

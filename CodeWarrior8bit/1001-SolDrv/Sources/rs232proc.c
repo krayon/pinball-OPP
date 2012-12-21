@@ -171,7 +171,7 @@ void rs232proc_task(void)
       if (data == RS232I_INVENTORY)
       {
         rs232_glob.state = RS232_INVENTORY_CMD;
-        rs232_glob.myAddr = CARD_ID_SOL_CARD;
+        rs232_glob.myAddr = MAX_U8;
         (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &data, 1);
       }
       else if (data == RS232I_EOM)
@@ -370,7 +370,14 @@ void rs232proc_task(void)
       if (data == RS232I_EOM)
       {
         /* Rcv'd EOM, so my addr is next addr */
-        rs232_glob.myAddr++;
+        if (rs232_glob.myAddr == MAX_U8)
+        {
+          rs232_glob.myAddr = CARD_ID_SOL_CARD;
+        }
+        else
+        {
+          rs232_glob.myAddr++;
+        }
         txBuf[0] = rs232_glob.myAddr;
         txBuf[1] = RS232I_EOM;
         (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 2);

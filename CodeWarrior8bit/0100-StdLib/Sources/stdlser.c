@@ -63,7 +63,8 @@
 
 #define SER1_ADDR           0x38    /* Address of first port (port 1) */
 #define SCIxS1_RCV_OVERRUN  0x28    /* Rcv bit or overrun */
-#define SCIxS1_TX_COMP      0x40    /* Xmt complete bit */
+#define SCIxS1_TDRE         0x80    /* Xmt data register empty */
+#define SCIxC2_TX_INT_EN    0x80    /* Xmt interrupt enable */
 
 typedef struct
 {
@@ -259,7 +260,7 @@ void stdlser_port1_poll(void)
   {
     stdlser_rcv_char(STDLI_SER_PORT_1);
   }
-  if (serInfo_p->txAct && (ser_p->SCIxS1 & SCIxS1_TX_COMP))
+  if (serInfo_p->txAct && (ser_p->SCIxS1 & SCIxS1_TDRE))
   {
     stdlser_xmt_char(STDLI_SER_PORT_1);
   }
@@ -281,7 +282,7 @@ void stdlser_port2_poll(void)
   {
     stdlser_rcv_char(STDLI_SER_PORT_2);
   }
-  if (serInfo_p->txAct && (ser_p->SCIxS1 & SCIxS1_TX_COMP))
+  if (serInfo_p->txAct && (ser_p->SCIxS1 & SCIxS1_TDRE))
   {
     stdlser_xmt_char(STDLI_SER_PORT_2);
   }
@@ -314,38 +315,40 @@ void stdlser_xmt_char(
 {
   STDLI_SER_INFO_T          *serInfo_p;
   STDLSER_REG_T             *ser_p;
-  U8                        status;
+  U8                        data;
 
-#define XMT_CMPLT_INT       0x40
-  
+#define TDRE_FLAG           0x80
+
   serInfo_p = stdlser_glob.serInfo_p[portNum];
-  ser_p = ((STDLSER_REG_T *)SER1_ADDR) + portNum;
+  if (!serInfo_p->txAct)
+  {
+    serInfo_p->txAct = TRUE;
+  }
   
   /* Check if there is a character to be transmitted */
-  status = ser_p->SCIxS1;
   if (serInfo_p->curTxHead != serInfo_p->curTxTail)
   {        
     /* Send a char serial port */
-    ser_p->SCIxD = serInfo_p->txBuf_p[serInfo_p->curTxHead];
-    serInfo_p->curTxHead++;
-    if (serInfo_p->curTxHead == serInfo_p->txBufSize)
+    ser_p = ((STDLSER_REG_T *)SER1_ADDR) + portNum;
+    if (ser_p->SCIxS1 & TDRE_FLAG)
     {
-      serInfo_p->curTxHead = 0;
+      data = serInfo_p->txBuf_p[serInfo_p->curTxHead]; 
+      serInfo_p->curTxHead++;
+      if (serInfo_p->curTxHead == serInfo_p->txBufSize)
+      {
+        serInfo_p->curTxHead = 0;
+      }
     }
     
-    /* Since tx is active, set the transmit done isr bit */
-    serInfo_p->txAct = TRUE;
-    if (serInfo_p->pollBit)
+    /* Check if this is the last character */
+    if (serInfo_p->curTxHead == serInfo_p->curTxTail)
     {
-      /* Set tx int bit if not polling */
-      ser_p->SCIxC2 |= XMT_CMPLT_INT;
+      /* Clear the transmit done isr bit */
+      ser_p->SCIxC2 &= ~SCIxC2_TX_INT_EN;
+      serInfo_p->txAct = FALSE;
     }
-  }
-  else
-  {
-    /* Clear the transmit done isr bit */
-    serInfo_p->txAct = FALSE;
-    ser_p->SCIxC2 &= ~XMT_CMPLT_INT;    
+    ser_p->SCIxD = data; 
+
   }
 } /* End void stdlser_xmt_char */
 
@@ -384,6 +387,7 @@ U16 stdlser_xmt_data(
   STDLI_SER_INFO_T          *serInfo_p;
   U8                        nxtIndex;
   BOOL                      spaceAvail;
+  STDLSER_REG_T             *ser_p;
   
   serInfo_p = stdlser_glob.serInfo_p[portNum];
   if (serInfo_p == NULL)
@@ -421,7 +425,14 @@ U16 stdlser_xmt_data(
   }
   if (!serInfo_p->txAct)
   {
-    stdlser_xmt_char(portNum);
+    /* Since tx is not active, enable the isr bit if not polled */
+    serInfo_p->txAct = TRUE;
+    if (serInfo_p->pollBit)
+    {
+      /* Set tx int bit if not polling */
+      ser_p = ((STDLSER_REG_T *)SER1_ADDR) + portNum;
+      ser_p->SCIxC2 |= SCIxC2_TX_INT_EN;
+    }
   }
   return(tmpCnt);
 } /* End void stdlser_xmt_data */

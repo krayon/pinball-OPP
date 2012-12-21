@@ -58,8 +58,8 @@
 
 #define STDL_FILE_ID        2
 
-#define TX_BUF_SIZE         0x10
-#define RX_BUF_SIZE         0x04
+#define TX_BUF_SIZE         0x20
+#define RX_BUF_SIZE         0x10
 
 typedef enum
 {
@@ -76,7 +76,7 @@ typedef struct
   RS232_STATE_E             state;
   BOOL                      rcvChar;
   BOOL                      myCmd;
-  U8                        rcvData;
+  R8                        rcvData;
   U8                        myAddr;
   U8                        cmdLen;
   RS232I_CMD_E              currCmd;
@@ -171,7 +171,7 @@ void rs232proc_task(void)
       if (data == RS232I_INVENTORY)
       {
         rs232_glob.state = RS232_INVENTORY_CMD;
-        rs232_glob.myAddr = CARD_ID_SOL_CARD;
+        rs232_glob.myAddr = MAX_U8;
         (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &data, 1);
       }
       else if (data == RS232I_EOM)
@@ -272,7 +272,7 @@ void rs232proc_task(void)
             txBuf[3] = inpg_glob.inpSwitch & 0xff;
             inpg_glob.inpSwitch &= inpg_glob.stateMask;
             EnableInterrupts;
-            (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 3);
+            (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, (U8 *)&txBuf[0], 4);
           }
           else
           {
@@ -357,7 +357,14 @@ void rs232proc_task(void)
       if (data == RS232I_EOM)
       {
         /* Rcv'd EOM, so my addr is next addr */
-        rs232_glob.myAddr++;
+        if (rs232_glob.myAddr == MAX_U8)
+        {
+          rs232_glob.myAddr = CARD_ID_INP_CARD;
+        }
+        else
+        {
+          rs232_glob.myAddr++;
+        }
         txBuf[0] = rs232_glob.myAddr;
         txBuf[1] = RS232I_EOM;
         (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 2);
