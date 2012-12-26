@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.01'
+testVers = '00.00.02'
 
 import sys
 import serial
@@ -71,21 +71,6 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
-
-inpStateCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
-
-inpFallCfg = [ [ rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
-             rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
-             rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
-             rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE ] ]
-
-inpRiseCfg = [ [ rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, \
-             rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, \
-             rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, \
-             rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE, rs232Intf.CFG_INP_RISE_EDGE ] ]
 
 solCfg = [ [ '\x00', '\xff', '\x0f', '\x00', '\xff', '\x0f', \
              '\x00', '\xff', '\x0f', '\x00', '\xff', '\x0f', \
@@ -148,12 +133,9 @@ def sendInpCfgCmd(cardNum, cfg):
     cmdArr.append(inpAddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_INP_CMD)
     for loop in range(rs232Intf.NUM_INP_PER_BRD):
-        if (cfg == rs232Intf.CFG_INP_STATE):
-            cmdArr.append(inpStateCfg[cardNum][loop])
-        elif (cfg == rs232Intf.CFG_INP_FALL_EDGE):
-            cmdArr.append(inpFallCfg[cardNum][loop])
-        elif (cfg == rs232Intf.CFG_INP_RISE_EDGE):
-            cmdArr.append(inpRiseCfg[cardNum][loop])
+        if ((cfg == rs232Intf.CFG_INP_STATE) or (cfg != rs232Intf.CFG_INP_FALL_EDGE) or \
+            (cfg != rs232Intf.CFG_INP_RISE_EDGE)):
+            cmdArr.append(cfg)
         else:
             cmdArr.append(inpCfg[cardNum][loop])
     cmdArr.append(rs232Intf.EOM_CMD)
@@ -214,7 +196,7 @@ def sendSolCfgCmd(cardNum):
     if (cardNum >= numSolBrd):
         return (600)    
     cmdArr = []
-    cmdArr.append(inpSolArr[cardNum])
+    cmdArr.append(solAddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_SOL_CMD)
     for loop in xrange(rs232Intf.NUM_SOL_PER_BRD):
         cmdArr.append(solCfg[cardNum][loop * 3])
@@ -281,7 +263,10 @@ for arg in sys.argv:
     print "python inpDrvTest.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
-    print "    -test=testNum      test number, defaults to 0"
+    print "    -test=testNum      test number, defaults to 0\n"
+    print "-test=0: Send inventory and verify response 10000 times."
+    print "-test=1: Read first input board continuously.  ('x' exits)"
+    print "-test=2: Read first solenoid board continuously.  ('x' exits)"
     end = True
 if end:
     print "\nPress any key to close window"

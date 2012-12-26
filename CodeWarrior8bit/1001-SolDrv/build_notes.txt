@@ -37,3 +37,7 @@ Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
 												declaration to RS232I.
 00.00.03	MC9S08SE08	00.00.05	0x822561f7	0x35225f5f	0xf70f9b36	Fix location of APP_TABLE.  Processor should use small memory model.  
 00.00.04	MC9S08SE08	00.00.05	0x42cfef95	0x7fdd1b3c	0x4f73b023	Change osc to slow.
+00.00.05	MC9S08SE08	00.00.06	didn't record					Start card addr at 0, disable jump to bootloader
+00.00.06	MC9S08SE08	00.00.06	0x175409d9	0x710b7f7c	0xca21a842	Only look at 1 input per loop to insure rs232 cmds aren't missed,
+												if not using switch solenoid input, use it as a state input,
+												re-enable jump to bootloader. 

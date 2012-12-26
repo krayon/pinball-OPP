@@ -81,6 +81,7 @@ typedef struct
   SOL_STATE_E               state;
   U8                        procCtl;
   U8                        validSwitch;
+  U8                        stateMask;
   SOLG_CFG_T                solCfg[RS232I_NUM_SOL];
   STDLI_ELAPSED_TIME_T      elapsedTime;
 } SOLG_GLOB_T;

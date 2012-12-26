@@ -95,7 +95,7 @@ void main(void)
 /* SCL low at bootup means no pullups, force into bootloader */
 #define MAGIC_NUM           0xa5
 #define MAGIC_NUM_ADDR      0x80
-#define PB_XTRA_4           0x80
+#define PB_XTRA_4           0x08
 
   SOLG_CFG_T                *solCfg_p;
   
@@ -105,7 +105,6 @@ void main(void)
   SPMSC2 = INIT_SPMSC2;
 
   /* Look if should jump back to bootloader and stay there */
-  /* HRS currently disabled
   stdldigio_config_dig_port(STDLI_DIG_PORT_B | STDLI_DIG_PULLUP |
     STDLI_DIG_SMALL_MODEL, PB_XTRA_4, 0);
   if ((PTBD & PB_XTRA_4) == 0)
@@ -113,7 +112,7 @@ void main(void)
     *(U8 *)MAGIC_NUM_ADDR = MAGIC_NUM;
     asm ldhx  #$fffe
     asm jmp   ,x
-  } */
+  }
 
   EnableInterrupts; /* enable interrupts */
   

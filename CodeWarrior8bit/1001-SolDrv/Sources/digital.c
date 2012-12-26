@@ -107,6 +107,7 @@ typedef struct
 
 typedef struct
 {
+  U8                        currInp;
   DIG_SOL_T                 sol[RS232I_NUM_SOL];
 } DIGITAL_GLOB_T;
 
@@ -148,6 +149,7 @@ void digital_init(void)
   {
     sol_p->state = SOL_STATE_IDLE;
   }
+  dig_glob.currInp = 0;
   
   /* Set up solenoid drivers */
   stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT |
@@ -191,146 +193,122 @@ void digital_task(void)
 
   if (solg_glob.state == SOL_STATE_NORM)
   {
-    /* Grab the solenoid inputs */
-    inputs = PTCD;    
-    for (index = 0, sol_p = &dig_glob.sol[0], solCfg_p = &solg_glob.solCfg[0];
-      index < RS232I_NUM_SOL; sol_p++, index++, solCfg_p++)
+    /* Grab the solenoid inputs, convert to correct positions */
+    inputs = PTCD;
+    inputs = ((inputs << 1) & 0xa8) | ((inputs >> 1) & 0x54) | (inputs & 0x03);
+    index = dig_glob.currInp;
+    sol_p = &dig_glob.sol[index];
+    solCfg_p = &solg_glob.solCfg[index];
+    
+    /* If using the switch as a trigger input, check it.  Note: switches active low */
+    if ((solCfg_p->type & USE_SWITCH) && ((inputs & (1 << index)) == 0))
     {
-      /* If using the switch as a trigger input, check it.  Note: switches active low */
-      if ((solCfg_p->type & USE_SWITCH) && ((inputs & SWITCH_LOOKUP[index]) == 0))
+      switchAct = TRUE;
+    }
+    else
+    {
+      switchAct = FALSE;
+    }
+    /* Check if processor is requesting the solenoid to be kicked */
+    switchAct = (switchAct || (solg_glob.procCtl & (1 << index)) ? TRUE : FALSE);
+    if (sol_p->state == SOL_STATE_IDLE)
+    {
+      if (switchAct)
       {
-        switchAct = TRUE;
+        /* Switch just started to be pressed */
+        stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
+        sol_p->state = SOL_VERIFY_INPUT_VALID;
       }
-      else
+    }
+    else if (sol_p->state == SOL_VERIFY_INPUT_VALID)
+    {
+      if (switchAct)
       {
-        switchAct = FALSE;
-      }
-      /* Check if processor is requesting the solenoid to be kicked */
-      switchAct = (switchAct || (solg_glob.procCtl & (1 << index)) ? TRUE : FALSE);
-      if (sol_p->state == SOL_STATE_IDLE)
-      {
-        if (switchAct)
-        {
-          /* Switch just started to be pressed */
-          stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
-          sol_p->state = SOL_VERIFY_INPUT_VALID;
-        }
-      }
-      else if (sol_p->state == SOL_VERIFY_INPUT_VALID)
-      {
-        if (switchAct)
-        {
-          /* Check if elapsed time is over threshold */
-          stdltime_get_elapsed_time(&sol_p->elapsedTime);
-          if (sol_p->elapsedTime.elapsedTime.usec >= SOLG_SWITCH_THRESH)
-          {
-            sol_p->state = SOL_INITIAL_KICK;
-            DisableInterrupts;
-            solg_glob.validSwitch |= (1 << index);
-            EnableInterrupts;
-            sol_p->foundClr = FALSE;
-            if (SOL_PORT_A[index])
-            {
-              PTAD |= (1 << index);
-            }
-            else
-            {
-              PTBD |= (1 << index);
-            }
-            stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
-            
-            /* If this is an autoclear switch, clear the proc bit */
-            if (solCfg_p->type & AUTO_CLR)
-            {
-              solg_glob.procCtl &= ~(1 << index);
-            }
-          }
-        }
-        else
-        {
-          /* Switch wasn't active long enough */
-          sol_p->state = SOL_STATE_IDLE;
-        }
-      }
-      else if (sol_p->state == SOL_INITIAL_KICK)
-      {
-        /* Look for switch to be inactive */
-        if (!switchAct)
-        {
-          sol_p->foundClr = TRUE;
-        }
-      
-        /* Check if elapsed time is over initial kick time */
+        /* Check if elapsed time is over threshold */
         stdltime_get_elapsed_time(&sol_p->elapsedTime);
-        if (sol_p->elapsedTime.elapsedTime.msec >= solCfg_p->initialKick)
+        if (sol_p->elapsedTime.elapsedTime.usec >= SOLG_SWITCH_THRESH)
         {
-          /* In all cases turn off the solenoid driver */
+          sol_p->state = SOL_INITIAL_KICK;
+          DisableInterrupts;
+          solg_glob.validSwitch |= (1 << index);
+          EnableInterrupts;
+          sol_p->foundClr = FALSE;
           if (SOL_PORT_A[index])
           {
-            PTAD &= ~(1 << index);
+            PTAD |= (1 << index);
           }
           else
           {
-            PTBD &= ~(1 << index);
+            PTBD |= (1 << index);
           }
+          stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
           
-          /* See if this has a sustaining PWM */
-          if (solCfg_p->dutyCycle & DUTY_CYCLE_MASK)
+          /* If this is an autoclear switch, clear the proc bit */
+          if (solCfg_p->type & AUTO_CLR)
           {
-            /* Make sure the input continues to be set */
-            if (switchAct)
-            {
-              sol_p->state = SOL_SUSTAIN_PWM;
-            }
-            else
-            {
-              sol_p->state = SOL_MIN_TIME_OFF;
-              sol_p->cnt = 0;
-            }              
+            solg_glob.procCtl &= ~(1 << index);
+          }
+        }
+      }
+      else
+      {
+        /* Switch wasn't active long enough */
+        sol_p->state = SOL_STATE_IDLE;
+      }
+    }
+    else if (sol_p->state == SOL_INITIAL_KICK)
+    {
+      /* Look for switch to be inactive */
+      if (!switchAct)
+      {
+        sol_p->foundClr = TRUE;
+      }
+    
+      /* Check if elapsed time is over initial kick time */
+      stdltime_get_elapsed_time(&sol_p->elapsedTime);
+      if (sol_p->elapsedTime.elapsedTime.msec >= solCfg_p->initialKick)
+      {
+        /* In all cases turn off the solenoid driver */
+        if (SOL_PORT_A[index])
+        {
+          PTAD &= ~(1 << index);
+        }
+        else
+        {
+          PTBD &= ~(1 << index);
+        }
+        
+        /* See if this has a sustaining PWM */
+        if (solCfg_p->dutyCycle & DUTY_CYCLE_MASK)
+        {
+          /* Make sure the input continues to be set */
+          if (switchAct)
+          {
+            sol_p->state = SOL_SUSTAIN_PWM;
           }
           else
           {
             sol_p->state = SOL_MIN_TIME_OFF;
             sol_p->cnt = 0;
-          }
-          stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
-        }
-      }
-      else if (sol_p->state == SOL_SUSTAIN_PWM)
-      {
-        if (switchAct)
-        {
-          /* Do slow PWM function, initially off, then on for duty cycle */
-          stdltime_get_elapsed_time(&sol_p->elapsedTime);
-          if (sol_p->elapsedTime.elapsedTime.msec > PWM_PERIOD)
-          {
-            /* PWM period is over, clear drive signal */
-            if (SOL_PORT_A[index])
-            {
-              PTAD &= ~(1 << index);
-            }
-            else
-            {
-              PTBD &= ~(1 << index);
-            }
-            stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
-          }
-          else if (sol_p->elapsedTime.elapsedTime.msec >
-            PWM_PERIOD - (solCfg_p->dutyCycle & DUTY_CYCLE_MASK))
-          {
-            if (SOL_PORT_A[index])
-            {
-              PTAD |= (1 << index);
-            }
-            else
-            {
-              PTBD |= (1 << index);
-            }
-          }
+          }              
         }
         else
         {
-          /* Switch is inactive, turn off drive signal */
+          sol_p->state = SOL_MIN_TIME_OFF;
+          sol_p->cnt = 0;
+        }
+        stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
+      }
+    }
+    else if (sol_p->state == SOL_SUSTAIN_PWM)
+    {
+      if (switchAct)
+      {
+        /* Do slow PWM function, initially off, then on for duty cycle */
+        stdltime_get_elapsed_time(&sol_p->elapsedTime);
+        if (sol_p->elapsedTime.elapsedTime.msec > PWM_PERIOD)
+        {
+          /* PWM period is over, clear drive signal */
           if (SOL_PORT_A[index])
           {
             PTAD &= ~(1 << index);
@@ -339,46 +317,79 @@ void digital_task(void)
           {
             PTBD &= ~(1 << index);
           }
-          sol_p->state = SOL_STATE_IDLE;
+          stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
         }
-      }
-      else if (sol_p->state == SOL_VERIFY_SWITCH_CLR)
-      {
-        if (!switchAct)
+        else if (sol_p->elapsedTime.elapsedTime.msec >
+          PWM_PERIOD - (solCfg_p->dutyCycle & DUTY_CYCLE_MASK))
         {
-          sol_p->state = SOL_STATE_IDLE;
-        }
-      }
-      else if (sol_p->state == SOL_MIN_TIME_OFF)
-      {
-        /* Look for switch to be inactive */
-        if (!switchAct)
-        {
-          sol_p->foundClr = TRUE;
-        }
-        
-        /* Check if an off time increment has happened */
-        stdltime_get_elapsed_time(&sol_p->elapsedTime);
-        if (sol_p->elapsedTime.elapsedTime.msec >= solCfg_p->initialKick)
-        {
-          sol_p->cnt += MIN_OFF_INC;
-          if (sol_p->cnt >= (solCfg_p->dutyCycle & MIN_OFF_MASK))
+          if (SOL_PORT_A[index])
           {
-            if (sol_p->foundClr)
-            {
-              sol_p->state = SOL_STATE_IDLE;
-            }
-            else
-            {
-              sol_p->state = SOL_VERIFY_SWITCH_CLR;
-            }
+            PTAD |= (1 << index);
           }
           else
           {
-            stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
+            PTBD |= (1 << index);
           }
         }
       }
+      else
+      {
+        /* Switch is inactive, turn off drive signal */
+        if (SOL_PORT_A[index])
+        {
+          PTAD &= ~(1 << index);
+        }
+        else
+        {
+          PTBD &= ~(1 << index);
+        }
+        sol_p->state = SOL_STATE_IDLE;
+      }
     }
+    else if (sol_p->state == SOL_VERIFY_SWITCH_CLR)
+    {
+      if (!switchAct)
+      {
+        sol_p->state = SOL_STATE_IDLE;
+      }
+    }
+    else if (sol_p->state == SOL_MIN_TIME_OFF)
+    {
+      /* Look for switch to be inactive */
+      if (!switchAct)
+      {
+        sol_p->foundClr = TRUE;
+      }
+      
+      /* Check if an off time increment has happened */
+      stdltime_get_elapsed_time(&sol_p->elapsedTime);
+      if (sol_p->elapsedTime.elapsedTime.msec >= solCfg_p->initialKick)
+      {
+        sol_p->cnt += MIN_OFF_INC;
+        if (sol_p->cnt >= (solCfg_p->dutyCycle & MIN_OFF_MASK))
+        {
+          if (sol_p->foundClr)
+          {
+            sol_p->state = SOL_STATE_IDLE;
+          }
+          else
+          {
+            sol_p->state = SOL_VERIFY_SWITCH_CLR;
+          }
+        }
+        else
+        {
+          stdltime_get_curr_time(&sol_p->elapsedTime.startTime);
+        }
+      }
+    }
+    solg_glob.validSwitch = (solg_glob.validSwitch & ~solg_glob.stateMask) |
+      (inputs & solg_glob.stateMask);
+    index++;
+    if (index >= RS232I_NUM_SOL)
+    {
+      index = 0;
+    }
+    dig_glob.currInp = index;
   }
 } /* End digital_task */

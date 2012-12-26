@@ -342,6 +342,14 @@ void rs232proc_task(void)
         if (rs232_glob.currIndex >= rs232_glob.cmdLen)
         {
           solg_glob.state = SOL_STATE_NORM;
+          solg_glob.stateMask = 0;
+          for (index = 0; index < RS232I_NUM_SOL; index++)
+          {
+            if ((solg_glob.solCfg[index].type & USE_SWITCH) == 0)
+            {
+              solg_glob.stateMask |= (1 << index);
+            }
+          }
           rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
         }
       }
