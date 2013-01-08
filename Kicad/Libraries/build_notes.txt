@@ -33,3 +33,7 @@ Version		Notes:
 		pinned out with connector on bottom of the board instead of the top.Added
 		footprint for SOIC16.  Added DMG6602SVT, MMBD7000, and MAX202 chip.
 01.06.02	Added CONN1x18, 7SEGDISP, NX5DV330, and PCA9535.
+01.06.03	Added SOIC24, th1x4x100ralock, th7seg_disp, th_pot, conn1x6, conn1x9. Added
+		parts AME1084 fixed NTJD5121N pins to outputs, and PCA9655E.
+01.07.00	Added SMT SIL 1x3, reduced size of 2-56 mtg hole, SMT DIL 2x2, 1x2x1.5mm,
+		and 1x4x1.5mm.

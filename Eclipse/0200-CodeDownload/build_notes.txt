@@ -1,0 +1,37 @@
+1.  Install EclipseJava if it is not installed on your machine.
+
+2.  Install Launch4j on your machine.  Use all of the defaults.
+
+3.  Start Eclipse IDE
+
+5.  Under File->New->Project->Java->Java Project.  Allow it to use the default workspace,
+and name the project CodeDownload.  Under Project layout, choose Use project folder as root
+for sources and class files.  Choose Finish.
+
+6.  Highlight the directory, right-click,TortoiseSVN->Export.  Under URL of repository:
+Choose https://open-pinball-project.googlecode.com/svn/trunk/Eclipse/0200-CodeDownload
+This extracts all the files from the repository.
+
+7.  In eclipse, choose File->Refresh
+
+8.  In eclipse, click on lib subdirectory, select RXTXcomm.jar, and right-click,
+Build Path->Add to Build Path.
+
+9. In eclipse, click on project, right-click, Build Path->Configure Build Path,
+Java Build Path, Source tab, Included, Edit, Add, Inclusion pattern *.java
+
+10. In eclipse, select Run->Open Run Dialog->Arguments, VM arguments: 
+-Djava.library.path=lib
+
+11. Open a command prompt and change the directory to the project directory.
+
+12. Run "build.bat"
+
+13. Start->Launch4j->Launch4j
+
+14. Click the open folder Icon, browse to project directory\launch4j\CodeDownload.xml
+
+15. Click the Build Wrapper Icon.
+
+16. This creates CodeDownload.exe.  The two files that need to be released are CodeDownload.exe
+and CodeDownload.jar in the launch4j directory.
