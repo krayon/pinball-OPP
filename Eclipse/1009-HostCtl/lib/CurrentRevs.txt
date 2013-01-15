@@ -1,0 +1,3 @@
+vlcj.jar - 2.1.0
+jna.jar - 3.4.0
+platform.jar - 3.4.0

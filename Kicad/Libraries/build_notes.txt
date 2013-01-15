@@ -37,3 +37,4 @@ Version		Notes:
 		parts AME1084 fixed NTJD5121N pins to outputs, and PCA9655E.
 01.07.00	Added SMT SIL 1x3, reduced size of 2-56 mtg hole, SMT DIL 2x2, 1x2x1.5mm,
 		and 1x4x1.5mm.
+01.08.00	Added 2.5mm mouting hole.

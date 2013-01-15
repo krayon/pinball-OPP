@@ -1,4 +1,4 @@
-PCBNEW-LibModule-V1  1/7/2013 4:01:10 PM
+PCBNEW-LibModule-V1  1/14/2013 8:02:39 AM
 # encoding utf-8
 $INDEX
 00_blank
@@ -18,6 +18,7 @@ $INDEX
 00_msop10
 00_mtg_hole-1.5mm
 00_mtg_hole-2-56
+00_mtg_hole-2.5mm
 00_mtg_hole-26awg
 00_pushbutton-no-1x2x5mm
 00_qfn10.5mm
@@ -6815,7 +6816,7 @@ Li 00_smt-sil-1x3x100
 Sc 00000000
 AR SSOP16
 Op 0 0 0
-At SMD 
+At SMD
 T0 0 0 400 300 0 75 N V 21 N "smt_sil_1x3x100"
 T1 0 709 300 300 0 75 N I 21 N "Val**"
 DS 976 1417 897 1575 150 21
@@ -6852,4 +6853,22 @@ Of 0.000000 0.000000 0.000000
 Ro 0.000000 0.000000 0.000000
 $EndSHAPE3D
 $EndMODULE  00_smt-sil-1x3x100
+$MODULE 00_mtg_hole-2.5mm
+Po 0 0 0 15 50F401D6 00000000 ~~
+Li 00_mtg_hole-2.5mm
+Cd module 1 pin (ou trou mecanique de percage)
+Kw DEV
+Sc 00000000
+AR 1pin
+Op 0 0 0
+T0 0 -550 400 400 0 100 N I 21 N "1PIN"
+T1 0 650 400 400 0 100 N I 21 N "P***"
+$PAD
+Sh "1" C 1575 1575 0 0 0
+Dr 985 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 0
+$EndPAD
+$EndMODULE  00_mtg_hole-2.5mm
 $EndLIBRARY
