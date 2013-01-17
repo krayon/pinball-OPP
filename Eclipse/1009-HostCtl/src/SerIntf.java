@@ -47,9 +47,13 @@
  *===============================================================================
  */
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.TooManyListenersException;
+
+import javax.swing.Timer;
 
 import gnu.io.*;
 
@@ -66,6 +70,10 @@ public class SerIntf implements SerialPortEventListener
    private SerialPort            serialPort;
    private InputStream           serInpStream;
    private OutputStream          serOutStream;
+   private boolean               rcvResp;
+   private boolean               printTimerMisses = false;
+   private int                   missed = 0;
+   private int                   received = 0;
 
    private static final int      MAX_READ_BUF_SIZE          = 64;
    private byte[]                readBuffer = new byte[MAX_READ_BUF_SIZE];
@@ -77,6 +85,10 @@ public class SerIntf implements SerialPortEventListener
    private static final int      WAIT_FOR_EOM               = 3;
    private int                   rcvState;
    private int                   rcvDataCtr;
+   
+   private boolean               foundCards;
+   private int[]                 periodicTxMsg = new int[64];
+   private int                   periodicTxLen;
 
    /* Commands are cardAddr, then cmd */
    public static final byte      RS232I_GET_SER_NUM         = 0x00;
@@ -106,14 +118,213 @@ public class SerIntf implements SerialPortEventListener
 
    public static final int       CARD_ID_TYPE_MASK          = 0xf0;
    public static final int       CARD_ID_SOL_CARD           = 0x00;
-   public static final int       CARD_ID_INP_CARD           = 0x00;
+   public static final int       CARD_ID_INP_CARD           = 0x10;
 
-   public void SerIntf()
+   /* Solenoid cfg is flags, initial kick (ms), and duty cycle/off byte.
+    *    Min off time is 0-7 times the initial kick time.  If initial kick
+    *    is 20 ms and min off is 5, the solenoid will be forced off for 100 ms
+    */
+   public static final int       SOLCFG_FLG_USE_SWITCH      = 0x01;
+   public static final int       SOLCFG_FLG_AUTO_CLR        = 0x02;
+   
+   public static final int       SOLCFG_TIME_DUTY_CYCLE_MSK = 0x0f;
+   public static final int       SOLCFG_TIME_MIN_OFF_MSK    = 0x70;
+   
+   /* Input cfg is a single byte for each input bit */
+   public static final int       INPCFG_STATE_INPUT         = 0x00;
+   public static final int       INPCFG_FALL_EDGE           = 0x01;
+   public static final int       INPCFG_RISE_EDGE           = 0x02;
+   
+   private static final int[]    TEST_SOLCFG                =
    {
+      /* Flags */                /* intial kick (ms) */     /* min off/duty cycle */
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+      0x00,                      0xff,                      0x0f,
+   };
+   
+   private static final int[]    TEST_INPCFG                =
+   { 
+      INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT,
+      INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT,
+      INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT,
+      INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT, INPCFG_STATE_INPUT
+   };
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: SerIntf
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Serial interface class
+    * 
+    * Connect to a serial port and then send an inventory msg to discover
+    * cards.  
+    * program.  Try to grab the port.  Create input and output streams.  Set up
+    * the event listener to get a message when a byte is received.
+    * 
+    * @param   None 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   public SerIntf(String portName)
+   {
+      int[]                            msg = new int[384];
+      int                              cnt;
+      int                              index;
+      
+      /* Open the serial port and send the inventory cmd */
+      rcvResp = false;
+      foundCards = false;
+      connectSerPort(portName);
+      msg[0] = RS232I_INV & 0xff;
+      msg[1] = RS232I_EOM & 0xff;
+      sendMsg(msg, 2);
+      
+      /* Wait for a response from the boards or a timeout */
+      cnt = 0;
+      while ((cnt < 10) && !rcvResp)
+      {
+         try
+         {
+            Thread.sleep(100);
+         }
+         catch (InterruptedException e)
+         {
+            /* HRS: Should not happen */
+            e.printStackTrace();
+         }
+         cnt++;
+      }
+      if (rcvResp)
+      {
+         rcvResp = false;
+         processCmdStr();
+         GlobInfo.hostCtl.printMsg("Found cards!! Sol: " + GlobInfo.numSolCards +
+               " Inp: "+ GlobInfo.numInpCards);
+         
+         /* Send the config command to all the cards */
+         index = 0;
+         for (cnt = 0; cnt < GlobInfo.numInpCards; cnt++)
+         {
+            msg[index++] = GlobInfo.inpCardAddr[cnt];
+            msg[index++] = RS232I_CONFIG_INP;
+            System.arraycopy( TEST_INPCFG, 0, msg, index, TEST_INPCFG.length );
+            index += TEST_INPCFG.length;
+         }
+         for (cnt = 0; cnt < GlobInfo.numSolCards; cnt++)
+         {
+            msg[index++] = GlobInfo.solCardAddr[cnt];
+            msg[index++] = RS232I_CONFIG_SOL;
+            System.arraycopy( TEST_SOLCFG, 0, msg, index, TEST_SOLCFG.length );
+            index += TEST_SOLCFG.length;
+         }
+         msg[index++] = RS232I_EOM & 0xff;
+         sendMsg(msg, index);
+         
+         /* Wait for the response */
+         cnt = 0;
+         while ((cnt < 10) && !rcvResp)
+         {
+            try
+            {
+               Thread.sleep(100);
+            }
+            catch (InterruptedException e)
+            {
+               /* HRS: Should not happen */
+               e.printStackTrace();
+            }
+            cnt++;
+         }
+         if (rcvResp)
+         {
+            /* Process the EOM msg */
+            processCmdStr();
+            GlobInfo.hostCtl.printMsg("Cfg msg(s) worked.");
+            foundCards = true;
+            
+            /* Create the periodic tx msg */
+            periodicTxLen = 0;
+            for (cnt = 0; cnt < GlobInfo.numInpCards; cnt++)
+            {
+               periodicTxMsg[periodicTxLen++] = GlobInfo.inpCardAddr[cnt];
+               periodicTxMsg[periodicTxLen++] = RS232I_READ_INP_BRD;
+               periodicTxMsg[periodicTxLen++] = 0;
+               periodicTxMsg[periodicTxLen++] = 0;
+            }
+            for (cnt = 0; cnt < GlobInfo.numSolCards; cnt++)
+            {
+               periodicTxMsg[periodicTxLen++] = GlobInfo.solCardAddr[cnt];
+               periodicTxMsg[periodicTxLen++] = RS232I_READ_SOL_INP;
+               periodicTxMsg[periodicTxLen++] = 0;
+            }
+            periodicTxMsg[periodicTxLen++] = RS232I_EOM & 0xff;
+         }
+         else
+         {
+            GlobInfo.hostCtl.printMsg("Cfg message failed!!");
+         }
+      }
+      else
+      {
+         GlobInfo.hostCtl.printMsg("No cards found!!");
+      }
+      
+      /* Now create debug frame since we know number of cards */
       if (GlobInfo.debug)
       {
          /* Create frame for card rcv data */
+         createDebugFrm();
       }
+      
+      /* Through looking at received vs missed, my XP machine needs 15 ms to
+       * not miss a large number of msgs.  (at 10 ms, I missed approx 20% of the
+       * time)
+       */
+      Timer timer = new Timer(15, new ActionListener()
+      {
+        public void actionPerformed(ActionEvent evt)
+        {
+           if (rcvResp)
+           {
+              rcvResp = false;
+              processCmdStr();
+              received++;
+              if (printTimerMisses)
+              {
+                 if (received > 100)
+                 {
+                    GlobInfo.hostCtl.printMsg("Received 100 msgs!!!");
+                    received = 0;
+                 }
+              }
+              sendMsg(periodicTxMsg, periodicTxLen);
+           }
+           else
+           {
+              missed++;
+              if (missed > 100)
+              {
+                 GlobInfo.hostCtl.printMsg("Missed 100 msgs!!!");
+                 missed = 0;
+              }
+           }
+        }
+      });
+      timer.start();
    }
    /*
     * ===============================================================================
@@ -137,7 +348,7 @@ public class SerIntf implements SerialPortEventListener
     * 
     * ===============================================================================
     */
-   public int connectSerPort(String portName)
+   private int connectSerPort(String portName)
    {
       CommPortIdentifier        portId = null;
       boolean                   found = false;
@@ -156,12 +367,12 @@ public class SerIntf implements SerialPortEventListener
       } 
       catch (UnsatisfiedLinkError e)
       {
-         System.out.println("Configuration not supported.  Default JVM is 32 Bit on 64 Bit OS.");
+         GlobInfo.hostCtl.printMsg("Configuration not supported.  Default JVM is 32 Bit on 64 Bit OS.");
          return(INCORRECT_JVM_INSTALLED);
       }
       if (!found)
       {
-         System.out.println("Can't re-attach to COM port.");
+         GlobInfo.hostCtl.printMsg("Can't re-attach to COM port.");
          return(CANT_FIND_COMM_PORT);
       }
       currPort = portId;
@@ -173,18 +384,20 @@ public class SerIntf implements SerialPortEventListener
       catch (PortInUseException e)
       {
          /* Couldn't open serial port */
+         currPort = null;
          System.exit(PORT_IN_USE_ERROR);
       }
 
       /* Set the serial port parameters */
       try
       {
-         serialPort.setSerialPortParams(9600, SerialPort.DATABITS_8,
+         serialPort.setSerialPortParams(19200, SerialPort.DATABITS_8,
                SerialPort.STOPBITS_1, SerialPort.PARITY_NONE);
       } 
       catch (UnsupportedCommOperationException e)
       {
          serialPort.close();
+         currPort = null;
          return(CANT_SET_COMM_PARAMS);
       }
       try
@@ -196,6 +409,7 @@ public class SerIntf implements SerialPortEventListener
       {
          /* Couldn't get input or output stream */
          serialPort.close();
+         currPort = null;
          return(CANT_CREATE_STREAMS);
       }
 
@@ -215,14 +429,14 @@ public class SerIntf implements SerialPortEventListener
          {
          }
          serialPort.close();
+         currPort = null;
          return(TOO_MANY_LISTENERS);
       }
 
       rcvState = RCV_IDLE;
       currBufIndex = 0;
       serialPort.notifyOnDataAvailable(true);
-      serialPort.notifyOnCarrierDetect(true);
-      System.out.println("SerIntf: Opened " + portName);
+      GlobInfo.hostCtl.printMsg("SerIntf: Opened " + portName);
       return(0);
    } /* end connectSerPort */
    
@@ -261,19 +475,6 @@ public class SerIntf implements SerialPortEventListener
          case SerialPortEvent.RI:
          case SerialPortEvent.OUTPUT_BUFFER_EMPTY:
          {
-            if (GlobInfo.commGood)
-            {
-               try
-               {
-                  serInpStream.close();
-                  serOutStream.close();
-               } 
-               catch (IOException except)
-               {
-               }
-               /* serialPort.close(); Removed since it locks the program */
-               System.exit(300);
-            }
             break;
          }
          case SerialPortEvent.DATA_AVAILABLE:
@@ -334,8 +535,8 @@ public class SerIntf implements SerialPortEventListener
                   {
                      /* If in idle state, ignore all EOMs, set data rcv flag */
                      currBufIndex--;
-                     GlobInfo.chngFlag |= ChangeFlag.CF_RCV_DATA;
-                 }
+                     rcvResp = true;
+                  }
                   else
                   {
                      rcvState = RCV_ADDR;
@@ -365,7 +566,7 @@ public class SerIntf implements SerialPortEventListener
                   if (currData == RS232I_EOM)
                   {
                      rcvState = RCV_IDLE;
-                     GlobInfo.chngFlag |= ChangeFlag.CF_RCV_DATA;
+                     rcvResp = true;
                   }
                }
                else
@@ -418,12 +619,12 @@ public class SerIntf implements SerialPortEventListener
             {
                if (((int)currData & CARD_ID_TYPE_MASK) == CARD_ID_SOL_CARD)
                {
-                  GlobInfo.solCardAddr[GlobInfo.numSolCards] =  readBuffer[++index];
+                  GlobInfo.solCardAddr[GlobInfo.numSolCards] =  currData;
                   GlobInfo.numSolCards++;
                }
                else if (((int)currData & CARD_ID_TYPE_MASK) == CARD_ID_INP_CARD)
                {
-                  GlobInfo.inpCardAddr[GlobInfo.numInpCards] =  readBuffer[++index];
+                  GlobInfo.inpCardAddr[GlobInfo.numInpCards] =  currData;
                   GlobInfo.numInpCards++;
                }
                else
@@ -548,6 +749,7 @@ public class SerIntf implements SerialPortEventListener
             }
          }
       }
+      currBufIndex = 0;
    } /* end processCmdStr */
    
    /*
@@ -570,19 +772,100 @@ public class SerIntf implements SerialPortEventListener
     * 
     * ===============================================================================
     */
-   public void closeSerPort()
+   private void closeSerPort()
    {
-      /* Close out the open serial port resources */
-      try
+      if (currPort != null)
       {
-        serInpStream.close();
-        serOutStream.close();
-      } 
-      catch (IOException e)
-      {
-        /* Closing down, so nothing to do if it fails. */
+         /* Close out the open serial port resources */
+         try
+         {
+           serInpStream.close();
+           serOutStream.close();
+         } 
+         catch (IOException e)
+         {
+           /* Closing down, so nothing to do if it fails. */
+         }
+         serialPort.close();
+         GlobInfo.hostCtl.printMsg("Close COM port");
       }
-      serialPort.close();
-      System.out.println("Close COM port");
    } /* end closeSerPort */
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: createDebugFrm
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Create debug frame
+    * 
+    * Create the debug frame that lists all the received 
+    * 
+    * @param   None 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   private void createDebugFrm()
+   {
+      
+   } /* end createDebugFrm */
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: sendMsg
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Send message
+    * 
+    * Send a message
+    * 
+    * @param   buffer  - Message
+    * @param   msgLen  - Message Length
+    * @return  None
+    * 
+    * @pre     None 
+    * @note    None
+    * 
+    * ===============================================================================
+    */
+   private void sendMsg(
+      int[]                            buffer, 
+      int                              msgLen)
+   {
+      int                              cnt;
+      
+      if (currPort != null)
+      {
+         try
+         {
+            for (cnt = 0; cnt < msgLen; cnt++)
+            {
+              serOutStream.write(buffer[cnt]);
+            }
+         } 
+         catch (IOException e)
+         {
+            try
+            {
+              serInpStream.close();
+              serOutStream.close();
+            } 
+            catch (IOException event)
+            {
+            }
+            serialPort.close();
+            System.exit(501);
+         }
+      }
+   } /* end sendMsg */
+
 } /* End SerIntf */

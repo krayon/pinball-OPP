@@ -51,5 +51,5 @@
 
 public class ChangeFlag
 {
-   public static final int       CF_RCV_DATA       = 0x00000001;
+   public static final int       UNUSED            = 0x00000001;
 }

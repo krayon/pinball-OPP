@@ -285,9 +285,7 @@ public class HostCtl extends JFrame
       
       if (commPortName != null)
       {
-         GlobInfo.serIntf = new SerIntf();
-         GlobInfo.serIntf.connectSerPort(commPortName);
-         GlobInfo.serIntf.closeSerPort();
+         GlobInfo.serIntf = new SerIntf(commPortName);
       }
 
       /* Set up window to accept hot keys to close */
@@ -333,7 +331,6 @@ public class HostCtl extends JFrame
       int                     smVidHeight;
       
       titlebarHeight =((javax.swing.plaf.basic.BasicInternalFrameUI) vidFrame.getUI()).getNorthPane().getPreferredSize().height;
-      System.out.println("Height: " + titlebarHeight);
       
       if (fullScr)
       {
@@ -473,4 +470,36 @@ public class HostCtl extends JFrame
       vidFrame.setVisible(true);
       bgndFrame.moveToBack();
    } /* end setVideoBgnd */
+
+   /*
+    * ===============================================================================
+    * 
+    * Name: printMsg
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Print message
+    * 
+    * Print a message to the console frame, or if not created, to system.out.
+    * 
+    * @param   text - String with text to print 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   public void printMsg(String text)
+   {
+      if (GlobInfo.consFrm == null)
+      {
+         System.out.println(text);
+      }
+      else
+      {
+         GlobInfo.consFrm.updateText(text + System.getProperty("line.separator"));
+      }
+   } /* end printMsg */
 } /* End HostCtl */
