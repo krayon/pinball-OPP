@@ -1,0 +1,276 @@
+Cmp-Mod V01 Created by CvPcb (2012-01-19 BZR 3256)-stable date = 4/2/2012 10:23:32 AM
+
+BeginCmp
+TimeStamp = /4F7739A3;
+Reference = C1;
+ValeurCmp = C;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22D;
+Reference = P1;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22F;
+Reference = P2;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22B;
+Reference = P3;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22A;
+Reference = P4;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789EAA;
+Reference = P5;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789E9D;
+Reference = P6;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F775CB7;
+Reference = P7;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789E8E;
+Reference = P8;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789F41;
+Reference = P9;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789F3A;
+Reference = P10;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F773A90;
+Reference = P11;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F773A99;
+Reference = P12;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F773A42;
+Reference = P13;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F773A49;
+Reference = P14;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F7736DA;
+Reference = P15;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F773606;
+Reference = P16;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F773735;
+Reference = P17;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F77372B;
+Reference = P18;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F77397C;
+Reference = P19;
+ValeurCmp = CONN_3X2;
+IdModule  = pin_array_3x2;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A11A;
+Reference = P20;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A0E0;
+Reference = P21;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A067;
+Reference = P22;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A01A;
+Reference = P23;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F79A514;
+Reference = P24;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F79A51D;
+Reference = P25;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F79A521;
+Reference = P26;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F79A529;
+Reference = P27;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22C;
+Reference = Q1;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22E;
+Reference = Q2;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A229;
+Reference = Q3;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A228;
+Reference = Q4;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789ED5;
+Reference = Q5;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789ECB;
+Reference = Q6;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F776842;
+Reference = Q7;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789E93;
+Reference = Q8;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789CDD;
+Reference = R1;
+ValeurCmp = 3.3K;
+IdModule  = R3;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789D8C;
+Reference = R2;
+ValeurCmp = 3.3K;
+IdModule  = R3;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F772448;
+Reference = U1;
+ValeurCmp = MC9S08SE8-28;
+IdModule  = DIP-28__600;
+EndCmp
+
+EndListe

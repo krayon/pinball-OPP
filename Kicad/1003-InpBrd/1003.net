@@ -1,0 +1,281 @@
+# EESchema Netlist Version 1.1 created  4/3/2012 4:56:29 AM
+(
+ ( /4F7AACF3 $noname  P25 TST {Lib=TST}
+  (    1 ? )
+ )
+ ( /4F7AAA05 $noname  P4 CONN_2 {Lib=CONN_2}
+  (    1 N-000024 )
+  (    2 GND )
+ )
+ ( /4F7AAA02 $noname  P3 CONN_2 {Lib=CONN_2}
+  (    1 N-000009 )
+  (    2 GND )
+ )
+ ( /4F7AA9FC $noname  P2 CONN_2 {Lib=CONN_2}
+  (    1 N-000022 )
+  (    2 GND )
+ )
+ ( /4F7AA9D8 $noname  P1 CONN_2 {Lib=CONN_2}
+  (    1 N-000008 )
+  (    2 GND )
+ )
+ ( /4F7AA881 $noname  P5 CONN_2 {Lib=CONN_2}
+  (    1 N-000004 )
+  (    2 GND )
+ )
+ ( /4F7AA879 $noname  P6 CONN_2 {Lib=CONN_2}
+  (    1 N-000014 )
+  (    2 GND )
+ )
+ ( /4F7AA86A $noname  P7 CONN_2 {Lib=CONN_2}
+  (    1 N-000003 )
+  (    2 GND )
+ )
+ ( /4F7AA84E $noname  P8 CONN_2 {Lib=CONN_2}
+  (    1 N-000011 )
+  (    2 GND )
+ )
+ ( /4F79A521 $noname  P26 TST {Lib=TST}
+  (    1 ? )
+ )
+ ( /4F79A514 $noname  P24 TST {Lib=TST}
+  (    1 ? )
+ )
+ ( /4F78A11A $noname  P20 CONN_4 {Lib=CONN_4}
+  (    1 N-000007 )
+  (    2 N-000010 )
+  (    3 GND )
+  (    4 +5V )
+ )
+ ( /4F78A0E0 $noname  P21 CONN_4 {Lib=CONN_4}
+  (    1 N-000007 )
+  (    2 N-000006 )
+  (    3 GND )
+  (    4 +5V )
+ )
+ ( /4F78A067 $noname  P22 CONN_2 {Lib=CONN_2}
+  (    1 N-000005 )
+  (    2 N-000025 )
+ )
+ ( /4F78A01A $noname  P23 CONN_2 {Lib=CONN_2}
+  (    1 N-000019 )
+  (    2 N-000021 )
+ )
+ ( /4F789D8C $noname  R2 3.3K {Lib=R}
+  (    1 N-000013 )
+  (    2 +5V )
+ )
+ ( /4F789CDD $noname  R1 3.3K {Lib=R}
+  (    1 N-000028 )
+  (    2 +5V )
+ )
+ ( /4F773A99 $noname  P10 CONN_2 {Lib=CONN_2}
+  (    1 N-000017 )
+  (    2 GND )
+ )
+ ( /4F773A90 $noname  P9 CONN_2 {Lib=CONN_2}
+  (    1 N-000032 )
+  (    2 GND )
+ )
+ ( /4F773A49 $noname  P12 CONN_2 {Lib=CONN_2}
+  (    1 N-000023 )
+  (    2 GND )
+ )
+ ( /4F773A42 $noname  P11 CONN_2 {Lib=CONN_2}
+  (    1 N-000030 )
+  (    2 GND )
+ )
+ ( /4F7739A3 $noname  C1 C {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /4F77397C $noname  P19 CONN_3X2 {Lib=CONN_3X2}
+  (    1 N-000013 )
+  (    2 GND )
+  (    3 ? )
+  (    4 N-000028 )
+  (    5 ? )
+  (    6 +5V )
+ )
+ ( /4F773735 $noname  P15 CONN_2 {Lib=CONN_2}
+  (    1 N-000020 )
+  (    2 GND )
+ )
+ ( /4F77372B $noname  P16 CONN_2 {Lib=CONN_2}
+  (    1 N-000018 )
+  (    2 GND )
+ )
+ ( /4F7736DA $noname  P13 CONN_2 {Lib=CONN_2}
+  (    1 N-000016 )
+  (    2 GND )
+ )
+ ( /4F773606 $noname  P14 CONN_2 {Lib=CONN_2}
+  (    1 N-000015 )
+  (    2 GND )
+ )
+ ( /4F772448 $noname  U1 MC9S08SE8-28 {Lib=MC9S08SE8-28}
+  (    1 N-000016 )
+  (    2 N-000015 )
+  (    3 N-000028 )
+  (    4 N-000013 )
+  (    5 +5V )
+  (    6 +5V )
+  (    7 GND )
+  (    8 GND )
+  (    9 N-000011 )
+  (   10 N-000003 )
+  (   11 N-000014 )
+  (   12 N-000004 )
+  (   13 N-000030 )
+  (   14 N-000023 )
+  (   15 N-000017 )
+  (   16 N-000032 )
+  (   17 N-000021 )
+  (   18 N-000019 )
+  (   19 N-000006 )
+  (   20 N-000010 )
+  (   21 N-000025 )
+  (   22 N-000005 )
+  (   23 N-000024 )
+  (   24 N-000009 )
+  (   25 N-000022 )
+  (   26 N-000008 )
+  (   27 N-000020 )
+  (   28 N-000018 )
+ )
+)
+*
+{ Allowed footprints by component:
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$endfootprintlist
+}
+{ Pin List by Nets
+Net 3 "" ""
+ U1 10
+ P7 1
+Net 4 "" ""
+ P5 1
+ U1 12
+Net 5 "" ""
+ U1 22
+ P22 1
+Net 6 "" ""
+ P21 2
+ U1 19
+Net 7 "" ""
+ P20 1
+ P21 1
+Net 8 "" ""
+ P1 1
+ U1 26
+Net 9 "" ""
+ U1 24
+ P3 1
+Net 10 "" ""
+ U1 20
+ P20 2
+Net 11 "" ""
+ U1 9
+ P8 1
+Net 12 "+5V" "+5V"
+ C1 1
+ R2 2
+ P19 6
+ U1 6
+ U1 5
+ R1 2
+ P20 4
+ P21 4
+Net 13 "" ""
+ P19 1
+ U1 4
+ R2 1
+Net 14 "" ""
+ P6 1
+ U1 11
+Net 15 "" ""
+ P14 1
+ U1 2
+Net 16 "" ""
+ P13 1
+ U1 1
+Net 17 "" ""
+ U1 15
+ P10 1
+Net 18 "" ""
+ U1 28
+ P16 1
+Net 19 "" ""
+ P23 1
+ U1 18
+Net 20 "" ""
+ P15 1
+ U1 27
+Net 21 "" ""
+ P23 2
+ U1 17
+Net 22 "" ""
+ U1 25
+ P2 1
+Net 23 "" ""
+ U1 14
+ P12 1
+Net 24 "" ""
+ P4 1
+ U1 23
+Net 25 "" ""
+ P22 2
+ U1 21
+Net 28 "" ""
+ P19 4
+ R1 1
+ U1 3
+Net 29 "GND" "GND"
+ P12 2
+ P1 2
+ P2 2
+ P3 2
+ P4 2
+ U1 8
+ U1 7
+ P14 2
+ P13 2
+ P16 2
+ P15 2
+ P7 2
+ P6 2
+ P5 2
+ P21 3
+ P20 3
+ P8 2
+ P9 2
+ P11 2
+ P19 2
+ C1 2
+ P10 2
+Net 30 "" ""
+ U1 13
+ P11 1
+Net 32 "" ""
+ P9 1
+ U1 16
+}
+#End

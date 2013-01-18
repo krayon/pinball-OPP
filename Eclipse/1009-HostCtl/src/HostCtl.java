@@ -213,6 +213,7 @@ public class HostCtl extends JFrame
             if ((e.getKeyChar() == 'x') ||
                   (e.getKeyCode() == 'X'))
             {
+               GlobInfo.serIntf.closeSerPort();
                System.exit(0);
             }
          }
@@ -260,6 +261,7 @@ public class HostCtl extends JFrame
       {
          public void windowClosing(WindowEvent e)
          {
+            GlobInfo.serIntf.closeSerPort();
             System.exit(0);
          }
       });

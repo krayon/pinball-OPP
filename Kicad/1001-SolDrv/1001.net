@@ -1,0 +1,365 @@
+# EESchema Netlist Version 1.1 created  4/2/2012 12:04:08 PM
+(
+ ( /4F79A529 $noname  P27 TST {Lib=TST}
+  (    1 ? )
+ )
+ ( /4F79A521 $noname  P26 TST {Lib=TST}
+  (    1 ? )
+ )
+ ( /4F79A514 $noname  P24 TST {Lib=TST}
+  (    1 ? )
+ )
+ ( /4F78A22F $noname  P2 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000007 )
+  (    2 N-000007 )
+ )
+ ( /4F78A22E $noname  Q2 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000007 )
+  (    G N-000025 )
+  (    S GND )
+ )
+ ( /4F78A22D $noname  P1 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000006 )
+  (    2 N-000006 )
+ )
+ ( /4F78A22C $noname  Q1 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000006 )
+  (    G N-000005 )
+  (    S GND )
+ )
+ ( /4F78A22B $noname  P3 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000004 )
+  (    2 N-000004 )
+ )
+ ( /4F78A22A $noname  P4 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000001 )
+  (    2 N-000001 )
+ )
+ ( /4F78A229 $noname  Q3 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000004 )
+  (    G N-000003 )
+  (    S GND )
+ )
+ ( /4F78A228 $noname  Q4 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000001 )
+  (    G N-000027 )
+  (    S GND )
+ )
+ ( /4F78A11A $noname  P20 CONN_4 {Lib=CONN_4}
+  (    1 N-000012 )
+  (    2 N-000029 )
+  (    3 GND )
+  (    4 +5V )
+ )
+ ( /4F78A0E0 $noname  P21 CONN_4 {Lib=CONN_4}
+  (    1 N-000012 )
+  (    2 N-000011 )
+  (    3 GND )
+  (    4 +5V )
+ )
+ ( /4F78A067 $noname  P22 CONN_2 {Lib=CONN_2}
+  (    1 N-000009 )
+  (    2 N-000028 )
+ )
+ ( /4F78A01A $noname  P23 CONN_2 {Lib=CONN_2}
+  (    1 N-000008 )
+  (    2 N-000024 )
+ )
+ ( /4F789F41 $noname  P9 SPADE_187 {Lib=SPADE_187}
+  (    1 GND )
+  (    2 GND )
+ )
+ ( /4F789F3A $noname  P10 SPADE_187 {Lib=SPADE_187}
+  (    1 GND )
+  (    2 GND )
+ )
+ ( /4F789ED5 $noname  Q5 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000032 )
+  (    G N-000034 )
+  (    S GND )
+ )
+ ( /4F789ECB $noname  Q6 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000033 )
+  (    G N-000013 )
+  (    S GND )
+ )
+ ( /4F789EAA $noname  P5 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000032 )
+  (    2 N-000032 )
+ )
+ ( /4F789E9D $noname  P6 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000033 )
+  (    2 N-000033 )
+ )
+ ( /4F789E93 $noname  Q8 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000031 )
+  (    G N-000014 )
+  (    S GND )
+ )
+ ( /4F789E8E $noname  P8 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000031 )
+  (    2 N-000031 )
+ )
+ ( /4F789D8C $noname  R2 3.3K {Lib=R}
+  (    1 N-000030 )
+  (    2 +5V )
+ )
+ ( /4F789CDD $noname  R1 3.3K {Lib=R}
+  (    1 N-000019 )
+  (    2 +5V )
+ )
+ ( /4F776842 $noname  Q7 MOSFET_N {Lib=MOSFET_N}
+  (    D N-000037 )
+  (    G N-000036 )
+  (    S GND )
+ )
+ ( /4F775CB7 $noname  P7 SPADE_187 {Lib=SPADE_187}
+  (    1 N-000037 )
+  (    2 N-000037 )
+ )
+ ( /4F773A99 $noname  P12 CONN_2 {Lib=CONN_2}
+  (    1 N-000026 )
+  (    2 GND )
+ )
+ ( /4F773A90 $noname  P11 CONN_2 {Lib=CONN_2}
+  (    1 N-000039 )
+  (    2 GND )
+ )
+ ( /4F773A49 $noname  P14 CONN_2 {Lib=CONN_2}
+  (    1 N-000021 )
+  (    2 GND )
+ )
+ ( /4F773A42 $noname  P13 CONN_2 {Lib=CONN_2}
+  (    1 N-000035 )
+  (    2 GND )
+ )
+ ( /4F7739A3 $noname  C1 C {Lib=C}
+  (    1 +5V )
+  (    2 GND )
+ )
+ ( /4F77397C $noname  P19 CONN_3X2 {Lib=CONN_3X2}
+  (    1 N-000030 )
+  (    2 GND )
+  (    3 ? )
+  (    4 N-000019 )
+  (    5 ? )
+  (    6 +5V )
+ )
+ ( /4F773735 $noname  P17 CONN_2 {Lib=CONN_2}
+  (    1 N-000023 )
+  (    2 GND )
+ )
+ ( /4F77372B $noname  P18 CONN_2 {Lib=CONN_2}
+  (    1 N-000022 )
+  (    2 GND )
+ )
+ ( /4F7736DA $noname  P15 CONN_2 {Lib=CONN_2}
+  (    1 N-000017 )
+  (    2 GND )
+ )
+ ( /4F773606 $noname  P16 CONN_2 {Lib=CONN_2}
+  (    1 N-000040 )
+  (    2 GND )
+ )
+ ( /4F772448 $noname  U1 MC9S08SE8-28 {Lib=MC9S08SE8-28}
+  (    1 N-000017 )
+  (    2 N-000040 )
+  (    3 N-000019 )
+  (    4 N-000030 )
+  (    5 +5V )
+  (    6 +5V )
+  (    7 GND )
+  (    8 GND )
+  (    9 N-000014 )
+  (   10 N-000036 )
+  (   11 N-000013 )
+  (   12 N-000034 )
+  (   13 N-000035 )
+  (   14 N-000021 )
+  (   15 N-000026 )
+  (   16 N-000039 )
+  (   17 N-000024 )
+  (   18 N-000008 )
+  (   19 N-000011 )
+  (   20 N-000029 )
+  (   21 N-000028 )
+  (   22 N-000009 )
+  (   23 N-000027 )
+  (   24 N-000003 )
+  (   25 N-000025 )
+  (   26 N-000005 )
+  (   27 N-000023 )
+  (   28 N-000022 )
+ )
+)
+*
+{ Allowed footprints by component:
+$component R2
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component R1
+ R?
+ SM0603
+ SM0805
+ R?-*
+ SM1206
+$endlist
+$component C1
+ SM*
+ C?
+ C1-1
+$endlist
+$endfootprintlist
+}
+{ Pin List by Nets
+Net 1 "" ""
+ Q4 D
+ P4 2
+ P4 1
+Net 2 "GND" "GND"
+ P16 2
+ U1 8
+ Q8 S
+ Q6 S
+ Q5 S
+ P19 2
+ C1 2
+ P13 2
+ P14 2
+ P11 2
+ P12 2
+ Q7 S
+ P17 2
+ U1 7
+ P18 2
+ P15 2
+ P9 1
+ P9 2
+ P10 1
+ P10 2
+ Q2 S
+ Q1 S
+ Q3 S
+ Q4 S
+ P21 3
+ P20 3
+Net 3 "" ""
+ U1 24
+ Q3 G
+Net 4 "" ""
+ P3 1
+ Q3 D
+ P3 2
+Net 5 "" ""
+ U1 26
+ Q1 G
+Net 6 "" ""
+ P1 1
+ Q1 D
+ P1 2
+Net 7 "" ""
+ P2 2
+ Q2 D
+ P2 1
+Net 8 "" ""
+ P23 1
+ U1 18
+Net 9 "" ""
+ P22 1
+ U1 22
+Net 11 "" ""
+ P21 2
+ U1 19
+Net 12 "" ""
+ P20 1
+ P21 1
+Net 13 "" ""
+ U1 11
+ Q6 G
+Net 14 "" ""
+ U1 9
+ Q8 G
+Net 17 "" ""
+ P15 1
+ U1 1
+Net 19 "" ""
+ U1 3
+ P19 4
+ R1 1
+Net 21 "" ""
+ U1 14
+ P14 1
+Net 22 "" ""
+ U1 28
+ P18 1
+Net 23 "" ""
+ P17 1
+ U1 27
+Net 24 "" ""
+ U1 17
+ P23 2
+Net 25 "" ""
+ U1 25
+ Q2 G
+Net 26 "" ""
+ U1 15
+ P12 1
+Net 27 "" ""
+ Q4 G
+ U1 23
+Net 28 "" ""
+ P22 2
+ U1 21
+Net 29 "" ""
+ P20 2
+ U1 20
+Net 30 "" ""
+ U1 4
+ P19 1
+ R2 1
+Net 31 "" ""
+ Q8 D
+ P8 1
+ P8 2
+Net 32 "" ""
+ P5 1
+ P5 2
+ Q5 D
+Net 33 "" ""
+ Q6 D
+ P6 1
+ P6 2
+Net 34 "" ""
+ Q5 G
+ U1 12
+Net 35 "" ""
+ P13 1
+ U1 13
+Net 36 "" ""
+ U1 10
+ Q7 G
+Net 37 "" ""
+ P7 2
+ P7 1
+ Q7 D
+Net 38 "+5V" "+5V"
+ U1 5
+ U1 6
+ R2 2
+ P20 4
+ R1 2
+ P19 6
+ C1 1
+ P21 4
+Net 39 "" ""
+ P11 1
+ U1 16
+Net 40 "" ""
+ U1 2
+ P16 1
+}
+#End

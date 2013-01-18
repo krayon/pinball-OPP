@@ -1,3 +1,5 @@
+import javax.swing.JLabel;
+
 /*
  *===============================================================================
  *
@@ -51,6 +53,7 @@ public class GlobInfo
 {
    private static final int      MAX_NUM_INP_CARDS          = 8;
    private static final int      MAX_NUM_SOL_CARDS          = 8;
+   private static final int      MAX_NUM_LED_CARDS          = 8;
    
    public static int             chngFlag = 0;
    public static boolean         commGood = false;
@@ -61,12 +64,17 @@ public class GlobInfo
    public static int[]           inpCardSerNum = new int[MAX_NUM_INP_CARDS];
    public static int[]           inpCardProdId = new int[MAX_NUM_INP_CARDS];
    public static int[]           inpCardVers = new int[MAX_NUM_INP_CARDS];
+   public static JLabel[]        inpCardDbgLbl = new JLabel[MAX_NUM_INP_CARDS];
    public static int             numSolCards = 0;
    public static int[]           solCardAddr = new int[MAX_NUM_SOL_CARDS];
    public static int[]           solCardData = new int[MAX_NUM_SOL_CARDS];
    public static int[]           solCardSerNum = new int[MAX_NUM_SOL_CARDS];
    public static int[]           solCardProdId = new int[MAX_NUM_SOL_CARDS];
    public static int[]           solCardVers = new int[MAX_NUM_SOL_CARDS];
+   public static JLabel[]        solCardDbgLbl = new JLabel[MAX_NUM_SOL_CARDS];
+   public static int             numLedCards = 0;
+   public static int[]           ledCardData = new int[MAX_NUM_LED_CARDS];
+   public static JLabel[]        ledCardDbgLbl = new JLabel[MAX_NUM_LED_CARDS];
   
    public static HostCtl         hostCtl = null;
    public static SerIntf         serIntf = null;

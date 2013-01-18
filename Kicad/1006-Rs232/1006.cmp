@@ -1,0 +1,59 @@
+Cmp-Mod V01 Created by CvPcb (2012-01-19 BZR 3256)-stable date = 4/27/2012 3:40:06 PM
+
+BeginCmp
+TimeStamp = /4F9AEC37;
+Reference = C1;
+ValeurCmp = 1uF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AEBE9;
+Reference = C2;
+ValeurCmp = 1uF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AEC4D;
+Reference = C3;
+ValeurCmp = 1uF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AEBC5;
+Reference = C4;
+ValeurCmp = 1uF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AF590;
+Reference = C5;
+ValeurCmp = 1uF;
+IdModule  = C1;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AED42;
+Reference = J1;
+ValeurCmp = DB9;
+IdModule  = DB9FC;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AECEA;
+Reference = P1;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F9AEB5E;
+Reference = U1;
+ValeurCmp = TRS322ECN;
+IdModule  = DIP-16__300;
+EndCmp
+
+EndListe

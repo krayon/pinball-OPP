@@ -1,0 +1,31 @@
+Cmp-Mod V01 Created by CvPcb (2012-01-19 BZR 3256)-stable date = 5/8/2012 2:47:44 PM
+
+BeginCmp
+TimeStamp = /4FA968F5;
+Reference = D1;
+ValeurCmp = LED;
+IdModule  = 00_led-5mm;
+EndCmp
+
+BeginCmp
+TimeStamp = /4FA968D0;
+Reference = P1;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /4FA968AF;
+Reference = P2;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /4FA968B6;
+Reference = P3;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+EndListe

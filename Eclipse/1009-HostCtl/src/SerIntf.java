@@ -47,12 +47,19 @@
  *===============================================================================
  */
 
+import java.awt.BorderLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
 import java.util.Enumeration;
 import java.util.TooManyListenersException;
 
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.Timer;
 
 import gnu.io.*;
@@ -71,7 +78,7 @@ public class SerIntf implements SerialPortEventListener
    private InputStream           serInpStream;
    private OutputStream          serOutStream;
    private boolean               rcvResp;
-   private boolean               printTimerMisses = false;
+   private boolean               printTimerMisses = true;
    private int                   missed = 0;
    private int                   received = 0;
 
@@ -167,9 +174,8 @@ public class SerIntf implements SerialPortEventListener
     * Serial interface class
     * 
     * Connect to a serial port and then send an inventory msg to discover
-    * cards.  
-    * program.  Try to grab the port.  Create input and output streams.  Set up
-    * the event listener to get a message when a byte is received.
+    * cards.  Send the configuration to the cards.  Start a timer thread to
+    * periodically get a thread.
     * 
     * @param   None 
     * @return  None
@@ -252,6 +258,7 @@ public class SerIntf implements SerialPortEventListener
          if (rcvResp)
          {
             /* Process the EOM msg */
+            rcvResp = false;
             processCmdStr();
             GlobInfo.hostCtl.printMsg("Cfg msg(s) worked.");
             foundCards = true;
@@ -272,6 +279,7 @@ public class SerIntf implements SerialPortEventListener
                periodicTxMsg[periodicTxLen++] = 0;
             }
             periodicTxMsg[periodicTxLen++] = RS232I_EOM & 0xff;
+            sendMsg(periodicTxMsg, periodicTxLen);
          }
          else
          {
@@ -283,48 +291,74 @@ public class SerIntf implements SerialPortEventListener
          GlobInfo.hostCtl.printMsg("No cards found!!");
       }
       
-      /* Now create debug frame since we know number of cards */
-      if (GlobInfo.debug)
+      if (foundCards)
       {
-         /* Create frame for card rcv data */
-         createDebugFrm();
-      }
-      
-      /* Through looking at received vs missed, my XP machine needs 15 ms to
-       * not miss a large number of msgs.  (at 10 ms, I missed approx 20% of the
-       * time)
-       */
-      Timer timer = new Timer(15, new ActionListener()
-      {
-        public void actionPerformed(ActionEvent evt)
-        {
-           if (rcvResp)
+         /* Now create debug frame since we know number of cards */
+         if (GlobInfo.debug)
+         {
+            /* Create frame for card rcv data */
+            createDebugFrm();
+         }
+         
+         /* Through looking at received vs missed, my XP machine needs 15 ms to
+          * not miss a large number of msgs.  (at 10 ms, I missed approx 20% of the
+          * time)
+          */
+         Timer timer = new Timer(15, new ActionListener()
+         {
+           public void actionPerformed(ActionEvent evt)
            {
-              rcvResp = false;
-              processCmdStr();
-              received++;
-              if (printTimerMisses)
+              int                            cnt;
+              
+              if (rcvResp)
               {
-                 if (received > 100)
+                 rcvResp = false;
+                 processCmdStr();
+                 received++;
+                 if (printTimerMisses)
                  {
-                    GlobInfo.hostCtl.printMsg("Received 100 msgs!!!");
-                    received = 0;
+                    if (received > 100)
+                    {
+                       GlobInfo.hostCtl.printMsg("Received 100 msgs!!!");
+                       received = 0;
+                    }
+                 }
+                 
+                 /* Update debug panel */
+                 if (GlobInfo.debug)
+                 {
+                    for (cnt = 0; cnt < GlobInfo.numInpCards; cnt++)
+                    {
+                       GlobInfo.inpCardDbgLbl[cnt].setText(String.format("%16s",
+                             Integer.toBinaryString(GlobInfo.inpCardData[cnt])).replace(' ', '0'));
+                    }
+                    for (cnt = 0; cnt < GlobInfo.numSolCards; cnt++)
+                    {
+                       GlobInfo.solCardDbgLbl[cnt].setText(String.format("%8s",
+                             Integer.toBinaryString(GlobInfo.solCardData[cnt])).replace(' ', '0'));
+                    }
+                    for (cnt = 0; cnt < GlobInfo.numLedCards; cnt++)
+                    {
+                       GlobInfo.ledCardDbgLbl[cnt].setText(String.format("%8s",
+                             Integer.toBinaryString(GlobInfo.ledCardData[cnt])).replace(' ', '0'));
+                    }
+                 }
+                 
+                 sendMsg(periodicTxMsg, periodicTxLen);
+              }
+              else
+              {
+                 missed++;
+                 if (missed > 100)
+                 {
+                    GlobInfo.hostCtl.printMsg("Missed 100 msgs!!!");
+                    missed = 0;
                  }
               }
-              sendMsg(periodicTxMsg, periodicTxLen);
            }
-           else
-           {
-              missed++;
-              if (missed > 100)
-              {
-                 GlobInfo.hostCtl.printMsg("Missed 100 msgs!!!");
-                 missed = 0;
-              }
-           }
-        }
-      });
-      timer.start();
+         });
+         timer.start();
+      }
    }
    /*
     * ===============================================================================
@@ -640,7 +674,7 @@ public class SerIntf implements SerialPortEventListener
          }
          else
          {
-            if (((int)currData & CARD_ID_TYPE_MASK) == CARD_ID_SOL_CARD)
+            if (((int)currData & CARD_ID_TYPE_MASK) == CARD_ID_INP_CARD)
             {
                cardIndex = (int)currData & ~CARD_ID_TYPE_MASK;
                if (cardIndex < GlobInfo.numSolCards)
@@ -684,7 +718,7 @@ public class SerIntf implements SerialPortEventListener
                         tmpData = (((int)readBuffer[index + 1] & 0xff) << 8) |
                            ((int)readBuffer[index + 2] & 0xff);
                         index += 2;
-                        GlobInfo.inpCardData[cardIndex] = tmpData;
+                        GlobInfo.inpCardData[cardIndex] = tmpData; /* HRS */
                         break;
                      }
                      default:
@@ -694,7 +728,7 @@ public class SerIntf implements SerialPortEventListener
                   }
                }
             }
-            else if (((int)currData & CARD_ID_TYPE_MASK) == CARD_ID_INP_CARD)
+            else if (((int)currData & CARD_ID_TYPE_MASK) == CARD_ID_SOL_CARD)
             {
                cardIndex = (int)currData & ~CARD_ID_TYPE_MASK;
                if (cardIndex < GlobInfo.numInpCards)
@@ -772,7 +806,7 @@ public class SerIntf implements SerialPortEventListener
     * 
     * ===============================================================================
     */
-   private void closeSerPort()
+   public void closeSerPort()
    {
       if (currPort != null)
       {
@@ -813,6 +847,127 @@ public class SerIntf implements SerialPortEventListener
     */
    private void createDebugFrm()
    {
+      JFrame                        cardFrame = new JFrame("Card State");
+      JPanel                        cardPanel = new JPanel(new BorderLayout());
+      int                           cnt;
+      GridBagConstraints            con = new GridBagConstraints();
+      
+      /* Initialize constraints */
+      con.insets = new Insets(5,5,5,5);
+      con.gridheight = 1;
+      con.gridwidth = 1;
+      con.weightx = 1;
+      con.weighty = 1;
+      con.gridx = 0;
+      con.gridy = 0;
+      
+      if (GlobInfo.numInpCards != 0)
+      {
+         JPanel                        inpPanel = new JPanel(new GridBagLayout());
+         JLabel                        tmpLabel = new JLabel("Input Card(s)");
+         
+         /* Add the title label */
+         con.gridwidth = 5;
+         con.gridx = 0;
+         con.gridy = 0;
+         inpPanel.add(tmpLabel, con);
+         
+         /* Add heading labels */
+         tmpLabel = new JLabel("Addr");
+         con.gridwidth = 1;
+         con.gridy = 1;
+         inpPanel.add(tmpLabel, con);
+         tmpLabel = new JLabel("Inputs");
+         con.gridwidth = 4;
+         con.gridy = 1;
+         con.gridx = 1;
+         inpPanel.add(tmpLabel, con);
+         
+         for (cnt = 0; cnt < GlobInfo.numInpCards; cnt++)
+         {
+            con.gridwidth = 1;
+            con.gridy = 2 + cnt;
+            con.gridx = 0;
+            tmpLabel = new JLabel(String.format("0x%02x:",  GlobInfo.inpCardAddr[cnt]));
+            inpPanel.add(tmpLabel, con);
+
+            con.gridwidth = 4;
+            con.gridx = 1;
+            GlobInfo.inpCardDbgLbl[cnt] = new JLabel(String.format("%16s",
+                  Integer.toBinaryString(GlobInfo.inpCardData[cnt])).replace(' ', '0'));
+
+            inpPanel.add(GlobInfo.inpCardDbgLbl[cnt], con);
+         }
+         cardPanel.add(inpPanel, BorderLayout.NORTH);
+      }
+      if (GlobInfo.numSolCards != 0)
+      {
+         JPanel                        solPanel = new JPanel(new GridBagLayout());
+         JLabel                        tmpLabel = new JLabel("Solenoid Card(s)");
+         
+         /* Add the title label */
+         con.gridwidth = 5;
+         con.gridx = 0;
+         con.gridy = 0;
+         solPanel.add(tmpLabel, con);
+         
+         /* Add heading labels */
+         tmpLabel = new JLabel("Addr");
+         con.gridwidth = 1;
+         con.gridy = 1;
+         solPanel.add(tmpLabel, con);
+         tmpLabel = new JLabel("Inputs");
+         con.gridwidth = 4;
+         con.gridy = 1;
+         con.gridx = 1;
+         solPanel.add(tmpLabel, con);
+         
+         for (cnt = 0; cnt < GlobInfo.numSolCards; cnt++)
+         {
+            con.gridwidth = 1;
+            con.gridy = 2 + cnt;
+            con.gridx = 0;
+            tmpLabel = new JLabel(String.format("0x%02x:",  GlobInfo.solCardAddr[cnt]));
+            solPanel.add(tmpLabel, con);
+
+            con.gridwidth = 4;
+            con.gridx = 1;
+            GlobInfo.solCardDbgLbl[cnt] = new JLabel(String.format("%8s",
+                  Integer.toBinaryString(GlobInfo.solCardAddr[cnt])).replace(' ', '0'));
+            solPanel.add(GlobInfo.solCardDbgLbl[cnt], con);
+         }
+         cardPanel.add(solPanel, BorderLayout.CENTER);
+      }
+      if (GlobInfo.numLedCards != 0)
+      {
+         JPanel                        ledPanel = new JPanel(new GridBagLayout());
+         JLabel                        tmpLabel = new JLabel("LED Lighting Card(s)");
+         
+         /* Add the title label */
+         con.gridwidth = 5;
+         con.gridx = 0;
+         con.gridy = 0;
+         ledPanel.add(tmpLabel, con);
+         
+         for (cnt = 0; cnt < GlobInfo.numLedCards; cnt++)
+         {
+            con.gridwidth = 1;
+            con.gridy = 1 + cnt;
+            con.gridx = 0;
+            tmpLabel = new JLabel(String.format("Card %d:",  cnt + 1));
+            ledPanel.add(tmpLabel, con);
+
+            con.gridwidth = 4;
+            con.gridx = 1;
+            GlobInfo.ledCardDbgLbl[cnt] = new JLabel(String.format("%8s",
+                  Integer.toBinaryString(GlobInfo.ledCardData[cnt])).replace(' ', '0'));
+            ledPanel.add(GlobInfo.ledCardDbgLbl[cnt], con);
+         }
+         cardPanel.add(ledPanel, BorderLayout.SOUTH);
+      }
+      cardFrame.add(cardPanel);
+      cardFrame.pack();
+      cardFrame.setVisible(true);
       
    } /* end createDebugFrm */
    
