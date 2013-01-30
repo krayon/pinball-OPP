@@ -54,6 +54,7 @@ public class GlobInfo
    private static final int      MAX_NUM_INP_CARDS          = 8;
    private static final int      MAX_NUM_SOL_CARDS          = 8;
    private static final int      MAX_NUM_LED_CARDS          = 8;
+   public static final int       NUM_VIDEO_CLIPS            = 2;
    
    public static int             chngFlag = 0;
    public static boolean         commGood = false;
@@ -78,6 +79,6 @@ public class GlobInfo
   
    public static HostCtl         hostCtl = null;
    public static SerIntf         serIntf = null;
-   public static VideoWin        videoWin = null;
+   public static VideoServ       videoServ = null;
    public static ConsoleFrm      consFrm = null;
 } /* End GlobInfo */

@@ -95,7 +95,7 @@ public class HostCtl extends JFrame
    private static JDesktopPane   deskPane = new JDesktopPane();
    
    /* Frames for graphics */
-   private static JInternalFrame vidFrame = new JInternalFrame();
+   private static JInternalFrame vidFrame[] = new JInternalFrame[GlobInfo.NUM_VIDEO_CLIPS];
    private static JInternalFrame bgndFrame = new JInternalFrame();
 
    /* Panels for graphics */
@@ -216,6 +216,11 @@ public class HostCtl extends JFrame
                GlobInfo.serIntf.closeSerPort();
                System.exit(0);
             }
+            if ((e.getKeyChar() == 's') ||
+                  (e.getKeyCode() == 'S'))
+            {
+               GlobInfo.videoServ.SwapVideo();
+            }
          }
          return false;
       }
@@ -246,6 +251,7 @@ public class HostCtl extends JFrame
    public HostCtl()
    {
       float                   scaleFact;
+      int                     index;
       
       if (fullScr)
       {
@@ -279,7 +285,10 @@ public class HostCtl extends JFrame
       }
       
       /* Add bgndFrame to desktop */
-      deskPane.add(vidFrame);
+      for (index = 0; index < GlobInfo.NUM_VIDEO_CLIPS; index++)
+      {
+         deskPane.add(vidFrame[index]);
+      }
       this.setUndecorated(true);
       setContentPane(deskPane);
       
@@ -295,8 +304,10 @@ public class HostCtl extends JFrame
       manager.addKeyEventDispatcher(new MyDispatcher());
 
       deskPane.add(bgndFrame);
+      GlobInfo.videoServ = new VideoServ();
       
-      GlobInfo.videoWin = new VideoWin();
+      bgndFrame.moveToBack();
+
       setVisible(true);
    } /* end HostCtl */
    
@@ -324,15 +335,16 @@ public class HostCtl extends JFrame
    {
       float                   vidScaleFact;
       float                   bgndScaleFact;
-      int                     titlebarHeight;
+      int                     titlebarHeight = 0;
       int                     vidWidth;
       int                     vidHeight;
       int                     bgndWidth;
       int                     bgndHeight;
       int                     smVidWidth;
       int                     smVidHeight;
+      int                     index;
+      BasicInternalFrameTitlePane titlePane;
       
-      titlebarHeight =((javax.swing.plaf.basic.BasicInternalFrameUI) vidFrame.getUI()).getNorthPane().getPreferredSize().height;
       
       if (fullScr)
       {
@@ -352,13 +364,21 @@ public class HostCtl extends JFrame
       smVidWidth = (smVidHeight * 16)/9;     /* Scale so 16:9 video works */
 
       /* First set up the video frame */
-      vidFrame.setBorder(null);
-      vidFrame.setSize(vidWidth, vidHeight + titlebarHeight);
-      vidFrame.setLocation((bgndWidth - vidWidth)/2, -titlebarHeight);
-      BasicInternalFrameTitlePane titlePane =  
-         (BasicInternalFrameTitlePane) ((BasicInternalFrameUI) vidFrame.getUI()).  
-         getNorthPane();  
-      vidFrame.remove(titlePane);
+      for (index = 0; index < GlobInfo.NUM_VIDEO_CLIPS; index++)
+      {
+         vidFrame[index] = new JInternalFrame();
+         if (index == 0)
+         {
+            titlebarHeight =((javax.swing.plaf.basic.BasicInternalFrameUI) vidFrame[0].getUI()).getNorthPane().getPreferredSize().height;
+         }
+         vidFrame[index].setBorder(null);
+         vidFrame[index].setSize(vidWidth, vidHeight + titlebarHeight);
+         vidFrame[index].setLocation((bgndWidth - vidWidth)/2, -titlebarHeight);
+         titlePane = (BasicInternalFrameTitlePane) ((BasicInternalFrameUI) vidFrame[index].getUI()).  
+            getNorthPane();  
+         vidFrame[index].remove(titlePane);
+         vidFrame[index].setVisible(true);
+      }
       
       /* Next the background frame that takes up the whole window */
       bgndFrame.setBorder(null);
@@ -449,16 +469,17 @@ public class HostCtl extends JFrame
    /*
     * ===============================================================================
     * 
-    * Name: setVideoBgnd
+    * Name: initVideoFrms
     * 
     * ===============================================================================
     */
    /**
-    * Set up the video background.
+    * Initialize video frames
     * 
     * Set the content pane, and make it visible.
     * 
     * @param   video - video component 
+    * @param   instance - instance number 
     * @return  None
     * 
     * @pre None 
@@ -466,13 +487,40 @@ public class HostCtl extends JFrame
     * 
     * ===============================================================================
     */
-   public void setVideoBgnd(Component video)
+   public void initVideoFrms(
+         Component                        video,
+         int                              instance)
    {
-      vidFrame.setContentPane((Container)video);
-      vidFrame.setVisible(true);
-      bgndFrame.moveToBack();
+      vidFrame[instance].setContentPane((Container)video);
+      vidFrame[instance].setVisible(true);
+      /*
+      vidFrame[instance].moveToFront(); */
    } /* end setVideoBgnd */
 
+   /*
+    * ===============================================================================
+    * 
+    * Name: playVideo
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Play a video by moving it to the front
+    * 
+    * @param   instance - instance number 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   public void playVideo(
+         int                              instance)
+   {
+      vidFrame[instance].moveToFront();
+   } /* end setVideoBgnd */
+   
    /*
     * ===============================================================================
     * 

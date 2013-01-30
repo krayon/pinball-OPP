@@ -19,7 +19,7 @@
  *               PPP     OOOOOOOO     PPP
  *              PPPPP      OOOO      PPPPP
  *
- * @file:   VideoWin.java
+ * @file:   VideoServ.java
  * @author: Hugh Spahr
  * @date:   1/09/2013
  *
@@ -42,7 +42,7 @@
  *===============================================================================
  */
 /**
- * This class contains the video window.
+ * This class contains the video server.
  *
  *===============================================================================
  */
@@ -54,9 +54,12 @@ import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
 import uk.co.caprica.vlcj.runtime.RuntimeUtil;
 import com.sun.jna.NativeLibrary;
 
-public class VideoWin
+
+public class VideoServ
 {
-   private EmbeddedMediaPlayerComponent mediaPlayerComponent;
+   private EmbeddedMediaPlayerComponent   mediaComp[] = new EmbeddedMediaPlayerComponent[GlobInfo.NUM_VIDEO_CLIPS];
+   private int                            currVideo = 0;
+   private int                            createInst = 0;
 
    /*
     * ===============================================================================
@@ -78,24 +81,75 @@ public class VideoWin
     * 
     * ===============================================================================
     */
-   public VideoWin() 
+   public VideoServ() 
    {
-      SwingUtilities.invokeLater(new Runnable()
+      int                           index;
+      
+      for (index = 0; index < GlobInfo.NUM_VIDEO_CLIPS; index++)
       {
-         @Override
-         public void run() 
+         SwingUtilities.invokeLater(new Runnable()
          {
-            this.CreateWin();
-         }
+            @Override
+            public void run() 
+            {
+               this.CreateWin(createInst);
+            }
 
-         private void CreateWin()
-         {
-            mediaPlayerComponent = new EmbeddedMediaPlayerComponent();
-
-            GlobInfo.hostCtl.setVideoBgnd(mediaPlayerComponent);
-
-            mediaPlayerComponent.getMediaPlayer().playMedia("images\\DefconTest.mp4");
-         }
-      });
+            private void CreateWin(int instance)
+            {
+               mediaComp[instance] = new EmbeddedMediaPlayerComponent();
+               if (instance == 0)
+               {
+                  mediaComp[instance].getMediaPlayer().prepareMedia("images\\DefconTest.mp4"); /* DefconTest.mp4 */
+               }
+               else
+               {
+                  mediaComp[instance].getMediaPlayer().prepareMedia("images\\Defcon17Loop.mp4");
+               }
+               GlobInfo.hostCtl.initVideoFrms(mediaComp[instance], instance);
+               if (instance == 0)
+               {
+                  GlobInfo.hostCtl.playVideo(currVideo);
+                  mediaComp[currVideo].getMediaPlayer().play();
+               }
+               createInst++;
+            }
+         });
+      }
    }
- }
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: SwapVideo
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Swap video between the two video clips
+    * 
+    * Switch to the other video clip and start it playing.
+    * 
+    * @param   None 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   public void SwapVideo()
+   {
+      mediaComp[currVideo].getMediaPlayer().stop();
+      if (currVideo == 0)
+      {
+         currVideo = 1;
+      }
+      else
+      {
+         currVideo = 0;
+      }
+      GlobInfo.hostCtl.playVideo(currVideo);
+      mediaComp[currVideo].getMediaPlayer().play();
+   }
+}
