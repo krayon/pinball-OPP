@@ -19,9 +19,9 @@
  *               PPP     OOOOOOOO     PPP
  *              PPPPP      OOOO      PPPPP
  *
- * @file:   VideoServ.java
+ * @file:   ConsoleFrm.java
  * @author: Hugh Spahr
- * @date:   1/09/2013
+ * @date:   1/15/2013
  *
  * @note:   Open Pinball Project
  *          Copyright© 2013, Hugh Spahr
@@ -42,93 +42,45 @@
  *===============================================================================
  */
 /**
- * This class contains the video server.
+ * This is the opens a console frame to write debug information.
  *
  *===============================================================================
  */
 
-import javax.swing.SwingUtilities;
+package com.wordpress.openpinballproject.hostctl;
 
-import uk.co.caprica.vlcj.binding.LibVlc;
-import uk.co.caprica.vlcj.component.EmbeddedMediaPlayerComponent;
-import uk.co.caprica.vlcj.runtime.RuntimeUtil;
-import com.sun.jna.NativeLibrary;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Rectangle;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 
+import javax.swing.BorderFactory;
+import javax.swing.JFrame;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 
-public class VideoServ
+public class ConsoleFrm extends JFrame
 {
-   private EmbeddedMediaPlayerComponent   mediaComp[] = new EmbeddedMediaPlayerComponent[GlobInfo.NUM_VIDEO_CLIPS];
-   private int                            currVideo = 0;
-   private int                            createInst = 0;
+   private static final long     serialVersionUID = -1;
 
-   /*
-    * ===============================================================================
-    * 
-    * Name: VideoWin
-    * 
-    * ===============================================================================
-    */
-   /**
-    * Create a runnable video background.
-    * 
-    * Create the media player and start it running
-    * 
-    * @param   None 
-    * @return  None
-    * 
-    * @pre None 
-    * @note None
-    * 
-    * ===============================================================================
-    */
-   public VideoServ() 
-   {
-      int                           index;
-      
-      for (index = 0; index < GlobInfo.NUM_VIDEO_CLIPS; index++)
-      {
-         SwingUtilities.invokeLater(new Runnable()
-         {
-            @Override
-            public void run() 
-            {
-               this.CreateWin(createInst);
-            }
-
-            private void CreateWin(int instance)
-            {
-               mediaComp[instance] = new EmbeddedMediaPlayerComponent();
-               if (instance == 0)
-               {
-                  mediaComp[instance].getMediaPlayer().prepareMedia("images\\DefconTest.mp4"); /* DefconTest.mp4 */
-               }
-               else
-               {
-                  mediaComp[instance].getMediaPlayer().prepareMedia("images\\Defcon17Loop.mp4");
-               }
-               GlobInfo.hostCtl.initVideoFrms(mediaComp[instance], instance);
-               if (instance == 0)
-               {
-                  GlobInfo.hostCtl.playVideo(currVideo);
-                  mediaComp[currVideo].getMediaPlayer().play();
-               }
-               createInst++;
-            }
-         });
-      }
-   }
+   private JPanel                wholePanel;
+   private JTextArea             textArea;
    
    /*
     * ===============================================================================
     * 
-    * Name: SwapVideo
+    * Name: ConsoleFrm
     * 
     * ===============================================================================
     */
    /**
-    * Swap video between the two video clips
+    * Create console frame
     * 
-    * Switch to the other video clip and start it playing.
+    * Create a console frame to show debug information
     * 
     * @param   None 
     * @return  None
@@ -138,18 +90,64 @@ public class VideoServ
     * 
     * ===============================================================================
     */
-   public void SwapVideo()
+   public ConsoleFrm()
    {
-      mediaComp[currVideo].getMediaPlayer().stop();
-      if (currVideo == 0)
+      super("Console");
+      
+      addWindowListener(new WindowAdapter()
       {
-         currVideo = 1;
-      }
-      else
-      {
-         currVideo = 0;
-      }
-      GlobInfo.hostCtl.playVideo(currVideo);
-      mediaComp[currVideo].getMediaPlayer().play();
-   }
-}
+         public void windowClosing(WindowEvent winEvt)
+         {
+           dispose();
+         }
+      });     
+
+      /* Set up the panel */
+      wholePanel = new JPanel(new GridBagLayout());
+      wholePanel.setBackground(Color.BLACK);
+
+      /* Set up text field */
+      textArea = new JTextArea();
+      textArea.setEditable(false);
+      JScrollPane areaScrollPane = new JScrollPane(textArea);
+      areaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+      areaScrollPane.setPreferredSize(new Dimension(300, 250));
+      areaScrollPane.setBorder(BorderFactory.createCompoundBorder(
+          BorderFactory.createRaisedBevelBorder(), BorderFactory.createLoweredBevelBorder()));
+      
+      wholePanel.add(areaScrollPane, new GridBagConstraints());
+
+      add(wholePanel);
+      setSize(340, 330);
+      setResizable(false);
+      
+      setVisible(true);
+   } /* end ConsoleFrm */
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: updateText
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Update the text in the console window
+    * 
+    * Appends the text to the end of the window.  Sets the viewport appropriately.
+    * 
+    * @param   text - String with text to display 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   public void updateText(
+         String                  text)
+   {
+      textArea.append(text);
+      textArea.scrollRectToVisible(new Rectangle(0,textArea.getHeight()-2,1,1));
+   } /* end updateText */
+} /* End ConsoleFrm */

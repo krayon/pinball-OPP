@@ -1,5 +1,3 @@
-import javax.swing.JLabel;
-
 /*
  *===============================================================================
  *
@@ -48,6 +46,10 @@ import javax.swing.JLabel;
  *
  *===============================================================================
  */
+
+package com.wordpress.openpinballproject.hostctl;
+
+import javax.swing.JLabel;
 
 public class GlobInfo
 {

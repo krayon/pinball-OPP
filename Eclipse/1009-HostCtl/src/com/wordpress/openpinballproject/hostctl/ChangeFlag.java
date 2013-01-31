@@ -49,6 +49,8 @@
  *===============================================================================
  */
 
+package com.wordpress.openpinballproject.hostctl;
+
 public class ChangeFlag
 {
    public static final int       UNUSED            = 0x00000001;

@@ -47,6 +47,8 @@
  *===============================================================================
  */
 
+package com.wordpress.openpinballproject.hostctl;
+
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -91,6 +93,7 @@ public class HostCtl extends JFrame
    
    private static int            osType;
    private static String         commPortName;
+   private static String         rulesFileName;
    public static JPanel          bgndPanel;
    private static JDesktopPane   deskPane = new JDesktopPane();
    
@@ -149,6 +152,7 @@ public class HostCtl extends JFrame
             System.out.println("\t-com=xxxx\tCOM port number");
             System.out.println("\t-fullscr\tFull screen window");
             System.out.println("\t-debug\tCreate debug windows");
+            System.out.println("\t-rules=xxxxx.txt\tRules file name");
          }
          else if (args[index].compareTo("-fullscr") == 0)
          {
@@ -157,6 +161,10 @@ public class HostCtl extends JFrame
          else if (args[index].compareTo("-debug") == 0)
          {
             GlobInfo.debug = true;
+         }
+         if (args[index].startsWith("-rules="))
+         {
+            rulesFileName = new String(args[index].replaceAll("-rules=", ""));
          }
          index++;
       }
