@@ -221,7 +221,10 @@ public class HostCtl extends JFrame
             if ((e.getKeyChar() == 'x') ||
                   (e.getKeyCode() == 'X'))
             {
-               GlobInfo.serIntf.closeSerPort();
+               if (GlobInfo.serIntf != null)
+               {
+                  GlobInfo.serIntf.closeSerPort();
+               }
                System.exit(0);
             }
             if ((e.getKeyChar() == 's') ||
@@ -275,7 +278,10 @@ public class HostCtl extends JFrame
       {
          public void windowClosing(WindowEvent e)
          {
-            GlobInfo.serIntf.closeSerPort();
+            if (GlobInfo.serIntf != null)
+            {
+               GlobInfo.serIntf.closeSerPort();
+            }
             System.exit(0);
          }
       });

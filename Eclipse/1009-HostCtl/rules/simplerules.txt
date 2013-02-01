@@ -48,25 +48,25 @@ SOLENOID_CARDS 		1
 #Name							Card	I/O		Flags			InitKick	DutyCycle	MinOff
 Sol_Left_Flipper				1		1		USE_SWITCH		200			7			0
 Sol_Right_Flipper				1		2		USE_SWITCH		200			7			0
-Sol_Left_Slingshot				1		3		USE_SWITCH		100			0			1
-Sol_Right_Slingshot				1		4		USE_SWITCH		100			0			1
-Sol_Ball_In_Play				1		5		AUTO_CLR		200			0			0
-Sol_Left_Pop_Bumper				1		6		USE_SWITCH		100			0			1
+Sol_Left_Slingshot			1		3		USE_SWITCH		100			0			1
+Sol_Right_Slingshot			1		4		USE_SWITCH		100			0			1
+Sol_Ball_In_Play				1		5		AUTO_CLR		   200			0			0
+Sol_Left_Pop_Bumper			1		6		USE_SWITCH		100			0			1
 Sol_Right_Pop_Bumper			1		7		USE_SWITCH		100			0			1
-Sol_Kickout_Hole				1		8		AUTO_CLR		200			0			0
+Sol_Kickout_Hole				1		8		AUTO_CLR		   200			0			0
 
 INPUT_CARDS			1
 #Name							Card	I/O		Type
 Inp_Coin_Drop					1		1		FALL_EDGE
 Inp_Start_Button				1		2		FALL_EDGE
-Inp_Tilt_Switch					1		3		FALL_EDGE
+Inp_Tilt_Switch				1		3		FALL_EDGE
 Inp_Spinner						1		4		FALL_EDGE
 Inp_Left_Outlane				1		5		FALL_EDGE
 Inp_Right_Outlane				1		6		FALL_EDGE
-Inp_Left_Flipper_Lane			1		7		FALL_EDGE
-Inp_Right_Flipper_Lane			1		8		FALL_EDGE
-Inp_Ball_At_Plunger				1		9		STATE_INPUT
-Inp_Inlane_Left					1		10		FALL_EDGE
+Inp_Left_Flipper_Lane		1		7		FALL_EDGE
+Inp_Right_Flipper_Lane		1		8		FALL_EDGE
+Inp_Ball_At_Plunger			1		9		STATE_INPUT
+Inp_Inlane_Left				1		10		FALL_EDGE
 Inp_Inlane_Center				1		11		FALL_EDGE
 Inp_Inlane_Right				1		12		FALL_EDGE
 Inp_Left_Target1				1		13		FALL_EDGE
@@ -76,7 +76,7 @@ Inp_Right_Target2				1		16		FALL_EDGE
 
 LED_CARDS			1
 #Name							Card	I/O
-Led_Inlane_Left					1		1
+Led_Inlane_Left				1		1
 Led_Inlane_Center				1		2
 Led_Inlane_Right				1		3
 Led_Left_Target1				1		4
@@ -91,13 +91,45 @@ Var_credits
 Var_partCreditsNum
 Var_partCreditsDenom			2
 Var_creditsInRow
+Var_extraCredit            4
 Var_numPlayers
+Var_maxPlayers             4
 Var_currPlayer
 Var_ballNum
 Var_ballsPerGame				3
-Var_highScore
+Var_highScore              10000
 
 INDEXED_VARIABLES
 #Name							NumEntries		InitVals
 IndVar_score					4
-IndVar_InlaneLights				4
+IndVar_InlaneLights			4
+
+MODES
+#Name                   ProcessChains  VideoChain  LedChain
+Mode_Init               (Proc_Init)    ()          ()
+Mode_Attract            (Proc_Init)
+Mode_Press_Start
+
+
+PROCESS_CHAINS
+#Name
+Proc_Init               (if (Var_credits = 0)
+                           (MODE = Mode_Attract)
+                        else
+                           (MODE = Mode_Press_Start))
+
+Proc_Add_Coin           (if (Inp_Coin_Drop) 
+                           ((Var_creditsInRow++) (Var_partCreditsNum++)
+                           if (Var_creditsInRow = Var_extraCredit)
+                              ((Var_credits++) (Var_creditsInRow = 0))
+                           if (Var_partCreditsNum = Var_partCreditsDenom)
+                              ((Var_credits++) (Var_partCreditsNum = 0))))
+
+Proc_Press_Start        (if (Var_credits && (Var_ballNum = 0))
+                           (if (Var_numPlayers < Var_maxPlayers)
+                              ((Var_credits--) (Var_numPlayers++)))
+                        if (MODE = Mode_Press_Start)
+                           (MODE = Mode_Init_Game))
+
+
+Proc_Start_Ball         

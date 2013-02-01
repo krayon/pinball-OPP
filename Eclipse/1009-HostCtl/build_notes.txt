@@ -1,0 +1,5 @@
+Program arguments:
+-debug -com=COM1
+
+VM arguments:
+-Djava.library.path=lib -Djna.library.path=lib
