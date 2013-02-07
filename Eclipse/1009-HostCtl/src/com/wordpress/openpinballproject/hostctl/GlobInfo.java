@@ -83,4 +83,5 @@ public class GlobInfo
    public static SerIntf         serIntf = null;
    public static VideoServ       videoServ = null;
    public static ConsoleFrm      consFrm = null;
+   public static ParseRules      parseRules = null;
 } /* End GlobInfo */

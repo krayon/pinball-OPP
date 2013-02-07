@@ -321,6 +321,11 @@ public class HostCtl extends JFrame
       GlobInfo.videoServ = new VideoServ();
       
       bgndFrame.moveToBack();
+      
+      if (rulesFileName != null)
+      {
+         GlobInfo.parseRules = new ParseRules(rulesFileName);
+      }
 
       setVisible(true);
    } /* end HostCtl */
