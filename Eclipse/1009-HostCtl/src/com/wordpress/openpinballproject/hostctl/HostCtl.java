@@ -308,6 +308,11 @@ public class HostCtl extends JFrame
       
       GlobInfo.hostCtl = this;
       
+      if (rulesFileName != null)
+      {
+         GlobInfo.parseRules = new ParseRules(rulesFileName);
+      }
+
       if (commPortName != null)
       {
          GlobInfo.serIntf = new SerIntf(commPortName);
@@ -322,11 +327,6 @@ public class HostCtl extends JFrame
       
       bgndFrame.moveToBack();
       
-      if (rulesFileName != null)
-      {
-         GlobInfo.parseRules = new ParseRules(rulesFileName);
-      }
-
       setVisible(true);
    } /* end HostCtl */
    

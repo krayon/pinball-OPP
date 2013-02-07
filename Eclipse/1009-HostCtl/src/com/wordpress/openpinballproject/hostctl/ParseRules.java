@@ -55,12 +55,48 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ParseRules
 {
+   public static final int       STATE_IDLE              = 0;
+   public static final int       STATE_NAME_SOL          = 1;
+   public static final int       STATE_NAME_INP          = 2;
+   public static final int       STATE_NAME_LED          = 3;
+   public static final int       STATE_NAME_VAR          = 4;
+   public static final int       STATE_NAME_IND_VAR      = 5;
+   public static final int       STATE_NAME_MODE         = 6;
+   public static final int       STATE_NAME_PROC_CHAIN   = 7;
+   public static final int       STATE_NAME_LED_CHAIN    = 8;
+
+   private static final Map<String, Integer> RSVD_STATE_MAP = (Map<String, Integer>) createMap();
+
+   private static Map<String, Integer> createMap()
+   {
+       Map<String, Integer> result = new HashMap<String, Integer>();
+       result.put("SOLENOID_CARDS", STATE_NAME_SOL);
+       result.put("INPUT_CARDS", STATE_NAME_INP);
+       result.put("LED_CARDS", STATE_NAME_LED);
+       result.put("VARIABLES", STATE_NAME_VAR);
+       result.put("INDEXED_VARIABLES", STATE_NAME_IND_VAR);
+       result.put("MODES", STATE_NAME_MODE);
+       result.put("PROCESS_CHAINS", STATE_NAME_PROC_CHAIN);
+       result.put("LED_CHAINS", STATE_NAME_LED_CHAIN);
+       return Collections.unmodifiableMap(result);
+   }
+   
    public ParseRules(
       String                           rulesFile)
    {
+      int                              offset;
+      boolean                          done;
+      int                              lineNum = 0;
+      String[]                         tokens;
+      int                              state = STATE_IDLE;
+      Integer                          temp;
+      
       try
       {
          FileInputStream fstream = new FileInputStream(rulesFile);
@@ -70,12 +106,51 @@ public class ParseRules
          
          try
          {
-            /* HRS
             while ((strLine = br.readLine()) != null)
             {
+               done = false;
+               
+               /* Remove everything after a '#' since it is a comment */
+               offset = strLine.indexOf("#");
+               if (offset != -1)
+               {
+                  strLine = strLine.substring(0, offset);
+               }
+               
+               /* Guarantee spaces before and after () {} and [] for split */
+               strLine = strLine.replaceAll("\\{", " \\{ ").replaceAll("\\}", " \\} ");
+               strLine = strLine.replaceAll("\\[", " \\[ ").replaceAll("\\]", " \\] ");
+               strLine = strLine.replaceAll("\\(", " \\( ").replaceAll("\\)", " \\) ");
+            
+               /* Make sure that some tokens exist */
+               tokens = strLine.split(" ");
+               if (tokens.length == 0)
+               {
+                  done = true;
+               }
+               
+               if (!done)
+               {
+                  if (state == STATE_IDLE)
+                  {
+                     /* Look for keyword to for section */
+                     temp = RSVD_STATE_MAP.get(tokens[0]);
+                     if (temp == null)
+                     {
+                        /* Could not find dictionary entry */
+                        done = true;
+                     }
+                     else
+                     {
+                        state = temp.intValue();
+                        System.out.println("Found " + tokens[0] + "on line: " + lineNum);
+                        state = STATE_IDLE;
+                     }
+                  }
+               }
                // Print the content on the console
-               System.out.println (strLine);
-            } */
+               lineNum++;
+            }
             in.close();
          }
          catch (IOException e)
