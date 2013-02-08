@@ -84,4 +84,6 @@ public class GlobInfo
    public static VideoServ       videoServ = null;
    public static ConsoleFrm      consFrm = null;
    public static ParseRules      parseRules = null;
+   
+   public static SolenoidClass   solClass = null;
 } /* End GlobInfo */

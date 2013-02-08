@@ -61,6 +61,8 @@ import java.util.Map;
 
 public class ParseRules
 {
+   public boolean                parseFail               = false;
+   
    public static final int       STATE_IDLE              = 0;
    public static final int       STATE_NAME_SOL          = 1;
    public static final int       STATE_NAME_INP          = 2;
@@ -70,6 +72,8 @@ public class ParseRules
    public static final int       STATE_NAME_MODE         = 6;
    public static final int       STATE_NAME_PROC_CHAIN   = 7;
    public static final int       STATE_NAME_LED_CHAIN    = 8;
+   public static final int       STATE_NAME_SOUND        = 9;
+   public static final int       STATE_NAME_VIDEO        = 10;
 
    private static final Map<String, Integer> RSVD_STATE_MAP = (Map<String, Integer>) createMap();
 
@@ -84,9 +88,32 @@ public class ParseRules
        result.put("MODES", STATE_NAME_MODE);
        result.put("PROCESS_CHAINS", STATE_NAME_PROC_CHAIN);
        result.put("LED_CHAINS", STATE_NAME_LED_CHAIN);
+       result.put("SOUND_CLIPS", STATE_NAME_SOUND);
+       result.put("VIDEO_CLIPS", STATE_NAME_VIDEO);
        return Collections.unmodifiableMap(result);
    }
    
+   /*
+    * ===============================================================================
+    * 
+    * Name: ParseRules
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Parse rules file
+    * 
+    * Read the the rules file looking for reserved words.  Hand the information to
+    * the appropriate sub-classes.
+    * 
+    * @param   rulesFile - name of the rules file 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
    public ParseRules(
       String                           rulesFile)
    {
@@ -99,14 +126,14 @@ public class ParseRules
       
       try
       {
-         FileInputStream fstream = new FileInputStream(rulesFile);
-         DataInputStream in = new DataInputStream(fstream);
-         BufferedReader br = new BufferedReader(new InputStreamReader(in));
-         String strLine;
+         FileInputStream               fstream = new FileInputStream(rulesFile);
+         DataInputStream               in = new DataInputStream(fstream);
+         BufferedReader                br = new BufferedReader(new InputStreamReader(in));
+         String                        strLine;
          
          try
          {
-            while ((strLine = br.readLine()) != null)
+            while (((strLine = br.readLine()) != null) && !parseFail)
             {
                done = false;
                
@@ -123,7 +150,7 @@ public class ParseRules
                strLine = strLine.replaceAll("\\(", " \\( ").replaceAll("\\)", " \\) ");
             
                /* Make sure that some tokens exist */
-               tokens = strLine.split(" ");
+               tokens = strLine.split("\\s+");
                if (tokens.length == 0)
                {
                   done = true;
@@ -143,6 +170,7 @@ public class ParseRules
                      else
                      {
                         state = temp.intValue();
+                        processTokens(state, tokens);
                         System.out.println("Found " + tokens[0] + "on line: " + lineNum);
                         state = STATE_IDLE;
                      }
@@ -155,14 +183,96 @@ public class ParseRules
          }
          catch (IOException e)
          {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            GlobInfo.hostCtl.printMsg("I/O exception reading rules file.");
+            GlobInfo.parseRules.parseFail = true;
          }
       }
       catch (FileNotFoundException e)
       {
-         // TODO Auto-generated catch block
-         e.printStackTrace();
+         GlobInfo.hostCtl.printMsg("Rules file not found.");
+         GlobInfo.parseRules.parseFail = true;
       }
-   }
-}
+   } /* end ParseRules */
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: processTokens
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Process tokens (fields) from rules file
+    * 
+    * Hand tokens to appropriate classes for processing.  This would be an unglorified
+    * jump table, but alas, no jump tables in java.  (Grrrr).
+    * 
+    * @param   state - current processing state
+    * @param   tokens - information to be processed 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   private void processTokens(
+      int                              state,
+      String[]                         tokens)
+   {
+      switch (state)
+      {
+         case STATE_NAME_SOL:
+         {
+            if (GlobInfo.solClass == null)
+            {
+               GlobInfo.solClass = new SolenoidClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.solClass.addEntries(0, tokens))
+               {
+                  state = STATE_IDLE;
+               }
+            }
+            break;
+         }
+         case STATE_NAME_INP:
+         {
+            break;
+         }
+         case STATE_NAME_LED:
+         {
+            break;
+         }
+         case STATE_NAME_VAR:
+         {
+            break;
+         }
+         case STATE_NAME_IND_VAR:
+         {
+            break;
+         }
+         case STATE_NAME_MODE:
+         {
+            break;
+         }
+         case STATE_NAME_PROC_CHAIN:
+         {
+            break;
+         }
+         case STATE_NAME_LED_CHAIN:
+         {
+            break;
+         }
+         case STATE_NAME_SOUND:
+         {
+            break;
+         }
+         case STATE_NAME_VIDEO:
+         {
+            break;
+         }
+      }
+   } /* end processTokens */
+} /* End ParseRules */
