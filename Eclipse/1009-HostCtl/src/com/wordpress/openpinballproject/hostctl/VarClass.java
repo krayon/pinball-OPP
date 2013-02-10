@@ -104,10 +104,10 @@ public class VarClass
     * ===============================================================================
     */
    /**
-    * Add entries to create input pins
+    * Add entries to create variables
     * 
-    * Take tokens and add entries to create input pins.  This class uses fields
-    * to configure the inputs, and name each output for later lookups.
+    * Take tokens and add entries to create variables  This class uses fields
+    * to configure the variables, and name each for later lookups.
     * 
     * @param   currToken - index of first token to be processed 
     * @param   tokens - fields to be processed 
@@ -168,10 +168,19 @@ public class VarClass
                   {
                       ParseRules.hmSymbol.put(currName,
                          ParseRules.SYMB_VAR | ParseRules.allocInd);
-                      initVarArr[numVars] = initVal;
-                      ParseRules.allocInd++;
-                      numVars++;
-                      state = VAR_PROC_VAR_NAME;
+                      if (numVars < MAX_NUM_VARS)
+                      {
+                         initVarArr[numVars] = initVal;
+                         ParseRules.allocInd++;
+                         numVars++;
+                         state = VAR_PROC_VAR_NAME;
+                      }
+                      else
+                      {
+                         GlobInfo.hostCtl.printMsg("VARIABLES: Too many variable names.");
+                         GlobInfo.parseRules.parseFail = true;
+                         state = VAR_ERROR;
+                      }
                   }
                   else
                   {
