@@ -48,8 +48,6 @@
  */
 package com.wordpress.openpinballproject.hostctl;
 
-import java.util.HashMap;
-
 public class SolenoidClass
 {
    private static final int            NUM_SOL_PER_CARD        = 8;
@@ -83,8 +81,6 @@ public class SolenoidClass
    private int                         currCard;
    private int                         currPin;
    
-   private HashMap<String, Integer>    solHm;
-   
    /*
     * ===============================================================================
     * 
@@ -95,8 +91,7 @@ public class SolenoidClass
    /**
     * Solenoid class for solenoid cards
     * 
-    * Create the hashmap with the solenoid names.  If more information is available
-    * call add entries to process it.
+    * If more information is available call add entries to process it.
     * 
     * @param   tokens - fields to be processed 
     * @return  None
@@ -109,8 +104,6 @@ public class SolenoidClass
    public SolenoidClass(
       String[]                         tokens)
    {
-      solHm = new HashMap<String, Integer>();
-      
       /* Initialize the class, first token is keyword, second should be num cards  */
       if (tokens.length > 1)
       {
@@ -169,7 +162,7 @@ public class SolenoidClass
             }
             case SOL_NEED_OPEN_CURLY:
             {
-               if (tokens[currToken] == "{")
+               if (tokens[currToken].equals("{"))
                {
                   state = SOL_PROC_SOL_NAME;
                }
@@ -183,7 +176,7 @@ public class SolenoidClass
             }
             case SOL_PROC_SOL_NAME:
             {
-               if (tokens[currToken] == "}")
+               if (tokens[currToken].equals("}"))
                {
                   state = SOL_DONE;
                }
@@ -257,6 +250,10 @@ public class SolenoidClass
                {
                   cardCfgArr[(currCard * CFG_BYTES_PER_INP * NUM_SOL_PER_CARD) +
                      (currPin * CFG_BYTES_PER_INP)] |= convertFlagToHex(tokens[currToken]);
+                  if (state == SOL_PROC_NEED_SEP)
+                  {
+                     state = SOL_PROC_SOL_INIT_KICK;
+                  }
                }
                break;
             }
@@ -349,10 +346,11 @@ public class SolenoidClass
                         (currPin * CFG_BYTES_PER_INP) + DUTY_MIN_OFF_OFFSET] |= (tmpVal << MIN_OFF_SHIFT);
                      
                      /* Check if this is a duplicate value */
-                     tstKey = solHm.get(currName);
-                     if (tstKey != null)
+                     tstKey = ParseRules.hmSymbol.get(currName);
+                     if (tstKey == null)
                      {
-                        solHm.put(currName, (currCard << 8) | currPin);
+                        ParseRules.hmSymbol.put(currName,
+                           ParseRules.SYMB_SOL_PIN | (currCard << 8) | currPin);
                         state = SOL_PROC_SOL_NAME;
                      }
                      else

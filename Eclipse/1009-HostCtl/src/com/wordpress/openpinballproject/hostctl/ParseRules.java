@@ -74,7 +74,18 @@ public class ParseRules
    public static final int       STATE_NAME_LED_CHAIN    = 8;
    public static final int       STATE_NAME_SOUND        = 9;
    public static final int       STATE_NAME_VIDEO        = 10;
+   private int                   state                   = STATE_IDLE;
 
+   public static final int       SYMB_SOL_PIN            = 0x00000000;
+   public static final int       SYMB_INP_PIN            = 0x00010000;
+   public static final int       SYMB_LED_PIN            = 0x00020000;
+   public static final int       SYMB_VAR                = 0x00030000;
+   public static final int       SYMB_INDX_VAR           = 0x00040000;
+
+   public static int             allocInd = 0;
+   public static HashMap<String, Integer>    hmSymbol;
+   
+   
    private static final Map<String, Integer> RSVD_STATE_MAP = (Map<String, Integer>) createMap();
 
    private static Map<String, Integer> createMap()
@@ -121,8 +132,9 @@ public class ParseRules
       boolean                          done;
       int                              lineNum = 0;
       String[]                         tokens;
-      int                              state = STATE_IDLE;
       Integer                          temp;
+      
+      hmSymbol = new HashMap<String, Integer>();
       
       try
       {
@@ -150,8 +162,8 @@ public class ParseRules
                strLine = strLine.replaceAll("\\(", " \\( ").replaceAll("\\)", " \\) ");
             
                /* Make sure that some tokens exist */
-               tokens = strLine.split("\\s+");
-               if (tokens.length == 0)
+               tokens = strLine.trim().split("\\s+");
+               if (tokens[0].equals(""))
                {
                   done = true;
                }
@@ -170,10 +182,12 @@ public class ParseRules
                      else
                      {
                         state = temp.intValue();
-                        processTokens(state, tokens);
-                        System.out.println("Found " + tokens[0] + "on line: " + lineNum);
-                        state = STATE_IDLE;
+                        processTokens(tokens);
                      }
+                  }
+                  else
+                  {
+                     processTokens(tokens);
                   }
                }
                // Print the content on the console
@@ -217,7 +231,6 @@ public class ParseRules
     * ===============================================================================
     */
    private void processTokens(
-      int                              state,
       String[]                         tokens)
    {
       switch (state)
@@ -232,6 +245,7 @@ public class ParseRules
             {
                if (GlobInfo.solClass.addEntries(0, tokens))
                {
+                  GlobInfo.hostCtl.printMsg("Finished processing SOLENOID_CARDS.");
                   state = STATE_IDLE;
                }
             }
@@ -239,14 +253,50 @@ public class ParseRules
          }
          case STATE_NAME_INP:
          {
+            if (GlobInfo.inpCardClass == null)
+            {
+               GlobInfo.inpCardClass = new InpCardClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.inpCardClass.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing INPUT_CARDS.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_LED:
          {
+            if (GlobInfo.ledClass == null)
+            {
+               GlobInfo.ledClass = new LedClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.ledClass.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing LED_CARDS.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_VAR:
          {
+            if (GlobInfo.varClass == null)
+            {
+               GlobInfo.varClass = new VarClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.varClass.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing VARIABLES.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_IND_VAR:

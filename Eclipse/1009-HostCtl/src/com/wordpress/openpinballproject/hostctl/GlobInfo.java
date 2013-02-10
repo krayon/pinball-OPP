@@ -86,4 +86,7 @@ public class GlobInfo
    public static ParseRules      parseRules = null;
    
    public static SolenoidClass   solClass = null;
+   public static InpCardClass    inpCardClass = null;
+   public static LedClass        ledClass = null;
+   public static VarClass        varClass = null;
 } /* End GlobInfo */
