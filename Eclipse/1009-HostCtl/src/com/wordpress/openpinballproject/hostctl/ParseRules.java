@@ -81,6 +81,9 @@ public class ParseRules
    public static final int       SYMB_LED_PIN            = 0x00020000;
    public static final int       SYMB_VAR                = 0x00030000;
    public static final int       SYMB_INDX_VAR           = 0x00040000;
+   public static final int       SYMB_SND                = 0x00050000;
+   public static final int       SYMB_BIG_VID            = 0x00060000;
+   public static final int       SYMB_LITTLE_VID         = 0x00070000;
 
    public static int             allocInd = 0;
    public static HashMap<String, Integer>    hmSymbol;
@@ -301,6 +304,7 @@ public class ParseRules
          }
          case STATE_NAME_IND_VAR:
          {
+            /* HRS
             if (GlobInfo.indxVarClass == null)
             {
                GlobInfo.indxVarClass = new IndxVarClass(tokens);
@@ -312,7 +316,8 @@ public class ParseRules
                   GlobInfo.hostCtl.printMsg("Finished processing INDEXED_VARIABLES.");
                   state = STATE_IDLE;
                }
-            }
+            } */
+            state = STATE_IDLE;
             break;
          }
          case STATE_NAME_MODE:
@@ -329,10 +334,34 @@ public class ParseRules
          }
          case STATE_NAME_SOUND:
          {
+            if (GlobInfo.sndClass == null)
+            {
+               GlobInfo.sndClass = new SoundClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.sndClass.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing SOUND_CLIPS.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_VIDEO:
          {
+            if (GlobInfo.vidClass == null)
+            {
+               GlobInfo.vidClass = new VideoClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.vidClass.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing VIDEO_CLIPS.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
       }

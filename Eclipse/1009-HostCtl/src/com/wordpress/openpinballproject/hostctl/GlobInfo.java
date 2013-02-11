@@ -89,5 +89,7 @@ public class GlobInfo
    public static InpCardClass    inpCardClass = null;
    public static LedClass        ledClass = null;
    public static VarClass        varClass = null;
-   public static IndxVarClass    indxVarClass = null;
+   public static SoundClass      sndClass = null;
+   public static VideoClass      vidClass = null;
+   /* public static IndxVarClass    indxVarClass = null; */
 } /* End GlobInfo */
