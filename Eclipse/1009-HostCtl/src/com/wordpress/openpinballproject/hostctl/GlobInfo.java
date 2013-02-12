@@ -91,5 +91,5 @@ public class GlobInfo
    public static VarClass        varClass = null;
    public static SoundClass      sndClass = null;
    public static VideoClass      vidClass = null;
-   /* public static IndxVarClass    indxVarClass = null; */
+   public static IndxVarClass    indxVarClass = null;
 } /* End GlobInfo */

@@ -304,7 +304,6 @@ public class ParseRules
          }
          case STATE_NAME_IND_VAR:
          {
-            /* HRS
             if (GlobInfo.indxVarClass == null)
             {
                GlobInfo.indxVarClass = new IndxVarClass(tokens);
@@ -316,8 +315,7 @@ public class ParseRules
                   GlobInfo.hostCtl.printMsg("Finished processing INDEXED_VARIABLES.");
                   state = STATE_IDLE;
                }
-            } */
-            state = STATE_IDLE;
+            }
             break;
          }
          case STATE_NAME_MODE:
