@@ -3,3 +3,5 @@ Program arguments:
 
 VM arguments:
 -Djava.library.path=lib -Djna.library.path=lib
+
+Set VLC_PLUGIN_PATH to C:\Program Files\VideoLAN\VLC\plugins
