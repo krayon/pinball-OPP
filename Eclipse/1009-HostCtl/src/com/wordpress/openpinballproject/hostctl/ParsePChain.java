@@ -65,14 +65,10 @@ public class ParsePChain
    private int                         allTokenLen = 0;
    private int                         delimCnt = 0;
 
-   private static final int            MUNGE_FIRST_SYMB        = 0;
-   private static final int            MUNGE_IF_STATEMENT      = 1;
-   private static final int            MUNGE_OPEN_PAREN        = 2;
-   private static final int            MUNGE_PCHAIN_NAME       = 3;
-   private static final int            MUNGE_DONE              = 4;
+   private static final int            MUNGE_OK                = 0;
+   private static final int            MUNGE_ERROR             = 1;
+   private static final int            MUNGE_DONE              = 2;
 
-   private int                         mungeState;
-   
    /*
     * ===============================================================================
     * 
@@ -223,6 +219,10 @@ public class ParsePChain
             {
                state = PCHAIN_DONE;
             }
+            else if (startInd > allTokenLen)
+            {
+               state = PCHAIN_ERROR;
+            }
          }
          if (state == PCHAIN_DONE)
          {
@@ -332,9 +332,7 @@ public class ParsePChain
          else
          {
             endIndex = done;
-            
-            /* HRS: currently stubbed out
-            procObjStart = mungePChain(startIndex + 2, endIndex); */
+            procObjStart = mungePChain(startIndex + 2, endIndex);
 
             /* Check if this is a duplicate value */
             tstKey = ParseRules.hmSymbol.get(currName);
@@ -388,82 +386,183 @@ public class ParsePChain
       int                              currIndex;
       int                              done;
       ProcObj                          procObj;
+      int                              mungeState = MUNGE_OK;
       
-      mungeState = MUNGE_FIRST_SYMB;
+      procObj = new ProcObj();
+      GlobInfo.procObjArr[GlobInfo.numProcObj++] = procObj;
+      
       currIndex = startIndex;
-      while (mungeState != MUNGE_DONE)
+      while (mungeState == MUNGE_OK)
       {
-         switch (mungeState)
+         if (allTokens[currIndex].equals("if"))
          {
-            case MUNGE_FIRST_SYMB:
-            {
-               if (allTokens[currIndex].equals("if"))
-               {
-                  mungeState = MUNGE_IF_STATEMENT;
-               }
-               else if (allTokens[currIndex].equals("("))
-               {
-                  mungeState = MUNGE_OPEN_PAREN;
-               }
-               else
-               {
-                  /* Only other valid symbol is a process chain name */
-                  mungeState = MUNGE_PCHAIN_NAME;
-               }
-               currIndex++;
-               break;
-            }
-            case MUNGE_IF_STATEMENT:
-            {
-               if (allTokens[currIndex].equals("("))
-               {
-                  done = countDelim("(", ")", currIndex, endIndex);
-                  if (done == 0)
-                  {
-                     /* Couldn't find closing paren. */
-                     mungeState = MUNGE_DONE;
-                     GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if statement");
-                     GlobInfo.parseRules.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-                  else
-                  {
-                     /* HRS:  Currently stubbed out
-                     procObj = procIfState(currIndex + 1, done); */
-                  }
-               }
-               else
-               {
-                  /* Open paren not found so error */
-                  mungeState = MUNGE_DONE;
-                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find open parenthesis in if statement");
-                  GlobInfo.parseRules.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-               break;
-            }
-            case MUNGE_OPEN_PAREN:
+            if (allTokens[currIndex + 1].equals("("))
             {
                done = countDelim("(", ")", currIndex, endIndex);
                if (done == 0)
                {
                   /* Couldn't find closing paren. */
                   mungeState = MUNGE_DONE;
-                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in statement");
+                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if statement");
                   GlobInfo.parseRules.parseFail = true;
                   state = PCHAIN_ERROR;
+                  break;
                }
                else
                {
-                  /* HRS: Currently stubbed out
-                  procObj = procStatement(currIndex + 1, done); */
+                  /* HRS:  Currently stubbed out
+                  procObj = procIfState(currIndex + 1, done); */
+                  currIndex = done + 1;
+                  
+                  /* Next symbol can be either { if multiple statements, or ( if a single statement */
+                  if (allTokens[currIndex].equals("("))
+                  {
+                     done = countDelim("(", ")", currIndex, endIndex);
+                     if (done == 0)
+                     {
+                        /* Couldn't find closing paren. */
+                        mungeState = MUNGE_DONE;
+                        GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if sub-statement");
+                        GlobInfo.parseRules.parseFail = true;
+                        state = PCHAIN_ERROR;
+                        break;
+                     }
+                     else
+                     {
+                        /* HRS:  Currently stubbed out
+                        procObj = procStatement(currIndex + 1, done); */
+                        /* Fill out topmost procObj with this returned obj when if is true */
+                        currIndex = done + 1;
+                     }
+                  }
+                  else if (allTokens[currIndex].equals("{"))
+                  {
+                     done = countDelim("{", "}", currIndex, endIndex);
+                     if (done == 0)
+                     {
+                        mungeState = MUNGE_DONE;
+                        GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close curly brace in if sub-statement");
+                        GlobInfo.parseRules.parseFail = true;
+                        state = PCHAIN_ERROR;
+                        break;
+                     }
+                     else
+                     {
+                        /* HRS:  Currently stubbed out
+                        procObj = mungePChain(currIndex + 1, done); */
+                        /* Fill out topmost procObj with this returned obj when if is true */
+                        currIndex = done + 1;
+                     }
+                  }
+                  else
+                  {
+                     /* Couldn't find valid symbol in if clause */
+                     mungeState = MUNGE_DONE;
+                     GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find valid statement in if sub-clause");
+                     GlobInfo.parseRules.parseFail = true;
+                     state = PCHAIN_ERROR;
+                     break;
+                  }
+                  
+                  /* Next token could be the "else" symbol */
+                  if ((currIndex != endIndex) && (allTokens[currIndex].equals("else")))
+                  {
+                     /* Special case for else if */
+                     if (allTokens[currIndex + 1].equals("if"))
+                     {
+                        /* HRS:  Currently stubbed out
+                        procObj = mungePChain(currIndex + 1, done); */
+                        /* Fill out topmost procObj with this returned obj when if is false */
+                        currIndex = done + 1;
+                     }
+                     /* Next symbol can be either { if multiple statements, or ( if a single statement */
+                     else if (allTokens[currIndex + 1].equals("("))
+                     {
+                        done = countDelim("(", ")", currIndex, endIndex);
+                        if (done == 0)
+                        {
+                           /* Couldn't find closing paren. */
+                           mungeState = MUNGE_DONE;
+                           GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in else sub-statement");
+                           GlobInfo.parseRules.parseFail = true;
+                           state = PCHAIN_ERROR;
+                           break;
+                        }
+                        else
+                        {
+                           /* HRS:  Currently stubbed out
+                           procObj = procStatement(currIndex + 1, done); */
+                           /* Fill out topmost procObj with this returned obj when if is false */
+                           currIndex = done + 1;
+                        }
+                     }
+                     else if (allTokens[currIndex + 1].equals("{"))
+                     {
+                        done = countDelim("{", "}", currIndex, endIndex);
+                        if (done == 0)
+                        {
+                           mungeState = MUNGE_DONE;
+                           GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close curly brace in else sub-statement");
+                           GlobInfo.parseRules.parseFail = true;
+                           state = PCHAIN_ERROR;
+                           break;
+                        }
+                        else
+                        {
+                           /* HRS:  Currently stubbed out
+                           procObj = mungePChain(currIndex + 1, done); */
+                           /* Fill out topmost procObj with this returned obj when if is false */
+                           currIndex = done + 1;
+                        }
+                     }
+                     else
+                     {
+                        /* Couldn't find valid symbol in else clause */
+                        mungeState = MUNGE_DONE;
+                        GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find valid statement in else sub-clause");
+                        GlobInfo.parseRules.parseFail = true;
+                        state = PCHAIN_ERROR;
+                        break;
+                     }
+                  }
                }
-               break;
             }
-            case MUNGE_PCHAIN_NAME:
+            else
             {
+               /* Open paren not found so error */
+               mungeState = MUNGE_DONE;
+               GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find open parenthesis in if statement");
+               GlobInfo.parseRules.parseFail = true;
+               state = PCHAIN_ERROR;
                break;
             }
+         }
+         else if (allTokens[currIndex].equals("("))
+         {
+            done = countDelim("(", ")", currIndex, endIndex);
+            if (done == 0)
+            {
+               /* Couldn't find closing paren. */
+               mungeState = MUNGE_DONE;
+               GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in statement");
+               GlobInfo.parseRules.parseFail = true;
+               state = PCHAIN_ERROR;
+               break;
+            }
+            else
+            {
+               /* HRS: Currently stubbed out
+               procObj = procStatement(currIndex + 1, done); */
+               currIndex = done + 1;
+           }
+         }
+         else
+         {
+            /* Only other valid symbol is a process chain name */
+         }
+         if (currIndex == endIndex)
+         {
+            mungeState = MUNGE_DONE;
          }
       }
       return (0);

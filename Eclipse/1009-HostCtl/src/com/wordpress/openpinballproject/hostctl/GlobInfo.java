@@ -57,6 +57,7 @@ public class GlobInfo
    private static final int      MAX_NUM_SOL_CARDS          = 8;
    private static final int      MAX_NUM_LED_CARDS          = 8;
    public static final int       NUM_VIDEO_CLIPS            = 2;
+   public static final int       MAX_NUM_PROC_OBJ           = 16384;
    
    public static int             chngFlag = 0;
    public static boolean         commGood = false;
@@ -79,6 +80,8 @@ public class GlobInfo
    public static int[]           ledCardData = new int[MAX_NUM_LED_CARDS];
    public static JLabel[]        ledCardDbgLbl = new JLabel[MAX_NUM_LED_CARDS];
    public static int             tick = 20;
+   public static ProcObj[]       procObjArr = new ProcObj[MAX_NUM_PROC_OBJ];
+   public static int             numProcObj = 0;
   
    public static HostCtl         hostCtl = null;
    public static SerIntf         serIntf = null;
