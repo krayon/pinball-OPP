@@ -78,12 +78,14 @@ public class GlobInfo
    public static int             numLedCards = 0;
    public static int[]           ledCardData = new int[MAX_NUM_LED_CARDS];
    public static JLabel[]        ledCardDbgLbl = new JLabel[MAX_NUM_LED_CARDS];
+   public static int             tick = 20;
   
    public static HostCtl         hostCtl = null;
    public static SerIntf         serIntf = null;
    public static VideoServ       videoServ = null;
    public static ConsoleFrm      consFrm = null;
    public static ParseRules      parseRules = null;
+   public static ParsePChain     parsePChain = null;
    
    public static SolenoidClass   solClass = null;
    public static InpCardClass    inpCardClass = null;
@@ -92,4 +94,5 @@ public class GlobInfo
    public static SoundClass      sndClass = null;
    public static VideoClass      vidClass = null;
    public static IndxVarClass    indxVarClass = null;
+   public static TimerClass      tmrClass = null;
 } /* End GlobInfo */

@@ -19,9 +19,9 @@
  *               PPP     OOOOOOOO     PPP
  *              PPPPP      OOOO      PPPPP
  *
- * @file:   VideoClass.java
+ * @file:   TimerClass.java
  * @author: Hugh Spahr
- * @date:   2/11/2013
+ * @date:   3/05/2013
  *
  * @note:   Open Pinball Project
  *          Copyright© 2013, Hugh Spahr
@@ -42,41 +42,37 @@
  *===============================================================================
  */
 /**
- * Video class
+ * Timer class
  *
  *===============================================================================
  */
 
 package com.wordpress.openpinballproject.hostctl;
 
-import java.util.ArrayList;
-
-public class VideoClass
+public class TimerClass
 {
-   private static final int            VID_NEED_OPEN_CURLY     = 1;
-   private static final int            VID_PROC_VID_NAME       = 2;
-   private static final int            VID_PROC_LOC            = 3;
-   private static final int            VID_PROC_SCREEN         = 4;
-   private static final int            VID_DONE                = 5;
-   private static final int            VID_ERROR               = 6;
+   private static final int            MAX_NUM_TIMERS          = 64;
+   
+   private static final int            TMR_NEED_OPEN_CURLY     = 1;
+   private static final int            TMR_PROC_TMR_NAME       = 2;
+   private static final int            TMR_PROC_TIMEOUT_VAL    = 3;
+   private static final int            TMR_DONE                = 4;
+   private static final int            TMR_ERROR               = 5;
 
-   private ArrayList<String>           bigVidArrLst = new ArrayList<String>(); 
-   private ArrayList<String>           smallVidArrLst = new ArrayList<String>(); 
-   private int                         state = VID_NEED_OPEN_CURLY;
+   private int                         state = TMR_NEED_OPEN_CURLY;
+   private int                         numTmrs = 0;
    private String                      currName;
-   private String                      locPath;
-   private int                         bigVidIndex = 0;
-   private int                         littleVidIndex = 0;
+   private int[]                       timeoutArr;
    
    /*
     * ===============================================================================
     * 
-    * Name: VideoClass
+    * Name: TimerClass
     * 
     * ===============================================================================
     */
    /**
-    * Video class
+    * Timer class
     * 
     * If more information is available call add entries to process it.
     * 
@@ -88,16 +84,17 @@ public class VideoClass
     * 
     * ===============================================================================
     */
-   public VideoClass(
+   public TimerClass(
       String[]                         tokens)
    {
-      /* Initialize the class, first token is keyword */
+      /* Initialize the class, first token is keyword, second should be num cards  */
+      timeoutArr = new int[MAX_NUM_TIMERS];
       if (tokens.length > 1)
       {
          /* If more tokens, keep processing */
          addEntries(1, tokens);         
       }
-   } /* end VideoClass */
+   } /* end VarClass */
    
    /*
     * ===============================================================================
@@ -107,10 +104,10 @@ public class VideoClass
     * ===============================================================================
     */
    /**
-    * Add entries to create videos
+    * Add entries to create timers
     * 
-    * Take tokens and add entries to create videos.  This class uses fields
-    * for locations, and name each for later lookups.
+    * Take tokens and add entries to create timers.  This class uses fields
+    * to configure the timeout, and name for later lookups.
     * 
     * @param   currToken - index of first token to be processed 
     * @param   tokens - fields to be processed 
@@ -129,107 +126,103 @@ public class VideoClass
       {
          switch (state)
          {
-            case VID_NEED_OPEN_CURLY:
+            case TMR_NEED_OPEN_CURLY:
             {
                if (tokens[currToken].equals("{"))
                {
-                  state = VID_PROC_VID_NAME;
+                  state = TMR_PROC_TMR_NAME;
                }
                else
                {
-                  GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: needs curly parenthesis.");
+                  GlobInfo.hostCtl.printMsg("TIMERS: needs curly parenthesis.");
                   GlobInfo.parseRules.parseFail = true;
-                  state = VID_ERROR;
+                  state = TMR_ERROR;
                }
                break;
             }
-            case VID_PROC_VID_NAME:
+            case TMR_PROC_TMR_NAME:
             {
                if (tokens[currToken].equals("}"))
                {
-                  state = VID_DONE;
+                  state = TMR_DONE;
                }
                else
                {
                   currName = new String(tokens[currToken]);
-                  state = VID_PROC_LOC;
+                  state = TMR_PROC_TIMEOUT_VAL;
                }
                break;
             }
-            case VID_PROC_LOC:
-            {
-               locPath = tokens[currToken];
-               state = VID_PROC_SCREEN;
-               break;
-            }
-            case VID_PROC_SCREEN:
+            case TMR_PROC_TIMEOUT_VAL:
             {
                Integer                          tstKey;
-               boolean                          addEntry = true;
-               boolean                          mainScr = true;
-
-               if (tokens[currToken].equals("MAIN_SCR"))
+               int                              initVal;
+               
+               try
                {
-                  mainScr = true;
-               }
-               else if (tokens[currToken].equals("SUB_SCR"))
-               {
-                  mainScr = false;
-               }
-               else
-               {
-                  addEntry = false;
-                  GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: Illegal screen name.");
-                  GlobInfo.parseRules.parseFail = true;
-                  state = VID_ERROR;
-               }
-               if (addEntry)
-               {
+                  initVal = Integer.parseInt(tokens[currToken]);
+                  
                   /* Check if this is a duplicate value */
                   tstKey = ParseRules.hmSymbol.get(currName);
                   if (tstKey == null)
                   {
-                     /* Add the location to the array list */
-                     if (mainScr)
-                     {
-                        bigVidArrLst.add(bigVidIndex, locPath);
-                        ParseRules.hmSymbol.put(currName,
-                           ParseRules.SYMB_BIG_VID | bigVidIndex);
-                        bigVidIndex++;
-                     }
-                     else
-                     {
-                        smallVidArrLst.add(littleVidIndex, locPath);
-                        ParseRules.hmSymbol.put(currName,
-                           ParseRules.SYMB_LITTLE_VID | littleVidIndex);
-                        littleVidIndex++;
-                     }
-                     state = VID_PROC_VID_NAME;
+                      ParseRules.hmSymbol.put(currName,
+                         ParseRules.SYMB_TIMER | numTmrs);
+                      if (numTmrs < MAX_NUM_TIMERS)
+                      {
+                         timeoutArr[numTmrs] = initVal;
+                         numTmrs++;
+                         state = TMR_PROC_TMR_NAME;
+                      }
+                      else
+                      {
+                         GlobInfo.hostCtl.printMsg("TIMERS: Too many timers.");
+                         GlobInfo.parseRules.parseFail = true;
+                         state = TMR_ERROR;
+                      }
                   }
                   else
                   {
-                     GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: Duplicate input names.");
+                     GlobInfo.hostCtl.printMsg("TIMERS: Duplicate names.");
                      GlobInfo.parseRules.parseFail = true;
-                     state = VID_ERROR;
+                     state = TMR_ERROR;
                   }
+               }
+               catch (NumberFormatException e)
+               {
+                  GlobInfo.hostCtl.printMsg("TIMERS: Illegal timeout value.");
+                  GlobInfo.parseRules.parseFail = true;
+                  state = TMR_ERROR;
                }
                break;
             }
-            case VID_DONE:
+            case TMR_DONE:
             {
-               GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: Extra info.");
+               GlobInfo.hostCtl.printMsg("TIMERS: Extra info.");
                GlobInfo.parseRules.parseFail = true;
-               state = VID_ERROR;
+               state = TMR_ERROR;
                break;
             }
-            case VID_ERROR:
+            case TMR_ERROR:
             {
                break;
             }
          }
          currToken++;
       }
-      if ((state == VID_ERROR) || (state == VID_DONE))
+      if (state == TMR_DONE)
+      {
+         int[]                         tmpArr = new int[numTmrs];
+         int                           index;
+         
+         /* Save some memory by allocating only the space needed for init array */
+         for (index = 0; index < numTmrs; index++)
+         {
+            tmpArr[index] = timeoutArr[index];
+         }
+         timeoutArr = tmpArr;
+      }
+      if ((state == TMR_ERROR) || (state == TMR_DONE))
       {
          return (true);
       }
@@ -238,4 +231,5 @@ public class VideoClass
          return (false);
       }
    } /* end addEntries */
-} /* End VideoClass */
+
+} /* End TimerClass */

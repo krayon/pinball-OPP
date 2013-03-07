@@ -74,6 +74,8 @@ public class ParseRules
    public static final int       STATE_NAME_LED_CHAIN    = 8;
    public static final int       STATE_NAME_SOUND        = 9;
    public static final int       STATE_NAME_VIDEO        = 10;
+   public static final int       STATE_TICK_TIME         = 11;
+   public static final int       STATE_TIMERS            = 12;
    private int                   state                   = STATE_IDLE;
 
    public static final int       SYMB_SOL_PIN            = 0x00000000;
@@ -84,6 +86,8 @@ public class ParseRules
    public static final int       SYMB_SND                = 0x00050000;
    public static final int       SYMB_BIG_VID            = 0x00060000;
    public static final int       SYMB_LITTLE_VID         = 0x00070000;
+   public static final int       SYMB_PCHAIN             = 0x00080000;
+   public static final int       SYMB_TIMER              = 0x00090000;
 
    public static int             allocInd = 0;
    public static HashMap<String, Integer>    hmSymbol;
@@ -104,6 +108,8 @@ public class ParseRules
        result.put("LED_CHAINS", STATE_NAME_LED_CHAIN);
        result.put("SOUND_CLIPS", STATE_NAME_SOUND);
        result.put("VIDEO_CLIPS", STATE_NAME_VIDEO);
+       result.put("TICK_TIME", STATE_TICK_TIME);
+       result.put("TIMERS", STATE_TIMERS);
        return Collections.unmodifiableMap(result);
    }
    
@@ -175,7 +181,7 @@ public class ParseRules
                {
                   if (state == STATE_IDLE)
                   {
-                     /* Look for keyword to for section */
+                     /* Look for keyword */
                      temp = RSVD_STATE_MAP.get(tokens[0]);
                      if (temp == null)
                      {
@@ -324,6 +330,18 @@ public class ParseRules
          }
          case STATE_NAME_PROC_CHAIN:
          {
+            if (GlobInfo.parsePChain == null)
+            {
+               GlobInfo.parsePChain = new ParsePChain(tokens);
+            }
+            else
+            {
+               if (GlobInfo.parsePChain.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing PROC_CHAINS.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_LED_CHAIN:
@@ -357,6 +375,36 @@ public class ParseRules
                if (GlobInfo.vidClass.addEntries(0, tokens))
                {
                   GlobInfo.hostCtl.printMsg("Finished processing VIDEO_CLIPS.");
+                  state = STATE_IDLE;
+               }
+            }
+            break;
+         }
+         case STATE_TICK_TIME:
+         {
+            try
+            {
+               GlobInfo.tick = Integer.parseInt(tokens[1]);
+            }
+            catch (NumberFormatException e)
+            {
+               GlobInfo.hostCtl.printMsg("TICK_TIME: Illegal tick time.");
+               GlobInfo.parseRules.parseFail = true;
+            }
+            state = STATE_IDLE;
+            break;
+         }
+         case STATE_TIMERS:
+         {
+            if (GlobInfo.tmrClass == null)
+            {
+               GlobInfo.tmrClass = new TimerClass(tokens);
+            }
+            else
+            {
+               if (GlobInfo.tmrClass.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing TIMERS.");
                   state = STATE_IDLE;
                }
             }

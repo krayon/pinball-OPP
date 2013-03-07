@@ -232,4 +232,4 @@ public class VarClass
          return (false);
       }
    } /* end addEntries */
-}
+} /* End VarClass */

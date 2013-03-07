@@ -79,8 +79,9 @@ typedef enum
 
 typedef enum
 {
-  DISP_STATE_INIT           = 0x00,
-  DISP_STATE_NORM           = 0x01,
+  DISP_STATE_CFG            = 0x00,
+  DISP_STATE_INIT           = 0x01,
+  DISP_STATE_NORM           = 0x02,
 } DISP_STATE_E;
 
 typedef enum

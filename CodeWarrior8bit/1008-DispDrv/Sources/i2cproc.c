@@ -65,6 +65,8 @@ typedef enum
 typedef struct
 {
   volatile I2C_STATE_E      state;
+  U8                        currPlyr;
+  U8                        valPlyr;
   U8                        txBuf[MAX_SEND_SIZE];
   STDLI_I2C_RESP_E          msgStatus;
   STDLI_I2C_XFER_T          i2cMsg;
@@ -142,9 +144,13 @@ void i2cproc_set_digit(
  */
 void i2cproc_init_i2c(void) 
 {
+#define INIT_VALID_PLYR     0x1f
+
   i2c_glob.i2cMsg.i2cDone_fp = i2cproc_i2c_xfer_done;
   i2c_glob.i2cMsg.cbParm = 0;
   i2c_glob.state = I2C_STATE_IDLE;
+  i2c_glob.valPlyr = 0x1f;
+  i2c_glob.currPlyr = 0;
 
   /* Initialize the i2c bus */
   stdli2c_init_i2c(I2C_FREESCALE, 0, NULL);
@@ -178,7 +184,8 @@ void i2cproc_task(void)
   U8                        index;
   STDLI_ERR_E               error;
   
-#define WRITE_PORT          0x02  
+#define WRITE_PORT          0x02
+#define CFG_PORT            0x06
   
   /* Check if i2c bus is idle */
   if (i2c_glob.state == I2C_STATE_IDLE)
@@ -204,32 +211,53 @@ void i2cproc_task(void)
         
         /* Look up the digits that are changing */
         player = bitToPlayer[updIndex];
-        offset = bitToOffset[updIndex];
-        index = bitToIndex[updIndex];
-        i2c_glob.i2cMsg.addr = i2cAddrLkup[player][index];
-        i2c_glob.i2cMsg.data_p = &i2c_glob.txBuf[0];
-        i2c_glob.i2cMsg.numDataBytes = 3;
-        i2c_glob.txBuf[0] = WRITE_PORT;
         
-        /* Fill out the txBuf */
-        if (offset != 0x00)
+        /* Check if the player is valid */
+        if (i2c_glob.valPlyr & (1 << player))
         {
-          i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][offset]];
-          i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][offset + 1]];
-        }
-        else
-        {
-          /* Updating chars 1 and 4 */
-          i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][0]];
-          i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][3]];
-        }
-        
-        /* Call the stdlib to send the msg */
-        error = stdli2c_send_i2c_msg(&i2c_glob.i2cMsg);
-        if (error)
-        {
-          /* HRS:  Should deal with errors */
-          error++;
+          offset = bitToOffset[updIndex];
+          index = bitToIndex[updIndex];
+          i2c_glob.i2cMsg.cbParm = player;
+          i2c_glob.i2cMsg.addr = i2cAddrLkup[player][index];
+          i2c_glob.i2cMsg.data_p = &i2c_glob.txBuf[0];
+          i2c_glob.i2cMsg.numDataBytes = 3;
+          if (dispg_glob.state != DISP_STATE_CFG)
+          {
+            i2c_glob.txBuf[0] = WRITE_PORT;
+            
+            /* Fill out the txBuf */
+            if (offset != 0x00)
+            {
+              i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][offset]];
+              i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][offset + 1]];
+            }
+            else
+            {
+              /* Updating chars 1 and 4 */
+              i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][0]];
+              i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][3]];
+            }
+          }
+          else
+          {
+            /* Configure the port as all outputs */
+            i2c_glob.txBuf[0] = CFG_PORT;
+            i2c_glob.txBuf[1] = 0x00;
+            i2c_glob.txBuf[2] = 0x00;
+            if (dispg_glob.updDispBits == 0)
+            {
+              dispg_glob.state = DISP_STATE_INIT;
+              dispg_glob.updDispBits = UPD_ALL_MASK;
+            }
+          }
+          
+          /* Call the stdlib to send the msg */
+          error = stdli2c_send_i2c_msg(&i2c_glob.i2cMsg);
+          if (error)
+          {
+            /* HRS:  Should deal with errors */
+            error++;
+          }
         }
       }
     }
@@ -262,7 +290,29 @@ void i2cproc_i2c_xfer_done(
   U16                       cbParam,
   STDLI_I2C_RESP_E          status)
 {
-  cbParam = 0;
+  if (status != STDLI_I2C_XFER_OK)
+  {
+    /* Failed i2c transfer, stop sending updates to player score */
+    i2c_glob.valPlyr &= ~((1 << (U8)cbParam));
+    
+    /* Mark failed boards in the match/display */
+    if (cbParam == 0)
+    {
+      dispg_glob.curDisp[DISPG_CREDIT_MATCH][1] = CHAR_0;
+    }
+    else if (cbParam == 1)
+    {
+      dispg_glob.curDisp[DISPG_CREDIT_MATCH][2] = CHAR_0;
+    }
+    else if (cbParam == 2)
+    {
+      dispg_glob.curDisp[DISPG_CREDIT_MATCH][4] = CHAR_0;
+    }
+    else if (cbParam == 3)
+    {
+      dispg_glob.curDisp[DISPG_CREDIT_MATCH][5] = CHAR_0;
+    }
+  }
   i2c_glob.msgStatus = status;
   i2c_glob.state = I2C_STATE_IDLE;
 } /* End i2cproc_i2c_xfer_done */

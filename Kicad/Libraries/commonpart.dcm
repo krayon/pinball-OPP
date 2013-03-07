@@ -1,4 +1,4 @@
-EESchema-DOCLIB  Version 2.0  Date: 11/17/2012 6:50:44 PM
+EESchema-DOCLIB  Version 2.0  Date: 2/13/2013 1:50:20 PM
 #
 $CMP 39SF0X0
 D Flash, 128Kx8, 256Kx8, 512Kx8
@@ -42,6 +42,11 @@ K LED
 $ENDCMP
 #
 $CMP DUALDIODE
+D Diode simple
+K DEV DIODE
+$ENDCMP
+#
+$CMP photodiode
 D Diode simple
 K DEV DIODE
 $ENDCMP

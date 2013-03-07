@@ -68,7 +68,7 @@ U8                          initDisp[DISPG_NUM_DISP][CHARS_PER_DISP] = {
   { (MAJ_VERSION/10), (MAJ_VERSION - ((MAJ_VERSION/10)*10)),
     (MIN_VERSION/10), (MIN_VERSION - ((MIN_VERSION/10)*10)),
     (SUB_VERSION/10), (SUB_VERSION - ((SUB_VERSION/10)*10)) },
-  { CHAR_BLANK1, CHAR_8, CHAR_8, CHAR_BLANK1, CHAR_8, CHAR_8 } };
+  { CHAR_BLANK1, CHAR_1, CHAR_2, CHAR_BLANK1, CHAR_3, CHAR_4 } };
 
 /*
  * ===============================================================================
@@ -96,7 +96,7 @@ void main(void)
   U8                        *srcU8_p;
   U8                        *destU8_p;
   
-#define INIT_SOPT1          0x46        /* Set up debug pins, COP timer is 32ms */
+#define INIT_SOPT1          0x42        /* Set up debug pins, COP timer is 32ms */
 #define INIT_SOPT2          0x04        /* COP enable, TPM2 on port A */
 #define INIT_SPMSC1         0x5d        /* Low voltage resets MCU, enable bandgap */
 #define INIT_SPMSC2         0x04        /* Low voltage warn bits, 2.56V resets */
@@ -104,12 +104,12 @@ void main(void)
 /* SCL low at bootup means no pullups, force into bootloader */
 #define MAGIC_NUM           0xa5
 #define MAGIC_NUM_ADDR      0x80
-#define PB7_SCL             0x80
+#define PA3_SCL             0x08
 #define PA7_BOOT_LED        0x80
 
   /* Look if should jump back to bootloader and stay there */
-  stdldigio_config_dig_port(STDLI_DIG_PORT_B, PB7_SCL, 0);
-  if ((PTBD & PB7_SCL) == 0)
+  stdldigio_config_dig_port(STDLI_DIG_PORT_B, PA3_SCL, 0);
+  if ((PTAD & PA3_SCL) == 0)
   {
     /* Turn on status LED, send magic num, jump to beginning of bootloader.
      *  Jump instead of reset so LED stays on.
@@ -128,7 +128,7 @@ void main(void)
   SPMSC2 = INIT_SPMSC2;
   
   /* Initialialize global data */
-  dispg_glob.state = DISP_STATE_INIT;
+  dispg_glob.state = DISP_STATE_CFG;
   for (destU8_p = &dispg_glob.curDisp[0][0], srcU8_p = &initDisp[0][0]; 
     destU8_p < &dispg_glob.curDisp[0][0] + sizeof(dispg_glob.curDisp);)
   {

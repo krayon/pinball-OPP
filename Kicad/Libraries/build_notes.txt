@@ -38,3 +38,8 @@ Version		Notes:
 01.07.00	Added SMT SIL 1x3, reduced size of 2-56 mtg hole, SMT DIL 2x2, 1x2x1.5mm,
 		and 1x4x1.5mm.
 01.08.00	Added 2.5mm mouting hole.
+01.09.00	Add 18 AWG mounting holes and strain relief, 24 AWG mounting hole and strain relief,
+		4-40 mounting hole, and a 4 pin circular power connector.  Added V+ power symbol.
+01.10.00	Add photodiode (part and footprint), and 3mm potentiometer footprint.  Add TSOP-6
+		footprint.  Add CD4051B analog mux, LM358 op-amp, fix NTJD5121N symbol from source
+		being output to passive pins, and SI3981DV dual PChan FET.
