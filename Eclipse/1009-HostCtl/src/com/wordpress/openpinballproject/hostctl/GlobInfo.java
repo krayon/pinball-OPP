@@ -82,6 +82,7 @@ public class GlobInfo
    public static int             tick = 20;
    public static ProcObj[]       procObjArr = new ProcObj[MAX_NUM_PROC_OBJ];
    public static int             numProcObj = 0;
+   public static boolean         parseFail = false;
   
    public static HostCtl         hostCtl = null;
    public static SerIntf         serIntf = null;

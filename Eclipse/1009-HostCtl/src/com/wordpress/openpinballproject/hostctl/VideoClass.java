@@ -138,7 +138,7 @@ public class VideoClass
                else
                {
                   GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = VID_ERROR;
                }
                break;
@@ -180,7 +180,7 @@ public class VideoClass
                {
                   addEntry = false;
                   GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: Illegal screen name.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = VID_ERROR;
                }
                if (addEntry)
@@ -209,7 +209,7 @@ public class VideoClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: Duplicate input names.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = VID_ERROR;
                   }
                }
@@ -218,7 +218,7 @@ public class VideoClass
             case VID_DONE:
             {
                GlobInfo.hostCtl.printMsg("VIDEO_CLIPS: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = VID_ERROR;
                break;
             }

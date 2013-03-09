@@ -289,7 +289,7 @@ PROCESS_CHAINS
    Proc_Inlane_Comp        {(Text = "Inlanes Complete!!")(IndVar_scoreLvl[Var_currPlayer]++)
                            (IndVar_score[Var_currPlayer] += 1000)
                            (IndVar_InlaneLights[Var_currPlayer] = 0)
-                           (LED_OFF, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right)
+                           (LED_OFF, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right))
                            (MODE = Mode_Normal_Play)}
    
    Proc_Targets_Comp_Init  {(LED_BLINK_100, Led_Special)(Text = "Super Mode!")

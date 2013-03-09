@@ -155,7 +155,7 @@ public class SolenoidClass
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: needs numCards as param.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -169,7 +169,7 @@ public class SolenoidClass
                else
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -200,14 +200,14 @@ public class SolenoidClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Card Num larger than numCards.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = SOL_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Illegal Card Num.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -224,14 +224,14 @@ public class SolenoidClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Pin Num > 8.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = SOL_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Illegal Pin Num.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -276,7 +276,7 @@ public class SolenoidClass
                else
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Unknown separator.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -295,14 +295,14 @@ public class SolenoidClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Init kick must be 0 < initKick < 256.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = SOL_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Illegal initial kick value.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -321,14 +321,14 @@ public class SolenoidClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Duty cycle must be 0 <= dutyCycle < 16.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = SOL_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Illegal duty cycle value.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -356,21 +356,21 @@ public class SolenoidClass
                      else
                      {
                         GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Duplicate solenoid names.");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = SOL_ERROR;
                      }
                   }
                   else
                   {
                      GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Min off must be 0 <= dutyCycle < 8.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = SOL_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Illegal min off value.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SOL_ERROR;
                }
                break;
@@ -378,7 +378,7 @@ public class SolenoidClass
             case SOL_DONE:
             {
                GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = SOL_ERROR;
                break;
             }
@@ -440,7 +440,7 @@ public class SolenoidClass
       else
       {
          GlobInfo.hostCtl.printMsg("SOLENOID_CARDS: Unknown flag.");
-         GlobInfo.parseRules.parseFail = true;
+         GlobInfo.parseFail = true;
          state = SOL_DONE;
          return (0);
       }

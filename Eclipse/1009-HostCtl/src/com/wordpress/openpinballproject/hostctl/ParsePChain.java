@@ -156,14 +156,14 @@ public class ParsePChain
                else
                {
                   GlobInfo.hostCtl.printMsg("PCHAIN_PROC: too many tokens");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = PCHAIN_ERROR;
                }
             }
             else
             {
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: needs curly brace");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
             }
             break;
@@ -189,7 +189,7 @@ public class ParsePChain
             else
             {
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: too many tokens");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
             }
             break;
@@ -202,7 +202,7 @@ public class ParsePChain
          case PCHAIN_DONE:
          {
             GlobInfo.hostCtl.printMsg("PCHAIN_PROC: Extra info.");
-            GlobInfo.parseRules.parseFail = true;
+            GlobInfo.parseFail = true;
             state = PCHAIN_ERROR;
             break;
          }
@@ -326,7 +326,7 @@ public class ParsePChain
          if (done == 0)
          {
             GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " needs ending curly brace");
-            GlobInfo.parseRules.parseFail = true;
+            GlobInfo.parseFail = true;
             state = PCHAIN_ERROR;
          }
          else
@@ -344,7 +344,7 @@ public class ParsePChain
             else
             {
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: Duplicate input names.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
             }
          }
@@ -352,7 +352,7 @@ public class ParsePChain
       else
       {
          GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " needs starting curly brace");
-         GlobInfo.parseRules.parseFail = true;
+         GlobInfo.parseFail = true;
          state = PCHAIN_ERROR;
       }
       return (endIndex);
@@ -404,14 +404,13 @@ public class ParsePChain
                   /* Couldn't find closing paren. */
                   mungeState = MUNGE_DONE;
                   GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if statement");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = PCHAIN_ERROR;
                   break;
                }
                else
                {
-                  /* HRS:  Currently stubbed out
-                  procObj = procIfState(currIndex + 1, done); */
+                  detParamType(procObj, currIndex + 2, done - 1, true, true);
                   currIndex = done + 1;
                   
                   /* Next symbol can be either { if multiple statements, or ( if a single statement */
@@ -423,7 +422,7 @@ public class ParsePChain
                         /* Couldn't find closing paren. */
                         mungeState = MUNGE_DONE;
                         GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if sub-statement");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
                         break;
                      }
@@ -442,7 +441,7 @@ public class ParsePChain
                      {
                         mungeState = MUNGE_DONE;
                         GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close curly brace in if sub-statement");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
                         break;
                      }
@@ -459,7 +458,7 @@ public class ParsePChain
                      /* Couldn't find valid symbol in if clause */
                      mungeState = MUNGE_DONE;
                      GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find valid statement in if sub-clause");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = PCHAIN_ERROR;
                      break;
                   }
@@ -484,7 +483,7 @@ public class ParsePChain
                            /* Couldn't find closing paren. */
                            mungeState = MUNGE_DONE;
                            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in else sub-statement");
-                           GlobInfo.parseRules.parseFail = true;
+                           GlobInfo.parseFail = true;
                            state = PCHAIN_ERROR;
                            break;
                         }
@@ -503,7 +502,7 @@ public class ParsePChain
                         {
                            mungeState = MUNGE_DONE;
                            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close curly brace in else sub-statement");
-                           GlobInfo.parseRules.parseFail = true;
+                           GlobInfo.parseFail = true;
                            state = PCHAIN_ERROR;
                            break;
                         }
@@ -520,7 +519,7 @@ public class ParsePChain
                         /* Couldn't find valid symbol in else clause */
                         mungeState = MUNGE_DONE;
                         GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find valid statement in else sub-clause");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
                         break;
                      }
@@ -532,7 +531,7 @@ public class ParsePChain
                /* Open paren not found so error */
                mungeState = MUNGE_DONE;
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find open parenthesis in if statement");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
                break;
             }
@@ -545,7 +544,7 @@ public class ParsePChain
                /* Couldn't find closing paren. */
                mungeState = MUNGE_DONE;
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in statement");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
                break;
             }
@@ -559,6 +558,7 @@ public class ParsePChain
          else
          {
             /* Only other valid symbol is a process chain name */
+            currIndex = endIndex;
          }
          if (currIndex == endIndex)
          {
@@ -599,14 +599,18 @@ public class ParsePChain
       
       procObj = new ProcObj();
       currIndex = startIndex;
-      if (allTokens[currIndex].equals("("))
+      
+      /* Walk down looking for multiple open parenthesis.  It could be many
+       * levels depending on the "if" statement.
+       */
+      while (allTokens[currIndex].equals("("))
       {
          done = countDelim("(", ")", currIndex, endIndex);
          if (done == 0)
          {
             /* Couldn't find closing paren. */
             GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if statement");
-            GlobInfo.parseRules.parseFail = true;
+            GlobInfo.parseFail = true;
             state = PCHAIN_ERROR;
          }
          else
@@ -615,25 +619,12 @@ public class ParsePChain
             procObj = procIfState(currIndex + 1, done);
          }
       }
-      else if (allTokens[currIndex].equals("EXPIRED"))
-      {
-         
-      }
-      else if (allTokens[currIndex].equals("MODE"))
-      {
-         procObj.paramA = ProcObj.PDVAR_MODE;
-         procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
-         
-         /* 
-         fillCompOper(procObj, allTokens[currIndex + 1]);
-         
-         detParamType(procObj, allTokens[currIndex + 2], false);
-         currIndex += 2; */
-      }
-      else
-      {
+      /* 
+      fillCompOper(procObj, allTokens[currIndex + 1]);
+      
+      detParamType(procObj, allTokens[currIndex + 2], false);
+      currIndex += 2; */
          /* Must be a variable name/switch input/etc */
-      }
       return (procObj);
    } /* end procIfState */
 
@@ -745,7 +736,8 @@ public class ParsePChain
     * paramA, flags are returned to indicate 
     * 
     * @param   procObj - processing object
-    * @param   param - String containing the parameter to be identified
+    * @param   startIndex - starting index
+    * @param   endIndex - ending index
     * @param   firstParam - true if filling out first parameter
     * @param   ifStatement - true if filling in an if statement
     * @return  None
@@ -756,23 +748,44 @@ public class ParsePChain
     * ===============================================================================
     */
    private void detParamType(
-      ProcObj                          procObj,
-      String                           param,
+      ProcObj                          prevProcObj,
+      int                              startIndex,
+      int                              endIndex,
       boolean                          firstParam,
       boolean                          ifStatement)
    {
       boolean                          foundType = true;
+      int                              currIndex;
+      ProcObj                          procObj;
+      int                              done;
       
+      currIndex = startIndex;
       if (firstParam)
       {
+         procObj = new ProcObj();
          if (ifStatement)
          {
-            if (param.equals("EXPIRED"))
+            if (allTokens[currIndex + 1].equals("("))
+            {
+               done = countDelim("(", ")", currIndex, endIndex);
+               if (done == 0)
+               {
+                  /* Couldn't find closing paren. */
+                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if boolean equation");
+                  GlobInfo.parseFail = true;
+                  state = PCHAIN_ERROR;
+               }
+               else
+               {
+                  detParamType(procObj, currIndex + 2, done - 1, true, true);
+               }
+            }
+            else if (allTokens[currIndex + 1].equals("EXPIRED"))
             {
                procObj.paramA = ProcObj.PDVAR_EXPIRED_TIMERS;
                procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
             }
-            else if (param.equals("MODE"))
+            else if (allTokens[currIndex + 1].equals("MODE"))
             {
                procObj.paramA = ProcObj.PDVAR_MODE;
                procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
@@ -785,72 +798,72 @@ public class ParsePChain
          else
          {
             /* Special objects that can only be found as the first parameter */
-            if (param.equals("DISABLE_SOLENOIDS"))
+            if (allTokens[currIndex + 1].equals("DISABLE_SOLENOIDS"))
             {
                procObj.paramA = ProcObj.PREDEF_DISABLE_SOLENOIDS;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("LED_ON"))
+            else if (allTokens[currIndex + 1].equals("LED_ON"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_ON;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("KICK"))
+            else if (allTokens[currIndex + 1].equals("KICK"))
             {
                procObj.paramA = ProcObj.PREDEF_KICK;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("START"))
+            else if (allTokens[currIndex + 1].equals("START"))
             {
                procObj.paramA = ProcObj.PREDEF_START_TIMER;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("ENABLE_SOLENOIDS"))
+            else if (allTokens[currIndex + 1].equals("ENABLE_SOLENOIDS"))
             {
                procObj.paramA = ProcObj.PREDEF_DISABLE_SOLENOIDS;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("TEXT"))
+            else if (allTokens[currIndex + 1].equals("TEXT"))
             {
                procObj.paramA = ProcObj.PREDEF_TEXT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("SOUND"))
+            else if (allTokens[currIndex + 1].equals("SOUND"))
             {
                procObj.paramA = ProcObj.PREDEF_SOUND;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("WAIT"))
+            else if (allTokens[currIndex + 1].equals("WAIT"))
             {
                procObj.paramA = ProcObj.PREDEF_WAIT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("LED_ROT_LEFT"))
+            else if (allTokens[currIndex + 1].equals("LED_ROT_LEFT"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_ROT_LEFT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("LED_ROT_RIGHT"))
+            else if (allTokens[currIndex + 1].equals("LED_ROT_RIGHT"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_ROT_RIGHT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("LED_OFF"))
+            else if (allTokens[currIndex + 1].equals("LED_OFF"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_OFF;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("LED_BLINK_100"))
+            else if (allTokens[currIndex + 1].equals("LED_BLINK_100"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_BLINK_100;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("LED_BLINK_500"))
+            else if (allTokens[currIndex + 1].equals("LED_BLINK_500"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_BLINK_500;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (param.equals("MODE"))
+            else if (allTokens[currIndex + 1].equals("MODE"))
             {
                procObj.paramA = ProcObj.PDVAR_MODE;
                procObj.typeA = ProcObj.TYPE_PREDEF_VAR;

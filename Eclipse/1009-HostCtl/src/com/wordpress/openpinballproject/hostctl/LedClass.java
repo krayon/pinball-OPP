@@ -139,7 +139,7 @@ public class LedClass
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("LED_CARDS: needs numCards as param.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = LED_ERROR;
                }
                break;
@@ -153,7 +153,7 @@ public class LedClass
                else
                {
                   GlobInfo.hostCtl.printMsg("LED_CARDS: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = LED_ERROR;
                }
                break;
@@ -184,14 +184,14 @@ public class LedClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("LED_CARDS: Card Num larger than numCards.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = LED_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("LED_CARDS: Illegal Card Num.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = LED_ERROR;
                }
                break;
@@ -216,21 +216,21 @@ public class LedClass
                      else
                      {
                         GlobInfo.hostCtl.printMsg("LED_CARDS: Duplicate input names.");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = LED_ERROR;
                      }
                   }
                   else
                   {
                      GlobInfo.hostCtl.printMsg("LED_CARDS: Pin Num > 8.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = LED_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("LED_CARDS: Illegal Pin Num.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = LED_ERROR;
                }
                break;
@@ -238,7 +238,7 @@ public class LedClass
             case LED_DONE:
             {
                GlobInfo.hostCtl.printMsg("LED_CARDS: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = LED_ERROR;
                break;
             }

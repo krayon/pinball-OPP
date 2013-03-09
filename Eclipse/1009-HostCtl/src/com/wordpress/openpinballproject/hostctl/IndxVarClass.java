@@ -140,7 +140,7 @@ public class IndxVarClass
                else
                {
                   GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INDX_ERROR;
                }
                break;
@@ -170,14 +170,14 @@ public class IndxVarClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Too many indexed variables.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = INDX_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Illegal num entries.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INDX_ERROR;
                }
                break;
@@ -193,7 +193,7 @@ public class IndxVarClass
                else
                {
                   GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: needs curly parenthesis for init values.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INDX_ERROR;
                }
                break;
@@ -226,7 +226,7 @@ public class IndxVarClass
                   {
                      /* Incorrect number of initial values */
                      GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Incorrect num init values.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = INDX_ERROR;
                   }
                   if (addHash)
@@ -244,7 +244,7 @@ public class IndxVarClass
                      else
                      {
                         GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Duplicate names.");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = INDX_ERROR;
                      }
                   }
@@ -263,14 +263,14 @@ public class IndxVarClass
                      else
                      {
                         GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Init values, num entries mismatch.");
-                        GlobInfo.parseRules.parseFail = true;
+                        GlobInfo.parseFail = true;
                         state = INDX_ERROR;
                      }
                   }
                   catch (NumberFormatException e)
                   {
                      GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Illegal init value.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = INDX_ERROR;
                   }
                }
@@ -279,7 +279,7 @@ public class IndxVarClass
             case INDX_DONE:
             {
                GlobInfo.hostCtl.printMsg("INDEXED_VARIABLES: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = INDX_ERROR;
                break;
             }

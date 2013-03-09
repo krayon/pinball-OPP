@@ -135,7 +135,7 @@ public class TimerClass
                else
                {
                   GlobInfo.hostCtl.printMsg("TIMERS: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = TMR_ERROR;
                }
                break;
@@ -177,21 +177,21 @@ public class TimerClass
                       else
                       {
                          GlobInfo.hostCtl.printMsg("TIMERS: Too many timers.");
-                         GlobInfo.parseRules.parseFail = true;
+                         GlobInfo.parseFail = true;
                          state = TMR_ERROR;
                       }
                   }
                   else
                   {
                      GlobInfo.hostCtl.printMsg("TIMERS: Duplicate names.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = TMR_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("TIMERS: Illegal timeout value.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = TMR_ERROR;
                }
                break;
@@ -199,7 +199,7 @@ public class TimerClass
             case TMR_DONE:
             {
                GlobInfo.hostCtl.printMsg("TIMERS: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = TMR_ERROR;
                break;
             }

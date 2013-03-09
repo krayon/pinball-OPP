@@ -143,7 +143,7 @@ public class InpCardClass
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("INPUT_CARDS: needs numCards as param.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INP_ERROR;
                }
                break;
@@ -157,7 +157,7 @@ public class InpCardClass
                else
                {
                   GlobInfo.hostCtl.printMsg("INPUT_CARDS: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INP_ERROR;
                }
                break;
@@ -188,14 +188,14 @@ public class InpCardClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("INPUT_CARDS: Card Num larger than numCards.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = INP_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("INPUT_CARDS: Illegal Card Num.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INP_ERROR;
                }
                break;
@@ -212,14 +212,14 @@ public class InpCardClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("INPUT_CARDS: Pin Num > 16.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = INP_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("INPUT_CARDS: Illegal Pin Num.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INP_ERROR;
                }
                break;
@@ -249,7 +249,7 @@ public class InpCardClass
                else
                {
                   GlobInfo.hostCtl.printMsg("INPUT_CARDS: Illegal type.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = INP_ERROR;
                }
                
@@ -266,7 +266,7 @@ public class InpCardClass
                   else
                   {
                      GlobInfo.hostCtl.printMsg("INPUT_CARDS: Duplicate input names.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = INP_ERROR;
                   }
                }
@@ -275,7 +275,7 @@ public class InpCardClass
             case INP_DONE:
             {
                GlobInfo.hostCtl.printMsg("INPUT_CARDS: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = INP_ERROR;
                break;
             }

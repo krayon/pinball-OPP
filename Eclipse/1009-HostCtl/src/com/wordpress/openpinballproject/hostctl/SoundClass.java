@@ -134,7 +134,7 @@ public class SoundClass
                else
                {
                   GlobInfo.hostCtl.printMsg("SOUND_CLIPS: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SND_ERROR;
                }
                break;
@@ -173,7 +173,7 @@ public class SoundClass
                else
                {
                   GlobInfo.hostCtl.printMsg("SOUND_CLIPS: Duplicate input names.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = SND_ERROR;
                }
                break;
@@ -181,7 +181,7 @@ public class SoundClass
             case SND_DONE:
             {
                GlobInfo.hostCtl.printMsg("SOUND_CLIPS: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = SND_ERROR;
                break;
             }

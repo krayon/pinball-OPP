@@ -135,7 +135,7 @@ public class VarClass
                else
                {
                   GlobInfo.hostCtl.printMsg("VARIABLES: needs curly parenthesis.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = VAR_ERROR;
                }
                break;
@@ -178,21 +178,21 @@ public class VarClass
                       else
                       {
                          GlobInfo.hostCtl.printMsg("VARIABLES: Too many variable names.");
-                         GlobInfo.parseRules.parseFail = true;
+                         GlobInfo.parseFail = true;
                          state = VAR_ERROR;
                       }
                   }
                   else
                   {
                      GlobInfo.hostCtl.printMsg("VARIABLES: Duplicate input names.");
-                     GlobInfo.parseRules.parseFail = true;
+                     GlobInfo.parseFail = true;
                      state = VAR_ERROR;
                   }
                }
                catch (NumberFormatException e)
                {
                   GlobInfo.hostCtl.printMsg("VARIABLES: Illegal init value.");
-                  GlobInfo.parseRules.parseFail = true;
+                  GlobInfo.parseFail = true;
                   state = VAR_ERROR;
                }
                break;
@@ -200,7 +200,7 @@ public class VarClass
             case VAR_DONE:
             {
                GlobInfo.hostCtl.printMsg("VARIABLES: Extra info.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
                state = VAR_ERROR;
                break;
             }

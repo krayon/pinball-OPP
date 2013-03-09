@@ -61,8 +61,6 @@ import java.util.Map;
 
 public class ParseRules
 {
-   public boolean                parseFail               = false;
-   
    public static final int       STATE_IDLE              = 0;
    public static final int       STATE_NAME_SOL          = 1;
    public static final int       STATE_NAME_INP          = 2;
@@ -144,7 +142,6 @@ public class ParseRules
       Integer                          temp;
       
       hmSymbol = new HashMap<String, Integer>();
-      
       try
       {
          FileInputStream               fstream = new FileInputStream(rulesFile);
@@ -154,7 +151,7 @@ public class ParseRules
          
          try
          {
-            while (((strLine = br.readLine()) != null) && !parseFail)
+            while (((strLine = br.readLine()) != null) && !GlobInfo.parseFail)
             {
                done = false;
                
@@ -207,13 +204,13 @@ public class ParseRules
          catch (IOException e)
          {
             GlobInfo.hostCtl.printMsg("I/O exception reading rules file.");
-            GlobInfo.parseRules.parseFail = true;
+            GlobInfo.parseFail = true;
          }
       }
       catch (FileNotFoundException e)
       {
          GlobInfo.hostCtl.printMsg("Rules file not found.");
-         GlobInfo.parseRules.parseFail = true;
+         GlobInfo.parseFail = true;
       }
    } /* end ParseRules */
    
@@ -389,7 +386,7 @@ public class ParseRules
             catch (NumberFormatException e)
             {
                GlobInfo.hostCtl.printMsg("TICK_TIME: Illegal tick time.");
-               GlobInfo.parseRules.parseFail = true;
+               GlobInfo.parseFail = true;
             }
             state = STATE_IDLE;
             break;
