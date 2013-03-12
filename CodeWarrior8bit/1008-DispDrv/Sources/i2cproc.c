@@ -75,19 +75,29 @@ typedef struct
 
 I2C_GLOB_T                  i2c_glob;
 
-U8                          charLkup[MAX_CHAR_ID] = {
-  0x3f /* 0 */, 0x06 /* 1 */, 0x6b /* 2 */, 0x4f /* 3 */, 0x66 /* 4 */,
-  0x1b /* 5 */, 0x7d /* 6 */, 0x07 /* 7 */, 0x7f /* 8 */, 0x67 /* 9 */,
+/* Messed up layout of board, so two digits are driven by the register chips
+ * slightly differently.  Bit 4 and bit 6 are swapped.
+ */
+U8                          charLkupLo[MAX_CHAR_ID] = {
+  0x3f /* 0 */, 0x06 /* 1 */, 0x5b /* 2 */, 0x4f /* 3 */, 0x66 /* 4 */,
+  0x6d /* 5 */, 0x7d /* 6 */, 0x07 /* 7 */, 0x7f /* 8 */, 0x67 /* 9 */,
   0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 
-  0x73 /* P */, 0x79 /* E */, 0x37 /* N */, 0x38 /* L */, 0x77 /* A */,
-  0x1e /* J */, 0x39 /* C */ };
+  0x00 /*   */, 0x73 /* P */, 0x79 /* E */, 0x37 /* N */, 0x38 /* L */,
+  0x77 /* A */, 0x1e /* J */, 0x39 /* C */ };
+
+U8                          charLkupHi[MAX_CHAR_ID] = {
+  0x6f /* 0 */, 0x06 /* 1 */, 0x5b /* 2 */, 0x1f /* 3 */, 0x36 /* 4 */,
+  0x3d /* 5 */, 0x7d /* 6 */, 0x07 /* 7 */, 0x7f /* 8 */, 0x37 /* 9 */,
+  0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 0x00 /*   */, 
+  0x00 /*   */, 0x73 /* P */, 0x79 /* E */, 0x67 /* N */, 0x68 /* L */,
+  0x77 /* A */, 0x4e /* J */, 0x69 /* C */ };
 
 U8                          i2cAddrLkup[DISPG_NUM_DISP][CHARS_PER_DISP/2] = {
-  { 0x20, 0x22, 0x24 }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
   { 0x28, 0x2a, 0x2c }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
+  { 0x20, 0x22, 0x24 }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
   { 0xa0, 0xa2, 0xa4 }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
   { 0xa8, 0xaa, 0xac }, /* Note:  First addr dig2,3, 2nd 5,6, 3rd 1,4 */
-  { 0x40, 0x42, 0x00 }  /* Note:  First addr dig2,3, 2nd 5,6, last digit invalid */
+  { 0x48, 0x4a, 0x00 }  /* Note:  First addr dig2,3, 2nd 5,6, last digit invalid */
 };
 
 U8                          bitToPlayer[NUM_UPDATE_BITS] = {
@@ -228,14 +238,14 @@ void i2cproc_task(void)
             /* Fill out the txBuf */
             if (offset != 0x00)
             {
-              i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][offset]];
-              i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][offset + 1]];
+              i2c_glob.txBuf[1] = charLkupLo[dispg_glob.curDisp[player][offset + 1]];
+              i2c_glob.txBuf[2] = charLkupHi[dispg_glob.curDisp[player][offset]];
             }
             else
             {
               /* Updating chars 1 and 4 */
-              i2c_glob.txBuf[1] = charLkup[dispg_glob.curDisp[player][0]];
-              i2c_glob.txBuf[2] = charLkup[dispg_glob.curDisp[player][3]];
+              i2c_glob.txBuf[1] = charLkupLo[dispg_glob.curDisp[player][3]];
+              i2c_glob.txBuf[2] = charLkupHi[dispg_glob.curDisp[player][0]];
             }
           }
           else
@@ -252,6 +262,7 @@ void i2cproc_task(void)
           }
           
           /* Call the stdlib to send the msg */
+          i2c_glob.state = I2C_STATE_SEND;
           error = stdli2c_send_i2c_msg(&i2c_glob.i2cMsg);
           if (error)
           {
