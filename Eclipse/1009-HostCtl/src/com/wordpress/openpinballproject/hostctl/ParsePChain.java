@@ -317,7 +317,7 @@ public class ParsePChain
       int                              endIndex = 0;
       int                              done;
       Integer                          tstKey;
-      int                              procObjStart;
+      ProcObj                          procObjStart;
       
       currName = allTokens[startIndex];
       if (allTokens[startIndex + 1].equals("{"))
@@ -331,15 +331,17 @@ public class ParsePChain
          }
          else
          {
-            endIndex = done;
-            procObjStart = mungePChain(startIndex + 2, endIndex);
-
             /* Check if this is a duplicate value */
+            endIndex = done;
             tstKey = ParseRules.hmSymbol.get(currName);
             if (tstKey == null)
             {
+               procObjStart = new ProcObj();
+               GlobInfo.procObjArr[GlobInfo.numProcObj] = procObjStart;
                ParseRules.hmSymbol.put(currName,
-                  ParseRules.SYMB_PCHAIN | 0);
+                     ParseRules.SYMB_PCHAIN | GlobInfo.numProcObj);
+               GlobInfo.numProcObj++;
+               mungePChain(startIndex + 2, endIndex, procObjStart);
             }
             else
             {
@@ -372,24 +374,24 @@ public class ParsePChain
     * 
     * @param   startIndex - starting index
     * @param   endIndex - ending index
-    * @return  startProcObj - index of the starting processing object
+    * @param   firstProcObj - procObject that starts the chain
+    * @return  None
     * 
     * @pre None 
     * @note Can change state to PCHAIN_ERROR if an error occurs.
     * 
     * ===============================================================================
     */
-   private int mungePChain(
+   private void mungePChain(
       int                              startIndex,
-      int                              endIndex)
+      int                              endIndex,
+      ProcObj                          firstProcObj)
    {
       int                              currIndex;
       int                              done;
+      ProcObj                          currProcObj = null;
       ProcObj                          procObj;
       int                              mungeState = MUNGE_OK;
-      
-      procObj = new ProcObj();
-      GlobInfo.procObjArr[GlobInfo.numProcObj++] = procObj;
       
       currIndex = startIndex;
       while (mungeState == MUNGE_OK)
@@ -410,7 +412,11 @@ public class ParsePChain
                }
                else
                {
-                  detParamType(procObj, currIndex + 2, done - 1, true, true);
+                  currProcObj = detParamType(null, currIndex + 2, done - 1, true, true);
+                  GlobInfo.procObjArr[GlobInfo.numProcObj] = currProcObj;
+                  firstProcObj.oper = ProcObj.OP_GO_TO_PROCOBJ;
+                  firstProcObj.trueProcObj = GlobInfo.numProcObj;
+                  GlobInfo.numProcObj++;
                   currIndex = done + 1;
                   
                   /* Next symbol can be either { if multiple statements, or ( if a single statement */
@@ -447,8 +453,12 @@ public class ParsePChain
                      }
                      else
                      {
-                        /* HRS:  Currently stubbed out
-                        procObj = mungePChain(currIndex + 1, done); */
+                        procObj = new ProcObj();
+                        GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
+                        currProcObj.trueProcObj = GlobInfo.numProcObj;
+                        GlobInfo.numProcObj++;
+                        
+                        mungePChain(currIndex + 1, done, procObj);
                         /* Fill out topmost procObj with this returned obj when if is true */
                         currIndex = done + 1;
                      }
@@ -550,6 +560,7 @@ public class ParsePChain
             }
             else
             {
+               currProcObj = detParamType(currProcObj, currIndex + 1, done - 1, true, false); /* HRS */
                /* HRS: Currently stubbed out
                procObj = procStatement(currIndex + 1, done); */
                currIndex = done + 1;
@@ -565,7 +576,6 @@ public class ParsePChain
             mungeState = MUNGE_DONE;
          }
       }
-      return (0);
    } /* end mungePChain */
 
    /*
@@ -687,7 +697,9 @@ public class ParsePChain
       boolean                          ifStatement)
    {
       boolean                          needsMoreParams = true;
+      boolean                          foundOper;
       
+      foundOper = true;
       if (ifStatement)
       {
          if (oper.equals("=="))
@@ -714,11 +726,65 @@ public class ParsePChain
          {
             procObj.oper = ProcObj.OP_LESS_OR_EQUAL;
          }
+         else
+         {
+            foundOper = false;
+         }
       }
       else
       {
-         
+         if (oper.equals("="))
+         {
+            procObj.oper = ProcObj.OP_SET_VAL;
+         }
+         else if (oper.equals("+="))
+         {
+            procObj.oper = ProcObj.OP_PLUS_EQUALS;
+         }
+         else if (oper.equals("|="))
+         {
+            procObj.oper = ProcObj.OP_PLUS_EQUALS;
+         }
+         else if (oper.equals("&="))
+         {
+            procObj.oper = ProcObj.OP_AND_EQUALS;
+         }
+         else if (oper.equals("++"))
+         {
+            procObj.oper = ProcObj.OP_INCREMENT;
+            needsMoreParams = false;
+         }
+         else if (oper.equals("--"))
+         {
+            procObj.oper = ProcObj.OP_DECREMENT;
+            needsMoreParams = false;
+         }
+         else
+         {
+            foundOper = false;
+         }
       }
+      if (!foundOper)
+      {
+         if (oper.equals("&"))
+         {
+            procObj.oper = ProcObj.OP_BITWISE_AND;
+            foundOper = true;
+         }
+         else if (oper.equals("|"))
+         {
+            procObj.oper = ProcObj.OP_BITWISE_OR;
+         }
+         else if (oper.equals("&&"))
+         {
+            procObj.oper = ProcObj.OP_LOGICAL_AND;
+         }
+         else if (oper.equals("||"))
+         {
+            procObj.oper = ProcObj.OP_LOGICAL_OR;
+         }
+      }
+      
       return (needsMoreParams);
    }
 
@@ -747,7 +813,7 @@ public class ParsePChain
     * 
     * ===============================================================================
     */
-   private void detParamType(
+   private ProcObj detParamType(
       ProcObj                          prevProcObj,
       int                              startIndex,
       int                              endIndex,
@@ -755,8 +821,9 @@ public class ParsePChain
       boolean                          ifStatement)
    {
       boolean                          foundType = true;
+      boolean                          moreParam;
       int                              currIndex;
-      ProcObj                          procObj;
+      ProcObj                          procObj = null;
       int                              done;
       
       currIndex = startIndex;
@@ -765,7 +832,7 @@ public class ParsePChain
          procObj = new ProcObj();
          if (ifStatement)
          {
-            if (allTokens[currIndex + 1].equals("("))
+            if (allTokens[currIndex].equals("("))
             {
                done = countDelim("(", ")", currIndex, endIndex);
                if (done == 0)
@@ -777,15 +844,15 @@ public class ParsePChain
                }
                else
                {
-                  detParamType(procObj, currIndex + 2, done - 1, true, true);
+                  detParamType(procObj, currIndex + 1, done - 1, true, true);
                }
             }
-            else if (allTokens[currIndex + 1].equals("EXPIRED"))
+            else if (allTokens[currIndex].equals("EXPIRED"))
             {
                procObj.paramA = ProcObj.PDVAR_EXPIRED_TIMERS;
                procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
             }
-            else if (allTokens[currIndex + 1].equals("MODE"))
+            else if (allTokens[currIndex].equals("MODE"))
             {
                procObj.paramA = ProcObj.PDVAR_MODE;
                procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
@@ -798,72 +865,72 @@ public class ParsePChain
          else
          {
             /* Special objects that can only be found as the first parameter */
-            if (allTokens[currIndex + 1].equals("DISABLE_SOLENOIDS"))
+            if (allTokens[currIndex].equals("DISABLE_SOLENOIDS"))
             {
                procObj.paramA = ProcObj.PREDEF_DISABLE_SOLENOIDS;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("LED_ON"))
+            else if (allTokens[currIndex].equals("LED_ON"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_ON;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("KICK"))
+            else if (allTokens[currIndex].equals("KICK"))
             {
                procObj.paramA = ProcObj.PREDEF_KICK;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("START"))
+            else if (allTokens[currIndex].equals("START"))
             {
                procObj.paramA = ProcObj.PREDEF_START_TIMER;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("ENABLE_SOLENOIDS"))
+            else if (allTokens[currIndex].equals("ENABLE_SOLENOIDS"))
             {
                procObj.paramA = ProcObj.PREDEF_DISABLE_SOLENOIDS;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("TEXT"))
+            else if (allTokens[currIndex].equals("TEXT"))
             {
                procObj.paramA = ProcObj.PREDEF_TEXT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("SOUND"))
+            else if (allTokens[currIndex].equals("SOUND"))
             {
                procObj.paramA = ProcObj.PREDEF_SOUND;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("WAIT"))
+            else if (allTokens[currIndex].equals("WAIT"))
             {
                procObj.paramA = ProcObj.PREDEF_WAIT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("LED_ROT_LEFT"))
+            else if (allTokens[currIndex].equals("LED_ROT_LEFT"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_ROT_LEFT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("LED_ROT_RIGHT"))
+            else if (allTokens[currIndex].equals("LED_ROT_RIGHT"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_ROT_RIGHT;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("LED_OFF"))
+            else if (allTokens[currIndex].equals("LED_OFF"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_OFF;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("LED_BLINK_100"))
+            else if (allTokens[currIndex].equals("LED_BLINK_100"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_BLINK_100;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("LED_BLINK_500"))
+            else if (allTokens[currIndex].equals("LED_BLINK_500"))
             {
                procObj.paramA = ProcObj.PREDEF_LED_BLINK_500;
                procObj.typeA = ProcObj.TYPE_FUNC;
             }
-            else if (allTokens[currIndex + 1].equals("MODE"))
+            else if (allTokens[currIndex].equals("MODE"))
             {
                procObj.paramA = ProcObj.PDVAR_MODE;
                procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
@@ -874,5 +941,182 @@ public class ParsePChain
             }
          }
       }
+      if (!foundType)
+      {
+         Integer                          tstKey;
+         int                              type;
+         
+         /* If it isn't a reserved word, it must be defined symbol */
+         tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
+         if (tstKey == null)
+         {
+            /* I'm flamoozled.  I have no idea what is going on */
+            GlobInfo.hostCtl.printMsg("PARSE_PCHAIN: Unknown symbol " + allTokens[currIndex] + ".");
+            GlobInfo.parseFail = true;
+            state = PCHAIN_ERROR;
+         }
+         else
+         {
+            type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+            switch (type)
+            {
+               case ParseRules.SYMB_SOL_PIN:
+               {
+                  if (firstParam)
+                  {
+                     procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_SOL_INPUTS;
+                  }
+                  else
+                  {
+                     procObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_SOL_INPUTS;
+                  }
+                  currIndex++;
+                  if (currIndex < endIndex)
+                  {
+                     /* more parameters to process */
+                     moreParam = fillCompOper(procObj, allTokens[currIndex], ifStatement);
+                     if (moreParam)
+                     {
+                        /* Check if there are more parameters available */
+                        currIndex++;
+                        if (currIndex < endIndex)
+                        {
+                           if (firstParam)
+                           {
+                              /* Add second param to procObj */
+                              detParamType(procObj, currIndex, endIndex, false, ifStatement);
+                           }
+                           else
+                           {
+                              /* Need to create another procObj to attach to this one */
+                              procObj.typeB = ProcObj.TYPE_PROCOBJ_RSLT;
+                              detParamType(procObj, currIndex, endIndex, true, ifStatement);
+                           }
+                        }
+                        else
+                        {
+                           GlobInfo.hostCtl.printMsg("PARSE_PCHAIN: " + currName + " needs more params, but none avail.");
+                           GlobInfo.parseFail = true;
+                           state = PCHAIN_ERROR;
+                        }
+                     }
+                     else
+                     {
+                        /* Either an increment or decrement command */
+                     }
+                  }
+                  else
+                  {
+                     /* No more parameters */
+                     if (firstParam && ifStatement)
+                     {
+                        procObj.oper = ProcObj.OP_NONZERO;
+                        procObj.typeB = ProcObj.TYPE_UNUSED;
+                     }
+                  }
+                  break;
+               }
+               case ParseRules.SYMB_INP_PIN:
+               {
+                  if (firstParam)
+                  {
+                     procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_CARD_INPUTS;
+                  }
+                  else
+                  {
+                     procObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_CARD_INPUTS;
+                  }
+                  currIndex++;
+                  if (currIndex < endIndex)
+                  {
+                     /* more parameters to process */
+                     moreParam = fillCompOper(procObj, allTokens[currIndex], ifStatement);
+                     if (moreParam)
+                     {
+                        /* Check if there are more parameters available */
+                        currIndex++;
+                        if (currIndex < endIndex)
+                        {
+                           if (firstParam)
+                           {
+                              /* Add second param to procObj */
+                              detParamType(procObj, currIndex, endIndex, false, ifStatement);
+                           }
+                           else
+                           {
+                              /* Need to create another procObj to attach to this one */
+                              procObj.typeB = ProcObj.TYPE_PROCOBJ_RSLT;
+                              detParamType(procObj, currIndex, endIndex, true, ifStatement);
+                           }
+                        }
+                        else
+                        {
+                           GlobInfo.hostCtl.printMsg("PARSE_PCHAIN: " + currName + " needs more params, but none avail.");
+                           GlobInfo.parseFail = true;
+                           state = PCHAIN_ERROR;
+                        }
+                     }
+                     else
+                     {
+                        /* Either an increment or decrement command */
+                     }
+                  }
+                  else
+                  {
+                     /* No more parameters */
+                     if (firstParam && ifStatement)
+                     {
+                        procObj.oper = ProcObj.OP_NONZERO;
+                        procObj.typeB = ProcObj.TYPE_UNUSED;
+                     }
+                  }
+                  break;
+               }
+               case ParseRules.SYMB_LED_PIN:
+               {
+                  break;
+               }
+               case ParseRules.SYMB_VAR:
+               {
+                  break;
+               }
+               case ParseRules.SYMB_SND:
+               {
+                  break;
+               }
+               case ParseRules.SYMB_BIG_VID:
+               {
+                  break;
+               }
+               case ParseRules.SYMB_LITTLE_VID:
+               {
+                  break;
+               }
+               case ParseRules.SYMB_PCHAIN:
+               {
+                  break;
+               }
+               case ParseRules.SYMB_TIMER:
+               {
+                  break;
+               }
+               default:
+               {
+                  GlobInfo.hostCtl.printMsg("PARSE_PCHAIN: Unknown symbol type = " + type + ".");
+                  GlobInfo.parseFail = true;
+                  state = PCHAIN_ERROR;
+                  break;
+               }
+                  
+            }
+         }
+         
+         
+      }
+      return (procObj);
    } /* end detParamType */
 } /* End ParsePChain */
