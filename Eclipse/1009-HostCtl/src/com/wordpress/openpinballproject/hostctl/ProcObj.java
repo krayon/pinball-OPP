@@ -51,13 +51,13 @@ package com.wordpress.openpinballproject.hostctl;
 
 public class ProcObj
 {
-   public static final int             TYPE_VARIABLE              = 0x00000000;
-   public static final int             TYPE_CONSTANT              = 0x00010000;
-   public static final int             TYPE_HW_INPUT              = 0x00020000;
-   public static final int             TYPE_PREDEF_VAR            = 0x00030000;
-   public static final int             TYPE_FUNC                  = 0x00040000;
-   public static final int             TYPE_PROCOBJ_RSLT          = 0x00050000;
-   public static final int             TYPE_UNUSED                = 0x00060000;
+   public static final int             TYPE_VARIABLE              = 0;
+   public static final int             TYPE_CONSTANT              = 1000;
+   public static final int             TYPE_HW_INPUT              = 2000;
+   public static final int             TYPE_PREDEF_VAR            = 3000;
+   public static final int             TYPE_FUNC                  = 4000;
+   public static final int             TYPE_PROCOBJ_RSLT          = 5000;
+   public static final int             TYPE_UNUSED                = 6000;
    
    public static final int             OP_ZERO                    = 0;
    public static final int             OP_NONZERO                 = 1;
@@ -79,7 +79,7 @@ public class ProcObj
    public static final int             OP_LESS_OR_EQUAL           = 17;
    public static final int             OP_INCREMENT               = 18;
    public static final int             OP_DECREMENT               = 19;
-   public static final int             OP_GO_TO_PROCOBJ           = 20;
+   public static final int             OP_START_CHAIN             = 20;
    public static final int             OP_END_CHAIN               = 21;
 
    public static final int             PREDEF_DISABLE_SOLENOIDS   = 0;

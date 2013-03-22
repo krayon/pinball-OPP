@@ -341,6 +341,7 @@ public class ParsePChain
                ParseRules.hmSymbol.put(currName,
                      ParseRules.SYMB_PCHAIN | GlobInfo.numProcObj);
                GlobInfo.numProcObj++;
+               procObjStart.oper = ProcObj.OP_START_CHAIN;
                mungePChain(startIndex + 2, endIndex, procObjStart);
             }
             else
@@ -414,7 +415,6 @@ public class ParsePChain
                {
                   currProcObj = detParamType(null, currIndex + 2, done - 1, true, true);
                   GlobInfo.procObjArr[GlobInfo.numProcObj] = currProcObj;
-                  firstProcObj.oper = ProcObj.OP_GO_TO_PROCOBJ;
                   firstProcObj.trueProcObj = GlobInfo.numProcObj;
                   GlobInfo.numProcObj++;
                   currIndex = done + 1;
@@ -849,13 +849,11 @@ public class ParsePChain
             }
             else if (allTokens[currIndex].equals("EXPIRED"))
             {
-               procObj.paramA = ProcObj.PDVAR_EXPIRED_TIMERS;
-               procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
+               procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_EXPIRED_TIMERS;
             }
             else if (allTokens[currIndex].equals("MODE"))
             {
-               procObj.paramA = ProcObj.PDVAR_MODE;
-               procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
+               procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
             }
             else
             {
@@ -867,73 +865,59 @@ public class ParsePChain
             /* Special objects that can only be found as the first parameter */
             if (allTokens[currIndex].equals("DISABLE_SOLENOIDS"))
             {
-               procObj.paramA = ProcObj.PREDEF_DISABLE_SOLENOIDS;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
             }
             else if (allTokens[currIndex].equals("LED_ON"))
             {
-               procObj.paramA = ProcObj.PREDEF_LED_ON;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ON;
             }
             else if (allTokens[currIndex].equals("KICK"))
             {
-               procObj.paramA = ProcObj.PREDEF_KICK;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_KICK;
             }
             else if (allTokens[currIndex].equals("START"))
             {
-               procObj.paramA = ProcObj.PREDEF_START_TIMER;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_START_TIMER;
             }
             else if (allTokens[currIndex].equals("ENABLE_SOLENOIDS"))
             {
-               procObj.paramA = ProcObj.PREDEF_DISABLE_SOLENOIDS;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
             }
             else if (allTokens[currIndex].equals("TEXT"))
             {
-               procObj.paramA = ProcObj.PREDEF_TEXT;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_TEXT;
             }
             else if (allTokens[currIndex].equals("SOUND"))
             {
-               procObj.paramA = ProcObj.PREDEF_SOUND;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_SOUND;
             }
             else if (allTokens[currIndex].equals("WAIT"))
             {
-               procObj.paramA = ProcObj.PREDEF_WAIT;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_WAIT;
             }
             else if (allTokens[currIndex].equals("LED_ROT_LEFT"))
             {
-               procObj.paramA = ProcObj.PREDEF_LED_ROT_LEFT;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ROT_LEFT;
             }
             else if (allTokens[currIndex].equals("LED_ROT_RIGHT"))
             {
-               procObj.paramA = ProcObj.PREDEF_LED_ROT_RIGHT;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC +  ProcObj.PREDEF_LED_ROT_RIGHT;
             }
             else if (allTokens[currIndex].equals("LED_OFF"))
             {
-               procObj.paramA = ProcObj.PREDEF_LED_OFF;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_OFF;
             }
             else if (allTokens[currIndex].equals("LED_BLINK_100"))
             {
-               procObj.paramA = ProcObj.PREDEF_LED_BLINK_100;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_100;
             }
             else if (allTokens[currIndex].equals("LED_BLINK_500"))
             {
-               procObj.paramA = ProcObj.PREDEF_LED_BLINK_500;
-               procObj.typeA = ProcObj.TYPE_FUNC;
+               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_500;
             }
             else if (allTokens[currIndex].equals("MODE"))
             {
-               procObj.paramA = ProcObj.PDVAR_MODE;
-               procObj.typeA = ProcObj.TYPE_PREDEF_VAR;
+               procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
             }
             else
             {
@@ -965,12 +949,12 @@ public class ParsePChain
                   if (firstParam)
                   {
                      procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_SOL_INPUTS;
+                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
                   }
                   else
                   {
                      procObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_SOL_INPUTS;
+                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
                   }
                   currIndex++;
                   if (currIndex < endIndex)
@@ -1023,12 +1007,12 @@ public class ParsePChain
                   if (firstParam)
                   {
                      procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_CARD_INPUTS;
+                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
                   }
                   else
                   {
                      procObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR | ProcObj.PDVAR_CARD_INPUTS;
+                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
                   }
                   currIndex++;
                   if (currIndex < endIndex)
