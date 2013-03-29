@@ -56,8 +56,10 @@ public class ProcObj
    public static final int             TYPE_HW_INPUT              = 2000;
    public static final int             TYPE_PREDEF_VAR            = 3000;
    public static final int             TYPE_FUNC                  = 4000;
-   public static final int             TYPE_PROCOBJ_RSLT          = 5000;
+   public static final int             TYPE_PREV_RSLT             = 5000;
    public static final int             TYPE_UNUSED                = 6000;
+   public static final int             TYPE_SUB_QUANT             = 7000;
+   public static final int             TYPE_MORE_TERMS            = 8000;
    
    public static final int             OP_ZERO                    = 0;
    public static final int             OP_NONZERO                 = 1;
@@ -82,6 +84,9 @@ public class ProcObj
    public static final int             OP_START_CHAIN             = 20;
    public static final int             OP_END_CHAIN               = 21;
 
+   public static final int             OP_STATEMENT_PROC          = 0;
+   public static final int             OP_IF_PROC                 = 1000;
+   
    public static final int             PREDEF_DISABLE_SOLENOIDS   = 0;
    public static final int             PREDEF_LED_ON              = 1;
    public static final int             PREDEF_KICK                = 2;
@@ -101,7 +106,10 @@ public class ProcObj
    public static final int             PDVAR_EXPIRED_TIMERS       = 1;
    public static final int             PDVAR_SOL_INPUTS           = 2;
    public static final int             PDVAR_CARD_INPUTS          = 3;
+
+   public static final int             END_CHAIN_PROCOBJ          = -1;
    
+   public int                          num;
    public int                          oper;
    public int                          paramA;
    public int                          typeA;

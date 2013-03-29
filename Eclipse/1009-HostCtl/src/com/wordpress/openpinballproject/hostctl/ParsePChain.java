@@ -318,6 +318,7 @@ public class ParsePChain
       int                              done;
       Integer                          tstKey;
       ProcObj                          procObjStart;
+      ProcObj                          retProcObj;
       
       currName = allTokens[startIndex];
       if (allTokens[startIndex + 1].equals("{"))
@@ -338,11 +339,13 @@ public class ParsePChain
             {
                procObjStart = new ProcObj();
                GlobInfo.procObjArr[GlobInfo.numProcObj] = procObjStart;
+               procObjStart.num = GlobInfo.numProcObj;
                ParseRules.hmSymbol.put(currName,
                      ParseRules.SYMB_PCHAIN | GlobInfo.numProcObj);
                GlobInfo.numProcObj++;
                procObjStart.oper = ProcObj.OP_START_CHAIN;
-               mungePChain(startIndex + 2, endIndex, procObjStart);
+               retProcObj = mungePChain(startIndex + 2, endIndex);
+               procObjStart.trueProcObj = retProcObj.num;
             }
             else
             {
@@ -383,20 +386,29 @@ public class ParsePChain
     * 
     * ===============================================================================
     */
-   private void mungePChain(
+   private ProcObj mungePChain(
       int                              startIndex,
-      int                              endIndex,
-      ProcObj                          firstProcObj)
+      int                              endIndex)
    {
       int                              currIndex;
       int                              done;
       ProcObj                          currProcObj = null;
+      ProcObj                          firstProcObj = null;
       ProcObj                          procObj;
       int                              mungeState = MUNGE_OK;
       
       currIndex = startIndex;
       while (mungeState == MUNGE_OK)
       {
+         currProcObj = new ProcObj();
+         GlobInfo.procObjArr[GlobInfo.numProcObj] = currProcObj;
+         currProcObj.num = GlobInfo.numProcObj;
+         currProcObj.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
+         GlobInfo.numProcObj++;
+         if (firstProcObj == null)
+         {
+            firstProcObj = currProcObj;
+         }
          if (allTokens[currIndex].equals("if"))
          {
             if (allTokens[currIndex + 1].equals("("))
@@ -413,10 +425,15 @@ public class ParsePChain
                }
                else
                {
-                  currProcObj = detParamType(null, currIndex + 2, done - 1, true, true);
-                  GlobInfo.procObjArr[GlobInfo.numProcObj] = currProcObj;
-                  firstProcObj.trueProcObj = GlobInfo.numProcObj;
-                  GlobInfo.numProcObj++;
+                  currProcObj.oper = ProcObj.OP_IF_PROC;
+                  procObj = detParamType(currProcObj, currIndex + 2, done - 1, true, true);
+                  if (procObj != null)
+                  {
+                     GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
+                     currProcObj.trueProcObj = GlobInfo.numProcObj;
+                     procObj.num = GlobInfo.numProcObj;
+                     GlobInfo.numProcObj++;
+                  }
                   currIndex = done + 1;
                   
                   /* Next symbol can be either { if multiple statements, or ( if a single statement */
@@ -453,13 +470,9 @@ public class ParsePChain
                      }
                      else
                      {
-                        procObj = new ProcObj();
-                        GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
-                        currProcObj.trueProcObj = GlobInfo.numProcObj;
-                        GlobInfo.numProcObj++;
-                        
-                        mungePChain(currIndex + 1, done, procObj);
                         /* Fill out topmost procObj with this returned obj when if is true */
+                        procObj = mungePChain(currIndex + 1, done);
+                        currProcObj.trueProcObj = procObj.num;
                         currIndex = done + 1;
                      }
                   }
@@ -534,6 +547,10 @@ public class ParsePChain
                         break;
                      }
                   }
+                  else
+                  {
+                     currProcObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
+                  }
                }
             }
             else
@@ -560,9 +577,11 @@ public class ParsePChain
             }
             else
             {
-               currProcObj = detParamType(currProcObj, currIndex + 1, done - 1, true, false); /* HRS */
-               /* HRS: Currently stubbed out
-               procObj = procStatement(currIndex + 1, done); */
+               detParamType(currProcObj, currIndex + 1, done - 1, true, false);
+               if (currProcObj != firstProcObj)
+               {
+                  firstProcObj.trueProcObj = currProcObj.num;
+               }
                currIndex = done + 1;
            }
          }
@@ -576,6 +595,7 @@ public class ParsePChain
             mungeState = MUNGE_DONE;
          }
       }
+      return (firstProcObj);
    } /* end mungePChain */
 
    /*
@@ -829,11 +849,11 @@ public class ParsePChain
       currIndex = startIndex;
       if (firstParam)
       {
-         procObj = new ProcObj();
          if (ifStatement)
          {
             if (allTokens[currIndex].equals("("))
             {
+               procObj = new ProcObj();
                done = countDelim("(", ")", currIndex, endIndex);
                if (done == 0)
                {
@@ -849,11 +869,11 @@ public class ParsePChain
             }
             else if (allTokens[currIndex].equals("EXPIRED"))
             {
-               procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_EXPIRED_TIMERS;
+               prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_EXPIRED_TIMERS;
             }
             else if (allTokens[currIndex].equals("MODE"))
             {
-               procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
+               prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
             }
             else
             {
@@ -865,59 +885,59 @@ public class ParsePChain
             /* Special objects that can only be found as the first parameter */
             if (allTokens[currIndex].equals("DISABLE_SOLENOIDS"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
             }
             else if (allTokens[currIndex].equals("LED_ON"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ON;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ON;
             }
             else if (allTokens[currIndex].equals("KICK"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_KICK;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_KICK;
             }
             else if (allTokens[currIndex].equals("START"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_START_TIMER;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_START_TIMER;
             }
             else if (allTokens[currIndex].equals("ENABLE_SOLENOIDS"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
             }
             else if (allTokens[currIndex].equals("TEXT"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_TEXT;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_TEXT;
             }
             else if (allTokens[currIndex].equals("SOUND"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_SOUND;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_SOUND;
             }
             else if (allTokens[currIndex].equals("WAIT"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_WAIT;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_WAIT;
             }
             else if (allTokens[currIndex].equals("LED_ROT_LEFT"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ROT_LEFT;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ROT_LEFT;
             }
             else if (allTokens[currIndex].equals("LED_ROT_RIGHT"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC +  ProcObj.PREDEF_LED_ROT_RIGHT;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC +  ProcObj.PREDEF_LED_ROT_RIGHT;
             }
             else if (allTokens[currIndex].equals("LED_OFF"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_OFF;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_OFF;
             }
             else if (allTokens[currIndex].equals("LED_BLINK_100"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_100;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_100;
             }
             else if (allTokens[currIndex].equals("LED_BLINK_500"))
             {
-               procObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_500;
+               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_500;
             }
             else if (allTokens[currIndex].equals("MODE"))
             {
-               procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
+               prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
             }
             else
             {
@@ -948,19 +968,20 @@ public class ParsePChain
                {
                   if (firstParam)
                   {
-                     procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
+                     prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
                   }
                   else
                   {
-                     procObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
+                     prevProcObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     prevProcObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
                   }
                   currIndex++;
                   if (currIndex < endIndex)
                   {
                      /* more parameters to process */
-                     moreParam = fillCompOper(procObj, allTokens[currIndex], ifStatement);
+                     procObj = detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
+                     moreParam = fillCompOper(prevProcObj, allTokens[currIndex], ifStatement);
                      if (moreParam)
                      {
                         /* Check if there are more parameters available */
@@ -970,13 +991,13 @@ public class ParsePChain
                            if (firstParam)
                            {
                               /* Add second param to procObj */
-                              detParamType(procObj, currIndex, endIndex, false, ifStatement);
+                              detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
                            }
                            else
                            {
                               /* Need to create another procObj to attach to this one */
-                              procObj.typeB = ProcObj.TYPE_PROCOBJ_RSLT;
-                              detParamType(procObj, currIndex, endIndex, true, ifStatement);
+                              prevProcObj.typeB = ProcObj.TYPE_PREV_RSLT;
+                              detParamType(prevProcObj, currIndex, endIndex, true, ifStatement);
                            }
                         }
                         else
@@ -996,8 +1017,8 @@ public class ParsePChain
                      /* No more parameters */
                      if (firstParam && ifStatement)
                      {
-                        procObj.oper = ProcObj.OP_NONZERO;
-                        procObj.typeB = ProcObj.TYPE_UNUSED;
+                        prevProcObj.oper = ProcObj.OP_NONZERO;
+                        prevProcObj.typeB = ProcObj.TYPE_UNUSED;
                      }
                   }
                   break;
@@ -1006,13 +1027,13 @@ public class ParsePChain
                {
                   if (firstParam)
                   {
-                     procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
+                     prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
                   }
                   else
                   {
-                     procObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                     procObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
+                     prevProcObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
+                     prevProcObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
                   }
                   currIndex++;
                   if (currIndex < endIndex)
@@ -1033,7 +1054,7 @@ public class ParsePChain
                            else
                            {
                               /* Need to create another procObj to attach to this one */
-                              procObj.typeB = ProcObj.TYPE_PROCOBJ_RSLT;
+                              procObj.typeB = ProcObj.TYPE_PREV_RSLT;
                               detParamType(procObj, currIndex, endIndex, true, ifStatement);
                            }
                         }
@@ -1054,8 +1075,8 @@ public class ParsePChain
                      /* No more parameters */
                      if (firstParam && ifStatement)
                      {
-                        procObj.oper = ProcObj.OP_NONZERO;
-                        procObj.typeB = ProcObj.TYPE_UNUSED;
+                        prevProcObj.oper += ProcObj.OP_NONZERO;
+                        prevProcObj.typeB = ProcObj.TYPE_UNUSED;
                      }
                   }
                   break;
@@ -1098,8 +1119,6 @@ public class ParsePChain
                   
             }
          }
-         
-         
       }
       return (procObj);
    } /* end detParamType */

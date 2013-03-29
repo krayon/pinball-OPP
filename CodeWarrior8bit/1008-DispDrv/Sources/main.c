@@ -114,7 +114,8 @@ void main(void)
     /* Turn on status LED, send magic num, jump to beginning of bootloader.
      *  Jump instead of reset so LED stays on.
      */
-    stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT, PA7_BOOT_LED, 0);  
+    stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT, PA7_BOOT_LED, 0);
+    PTAD &= ~PA7_BOOT_LED;
     *(U8 *)MAGIC_NUM_ADDR = MAGIC_NUM;
     asm ldhx  #$fffe
     asm jmp   ,x
