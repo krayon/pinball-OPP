@@ -346,6 +346,7 @@ public class ParsePChain
                procObjStart.oper = ProcObj.OP_START_CHAIN;
                retProcObj = mungePChain(startIndex + 2, endIndex);
                procObjStart.trueProcObj = retProcObj.num;
+               procObjStart.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
             }
             else
             {
@@ -404,6 +405,7 @@ public class ParsePChain
          GlobInfo.procObjArr[GlobInfo.numProcObj] = currProcObj;
          currProcObj.num = GlobInfo.numProcObj;
          currProcObj.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
+         currProcObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
          GlobInfo.numProcObj++;
          if (firstProcObj == null)
          {
@@ -546,10 +548,6 @@ public class ParsePChain
                         state = PCHAIN_ERROR;
                         break;
                      }
-                  }
-                  else
-                  {
-                     currProcObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
                   }
                }
             }
@@ -724,27 +722,27 @@ public class ParsePChain
       {
          if (oper.equals("=="))
          {
-            procObj.oper = ProcObj.OP_EQUALS;
+            procObj.oper += ProcObj.OP_EQUALS;
          }
          else if (oper.equals("!="))
          {
-            procObj.oper = ProcObj.OP_NOT_EQUALS;
+            procObj.oper += ProcObj.OP_NOT_EQUALS;
          }
          else if (oper.equals(">"))
          {
-            procObj.oper = ProcObj.OP_GREATER_THAN;
+            procObj.oper += ProcObj.OP_GREATER_THAN;
          }
          else if (oper.equals(">="))
          {
-            procObj.oper = ProcObj.OP_GREATER_OR_EQUAL;
+            procObj.oper += ProcObj.OP_GREATER_OR_EQUAL;
          }
          else if (oper.equals("<"))
          {
-            procObj.oper = ProcObj.OP_LESS_THAN;
+            procObj.oper += ProcObj.OP_LESS_THAN;
          }
          else if (oper.equals("<="))
          {
-            procObj.oper = ProcObj.OP_LESS_OR_EQUAL;
+            procObj.oper =+ ProcObj.OP_LESS_OR_EQUAL;
          }
          else
          {
@@ -755,28 +753,28 @@ public class ParsePChain
       {
          if (oper.equals("="))
          {
-            procObj.oper = ProcObj.OP_SET_VAL;
+            procObj.oper += ProcObj.OP_SET_VAL;
          }
          else if (oper.equals("+="))
          {
-            procObj.oper = ProcObj.OP_PLUS_EQUALS;
+            procObj.oper += ProcObj.OP_PLUS_EQUALS;
          }
          else if (oper.equals("|="))
          {
-            procObj.oper = ProcObj.OP_PLUS_EQUALS;
+            procObj.oper += ProcObj.OP_PLUS_EQUALS;
          }
          else if (oper.equals("&="))
          {
-            procObj.oper = ProcObj.OP_AND_EQUALS;
+            procObj.oper += ProcObj.OP_AND_EQUALS;
          }
          else if (oper.equals("++"))
          {
-            procObj.oper = ProcObj.OP_INCREMENT;
+            procObj.oper += ProcObj.OP_INCREMENT;
             needsMoreParams = false;
          }
          else if (oper.equals("--"))
          {
-            procObj.oper = ProcObj.OP_DECREMENT;
+            procObj.oper += ProcObj.OP_DECREMENT;
             needsMoreParams = false;
          }
          else
@@ -788,20 +786,20 @@ public class ParsePChain
       {
          if (oper.equals("&"))
          {
-            procObj.oper = ProcObj.OP_BITWISE_AND;
+            procObj.oper += ProcObj.OP_BITWISE_AND;
             foundOper = true;
          }
          else if (oper.equals("|"))
          {
-            procObj.oper = ProcObj.OP_BITWISE_OR;
+            procObj.oper += ProcObj.OP_BITWISE_OR;
          }
          else if (oper.equals("&&"))
          {
-            procObj.oper = ProcObj.OP_LOGICAL_AND;
+            procObj.oper += ProcObj.OP_LOGICAL_AND;
          }
          else if (oper.equals("||"))
          {
-            procObj.oper = ProcObj.OP_LOGICAL_OR;
+            procObj.oper += ProcObj.OP_LOGICAL_OR;
          }
       }
       
@@ -845,31 +843,35 @@ public class ParsePChain
       int                              currIndex;
       ProcObj                          procObj = null;
       int                              done;
+      Integer                          tstKey;
+      int                              type;
+      int                              tmpInt;
       
       currIndex = startIndex;
+      if (allTokens[currIndex].equals("("))
+      {
+         procObj = new ProcObj();
+         done = countDelim("(", ")", currIndex, endIndex);
+         if (done == 0)
+         {
+            /* Couldn't find closing paren. */
+            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis");
+            GlobInfo.parseFail = true;
+            state = PCHAIN_ERROR;
+         }
+         else
+         {
+            detParamType(procObj, currIndex + 1, done - 1, firstParam, ifStatement);
+         }
+      }
       if (firstParam)
       {
          if (ifStatement)
          {
-            if (allTokens[currIndex].equals("("))
-            {
-               procObj = new ProcObj();
-               done = countDelim("(", ")", currIndex, endIndex);
-               if (done == 0)
-               {
-                  /* Couldn't find closing paren. */
-                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if boolean equation");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-               else
-               {
-                  detParamType(procObj, currIndex + 1, done - 1, true, true);
-               }
-            }
-            else if (allTokens[currIndex].equals("EXPIRED"))
+            if (allTokens[currIndex].equals("EXPIRED"))
             {
                prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_EXPIRED_TIMERS;
+               prevProcObj.oper = ProcObj.OP_BITWISE_AND;
             }
             else if (allTokens[currIndex].equals("MODE"))
             {
@@ -885,7 +887,9 @@ public class ParsePChain
             /* Special objects that can only be found as the first parameter */
             if (allTokens[currIndex].equals("DISABLE_SOLENOIDS"))
             {
+               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC;
                prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
+               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
             }
             else if (allTokens[currIndex].equals("LED_ON"))
             {
@@ -938,6 +942,25 @@ public class ParsePChain
             else if (allTokens[currIndex].equals("MODE"))
             {
                prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
+               if (allTokens[currIndex + 1].equals("="))
+               {
+                  prevProcObj.oper = ProcObj.OP_SET_VAL;
+                  prevProcObj.typeB = ProcObj.TYPE_CONSTANT;
+                  prevProcObj.paramB = GlobInfo.modeClass.CreateMode(allTokens[currIndex + 2]);
+                  if (endIndex != currIndex + 2)
+                  {
+                     GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " extra info in set mode command");
+                     GlobInfo.parseFail = true;
+                     state = PCHAIN_ERROR;
+                  }
+               }
+               else
+               {
+                  /* MODE command has wrong params */
+                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find = when setting mode");
+                  GlobInfo.parseFail = true;
+                  state = PCHAIN_ERROR;
+               }
             }
             else
             {
@@ -945,11 +968,17 @@ public class ParsePChain
             }
          }
       }
+      else
+      {
+         /* Second param, can be a logic symbol */
+         moreParam = fillCompOper(prevProcObj, allTokens[currIndex], ifStatement);
+         if (moreParam)
+         {
+            detParamType(prevProcObj, currIndex + 1, endIndex, false, ifStatement);
+         }
+      }
       if (!foundType)
       {
-         Integer                          tstKey;
-         int                              type;
-         
          /* If it isn't a reserved word, it must be defined symbol */
          tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
          if (tstKey == null)

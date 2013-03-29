@@ -99,4 +99,5 @@ public class GlobInfo
    public static VideoClass      vidClass = null;
    public static IndxVarClass    indxVarClass = null;
    public static TimerClass      tmrClass = null;
+   public static ModeClass       modeClass = null;
 } /* End GlobInfo */

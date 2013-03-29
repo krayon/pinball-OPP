@@ -86,6 +86,7 @@ public class ParseRules
    public static final int       SYMB_LITTLE_VID         = 0x00070000;
    public static final int       SYMB_PCHAIN             = 0x00080000;
    public static final int       SYMB_TIMER              = 0x00090000;
+   public static final int       SYMB_MODE               = 0x000a0000;
    public static final int       SYMB_PARAM_MASK         = 0x0000ffff;
    public static final int       SYMB_TYPE_MASK          = 0x00ff0000;
 
@@ -143,6 +144,7 @@ public class ParseRules
       String[]                         tokens;
       Integer                          temp;
       
+      GlobInfo.modeClass = new ModeClass();
       hmSymbol = new HashMap<String, Integer>();
       try
       {

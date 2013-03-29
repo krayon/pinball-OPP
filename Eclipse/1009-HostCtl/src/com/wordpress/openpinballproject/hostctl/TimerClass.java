@@ -94,7 +94,7 @@ public class TimerClass
          /* If more tokens, keep processing */
          addEntries(1, tokens);         
       }
-   } /* end VarClass */
+   } /* end TimerClass */
    
    /*
     * ===============================================================================
