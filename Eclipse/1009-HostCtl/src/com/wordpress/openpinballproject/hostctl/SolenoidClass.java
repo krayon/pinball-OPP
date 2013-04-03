@@ -351,6 +351,8 @@ public class SolenoidClass
                      {
                         ParseRules.hmSymbol.put(currName,
                            ParseRules.SYMB_SOL_PIN | (currCard << 8) | currPin);
+                        ParseRules.hmSymbol.put(currName.toUpperCase(),
+                           ParseRules.SYMB_CONST | (currCard << 8) | currPin);
                         state = SOL_PROC_SOL_NAME;
                      }
                      else

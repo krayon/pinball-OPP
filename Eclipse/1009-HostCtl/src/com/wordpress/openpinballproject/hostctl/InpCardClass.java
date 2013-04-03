@@ -262,6 +262,8 @@ public class InpCardClass
                   {
                       ParseRules.hmSymbol.put(currName,
                          ParseRules.SYMB_INP_PIN | (currCard << 8) | currPin);
+                      ParseRules.hmSymbol.put(currName.toUpperCase(),
+                         ParseRules.SYMB_CONST | (currCard << 8) | currPin);
                   }
                   else
                   {

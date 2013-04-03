@@ -87,6 +87,7 @@ public class ParseRules
    public static final int       SYMB_PCHAIN             = 0x00080000;
    public static final int       SYMB_TIMER              = 0x00090000;
    public static final int       SYMB_MODE               = 0x000a0000;
+   public static final int       SYMB_CONST              = 0x000b0000;
    public static final int       SYMB_PARAM_MASK         = 0x0000ffff;
    public static final int       SYMB_TYPE_MASK          = 0x00ff0000;
 
@@ -170,6 +171,8 @@ public class ParseRules
                strLine = strLine.replaceAll("\\{", " \\{ ").replaceAll("\\}", " \\} ");
                strLine = strLine.replaceAll("\\[", " \\[ ").replaceAll("\\]", " \\] ");
                strLine = strLine.replaceAll("\\(", " \\( ").replaceAll("\\)", " \\) ");
+               strLine = strLine.replaceAll("\\,", " \\, ");
+               strLine = strLine.replaceAll("\\++", " \\++ ").replaceAll("\\--", " \\-- ");;
             
                /* Make sure that some tokens exist */
                tokens = strLine.trim().split("\\s+");

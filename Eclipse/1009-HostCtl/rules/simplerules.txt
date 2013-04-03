@@ -152,10 +152,10 @@ PROCESS_CHAINS
                               {(DISABLE_SOLENOIDS) (MODE = Mode_Tilt)}
                            }
    
-   Proc_Flipper            {if (Sol_Left_Flipper && ((Var_prev_flipper & Sol_Left_Flipper) == 0))
+   Proc_Flipper            {if (Sol_Left_Flipper && ((Var_prev_flipper & SOL_LEFT_FLIPPER) == 0))
                               (LED_ROT_LEFT, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right),
                               IndVar_InlaneLights[Var_currPlayer])
-                           if (Sol_Right_Flipper && ((Var_prev_flipper & Sol_Right_Flipper) == 0))
+                           if (Sol_Right_Flipper && ((Var_prev_flipper & SOL_RIGHT_FLIPPER) == 0))
                               (LED_ROT_RIGHT, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right),
                               IndVar_InlaneLights[Var_currPlayer])
                            (Var_prev_flipper = (Sol_Left_Flipper | Sol_Right_Flipper))}
@@ -186,13 +186,13 @@ PROCESS_CHAINS
                               (MODE = Mode_Targets_Complete)}
    
    Proc_Kickout_Hole       {if (Sol_Kickout_Hole)
-                              (Kick Sol_Kickout_Hole)}
+                              (KICK Sol_Kickout_Hole)}
    Proc_Ball_Drain         {if (Sol_Ball_In_Play)
                               (MODE = Mode_End_Of_Ball)}
                               
    Proc_Tilt_Init          {(Var_tilted = 1)
                            if (Sol_Kickout_Hole)
-                              {(Kick Sol_Kickout_Hole) (Var_kick_retries = 0) (START Timeout_Kickout_Timer)}
+                              {(KICK Sol_Kickout_Hole) (Var_kick_retries = 0) (START Timeout_Kickout_Timer)}
                            (START Timeout_Ball_Locate)}
    
    Proc_Tilt_State         {if (Sol_Ball_In_Play)
@@ -201,10 +201,10 @@ PROCESS_CHAINS
                               {if (Sol_Kickout_Hole)
                                  {(Var_kick_retries++)
                                  if (Var_kick_retries > 5)
-                                    {(MODE = Mode_Error) (Text = "Can't clear kickout hole")}
-                                 (START Timeout_Kickout_Timer) (Kick Sol_Ball_In_Play))}}
+                                    {(MODE = Mode_Error) (TEXT = "Can't clear kickout hole")}
+                                 (START Timeout_Kickout_Timer) (KICK Sol_Ball_In_Play))}}
                            if (EXPIRED Timeout_Ball_Locate)
-                              {(MODE = Mode_Error) (Text = "Lost Ball")}}
+                              {(MODE = Mode_Error) (TEXT = "Lost Ball")}}
    
    Proc_Init               {(DISABLE_SOLENOIDS)
                            if (Var_credits == 0)
@@ -238,17 +238,17 @@ PROCESS_CHAINS
                             else if (Sol_Ball_In_Play)
                               (MODE = Mode_Start_Ball)
                             else
-                              {(MODE = Mode_Error) (Text = "Can't find ball")}}
+                              {(MODE = Mode_Error) (TEXT = "Can't find ball")}}
    
-   Proc_Start_Ball_Init    {(START Timeout_Kickout_Timer) (Kick Sol_Ball_In_Play) (Var_kick_retries = 0)}
+   Proc_Start_Ball_Init    {(START Timeout_Kickout_Timer) (KICK Sol_Ball_In_Play) (Var_kick_retries = 0)}
    
    Proc_Start_Ball_Start   {if (Inp_Ball_At_Plunger)
                               (MODE = Mode_Ball_In_Play)
                            if (EXPIRED Timeout_Kickout_Timer)
                               {(Var_kick_retries++)
                               if (Var_kick_retries > 5)
-                                 {(MODE = Mode_Error) (Text = "Ball kick failed!")}
-                              (START Timeout_Kickout_Timer) (Kick Sol_Ball_In_Play)}}
+                                 {(MODE = Mode_Error) (TEXT = "Ball kick failed!")}
+                              (START Timeout_Kickout_Timer) (KICK Sol_Ball_In_Play)}}
                               
    Proc_Ball_In_Play_Init  {(LED_BLINK_100, Led_Inlane_Center) (LED_OFF, (Led_Inlane_Left |
                               Led_Inlane_Right | Led_Left_Target1 | Led_Left_Target2 |
@@ -258,7 +258,7 @@ PROCESS_CHAINS
    Proc_Ball_In_Play_Start {if (Inp_Inlane_Left || Inp_Inlane_Right)
                               {(SOUND Sound_Wah_Wuh) (MODE = Mode_Normal_Play)}
                            if (Inp_Inlane_Center)
-                              {(SOUND Sound_Ding_Ding_Ding) (Text = "Skill Shot")
+                              {(SOUND Sound_Ding_Ding_Ding) (TEXT = "Skill Shot")
                               (IndVar_score[Var_currPlayer] += 1000) (MODE = Mode_Normal_Play)}}
    
    Proc_Normal_Play_Init   {(LED_SET, IndVar_InlaneLights[Var_currPlayer], (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right))}
@@ -267,38 +267,38 @@ PROCESS_CHAINS
                               Proc_Start_and_Coin, Proc_Ball_Drain}
    
    Proc_End_Of_Ball        {if (Var_tilted == 0)
-                              {(Text = "Bonus %d", (IndVar_scoreLvl[Var_currPlayer] * 1000))
+                              {(TEXT = "Bonus %d", (IndVar_scoreLvl[Var_currPlayer] * 1000))
                               (IndVar_score[Var_currPlayer] += (IndVar_scoreLvl[Var_currPlayer] * 1000))
                               (WAIT 3000)}
                            (Var_currPlayer++)
                            if (Var_currPlayer >= Var_numPlayers)
                               {(Var_currPlayer = 0) (Var_ballNum++)
                               if (Var_ballNum >= Var_ballsPerGame)
-                                 {(Text = "Game Over")(WAIT 3000)
+                                 {(TEXT = "Game Over")(WAIT 3000)
                                  if (Var_credits == 0)
                                     (MODE = Mode_Attract)
                                  else
                                     (MODE = Mode_Press_Start)}
                               else
-                                 {(Text = "Player %d, Ball %d", (Var_currPlayer + 1), (Var_ballNum + 1))
+                                 {(TEXT = "Player %d, Ball %d", (Var_currPlayer + 1), (Var_ballNum + 1))
                                  (MODE = Mode_Start_Ball)}}
                            else
-                              {(Text = "Player %d, Ball %d", (Var_currPlayer + 1), (Var_ballNum + 1))
+                              {(TEXT = "Player %d, Ball %d", (Var_currPlayer + 1), (Var_ballNum + 1))
                               (MODE = Mode_Start_Ball)}}
    
-   Proc_Inlane_Comp        {(Text = "Inlanes Complete!!")(IndVar_scoreLvl[Var_currPlayer]++)
+   Proc_Inlane_Comp        {(TEXT = "Inlanes Complete!!")(IndVar_scoreLvl[Var_currPlayer]++)
                            (IndVar_score[Var_currPlayer] += 1000)
                            (IndVar_InlaneLights[Var_currPlayer] = 0)
                            (LED_OFF, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right))
                            (MODE = Mode_Normal_Play)}
    
-   Proc_Targets_Comp_Init  {(LED_BLINK_100, Led_Special)(Text = "Super Mode!")
+   Proc_Targets_Comp_Init  {(LED_BLINK_100, Led_Special)(TEXT = "Super Mode!")
                            (IndVar_specialLvl[Var_currPlayer]++)
                            (IndVar_score[Var_currPlayer] += (IndVar_specialLvl[Var_currPlayer] * 1000))
                            (START Timeout_Special_Timer)}
    
    Proc_Targets_Comp_State {if (Sol_Kickout_Hole)
-                              {(Text = "Jackpot")
+                              {(TEXT = "Jackpot")
                               (IndVar_score[Var_currPlayer] += (IndVar_specialLvl[Var_currPlayer] * 1000))}
                            if (EXPIRED Timeout_Special_Timer)
                               (MODE = Mode_Normal_Play)

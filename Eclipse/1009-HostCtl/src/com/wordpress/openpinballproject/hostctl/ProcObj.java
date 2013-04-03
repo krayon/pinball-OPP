@@ -51,41 +51,45 @@ package com.wordpress.openpinballproject.hostctl;
 
 public class ProcObj
 {
-   public static final int             TYPE_VARIABLE              = 0;
-   public static final int             TYPE_CONSTANT              = 1000;
-   public static final int             TYPE_HW_INPUT              = 2000;
-   public static final int             TYPE_PREDEF_VAR            = 3000;
-   public static final int             TYPE_FUNC                  = 4000;
-   public static final int             TYPE_PREV_RSLT             = 5000;
-   public static final int             TYPE_UNUSED                = 6000;
-   public static final int             TYPE_SUB_QUANT             = 7000;
-   public static final int             TYPE_MORE_TERMS            = 8000;
+   public static final int             TYPE_VARIABLE              = 1000;
+   public static final int             TYPE_CONSTANT              = 2000;
+   public static final int             TYPE_HW_INPUT              = 3000;
+   public static final int             TYPE_PREDEF_VAR            = 4000;
+   public static final int             TYPE_FUNC                  = 5000;
+   public static final int             TYPE_PREV_RSLT             = 6000;
+   public static final int             TYPE_UNUSED                = 7000;
+   public static final int             TYPE_SUB_QUANT             = 8000;
+   public static final int             TYPE_MORE_TERMS            = 9000;
+   public static final int             TYPE_INDX_VAR              = 10000;
    
-   public static final int             OP_ZERO                    = 0;
-   public static final int             OP_NONZERO                 = 1;
-   public static final int             OP_PREDEF_FUNC             = 2;
-   public static final int             OP_SET_VAL                 = 3;
-   public static final int             OP_LOGICAL_AND             = 4;
-   public static final int             OP_BITWISE_AND             = 5;
-   public static final int             OP_LOGICAL_OR              = 6;
-   public static final int             OP_BITWISE_OR              = 7;
-   public static final int             OP_BITWISE_INVERT          = 8;
-   public static final int             OP_PLUS_EQUALS             = 9;
-   public static final int             OP_EQUALS                  = 10;
-   public static final int             OP_NOT_EQUALS              = 11;
-   public static final int             OP_OR_EQUALS               = 12;
-   public static final int             OP_AND_EQUALS              = 13;
-   public static final int             OP_GREATER_THAN            = 14;
-   public static final int             OP_LESS_THAN               = 15;
-   public static final int             OP_GREATER_OR_EQUAL        = 16;
-   public static final int             OP_LESS_OR_EQUAL           = 17;
-   public static final int             OP_INCREMENT               = 18;
-   public static final int             OP_DECREMENT               = 19;
-   public static final int             OP_START_CHAIN             = 20;
-   public static final int             OP_END_CHAIN               = 21;
+   public static final int             OP_UNDETERMINED            = 0;
+   public static final int             OP_ZERO                    = 1;
+   public static final int             OP_NONZERO                 = 2;
+   public static final int             OP_PREDEF_FUNC             = 3;
+   public static final int             OP_SET_VAL                 = 4;
+   public static final int             OP_LOGICAL_AND             = 5;
+   public static final int             OP_BITWISE_AND             = 6;
+   public static final int             OP_LOGICAL_OR              = 7;
+   public static final int             OP_BITWISE_OR              = 8;
+   public static final int             OP_BITWISE_INVERT          = 9;
+   public static final int             OP_PLUS_EQUALS             = 10;
+   public static final int             OP_EQUALS                  = 11;
+   public static final int             OP_NOT_EQUALS              = 12;
+   public static final int             OP_OR_EQUALS               = 13;
+   public static final int             OP_AND_EQUALS              = 14;
+   public static final int             OP_GREATER_THAN            = 15;
+   public static final int             OP_LESS_THAN               = 16;
+   public static final int             OP_GREATER_OR_EQUAL        = 17;
+   public static final int             OP_LESS_OR_EQUAL           = 18;
+   public static final int             OP_INCREMENT               = 19;
+   public static final int             OP_DECREMENT               = 20;
+   public static final int             OP_START_CHAIN             = 21;
+   public static final int             OP_END_CHAIN               = 22;
 
-   public static final int             OP_STATEMENT_PROC          = 0;
-   public static final int             OP_IF_PROC                 = 1000;
+   public static final int             OP_STATEMENT_PROC          = 1000;
+   public static final int             OP_IF_PROC                 = 2000;
+   public static final int             OP_SUB_QUANT               = 3000;
+   public static final int             OP_INDX_VAR                = 4001;        /* Add 1 so comparisons aren't made */
    
    public static final int             PREDEF_DISABLE_SOLENOIDS   = 0;
    public static final int             PREDEF_LED_ON              = 1;
@@ -119,4 +123,5 @@ public class ProcObj
    public int                          typeDest;
    public int                          trueProcObj;
    public int                          falseProcObj;
+   public int                          contProcObj;
 } /* End ProcObj */
