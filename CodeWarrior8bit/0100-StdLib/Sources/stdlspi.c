@@ -102,10 +102,10 @@ void stdlspi_init_spi(
 #define SPI_XMT_INT         0x20
 #define MSTR_AND_ENA_BIT    0x50
 
-  SPIBR = param & SPI_CLK_DIV_MASK;
+  SPIBR = (param & SPI_CLK_DIV_MASK) >> 4;
   
   /* Disable the SPI, clear flags, set up enables/intrpt bits */
-  SPIC1 = 0;
+  SPIC2 = 0x01;
   if (param & SPI_POLL)
   {
     stdlspi_glob.poll = TRUE;
@@ -114,6 +114,8 @@ void stdlspi_init_spi(
   {
     stdlspi_glob.poll = FALSE;
   }
+  SPIC1 = MSTR_AND_ENA_BIT;
+  SPIC1 |= (param & STDLI_SPI_CPOL_CPHA_MASK);
   
   stdlspi_glob.currInt = 0;
   stdlspi_glob.head_p = NULL;
@@ -148,51 +150,50 @@ void stdlspi_start_xfer(void)
   
 #define SPRF_STATUS_BIT     0x80
 #define SPTEF_STATUS_BIT    0x20
+#define SPI_BIDIROE         0x08
   
   /* Set up the direction bits */
   spiXfer_p = stdlspi_glob.head_p;
-  stdlspi_glob.currByte = 0;
   if (spiXfer_p->dir & STDLI_SPI_WRITE)
   {
-    SPIC2 = 0x09;
-
+    /* Current byte is set to 0xff so first interrupt increments to 0 */
+    stdlspi_glob.currByte = MAX_U8;
+    
+    /* Clear the chip select bit */
+    stdldigio_write_port(spiXfer_p->csPort, spiXfer_p->csMask, 0);
+    
     /* Set up the clock polarity and phase and interrupts.  Enable the SPI */
     if (stdlspi_glob.poll)
     {
-      SPIC1 = (MSTR_AND_ENA_BIT |
-        (spiXfer_p->dir & STDLI_SPI_CPOL_CPHA_MASK));
       stdlspi_glob.currInt = SPTEF_STATUS_BIT;
     }
     else
     {
-      SPIC1 = (MSTR_AND_ENA_BIT | SPI_XMT_INT |  
-        (spiXfer_p->dir & STDLI_SPI_CPOL_CPHA_MASK));
+      SPIC2 |= SPI_BIDIROE;
+      SPIC1 |= SPI_XMT_INT;
     }
   }
   else
   {
-    SPIC2 = 0x01;
+    stdlspi_glob.currByte = 0;
 
     /* Set up the clock polarity and phase and interrupts.  Enable the SPI */
     if (stdlspi_glob.poll)
     {
-      SPIC1 = (MSTR_AND_ENA_BIT |
-        (spiXfer_p->dir & STDLI_SPI_CPOL_CPHA_MASK));
       stdlspi_glob.currInt = SPRF_STATUS_BIT;
     }
     else
     {
-      SPIC1 = (MSTR_AND_ENA_BIT | SPI_RCV_INT |  
-        (spiXfer_p->dir & STDLI_SPI_CPOL_CPHA_MASK));
+      SPIC2 &= ~SPI_BIDIROE;
+      SPIC1 |= SPI_RCV_INT;
     }
+
+    /* Clear the chip select bit */
+    stdldigio_write_port(spiXfer_p->csPort, spiXfer_p->csMask, 0);
+    
+    /* Start the transfer, if reading, doesn't matter what data is written */
+    SPID = *spiXfer_p->data_p;    
   }
-  
-  /* Clear the chip select bit */
-  stdldigio_write_port(spiXfer_p->csPort, spiXfer_p->csMask, 0);
-  
-  /* Start the transfer, if reading, doesn't matter what data is written */
-  SPID = *spiXfer_p->data_p;
-  
 } /* End stdlspi_start_xfer */
 
 /*
@@ -307,7 +308,7 @@ void stdlspi_spi_complete(void)
   if (startNext)
   {
     /* Disable chip select and disable SPI */
-    SPIC1 = 0;
+    SPIC1 &= ~(SPI_RCV_INT | SPI_XMT_INT);
     stdlspi_glob.currInt = 0;
     stdldigio_write_port(spiXfer_p->csPort, spiXfer_p->csMask,
       spiXfer_p->csMask);

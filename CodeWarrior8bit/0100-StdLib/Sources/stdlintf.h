@@ -547,15 +547,20 @@ void stdli2c_i2c_complete_poll(void);
 /* SPI interface structures/enumerations */
 typedef enum
 {
+  STDLI_SPI_CPHA0           = 0x00,   /* First SCLK trans latches data */
+  STDLI_SPI_CPHA1           = 0x04,   /* Sec SCLK trans latches data */
+  STDLI_SPI_CPOL0           = 0x00,   /* SCLK idles low */
+  STDLI_SPI_CPOL1           = 0x08,   /* SCLK idles high */
+  STDLI_SPI_CPOL_CPHA_MASK  = 0x0c,
   SPI_CLK_DIV2              = 0x00,
-  SPI_CLK_DIV4              = 0x01,
-  SPI_CLK_DIV8              = 0x02,
-  SPI_CLK_DIV16             = 0x03,
-  SPI_CLK_DIV32             = 0x04,
-  SPI_CLK_DIV64             = 0x05,
-  SPI_CLK_DIV128            = 0x06,
-  SPI_CLK_DIV256            = 0x07,
-  SPI_CLK_DIV_MASK          = 0x07,
+  SPI_CLK_DIV4              = 0x10,
+  SPI_CLK_DIV8              = 0x20,
+  SPI_CLK_DIV16             = 0x30,
+  SPI_CLK_DIV32             = 0x40,
+  SPI_CLK_DIV64             = 0x50,
+  SPI_CLK_DIV128            = 0x60,
+  SPI_CLK_DIV256            = 0x70,
+  SPI_CLK_DIV_MASK          = 0x70,
   SPI_POLL                  = 0x80,
 } STDLI_SPI_PARAM_E;
 
@@ -563,11 +568,6 @@ typedef enum
 {
   STDLI_SPI_READ            = 0x00,
   STDLI_SPI_WRITE           = 0x01,
-  STDLI_SPI_CPHA0           = 0x00,   /* First SCLK trans latches data */
-  STDLI_SPI_CPHA1           = 0x04,   /* Sec SCLK trans latches data */
-  STDLI_SPI_CPOL0           = 0x00,   /* SCLK idles low */
-  STDLI_SPI_CPOL1           = 0x08,   /* SCLK idles high */
-  STDLI_SPI_CPOL_CPHA_MASK  = 0x0c,
 } STDLI_SPI_DIR_E;
 
 typedef struct stldi_spi_xfer_s

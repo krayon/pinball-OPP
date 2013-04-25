@@ -4,8 +4,8 @@ the project name is application, the project file for CodeWarrior is application
 1.  Create a directory that is going to contain the library files.
 
 2.  Highlight the directory, right-click,TortoiseSVN->Export.  Under URL of repository:
-Choose https://open-pinball-project.googlecode.com/svn/trunk/CodeWarrior8bit/0100-StdLib
-This extracts all the files from the repository.
+Choose http://eng-svn/svn/Eng/Projects/001XX_EmbeddedFW/00100_StdLib/trunk.  This
+extracts all the files from the repository.
 
 3.  Start CodeWarrior IDE
 
@@ -22,4 +22,6 @@ Version		Proc		App CRC32	Image CRC32	Notes:
 00.00.03	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed ADC clock for 32MHz freescale parts.
 00.00.04	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed i2c master xmt/rcv stop generation.
 00.00.05	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed elapsed time if 1ms overflow happens during 1st ms.
+00.00.06	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Updated GPL to version 3
+00.00.07	MC9S08SH32	0xXXXXXXXX	0xXXXXXXXX	Fixed SPI transmit processing
 

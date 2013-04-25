@@ -49,7 +49,7 @@
 
 #define MAJ_VERSION 0
 #define MIN_VERSION 0
-#define SUB_VERSION 6
+#define SUB_VERSION 7
 
 const char vers_stdlVersion[10] = {
    'v', (char)((MAJ_VERSION/10) + 0x30), (char)(MAJ_VERSION - ((MAJ_VERSION/10)*10) + 0x30),
