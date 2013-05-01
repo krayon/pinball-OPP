@@ -529,7 +529,7 @@ public class ParsePChain
                            procObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
                            procObj.contProcObj = ProcObj.END_CHAIN_PROCOBJ;
                            GlobInfo.numProcObj++;
-                           detParamType(procObj, currIndex + 1, done, true, false);
+                           detParamType(procObj, currIndex + 2, done, true, false);
                            currProcObj.falseProcObj = procObj.num;
                            currIndex = done + 1;
                         }
