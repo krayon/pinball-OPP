@@ -112,6 +112,14 @@ typedef enum
   MAX_CHAR_ID
 } DISPG_CHAR_E;
 
+typedef enum
+{
+  LED_OFF                   = 0x00,
+  LED_ON                    = 0x01,
+  LED_BLINK_500MS           = 0x02,
+  LED_BLINK_100MS           = 0x03,
+} DISPG_LED_STATE_E;
+
 #define PLYR1_CHAR23        0x0001
 #define PLYR1_CHAR56        0x0002
 #define PLYR1_CHAR14        0x0004
@@ -135,6 +143,7 @@ typedef struct
   U8                        curDisp[DISPG_NUM_DISP][CHARS_PER_DISP];
   U16                       updDispBits;
   STDLI_ELAPSED_TIME_T      elapsedTime;
+  STDLI_ELAPSED_TIME_T      refreshTime;
 } DISPG_GLOB_T;
 /* Warning:  curDisp stores characters with index 0 being leftmost
  *  character.  This makes it easier to debug but adds a little code.
@@ -150,5 +159,7 @@ void i2cproc_task(void);
 
 void digital_init(void);
 void digital_task(void);
+void digital_change_led_state(
+  DISPG_LED_STATE_E         ledState);
 
 #endif

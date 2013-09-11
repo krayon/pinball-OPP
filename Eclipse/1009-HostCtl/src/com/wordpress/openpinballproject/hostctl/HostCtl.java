@@ -80,16 +80,23 @@ public class HostCtl extends JFrame
    private static final int      OS_LINUX                = 1;
    private static final int      OS_MAC                  = 2;
 
+   private static final int      SCR_FULL                = 0;
+   private static final int      SCR_PROT                = 1;
+   private static final int      SCR_SMALL               = 2;
+   
    private static final int      HD_WIDTH                = 1920;
    private static final int      HD_HEIGHT               = 1080;
+   private static final float    FULLSCR_SCALE_FACT      = (1920.0f)/(1920.0f);
    private static final float    PROT_SCALE_FACT         = (1440.0f)/(1920.0f);
-   private static final float    FULLSCR_SCALE_FACT      = 1.0f;
-   private static final float    VID_PROT_SCALE_FACT     = 1280.0f/1920.0f;
+   private static final float    SMALL_SCALE_FACT        = (1024.0f)/(1920.0f);
    private static final float    VID_FULLSCR_SCALE_FACT  = 1536.0f/1920.0f;
+   private static final float    VID_PROT_SCALE_FACT     = 1280.0f/1920.0f;
+   private static final float    VID_SMALL_SCALE_FACT    = 960.0f/1920.0f;
 
    private static final int      NUM_PLAYERS                = 4;
 
-   private static boolean        fullScr = false;
+   private static int            scrSize = SCR_FULL;
+   private static boolean        titleBar = false;
    
    private static int            osType;
    private static String         commPortName;
@@ -150,17 +157,30 @@ public class HostCtl extends JFrame
             System.out.println("java -jar HostCtl.jar");
             System.out.println("\t-?\t\tOptions Help");
             System.out.println("\t-com=xxxx\tCOM port number");
-            System.out.println("\t-fullscr\tFull screen window");
+            System.out.println("\t-scrSize=xxxx\tScreen size [FULL (default), PROT, SMALL]");
             System.out.println("\t-debug\tCreate debug windows");
             System.out.println("\t-rules=xxxxx.txt\tRules file name");
+            System.out.println("\t-title\tDon't remove title bar");
          }
-         else if (args[index].compareTo("-fullscr") == 0)
+         else if (args[index].compareTo("-scrSize=FULL") == 0)
          {
-            fullScr = true;
+            scrSize = SCR_FULL;
+         }
+         else if (args[index].compareTo("-scrSize=PROT") == 0)
+         {
+            scrSize = SCR_PROT;
+         }
+         else if (args[index].compareTo("-scrSize=SMALL") == 0)
+         {
+            scrSize = SCR_SMALL;
          }
          else if (args[index].compareTo("-debug") == 0)
          {
             GlobInfo.debug = true;
+         }
+         else if (args[index].compareTo("-titleBar") == 0)
+         {
+            titleBar = true;
          }
          if (args[index].startsWith("-rules="))
          {
@@ -264,16 +284,20 @@ public class HostCtl extends JFrame
       float                   scaleFact;
       int                     index;
       
-      if (fullScr)
+      if (scrSize == SCR_SMALL)
       {
-         scaleFact = FULLSCR_SCALE_FACT;
+         scaleFact = SMALL_SCALE_FACT;
       }
-      else
+      else if (scrSize == SCR_PROT)
       {
          scaleFact = PROT_SCALE_FACT;
       }
+      else
+      {
+         scaleFact = FULLSCR_SCALE_FACT;
+      }
       setBounds(100, 100, (int)((HD_WIDTH * scaleFact) + 0.5f),
-            (int)((HD_HEIGHT * scaleFact) + 0.5f));
+         (int)((HD_HEIGHT * scaleFact) + 0.5f));
       addWindowListener(new WindowAdapter()
       {
          public void windowClosing(WindowEvent e)
@@ -303,7 +327,10 @@ public class HostCtl extends JFrame
       {
          deskPane.add(vidFrame[index]);
       }
-      this.setUndecorated(true);
+      if (titleBar == false)
+      {
+    	 setUndecorated(true);
+      }
       setContentPane(deskPane);
       
       GlobInfo.hostCtl = this;
@@ -365,22 +392,29 @@ public class HostCtl extends JFrame
       BasicInternalFrameTitlePane titlePane;
       
       
-      if (fullScr)
-      {
-         vidScaleFact = VID_FULLSCR_SCALE_FACT;
-         bgndScaleFact = FULLSCR_SCALE_FACT;
-      }
-      else
+      if (scrSize  == SCR_PROT)
       {
          vidScaleFact = VID_PROT_SCALE_FACT;
          bgndScaleFact = PROT_SCALE_FACT;
       }
+      else if (scrSize  == SCR_SMALL)
+      {
+          vidScaleFact = VID_SMALL_SCALE_FACT;
+          bgndScaleFact = SMALL_SCALE_FACT;
+      }
+      else
+      {
+         vidScaleFact = VID_FULLSCR_SCALE_FACT;
+         bgndScaleFact = FULLSCR_SCALE_FACT;
+      }
       vidWidth = (int)((HD_WIDTH * vidScaleFact) + 0.5f);
       vidHeight = (int)((HD_HEIGHT * vidScaleFact) + 0.5f);
+      System.out.println("Video size: " + vidWidth + "," + vidHeight);      
       bgndWidth = (int)((HD_WIDTH * bgndScaleFact) + 0.5f);
       bgndHeight = (int)((HD_HEIGHT * bgndScaleFact) + 0.5f);
       smVidHeight = bgndHeight - vidHeight;
       smVidWidth = (smVidHeight * 16)/9;     /* Scale so 16:9 video works */
+      System.out.println("Small video size: " + smVidWidth + "," + smVidHeight);      
 
       /* First set up the video frame */
       for (index = 0; index < GlobInfo.NUM_VIDEO_CLIPS; index++)
@@ -421,10 +455,10 @@ public class HostCtl extends JFrame
       leftBotPanel.setBackground(Color.BLACK);
       bgndFrame.add(leftBotPanel);
       ctrBotPanel.setBounds((bgndWidth - smVidWidth)/2, vidHeight, smVidWidth, smVidHeight);
-      ctrBotPanel.setBackground(Color.BLACK);
+      ctrBotPanel.setBackground(Color.BLUE);
       bgndFrame.add(ctrBotPanel);
       rightBotPanel.setBounds((bgndWidth - smVidWidth)/2 + smVidWidth, vidHeight, (bgndWidth - smVidWidth)/2, smVidHeight);
-      rightBotPanel.setBackground(Color.BLACK);
+      rightBotPanel.setBackground(Color.GREEN);
       bgndFrame.add(rightBotPanel);
       vidPanel.setBounds((bgndWidth - vidWidth)/2, 0, vidWidth, vidHeight);
       vidPanel.setBackground(Color.ORANGE);
@@ -460,11 +494,24 @@ public class HostCtl extends JFrame
       for (index = 0; index < NUM_PLAYERS; index++)
       {
          plyrScore[index] = new JLabel("0");
-         plyrScore[index].setMinimumSize(new Dimension(400, 35));
+         if (scrSize == SCR_FULL)
+         {
+            plyrScore[index].setMinimumSize(new Dimension(100, 35));
+            plyrScore[index].setFont(new Font("Verdana", Font.PLAIN, 28));
+         }
+         else if (scrSize == SCR_PROT)
+         {
+            plyrScore[index].setMinimumSize(new Dimension(400, 35));
+            plyrScore[index].setFont(new Font("Verdana", Font.PLAIN, 28));
+         }
+         else
+         {
+            plyrScore[index].setMinimumSize(new Dimension(400, 35));
+            plyrScore[index].setFont(new Font("Verdana", Font.PLAIN, 28));
+         }
          plyrScore[index].setForeground(orange);
          plyrScore[index].setOpaque(true);
          plyrScore[index].setBackground(Color.DARK_GRAY);
-         plyrScore[index].setFont(new Font("Verdana", Font.PLAIN, 28));
          plyrScore[index].setHorizontalAlignment(JLabel.RIGHT);
          plyrScore[index].setHorizontalTextPosition(JLabel.RIGHT);
          plyrScore[index].setVerticalTextPosition(JLabel.CENTER);

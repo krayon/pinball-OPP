@@ -154,6 +154,10 @@ void main(void)
   
   /* Put initial msg up for 5 seconds */
   stdltime_get_curr_time(&dispg_glob.elapsedTime.startTime);
+  digital_change_led_state(LED_ON);
+
+  /* Refresh the displays every 1 second */
+  stdltime_get_curr_time(&dispg_glob.refreshTime.startTime);
   
   for(;;)
   {
@@ -167,11 +171,20 @@ void main(void)
       if (dispg_glob.elapsedTime.elapsedTime.sec >= 5)
       {
         dispg_glob.state = DISP_STATE_NORM;
+        digital_change_led_state(LED_BLINK_500MS);
       }
     }
     
     i2cproc_task();
     digital_task();
+
+    /* Check if displays should be refreshed */
+    stdltime_get_elapsed_time(&dispg_glob.refreshTime);
+    if (dispg_glob.refreshTime.elapsedTime.sec > 0)
+    {
+      stdltime_get_curr_time(&dispg_glob.refreshTime.startTime);
+      dispg_glob.updDispBits = UPD_ALL_MASK;
+    }
     
     __RESET_WATCHDOG(); /* feeds the dog */
   } /* loop forever */

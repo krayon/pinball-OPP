@@ -50,7 +50,7 @@
 
 #define MAJ_VERSION 0
 #define MIN_VERSION 0
-#define SUB_VERSION 4
+#define SUB_VERSION 5
 
 const char vers_programVersion[10] = {
    'v', (char)((MAJ_VERSION/10) + 0x30), (char)(MAJ_VERSION - ((MAJ_VERSION/10)*10) + 0x30),

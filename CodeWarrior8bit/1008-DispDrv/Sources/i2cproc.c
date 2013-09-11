@@ -268,6 +268,7 @@ void i2cproc_task(void)
           {
             /* HRS:  Should deal with errors */
             error++;
+            digital_change_led_state(LED_BLINK_100MS);
           }
         }
       }

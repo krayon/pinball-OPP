@@ -1,6 +1,5 @@
 /*
  *===============================================================================
- *===============================================================================
  *
  *                         OOOO
  *                       OOOOOOOO
@@ -61,6 +60,7 @@
 /* Port A bits */
 #define PA_SELECT_13        0x01
 #define PA_BLANKING         0x02
+#define PA7_BOOT_LED        0x80
 
 /* Port B bits */
 #define PB_1S               0x01
@@ -91,10 +91,13 @@ typedef enum
 typedef struct
 {
   DIG_STATE_E               state;
+  DISPG_LED_STATE_E         ledState;
   BOOL                      mux13;
+  BOOL                      ledOn;
   U8                        currStrobe;
   U8                        currBcd;
   STDLI_ELAPSED_TIME_T      elapsedTime;
+  STDLI_ELAPSED_TIME_T      ledElapsedTime;
 } DIGITAL_GLOB_T;
 
 DIGITAL_GLOB_T              dig_glob;
@@ -127,11 +130,14 @@ void digital_look_for_change(
 void digital_init(void) 
 {
   dig_glob.state = DIG_STATE_IDLE;
+  dig_glob.ledState = LED_OFF;
   dig_glob.mux13 = FALSE;
+  dig_glob.ledOn = FALSE;
   
   /* Set up input mux select and blanking input */
-  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT, PA_SELECT_13, 0);
-  stdldigio_config_dig_port(STDLI_DIG_PORT_A, PA_BLANKING, 0);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_OUT,
+    PA_SELECT_13 | PA7_BOOT_LED, PA7_BOOT_LED);
+  stdldigio_config_dig_port(STDLI_DIG_PORT_A | STDLI_DIG_PULLUP, PA_BLANKING, 0);
   
   /* Set up strobe inputs */
   stdldigio_config_dig_port(STDLI_DIG_PORT_B, 0xff, 0);
@@ -178,6 +184,7 @@ void digital_task(void)
       }
       else if (dig_glob.state != DIG_BLANK_STATE)
       {
+        digital_change_led_state(LED_BLINK_100MS);
         dig_glob.state = DIG_INIT_BLANK;
         for (destU8_p = &dispg_glob.curDisp[0][0]; 
           destU8_p < &dispg_glob.curDisp[0][0] + sizeof(dispg_glob.curDisp);)
@@ -299,6 +306,42 @@ void digital_task(void)
       }
     }
   }
+  if (dig_glob.ledState == LED_BLINK_100MS)
+  {
+    stdltime_get_elapsed_time(&dig_glob.ledElapsedTime);
+    if (dig_glob.ledElapsedTime.elapsedTime.msec >= 100)
+    {
+      stdltime_get_curr_time(&dig_glob.ledElapsedTime.startTime);
+      if (dig_glob.ledOn)
+      {
+        dig_glob.ledOn = FALSE;
+        PTAD |= PA7_BOOT_LED;
+      }
+      else
+      {
+        dig_glob.ledOn = TRUE;
+        PTAD &= ~PA7_BOOT_LED;
+      }
+    }
+  }
+  else if (dig_glob.ledState == LED_BLINK_500MS)
+  {
+    stdltime_get_elapsed_time(&dig_glob.ledElapsedTime);
+    if (dig_glob.ledElapsedTime.elapsedTime.msec >= 500)
+    {
+      stdltime_get_curr_time(&dig_glob.ledElapsedTime.startTime);
+      if (dig_glob.ledOn)
+      {
+        dig_glob.ledOn = FALSE;
+        PTAD |= PA7_BOOT_LED;
+      }
+      else
+      {
+        dig_glob.ledOn = TRUE;
+        PTAD &= ~PA7_BOOT_LED;
+      }
+    }
+  }
 } /* End digital_task */
 
 /*
@@ -355,3 +398,55 @@ void digital_look_for_change(
     EnableInterrupts;
   }
 } /* End digital_look_for_change */
+
+/*
+ * ===============================================================================
+ * 
+ * Name: digital_change_led_state
+ * 
+ * ===============================================================================
+ */
+/**
+ * Change the LED state
+ * 
+ * This function is passed a new LED state
+ * 
+ * @param   ledState    [in]    new state for the LED
+ * @return  None
+ * 
+ * @pre     None 
+ * @note    None
+ * 
+ * ===============================================================================
+ */
+void digital_change_led_state(
+  DISPG_LED_STATE_E         ledState)
+{
+  if (ledState == LED_OFF)
+  {
+    if (dig_glob.ledState < LED_BLINK_500MS)
+    {
+      dig_glob.ledState = ledState;
+      dig_glob.ledOn = FALSE;
+      PTAD |= PA7_BOOT_LED;
+    }
+  }
+  else if (ledState == LED_ON)
+  {
+    if (dig_glob.ledState < LED_BLINK_500MS)
+    {
+      dig_glob.ledState = ledState;
+      dig_glob.ledOn = TRUE;
+      PTAD &= ~PA7_BOOT_LED;
+    }
+  }
+  else if ((ledState == LED_BLINK_100MS) || (ledState == LED_BLINK_500MS))
+  {
+    if (ledState > dig_glob.ledState)
+    {
+      dig_glob.ledState = ledState;
+    }
+    stdltime_get_curr_time(&dig_glob.ledElapsedTime.startTime);
+  }
+} /* End digital_change_led_state */
+
