@@ -1,5 +1,5 @@
 Program arguments:
--debug -com=COM1
+-debug -com=COM1 -scrSize=FULL -rules=rules/simplerules.txt
 
 VM arguments:
 -Djava.library.path=lib -Djna.library.path=lib

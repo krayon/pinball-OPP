@@ -55,6 +55,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -74,6 +76,7 @@ public class ParseRules
    public static final int       STATE_NAME_VIDEO        = 10;
    public static final int       STATE_TICK_TIME         = 11;
    public static final int       STATE_TIMERS            = 12;
+   public static final int       STATE_FIRST_MODE        = 13;
    private int                   state                   = STATE_IDLE;
 
    public static final int       SYMB_SOL_PIN            = 0x00000000;
@@ -88,6 +91,7 @@ public class ParseRules
    public static final int       SYMB_TIMER              = 0x00090000;
    public static final int       SYMB_MODE               = 0x000a0000;
    public static final int       SYMB_CONST              = 0x000b0000;
+   public static final int       SYMB_LED_CHAIN				= 0x000c0000;
    public static final int       SYMB_PARAM_MASK         = 0x0000ffff;
    public static final int       SYMB_TYPE_MASK          = 0x00ff0000;
 
@@ -112,6 +116,7 @@ public class ParseRules
        result.put("VIDEO_CLIPS", STATE_NAME_VIDEO);
        result.put("TICK_TIME", STATE_TICK_TIME);
        result.put("TIMERS", STATE_TIMERS);
+       result.put("FIRST_MODE", STATE_FIRST_MODE);
        return Collections.unmodifiableMap(result);
    }
    
@@ -154,6 +159,8 @@ public class ParseRules
          BufferedReader                br = new BufferedReader(new InputStreamReader(in));
          String                        strLine;
          
+         /* Create generated code files */
+         CreateGenCodeFiles();
          try
          {
             while (((strLine = br.readLine()) != null) && !GlobInfo.parseFail)
@@ -207,6 +214,7 @@ public class ParseRules
                lineNum++;
             }
             in.close();
+            CloseGenCodeFiles();
          }
          catch (IOException e)
          {
@@ -330,6 +338,18 @@ public class ParseRules
          }
          case STATE_NAME_MODE:
          {
+            if (GlobInfo.parseModes == null)
+            {
+               GlobInfo.parseModes = new ParseModes(tokens);
+            }
+            else
+            {
+               if (GlobInfo.parseModes.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing MODES.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_PROC_CHAIN:
@@ -350,6 +370,18 @@ public class ParseRules
          }
          case STATE_NAME_LED_CHAIN:
          {
+            if (GlobInfo.parseLedChain == null)
+            {
+               GlobInfo.parseLedChain = new ParseLedChain(tokens);
+            }
+            else
+            {
+               if (GlobInfo.parseLedChain.addEntries(0, tokens))
+               {
+                  GlobInfo.hostCtl.printMsg("Finished processing LED_CHAINS.");
+                  state = STATE_IDLE;
+               }
+            }
             break;
          }
          case STATE_NAME_SOUND:
@@ -414,6 +446,114 @@ public class ParseRules
             }
             break;
          }
+         case STATE_FIRST_MODE:
+         {
+         	break;
+         }
       }
    } /* end processTokens */
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: CreateGenCodeFiles
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Create Generated Code Files
+    * 
+    * Create the automatically generated code files
+    * 
+    * @param   None 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   private void CreateGenCodeFiles()
+   {
+   	try
+   	{
+   		PrintWriter 						fileConstClass = new PrintWriter("genCode/ConstClass.java", "UTF-8");
+   		
+      	GlobInfo.fileConstClass = fileConstClass;
+      	GlobInfo.fileConstClass.println("package com.wordpress.openpinballproject.gencode;");
+      	GlobInfo.fileConstClass.println("");
+      	GlobInfo.fileConstClass.println("public class ConstClass");
+      	GlobInfo.fileConstClass.println("{");
+   	}
+   	catch (UnsupportedEncodingException e)
+   	{
+   		/* HRS:  Need code here */
+   	}
+      catch (FileNotFoundException e)
+      {
+         GlobInfo.hostCtl.printMsg("ConstClass.java not created.");
+         GlobInfo.parseFail = true;
+      }
+   	try
+   	{
+   		PrintWriter 						fileRulesClass = new PrintWriter("genCode/RulesClass.java", "UTF-8");
+   		
+      	GlobInfo.fileRulesClass = fileRulesClass;
+      	GlobInfo.fileRulesClass.println("package com.wordpress.openpinballproject.gencode;");
+      	GlobInfo.fileRulesClass.println("");
+      	GlobInfo.fileRulesClass.println("import com.wordpress.openpinballproject.hostctl.GlobInfo;");
+      	GlobInfo.fileRulesClass.println("import com.wordpress.openpinballproject.gencode.ConstClass;");
+      	GlobInfo.fileRulesClass.println("import com.wordpress.openpinballproject.gencode.StdFuncs;");
+      	GlobInfo.fileRulesClass.println("");
+      	GlobInfo.fileRulesClass.println("public class RulesClass");
+      	GlobInfo.fileRulesClass.println("{");
+      	GlobInfo.fileRulesClass.println("   private int                         mode = 0;");
+      	GlobInfo.fileRulesClass.println("   public static int[]                 Variable;");
+      	GlobInfo.fileRulesClass.println("");
+   	}
+   	catch (UnsupportedEncodingException e)
+   	{
+   		/* HRS:  Need code here */
+   	}
+      catch (FileNotFoundException e)
+      {
+         GlobInfo.hostCtl.printMsg("RulesClass.java not created.");
+         GlobInfo.parseFail = true;
+      }
+   } /* end CreateGenCodeFiles */
+   
+   /*
+    * ===============================================================================
+    * 
+    * Name: CloseGenCodeFiles
+    * 
+    * ===============================================================================
+    */
+   /**
+    * Close Generated Code Files
+    * 
+    * Close the automatically generated code files
+    * 
+    * @param   None 
+    * @return  None
+    * 
+    * @pre None 
+    * @note None
+    * 
+    * ===============================================================================
+    */
+   private void CloseGenCodeFiles()
+   {
+      if (GlobInfo.fileConstClass != null)
+      {
+      	GlobInfo.fileConstClass.println("}");
+      	GlobInfo.fileConstClass.close();
+      }
+      if (GlobInfo.fileRulesClass != null)
+      {
+      	GlobInfo.fileRulesClass.println("}");
+      	GlobInfo.fileRulesClass.close();
+      }
+   } /* end CloseGenCodeFiles */
+   
 } /* End ParseRules */

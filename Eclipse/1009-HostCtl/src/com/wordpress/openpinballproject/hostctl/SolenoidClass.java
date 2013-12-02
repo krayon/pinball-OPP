@@ -76,6 +76,7 @@ public class SolenoidClass
    private int                         numCards = 0;
    private int                         state = SOL_NEED_NUM_CARDS;
    private int[]                       cardCfgArr;
+   public int[]                        currInputs;
    
    private String                      currName;
    private int                         currCard;
@@ -150,6 +151,7 @@ public class SolenoidClass
                {
                   numCards = Integer.parseInt(tokens[currToken]);
                   cardCfgArr = new int[numCards * CFG_BYTES_PER_INP * NUM_SOL_PER_CARD];
+                  currInputs = new int[numCards * CFG_BYTES_PER_INP * NUM_SOL_PER_CARD];
                   state = SOL_NEED_OPEN_CURLY;
                }
                catch (NumberFormatException e)
@@ -353,6 +355,8 @@ public class SolenoidClass
                            ParseRules.SYMB_SOL_PIN | (currCard << 8) | currPin);
                         ParseRules.hmSymbol.put(currName.toUpperCase(),
                            ParseRules.SYMB_CONST | (currCard << 8) | currPin);
+                     	GlobInfo.fileConstClass.println("   public static final int             " +
+                        	String.format("%-27s= 0x%02x;", currName.toUpperCase(), 1 << currPin));
                         state = SOL_PROC_SOL_NAME;
                      }
                      else
@@ -393,7 +397,8 @@ public class SolenoidClass
       }
       if ((state == SOL_ERROR) || (state == SOL_DONE))
       {
-         return (true);
+      	GlobInfo.fileConstClass.println("");
+      	return (true);
       }
       else
       {

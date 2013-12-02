@@ -49,6 +49,8 @@
 
 package com.wordpress.openpinballproject.hostctl;
 
+import java.io.PrintWriter;
+
 import javax.swing.JLabel;
 
 public class GlobInfo
@@ -80,8 +82,9 @@ public class GlobInfo
    public static int[]           ledCardData = new int[MAX_NUM_LED_CARDS];
    public static JLabel[]        ledCardDbgLbl = new JLabel[MAX_NUM_LED_CARDS];
    public static int             tick = 20;
-   public static ProcObj[]       procObjArr = new ProcObj[MAX_NUM_PROC_OBJ];
-   public static int             numProcObj = 0;
+   public static int             numPChain = 1;			/* Must start at 1 since 0 indicates end of chain */
+   public static int             numLedChain = 1; 		/* Must start at 1 since 0 indicates end of chain */
+   public static int             numModes = 1; 			/* Must start at 1 since 0 indicates end of chain */
    public static boolean         parseFail = false;
   
    public static HostCtl         hostCtl = null;
@@ -90,6 +93,8 @@ public class GlobInfo
    public static ConsoleFrm      consFrm = null;
    public static ParseRules      parseRules = null;
    public static ParsePChain     parsePChain = null;
+   public static ParseLedChain   parseLedChain = null;
+   public static ParseModes   	parseModes = null;
    
    public static SolenoidClass   solClass = null;
    public static InpCardClass    inpCardClass = null;
@@ -100,4 +105,9 @@ public class GlobInfo
    public static IndxVarClass    indxVarClass = null;
    public static TimerClass      tmrClass = null;
    public static ModeClass       modeClass = null;
+   
+   public static PrintWriter     fileConstClass = null;
+   public static PrintWriter     fileRulesClass = null;
+   public static int					currIndent;
+   
 } /* End GlobInfo */

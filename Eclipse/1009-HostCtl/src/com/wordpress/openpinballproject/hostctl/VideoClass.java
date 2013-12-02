@@ -195,6 +195,8 @@ public class VideoClass
                         bigVidArrLst.add(bigVidIndex, locPath);
                         ParseRules.hmSymbol.put(currName,
                            ParseRules.SYMB_BIG_VID | bigVidIndex);
+                     	GlobInfo.fileConstClass.println("   public static final int             " +
+                           String.format("%-27s= %2d;", currName.toUpperCase(), bigVidIndex));
                         bigVidIndex++;
                      }
                      else
@@ -202,6 +204,8 @@ public class VideoClass
                         smallVidArrLst.add(littleVidIndex, locPath);
                         ParseRules.hmSymbol.put(currName,
                            ParseRules.SYMB_LITTLE_VID | littleVidIndex);
+                     	GlobInfo.fileConstClass.println("   public static final int             " +
+                           String.format("%-27s= %2d;", currName.toUpperCase(), littleVidIndex));
                         littleVidIndex++;
                      }
                      state = VID_PROC_VID_NAME;
@@ -231,6 +235,7 @@ public class VideoClass
       }
       if ((state == VID_ERROR) || (state == VID_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

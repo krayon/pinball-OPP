@@ -170,6 +170,8 @@ public class TimerClass
                          ParseRules.SYMB_TIMER | numTmrs);
                       if (numTmrs < MAX_NUM_TIMERS)
                       {
+                      	 GlobInfo.fileConstClass.println("   public static final int             " +
+                            String.format("%-27s= 0x%04x;", currName.toUpperCase(), 1 << numTmrs));
                          timeoutArr[numTmrs] = initVal;
                          numTmrs++;
                          state = TMR_PROC_TMR_NAME;
@@ -224,6 +226,7 @@ public class TimerClass
       }
       if ((state == TMR_ERROR) || (state == TMR_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

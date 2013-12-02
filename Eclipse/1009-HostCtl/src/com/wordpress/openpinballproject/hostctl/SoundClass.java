@@ -167,6 +167,8 @@ public class SoundClass
                   sndArrLst.add(currIndex, locPath);
                   ParseRules.hmSymbol.put(currName,
                       ParseRules.SYMB_SND | currIndex);
+               	GlobInfo.fileConstClass.println("   public static final int             " +
+                      String.format("%-27s= %2d;", currName.toUpperCase(), currIndex));
                   currIndex++;
                   state = SND_PROC_SND_NAME;
                }
@@ -194,6 +196,7 @@ public class SoundClass
       }
       if ((state == SND_ERROR) || (state == SND_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

@@ -113,7 +113,7 @@ VARIABLES
 
 INDEXED_VARIABLES
 {
-   #Name							NumEntries		InitVals
+   #Name                      NumEntries  InitVals
    IndVar_score               4           {0  0  0  0}
    IndVar_InlaneLights        4           {0  0  0  0}
    IndVar_scoreLvl            4           {0  0  0  0}
@@ -202,7 +202,7 @@ PROCESS_CHAINS
                                  {(Var_kick_retries++)
                                  if (Var_kick_retries > 5)
                                     {(MODE = Mode_Error) (TEXT = "Can't clear kickout hole")}
-                                 (START Timeout_Kickout_Timer) (KICK Sol_Ball_In_Play))}}
+                                 (START Timeout_Kickout_Timer) (KICK Sol_Ball_In_Play)}}
                            if (EXPIRED Timeout_Ball_Locate)
                               {(MODE = Mode_Error) (TEXT = "Lost Ball")}}
    
@@ -256,12 +256,12 @@ PROCESS_CHAINS
                               (Var_prev_flipper = 0) (Var_targets = 0) (Var_tilted = 0)}
    
    Proc_Ball_In_Play_Start {if (Inp_Inlane_Left || Inp_Inlane_Right)
-                              {(SOUND Sound_Wah_Wuh) (MODE = Mode_Normal_Play)}
+                              (MODE = Mode_Normal_Play)
                            if (Inp_Inlane_Center)
                               {(SOUND Sound_Ding_Ding_Ding) (TEXT = "Skill Shot")
                               (IndVar_score[Var_currPlayer] += 1000) (MODE = Mode_Normal_Play)}}
    
-   Proc_Normal_Play_Init   {(LED_SET, IndVar_InlaneLights[Var_currPlayer], (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right))}
+   Proc_Normal_Play_Init   {(LED_SET, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right), IndVar_InlaneLights[Var_currPlayer])}
    
    Proc_Normal_Play        {Proc_Tilt, Proc_Flipper, Proc_Inlane, Proc_Targets, Proc_Kickout_Hole,
                               Proc_Start_and_Coin, Proc_Ball_Drain}
@@ -298,7 +298,7 @@ PROCESS_CHAINS
                            (START Timeout_Special_Timer)}
    
    Proc_Targets_Comp_State {if (Sol_Kickout_Hole)
-                              {(TEXT = "Jackpot")
+                              {(TEXT = "Jackpot")(VIDEO Video_Defcon19)
                               (IndVar_score[Var_currPlayer] += (IndVar_specialLvl[Var_currPlayer] * 1000))}
                            if (EXPIRED Timeout_Special_Timer)
                               (MODE = Mode_Normal_Play)
@@ -308,32 +308,45 @@ PROCESS_CHAINS
 LED_CHAINS
 {
    #Name                   Processing (Mask, bits, wait, bits, wait, FLAGS)
-   Led_Attract             {(Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right |
+   LedCh_Attract           {(Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right |
                               Led_Left_Target1 | Led_Left_Target2 | Led_Right_Target1 | Led_Right_Target2 |
-                              Led_Special), Led_Special, WAIT 100, (Led_Left_Target1 | Led_Right_Target1),
+                              Led_Special), 0, WAIT 100, Led_Special, WAIT 100, (Led_Left_Target1 | Led_Right_Target1),
                               WAIT 100, (Led_Left_Target2 | Led_Right_Target2), WAIT 100,
                               (Led_Inlane_Left | Led_Inlane_Right), WAIT 100, Led_Inlane_Center, REPEAT}
    
-   Led_Tilt                {(Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right |
+   LedCh_Tilt              {(Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right |
                               Led_Left_Target1 | Led_Left_Target2 | Led_Right_Target1 | Led_Right_Target2 |
-                              Led_Special), 0}
+                              Led_Special), 0, END_CHAIN}
 }
 
 MODES
 {
-   #Name                   InitChain               ProcessChain                                       VideoChain     AudioChain     LedChain       InitScoringNum
-   Mode_Init               (Proc_Init)             ()                                                 ()             ()             ()             ()
-   Mode_Attract            ()                      (Proc_Init, Proc_Add_Coin)                         ()             ()             (Led_Attract)  ()
-   Mode_Press_Start        ()                      (Proc_Start_and_Coin)                              ()             ()             (Led_Attract)  ()
-   Mode_Start_Game         (Proc_Init_Game)        (Proc_Start_Game, Proc_Start_and_Coin)             ()             ()             ()             ()
-   Mode_Start_Ball         (Proc_Start_Ball_Init)  (Proc_Start_Ball_Start, Proc_Start_and_Coin)       ()             ()             ()             ()
-   Mode_Ball_In_Play       (Proc_Ball_In_Play_Init)(Proc_Ball_In_Play_Start, Proc_Start_and_Coin)     ()             ()             ()             ()
-   Mode_Normal_Play        (Proc_Normal_Play_Init) (Proc_Normal_Play)                                 ()             ()             ()             (Score_Norm)
-   Mode_Error              ()                      ()                                                 ()             ()             ()             ()
-   Mode_Tilt               (Proc_Tilt_Init)        (Proc_Tilt_State)                                  ()             (Sound_Tilt)   (Led_Tilt)     ()
-   Mode_End_Of_Ball        (Proc_End_Of_Ball)      ()                                                 ()             ()             ()             ()
-   Mode_Inlane_Complete    (Proc_Inlane_Comp)      ()                                                 ()             ()             ()             ()
-   Mode_Targets_Complete   (Proc_Targets_Comp_Init)(Proc_Targets_Comp_State)                          ()             ()             ()             ()
+   #Name                   InitChain                  ProcessChain                                       VideoChain
+   #                                      AudioChain                                  LedChain                                       InitScoringNum
+   Mode_Init               {(Proc_Init)               ()                                                 ()
+                                          ()                                          ()                                             ()}
+   Mode_Attract            {()                        (Proc_Init, Proc_Add_Coin)                         (Video_Defcon17, REPEAT)
+                                          ()                                          (LedCh_Attract)                                ()}
+   Mode_Press_Start        {()                        (Proc_Start_and_Coin)                              ()
+                                          (Sound_OpenDoor, WAIT 5000, REPEAT)         (LedCh_Attract)                                ()}
+   Mode_Start_Game         {(Proc_Init_Game)          (Proc_Start_Game, Proc_Start_and_Coin)             ()                        
+                                          ()                                          ()                                             ()}
+   Mode_Start_Ball         {(Proc_Start_Ball_Init)    (Proc_Start_Ball_Start, Proc_Start_and_Coin)       ()
+                                          ()                                          ()                                             ()}
+   Mode_Ball_In_Play       {(Proc_Ball_In_Play_Init)  (Proc_Ball_In_Play_Start, Proc_Start_and_Coin)     ()
+                                          ()                                          ()                                             ()}
+   Mode_Normal_Play        {(Proc_Normal_Play_Init)   (Proc_Normal_Play)                                 ()
+                                          ()                                          ()                                             ()}
+   Mode_Error              {()                        ()                                                 ()
+                                          ()                                          ()                                             ()}
+   Mode_Tilt               {(Proc_Tilt_Init)          (Proc_Tilt_State)                                  ()
+                                          (Sound_Wah_Wuh)                             (LedCh_Tilt)                                   ()}
+   Mode_End_Of_Ball        {(Proc_End_Of_Ball)        ()                                                 ()
+                                          ()                                          ()                                             ()}
+   Mode_Inlane_Complete    {(Proc_Inlane_Comp)        ()                                                 ()
+                                          ()                                          ()                                             ()}
+   Mode_Targets_Complete   {(Proc_Targets_Comp_Init)  (Proc_Targets_Comp_State)                          ()
+                                          ()                                          ()                                             ()}
 }
 
 FIRST_MODE                 Mode_Init

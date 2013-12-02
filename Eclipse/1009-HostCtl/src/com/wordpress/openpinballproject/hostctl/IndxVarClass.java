@@ -52,6 +52,7 @@ package com.wordpress.openpinballproject.hostctl;
 public class IndxVarClass
 {
    private static final int            MAX_NUM_INDX_VARS       = 4096;
+   private static final int            MAX_INDX_LENGTH         = 16;
    
    private static final int            INDX_NEED_OPEN_CURLY    = 1;
    private static final int            INDX_PROC_INDX_NAME     = 2;
@@ -163,7 +164,7 @@ public class IndxVarClass
                try
                {
                   numEntries = Integer.parseInt(tokens[currToken]);
-                  if (numIndxVars + numEntries < MAX_NUM_INDX_VARS)
+                  if ((numIndxVars + numEntries < MAX_NUM_INDX_VARS) && (numEntries < MAX_INDX_LENGTH))
                   {
                      state = INDX_START_INIT_GRP;
                   }
@@ -236,7 +237,9 @@ public class IndxVarClass
                      if (tstKey == null)
                      {
                          ParseRules.hmSymbol.put(currName,
-                            ParseRules.SYMB_INDX_VAR | ParseRules.allocInd);
+                            ParseRules.SYMB_INDX_VAR | (numEntries << 12) | ParseRules.allocInd);
+                      	 GlobInfo.fileConstClass.println("   public static final int             " +
+                               String.format("%-27s= %2d;", currName.toUpperCase(), ParseRules.allocInd));
                          ParseRules.allocInd += numEntries;
                          numIndxVars += numEntries;
                          state = INDX_PROC_INDX_NAME;
@@ -304,6 +307,7 @@ public class IndxVarClass
       }
       if ((state == INDX_ERROR) || (state == INDX_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

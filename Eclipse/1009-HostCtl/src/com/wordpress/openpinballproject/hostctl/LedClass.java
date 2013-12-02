@@ -211,6 +211,8 @@ public class LedClass
                      {
                         ParseRules.hmSymbol.put(currName,
                            ParseRules.SYMB_LED_PIN | (currCard << 8) | currPin);
+                     	GlobInfo.fileConstClass.println("   public static final int             " +
+                           	String.format("%-27s= 0x%02x;", currName.toUpperCase(), 1 << currPin));
                         state = LED_PROC_INP_NAME;
                      }
                      else
@@ -251,6 +253,7 @@ public class LedClass
       }
       if ((state == LED_ERROR) || (state == LED_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

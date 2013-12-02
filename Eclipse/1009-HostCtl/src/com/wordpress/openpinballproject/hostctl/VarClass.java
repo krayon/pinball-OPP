@@ -170,6 +170,8 @@ public class VarClass
                          ParseRules.SYMB_VAR | ParseRules.allocInd);
                       if (numVars < MAX_NUM_VARS)
                       {
+                      	 GlobInfo.fileConstClass.println("   public static final int             " +
+                            String.format("%-27s= %2d;", currName.toUpperCase(), numVars));
                          initVarArr[numVars] = initVal;
                          ParseRules.allocInd++;
                          numVars++;
@@ -225,6 +227,7 @@ public class VarClass
       }
       if ((state == VAR_ERROR) || (state == VAR_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

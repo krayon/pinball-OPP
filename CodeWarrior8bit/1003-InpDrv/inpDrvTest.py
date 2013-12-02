@@ -72,10 +72,10 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
-solCfg = [ [ '\x00', '\xff', '\x0f', '\x00', '\xff', '\x0f', \
-             '\x00', '\xff', '\x0f', '\x00', '\xff', '\x0f', \
-             '\x00', '\xff', '\x0f', '\x00', '\xff', '\x0f', \
-             '\x00', '\xff', '\x0f', '\x00', '\xff', '\x0f' ] ]
+solCfg = [ [ rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
+             rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
+             rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
+             rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04' ] ]
 
 #grab data from serial port
 def getSerialData():
@@ -253,6 +253,7 @@ def endTest(error):
     ch = msvcrt.getch()
     sys.exit(error)
 
+#Main code
 end = False
 for arg in sys.argv:
   if arg.startswith('-port='):

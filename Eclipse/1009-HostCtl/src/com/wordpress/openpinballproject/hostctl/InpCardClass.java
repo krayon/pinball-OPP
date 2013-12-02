@@ -66,6 +66,7 @@ public class InpCardClass
    private int                         numCards = 0;
    private int                         state = INP_NEED_NUM_CARDS;
    private int[]                       cardCfgArr;
+   public int[]                        currInputs;
    
    private String                      currName;
    private int                         currCard;
@@ -138,6 +139,7 @@ public class InpCardClass
                {
                   numCards = Integer.parseInt(tokens[currToken]);
                   cardCfgArr = new int[numCards * NUM_INP_PER_CARD];
+                  currInputs = new int[numCards * NUM_INP_PER_CARD];
                   state = INP_NEED_OPEN_CURLY;
                }
                catch (NumberFormatException e)
@@ -264,6 +266,8 @@ public class InpCardClass
                          ParseRules.SYMB_INP_PIN | (currCard << 8) | currPin);
                       ParseRules.hmSymbol.put(currName.toUpperCase(),
                          ParseRules.SYMB_CONST | (currCard << 8) | currPin);
+                   	 GlobInfo.fileConstClass.println("   public static final int             " +
+                         String.format("%-27s= 0x%04x;", currName.toUpperCase(), 1 << currPin));
                   }
                   else
                   {
@@ -290,6 +294,7 @@ public class InpCardClass
       }
       if ((state == INP_ERROR) || (state == INP_DONE))
       {
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else

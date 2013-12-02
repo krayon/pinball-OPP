@@ -65,10 +65,6 @@ public class ParsePChain
    private int                         allTokenLen = 0;
    private int                         delimCnt = 0;
 
-   private static final int            MUNGE_OK                = 0;
-   private static final int            MUNGE_ERROR             = 1;
-   private static final int            MUNGE_DONE              = 2;
-
    /*
     * ===============================================================================
     * 
@@ -224,15 +220,13 @@ public class ParsePChain
                state = PCHAIN_ERROR;
             }
          }
-         if (state == PCHAIN_DONE)
-         {
-         }
-         if (state == PCHAIN_ERROR)
-         {
-         }
       }
+
+      /* Clean up memory */
       if ((state == PCHAIN_ERROR) || (state == PCHAIN_DONE))
       {
+         allTokens = null;
+      	GlobInfo.fileConstClass.println("");
          return (true);
       }
       else
@@ -317,8 +311,6 @@ public class ParsePChain
       int                              endIndex = 0;
       int                              done;
       Integer                          tstKey;
-      ProcObj                          procObjStart;
-      ProcObj                          retProcObj;
       
       currName = allTokens[startIndex];
       if (allTokens[startIndex + 1].equals("{"))
@@ -337,17 +329,16 @@ public class ParsePChain
             tstKey = ParseRules.hmSymbol.get(currName);
             if (tstKey == null)
             {
-               procObjStart = new ProcObj();
-               GlobInfo.procObjArr[GlobInfo.numProcObj] = procObjStart;
-               procObjStart.num = GlobInfo.numProcObj;
+            	GlobInfo.fileRulesClass.println("   public void " + currName + "()");
+            	GlobInfo.fileRulesClass.println("   {");
+            	GlobInfo.currIndent = 2;
                ParseRules.hmSymbol.put(currName,
-                     ParseRules.SYMB_PCHAIN | GlobInfo.numProcObj);
-               GlobInfo.numProcObj++;
-               procObjStart.oper = ProcObj.OP_START_CHAIN;
-               retProcObj = mungePChain(startIndex + 2, endIndex);
-               procObjStart.contProcObj = retProcObj.num;
-               procObjStart.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
-               procObjStart.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
+                  ParseRules.SYMB_PCHAIN | GlobInfo.numPChain);
+            	GlobInfo.fileConstClass.println("   public static final int             " +
+                  String.format("%-27s= %2d;", currName.toUpperCase(), GlobInfo.numPChain));
+               GlobInfo.numPChain++;
+               mungePChain(startIndex + 2, endIndex);
+            	GlobInfo.fileRulesClass.println("   }");
             }
             else
             {
@@ -376,11 +367,11 @@ public class ParsePChain
    /**
     * Munge processing chain
     * 
-    * Start forming processing objects
+    * Call munge pchain when walking through a list of tokens that can contain
+    * if statements.  If in a testing clause, call detParamType.
     * 
     * @param   startIndex - starting index
     * @param   endIndex - ending index
-    * @param   firstProcObj - procObject that starts the chain
     * @return  None
     * 
     * @pre None 
@@ -388,31 +379,18 @@ public class ParsePChain
     * 
     * ===============================================================================
     */
-   private ProcObj mungePChain(
+   private void mungePChain(
       int                              startIndex,
       int                              endIndex)
    {
       int                              currIndex;
       int                              done;
-      ProcObj                          currProcObj = null;
-      ProcObj                          firstProcObj = null;
-      ProcObj                          procObj;
-      int                              mungeState = MUNGE_OK;
+      Integer                          tstKey;
+      int                              type;
       
       currIndex = startIndex;
-      while (mungeState == MUNGE_OK)
+      while (currIndex < endIndex)
       {
-         currProcObj = new ProcObj();
-         GlobInfo.procObjArr[GlobInfo.numProcObj] = currProcObj;
-         currProcObj.num = GlobInfo.numProcObj;
-         currProcObj.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
-         currProcObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
-         currProcObj.contProcObj = ProcObj.END_CHAIN_PROCOBJ;
-         GlobInfo.numProcObj++;
-         if (firstProcObj == null)
-         {
-            firstProcObj = currProcObj;
-         }
          if (allTokens[currIndex].equals("if"))
          {
             if (allTokens[currIndex + 1].equals("("))
@@ -421,25 +399,23 @@ public class ParsePChain
                if (done == 0)
                {
                   /* Couldn't find closing paren. */
-                  mungeState = MUNGE_DONE;
                   GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if statement");
                   GlobInfo.parseFail = true;
                   state = PCHAIN_ERROR;
+                  currIndex = endIndex;
                   break;
                }
                else
                {
-                  currProcObj.oper = ProcObj.OP_IF_PROC;
-                  procObj = detParamType(currProcObj, currIndex + 2, done, true, true);
-                  if (procObj != null)
-                  {
-                     GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
-                     currProcObj.trueProcObj = GlobInfo.numProcObj;
-                     procObj.num = GlobInfo.numProcObj;
-                     GlobInfo.numProcObj++;
-                  }
+               	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+               	GlobInfo.fileRulesClass.print("if (");
+                  detParamType(currIndex + 2, done, true, true);
                   currIndex = done + 1;
-                  
+               	GlobInfo.fileRulesClass.println(")");
+               	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+               	GlobInfo.fileRulesClass.println("{");
+               	GlobInfo.currIndent++;
+
                   /* Next symbol can be either { if multiple statements, or ( if a single statement */
                   if (allTokens[currIndex].equals("("))
                   {
@@ -447,24 +423,22 @@ public class ParsePChain
                      if (done == 0)
                      {
                         /* Couldn't find closing paren. */
-                        mungeState = MUNGE_DONE;
                         GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in if sub-statement");
                         GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
+                        currIndex = endIndex;
                         break;
                      }
                      else
                      {
-                        procObj = new ProcObj();
-                        GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
-                        procObj.num = GlobInfo.numProcObj;
-                        procObj.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
-                        procObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
-                        procObj.contProcObj = ProcObj.END_CHAIN_PROCOBJ;
-                        GlobInfo.numProcObj++;
-                        detParamType(procObj, currIndex + 1, done, true, false);
-                        currProcObj.trueProcObj = procObj.num;
+                     	/* This is a single command, so call detParamType */
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                        detParamType(currIndex + 1, done, true, false);
+                     	GlobInfo.fileRulesClass.println(";");
                         currIndex = done + 1;
+                     	GlobInfo.currIndent--;
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.println("}");
                      }
                   }
                   else if (allTokens[currIndex].equals("{"))
@@ -472,102 +446,108 @@ public class ParsePChain
                      done = countDelim("{", "}", currIndex, endIndex);
                      if (done == 0)
                      {
-                        mungeState = MUNGE_DONE;
                         GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close curly brace in if sub-statement");
                         GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
+                        currIndex = endIndex;
                         break;
                      }
                      else
                      {
-                        /* Fill out topmost procObj with this returned obj when if is true */
-                        procObj = mungePChain(currIndex + 1, done);
-                        currProcObj.trueProcObj = procObj.num;
+                     	/* This has multiple commands, so call mungePChain */
+                        mungePChain(currIndex + 1, done);
                         currIndex = done + 1;
+                     	GlobInfo.currIndent--;
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.println("}");
                      }
                   }
                   else
                   {
                      /* Couldn't find valid symbol in if clause */
-                     mungeState = MUNGE_DONE;
                      GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find valid statement in if sub-clause");
                      GlobInfo.parseFail = true;
                      state = PCHAIN_ERROR;
+                     currIndex = endIndex;
                      break;
                   }
                   
                   /* Next token could be the "else" symbol */
-                  if ((currIndex != endIndex) && (allTokens[currIndex].equals("else")))
+                  if ((currIndex < endIndex) && (allTokens[currIndex].equals("else")))
                   {
                      /* Special case for else if */
                      if (allTokens[currIndex + 1].equals("if"))
                      {
-                        /* HRS:  Currently stubbed out
-                        procObj = mungePChain(currIndex + 1, done); */
-                        /* Fill out topmost procObj with this returned obj when if is false */
-                        currIndex = done + 1;
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.print("else");
+                        mungePChain(currIndex + 1, endIndex);
+                        currIndex = endIndex + 1;
                      }
                      /* Next symbol can be either { if multiple statements, or ( if a single statement */
                      else if (allTokens[currIndex + 1].equals("("))
                      {
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.println("else");
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.println("{");
+                     	GlobInfo.currIndent++;
                         done = countDelim("(", ")", currIndex, endIndex);
                         if (done == 0)
                         {
                            /* Couldn't find closing paren. */
-                           mungeState = MUNGE_DONE;
                            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in else sub-statement");
                            GlobInfo.parseFail = true;
                            state = PCHAIN_ERROR;
+                           currIndex = endIndex;
                            break;
                         }
                         else
                         {
-                           procObj = new ProcObj();
-                           GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
-                           procObj.num = GlobInfo.numProcObj;
-                           procObj.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
-                           procObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
-                           procObj.contProcObj = ProcObj.END_CHAIN_PROCOBJ;
-                           GlobInfo.numProcObj++;
-                           detParamType(procObj, currIndex + 2, done, true, false);
-                           currProcObj.falseProcObj = procObj.num;
+                        	/* This is a single command, so call detParamType */
+	                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+	                        detParamType(currIndex + 2, done, true, false);
+	                     	GlobInfo.fileRulesClass.println(";");
+	                     	GlobInfo.currIndent--;
+	                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+	                     	GlobInfo.fileRulesClass.println("}");
                            currIndex = done + 1;
                         }
                      }
                      else if (allTokens[currIndex + 1].equals("{"))
                      {
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.println("else");
+                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     	GlobInfo.fileRulesClass.println("{");
+                     	GlobInfo.currIndent++;
                         done = countDelim("{", "}", currIndex, endIndex);
                         if (done == 0)
                         {
-                           mungeState = MUNGE_DONE;
                            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close curly brace in else sub-statement");
                            GlobInfo.parseFail = true;
                            state = PCHAIN_ERROR;
+                           currIndex = endIndex;
                            break;
                         }
                         else
                         {
-                           procObj = mungePChain(currIndex + 2, done);
-                           currProcObj.falseProcObj = procObj.num;
-                           currIndex = done + 1;
+                        	/* This has multiple commands, so call mungePChain */
+	                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+	                        mungePChain(currIndex + 2, done);
+	                        currIndex = done + 1;
+	                     	GlobInfo.currIndent--;
+	                     	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+	                     	GlobInfo.fileRulesClass.println("}");
                         }
                      }
                      else
                      {
                         /* Couldn't find valid symbol in else clause */
-                        mungeState = MUNGE_DONE;
                         GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find valid statement in else sub-clause");
                         GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
+                        currIndex = endIndex;
                         break;
-                     }
-                  }
-                  else
-                  {
-                     if (currIndex != endIndex)
-                     {
-                        /* More terms need to be added, use next allocated procObj */
-                        currProcObj.contProcObj = GlobInfo.numProcObj;
                      }
                   }
                }
@@ -575,10 +555,10 @@ public class ParsePChain
             else
             {
                /* Open paren not found so error */
-               mungeState = MUNGE_DONE;
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find open parenthesis in if statement");
                GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
+               currIndex = endIndex;
                break;
             }
          }
@@ -588,33 +568,63 @@ public class ParsePChain
             if (done == 0)
             {
                /* Couldn't find closing paren. */
-               mungeState = MUNGE_DONE;
                GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis in statement");
                GlobInfo.parseFail = true;
                state = PCHAIN_ERROR;
+               currIndex = endIndex;
                break;
             }
             else
             {
-               detParamType(currProcObj, currIndex + 1, done, true, false);
-               if (currProcObj != firstProcObj)
-               {
-                  firstProcObj.contProcObj = currProcObj.num;
-               }
+            	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+               detParamType(currIndex + 1, done, true, false);
+            	GlobInfo.fileRulesClass.println(";");
                currIndex = done + 1;
            }
          }
          else
          {
-            /* Only other valid symbol is a process chain name */
-            currIndex = endIndex;
-         }
-         if (currIndex == endIndex)
-         {
-            mungeState = MUNGE_DONE;
+         	while (currIndex < endIndex)
+         	{
+            	/* Check to see if this is a processing chain */
+               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
+               if (tstKey == null)
+               {
+                  /* Don't know what this symbol is. */
+                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " not expecting " + allTokens[currIndex] + " symbol");
+                  GlobInfo.parseFail = true;
+                  state = PCHAIN_ERROR;
+                  currIndex = endIndex;
+               }
+               else
+               {
+                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+                  if (type != ParseRules.SYMB_PCHAIN)
+                  {
+                     GlobInfo.hostCtl.printMsg("PCHAIN_PROC: Only pchain symbols allowed " + allTokens[currIndex] + ".");
+                     GlobInfo.parseFail = true;
+                     state = PCHAIN_ERROR;
+                     currIndex++;
+                  }
+                  else
+                  {
+                     /* Calculate the bit position of the LED */
+                  	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+   	            	GlobInfo.fileRulesClass.printf("StdFuncs.CallPChain(ConstClass.%s)",
+                       	allTokens[currIndex].toUpperCase());
+                     currIndex++;
+                     
+                     /* Check if the next token is "," so another it could be another pchain */
+                     if (allTokens[currIndex].equals(","))
+                     {
+                        currIndex++;
+                     	GlobInfo.fileRulesClass.printf(";");
+                     }
+   	            }
+               }
+         	}
          }
       }
-      return (firstProcObj);
    } /* end mungePChain */
 
    /*
@@ -640,11 +650,9 @@ public class ParsePChain
     * ===============================================================================
     */
    private boolean fillCompOper(
-      ProcObj                          procObj,
       String                           oper,
       boolean                          ifStatement)
    {
-      boolean                          needsMoreParams = true;
       boolean                          foundOper;
       
       foundOper = true;
@@ -652,27 +660,27 @@ public class ParsePChain
       {
          if (oper.equals("=="))
          {
-            procObj.oper += ProcObj.OP_EQUALS;
+         	GlobInfo.fileRulesClass.print(" == ");
          }
          else if (oper.equals("!="))
          {
-            procObj.oper += ProcObj.OP_NOT_EQUALS;
+         	GlobInfo.fileRulesClass.print(" != ");
          }
          else if (oper.equals(">"))
          {
-            procObj.oper += ProcObj.OP_GREATER_THAN;
+         	GlobInfo.fileRulesClass.print(" > ");
          }
          else if (oper.equals(">="))
          {
-            procObj.oper += ProcObj.OP_GREATER_OR_EQUAL;
+         	GlobInfo.fileRulesClass.print(" >= ");
          }
          else if (oper.equals("<"))
          {
-            procObj.oper += ProcObj.OP_LESS_THAN;
+         	GlobInfo.fileRulesClass.print(" < ");
          }
          else if (oper.equals("<="))
          {
-            procObj.oper =+ ProcObj.OP_LESS_OR_EQUAL;
+         	GlobInfo.fileRulesClass.print(" <= ");
          }
          else
          {
@@ -683,29 +691,27 @@ public class ParsePChain
       {
          if (oper.equals("="))
          {
-            procObj.oper += ProcObj.OP_SET_VAL;
+         	GlobInfo.fileRulesClass.print(" = ");
          }
          else if (oper.equals("+="))
          {
-            procObj.oper += ProcObj.OP_PLUS_EQUALS;
+         	GlobInfo.fileRulesClass.print(" += ");
          }
          else if (oper.equals("|="))
          {
-            procObj.oper += ProcObj.OP_PLUS_EQUALS;
+         	GlobInfo.fileRulesClass.print(" |= ");
          }
          else if (oper.equals("&="))
          {
-            procObj.oper += ProcObj.OP_AND_EQUALS;
+         	GlobInfo.fileRulesClass.print(" &= ");
          }
          else if (oper.equals("++"))
          {
-            procObj.oper += ProcObj.OP_INCREMENT;
-            needsMoreParams = false;
+         	GlobInfo.fileRulesClass.print("++");
          }
          else if (oper.equals("--"))
          {
-            procObj.oper += ProcObj.OP_DECREMENT;
-            needsMoreParams = false;
+         	GlobInfo.fileRulesClass.print("--");
          }
          else
          {
@@ -714,26 +720,47 @@ public class ParsePChain
       }
       if (!foundOper)
       {
+         foundOper = true;
          if (oper.equals("&"))
          {
-            procObj.oper += ProcObj.OP_BITWISE_AND;
-            foundOper = true;
+         	GlobInfo.fileRulesClass.print(" & ");
          }
          else if (oper.equals("|"))
          {
-            procObj.oper += ProcObj.OP_BITWISE_OR;
+         	GlobInfo.fileRulesClass.print(" | ");
          }
          else if (oper.equals("&&"))
          {
-            procObj.oper += ProcObj.OP_LOGICAL_AND;
+         	GlobInfo.fileRulesClass.println(" &&");
+         	GlobInfo.fileRulesClass.printf("%" + ((GlobInfo.currIndent + 1) * 3) + "s", "");
          }
          else if (oper.equals("||"))
          {
-            procObj.oper += ProcObj.OP_LOGICAL_OR;
+         	GlobInfo.fileRulesClass.println(" ||");
+         	GlobInfo.fileRulesClass.printf("%" + ((GlobInfo.currIndent + 1) * 3) + "s", "");
+         }
+         else if (oper.equals("+"))
+         {
+         	GlobInfo.fileRulesClass.print(" + ");
+         }
+         else if (oper.equals("-"))
+         {
+         	GlobInfo.fileRulesClass.print(" - ");
+         }
+         else if (oper.equals("*"))
+         {
+         	GlobInfo.fileRulesClass.print(" * ");
+         }
+         else if (oper.equals("/"))
+         {
+         	GlobInfo.fileRulesClass.print(" / ");
+         }
+         else
+         {
+            foundOper = false;
          }
       }
-      
-      return (needsMoreParams);
+      return(foundOper);
    }
 
    /*
@@ -749,7 +776,6 @@ public class ParsePChain
     * Determine the param type and fill out the procObj appropriately.  If filling out
     * paramA, flags are returned to indicate 
     * 
-    * @param   procObj - processing object
     * @param   startIndex - starting index
     * @param   endIndex - ending index
     * @param   firstParam - true if filling out first parameter
@@ -761,753 +787,510 @@ public class ParsePChain
     * 
     * ===============================================================================
     */
-   private ProcObj detParamType(
-      ProcObj                          prevProcObj,
+   private void detParamType(
       int                              startIndex,
       int                              endIndex,
       boolean                          firstParam,
       boolean                          ifStatement)
    {
-      boolean                          foundType = true;
-      boolean                          moreParam;
+      boolean									foundSomething;
       int                              currIndex;
-      ProcObj                          procObj = null;
       int                              done;
       Integer                          tstKey;
       int                              type;
       int                              tmpInt;
       
       currIndex = startIndex;
-      if (allTokens[currIndex].equals("("))
+      while (currIndex < endIndex)
       {
-         done = countDelim("(", ")", currIndex, endIndex);
-         if (done == 0)
-         {
-            /* Couldn't find closing paren. */
-            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis");
-            GlobInfo.parseFail = true;
-            state = PCHAIN_ERROR;
-         }
-         else
-         {
-            procObj = new ProcObj();
-            GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
-            procObj.num = GlobInfo.numProcObj;
-            procObj.trueProcObj = ProcObj.END_CHAIN_PROCOBJ;
-            procObj.falseProcObj = ProcObj.END_CHAIN_PROCOBJ;
-            procObj.contProcObj = ProcObj.END_CHAIN_PROCOBJ;
-            GlobInfo.numProcObj++;
-            procObj.oper = ProcObj.OP_SUB_QUANT;
-            detParamType(procObj, currIndex + 1, done, true, ifStatement);
-            currIndex = done + 1;
-            if (firstParam)
-            {
-               prevProcObj.typeA = ProcObj.TYPE_SUB_QUANT;
-               prevProcObj.paramA = procObj.num;
-               firstParam = false;
-            }
-            else
-            {
-               prevProcObj.typeB = ProcObj.TYPE_SUB_QUANT;
-               prevProcObj.paramB = procObj.num;
-            }
-         }
-      }
-      if (firstParam)
-      {
-         if (ifStatement)
-         {
-            if (allTokens[currIndex].equals("EXPIRED"))
-            {
-               prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_EXPIRED_TIMERS;
-               prevProcObj.oper = ProcObj.OP_BITWISE_AND;
-            }
-            else if (allTokens[currIndex].equals("MODE"))
-            {
-               prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
-            }
-            else
-            {
-               foundType = false;
-            }
-         }
-         else
-         {
-            /* Special objects that can only be found as the first parameter */
-            if (allTokens[currIndex].equals("DISABLE_SOLENOIDS"))
-            {
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_DISABLE_SOLENOIDS;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               currIndex++;
-               if (currIndex != endIndex)
-               {
-                  GlobInfo.hostCtl.printMsg("DISABLE_SOLENOIDS: Extra information in statement.");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("LED_ON"))
-            {
-               /* LED On functions just need a list of LEDs */
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_LED_ON;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ON;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               if (allTokens[currIndex + 1].equals(","))
-               {
-                  currIndex = currIndex + 2;
-                  tmpInt = 0;
-                  while (currIndex < endIndex)
-                  {
-                     /* Ignore all open, close paren, and '+' and '|' since just creating a mask */
-                     if ((allTokens[currIndex].equals("(")) || (allTokens[currIndex].equals(")")) ||
-                        (allTokens[currIndex].equals("+")) || (allTokens[currIndex].equals("|")))
-                     {
-                        currIndex++;
-                     }
-                     else
-                     {
-                        tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-                        if (tstKey == null)
-                        {
-                           /* I'm flamoozled.  I have no idea what is going on */
-                           GlobInfo.hostCtl.printMsg("LED_ON: Parse symbol fail " + allTokens[currIndex] + ".");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                        else
-                        {
-                           type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                           if (type != ParseRules.SYMB_LED_PIN)
-                           {
-                              GlobInfo.hostCtl.printMsg("LED_ON: Only LED symbols allowed " + allTokens[currIndex] + ".");
-                              GlobInfo.parseFail = true;
-                              state = PCHAIN_ERROR;
-                           }
-                           else
-                           {
-                              /* Calculate the bit position of the LED */
-                              tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
-                                 ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
-                           }
-                        }
-                        currIndex++;
-                     }
-                  }
-                  /* tmpInt must be non-zero */
-                  if (tmpInt != 0)
-                  {
-                     /* Last part of the command should be a destination */
-                     prevProcObj.paramA = tmpInt;
-                  }
-                  else
-                  {
-                     GlobInfo.hostCtl.printMsg("LED_ON: Mask must be nonzero.");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-               }
-               else
-               {
-                  GlobInfo.hostCtl.printMsg("LED_ON: " + currName + " has misformed command");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("KICK"))
-            {
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_KICK;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_KICK;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               currIndex++;
-               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-               if (tstKey == null)
-               {
-                  /* I'm flamoozled.  I have no idea what is going on */
-                  GlobInfo.hostCtl.printMsg("KICK: Parse symbol fail " + allTokens[currIndex] + ".");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-               else
-               {
-                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                  if (type != ParseRules.SYMB_SOL_PIN)
-                  {
-                     GlobInfo.hostCtl.printMsg("KICK: Only solenoid symbols allowed " + allTokens[currIndex] + ".");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-                  else
-                  {
-                     /* Calculate the bit position of the LED */
-                     prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                  }
-               }
-               currIndex++;
-               if (currIndex != endIndex)
-               {
-                  GlobInfo.hostCtl.printMsg("KICK: Extra information in statement.");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("START"))
-            {
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_START_TIMER;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_START_TIMER;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               currIndex++;
-               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-               if (tstKey == null)
-               {
-                  /* I'm flamoozled.  I have no idea what is going on */
-                  GlobInfo.hostCtl.printMsg("START: Parse symbol fail " + allTokens[currIndex] + ".");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-               else
-               {
-                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                  if (type != ParseRules.SYMB_TIMER)
-                  {
-                     GlobInfo.hostCtl.printMsg("START: Only timer symbols allowed " + allTokens[currIndex] + ".");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-                  else
-                  {
-                     /* Calculate the bit position of the LED */
-                     prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                  }
-               }
-               currIndex++;
-               if (currIndex != endIndex)
-               {
-                  GlobInfo.hostCtl.printMsg("START: Extra information in statement.");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("ENABLE_SOLENOIDS"))
-            {
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_ENABLE_SOLENOIDS;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_ENABLE_SOLENOIDS;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               currIndex++;
-               if (currIndex != endIndex)
-               {
-                  GlobInfo.hostCtl.printMsg("PREDEF_ENABLE_SOLENOIDS: Extra information in statement.");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("TEXT"))
-            {
-               /* HRS */
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_TEXT;
-            }
-            else if (allTokens[currIndex].equals("SOUND"))
-            {
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_SOUND;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_SOUND;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               currIndex++;
-               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-               if (tstKey == null)
-               {
-                  /* I'm flamoozled.  I have no idea what is going on */
-                  GlobInfo.hostCtl.printMsg("KICK: Parse symbol fail " + allTokens[currIndex] + ".");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-               else
-               {
-                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                  if (type != ParseRules.SYMB_SND)
-                  {
-                     GlobInfo.hostCtl.printMsg("SOUND: Only sound symbols allowed " + allTokens[currIndex] + ".");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-                  else
-                  {
-                     /* Calculate the bit position of the LED */
-                     prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                  }
-               }
-               currIndex++;
-               if (currIndex != endIndex)
-               {
-                  GlobInfo.hostCtl.printMsg("SOUND: Extra information in statement.");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("WAIT"))
-            {
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_WAIT;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_WAIT;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               currIndex++;
-               
-               /* Check if this is an integer constant */
-               try
-               {
-                  prevProcObj.paramA = Integer.parseInt(allTokens[currIndex]);
-                  currIndex++;
-                  if (currIndex != endIndex)
-                  {
-                     GlobInfo.hostCtl.printMsg("WAIT: Extra information in statement.");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-               }
-               catch (NumberFormatException e)
-               {
-                  GlobInfo.hostCtl.printMsg("WAIT: Only integers allowed " + allTokens[currIndex] + ".");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("LED_ROT_LEFT"))
-            {
-               /* Rotate functions needs mask which is a constant, and a variable */
-               prevProcObj.oper = ProcObj.OP_STATEMENT_PROC + ProcObj.PREDEF_LED_ROT_LEFT;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ROT_LEFT;
-               if (allTokens[currIndex + 1].equals(","))
-               {
-                  currIndex = currIndex + 2;
-                  tmpInt = 0;
-                  while ((!allTokens[currIndex].equals(",")) && (currIndex < endIndex))
-                  {
-                     /* Ignore all open, close paren, and '+' and '|' since just creating a mask */
-                     if ((allTokens[currIndex].equals("(")) || (allTokens[currIndex].equals(")")) ||
-                        (allTokens[currIndex].equals("+")) || (allTokens[currIndex].equals("|")))
-                     {
-                        currIndex++;
-                     }
-                     else
-                     {
-                        tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-                        if (tstKey == null)
-                        {
-                           /* I'm flamoozled.  I have no idea what is going on */
-                           GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: Parse symbol fail " + allTokens[currIndex] + ".");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                        else
-                        {
-                           type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                           if (type != ParseRules.SYMB_LED_PIN)
-                           {
-                              GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: Only LED symbols allowed " + allTokens[currIndex] + ".");
-                              GlobInfo.parseFail = true;
-                              state = PCHAIN_ERROR;
-                           }
-                           else
-                           {
-                              /* Calculate the bit position of the LED */
-                              tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
-                                 ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
-                           }
-                        }
-                        currIndex++;
-                     }
-                  }
-                  if ((currIndex < endIndex) && allTokens[currIndex].equals(","))
-                  {
-                     /* tmpInt must be non-zero */
-                     if (tmpInt != 0)
-                     {
-                        /* Last part of the command should be a destination */
-                        prevProcObj.paramA = tmpInt;
-                        currIndex++;
-                        detParamType(prevProcObj, currIndex, endIndex, false, false);
-                        currIndex = endIndex;
-                        if ((((prevProcObj.typeB / 1000) * 1000) != ProcObj.TYPE_VARIABLE) &&
-                           (((prevProcObj.typeB / 1000) * 1000) != ProcObj.TYPE_INDX_VAR))
-                        {
-                           GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: Destination must be a variable.");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                     }
-                     else
-                     {
-                        GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: Mask must be nonzero.");
+      	foundSomething = false;
+	      if (allTokens[currIndex].equals("("))
+	      {
+	         done = countDelim("(", ")", currIndex, endIndex);
+	         if (done == 0)
+	         {
+	            /* Couldn't find closing paren. */
+	            GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find close parenthesis");
+	            GlobInfo.parseFail = true;
+	            state = PCHAIN_ERROR;
+	         }
+	         else
+	         {
+	         	GlobInfo.fileRulesClass.print("(");
+	            detParamType(currIndex + 1, done, true, ifStatement);
+	            currIndex = done + 1;
+	         	GlobInfo.fileRulesClass.print(")");
+	         	firstParam = false;
+	         	foundSomething = true;
+	         }
+	      }
+	      if (firstParam && !foundSomething)
+	      {
+	         if (ifStatement)
+	         {
+	         	/* Special if statement checks */
+	         	foundSomething = true;
+	            if (allTokens[currIndex].equals("EXPIRED"))
+	            {
+	               currIndex++;
+	               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
+	               if (tstKey == null)
+	               {
+	                  /* I'm flamoozled.  I have no idea what is going on */
+	                  GlobInfo.hostCtl.printMsg("EXPIRED: Parse symbol fail " + allTokens[currIndex] + ".");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	               else
+	               {
+	                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+	                  if (type != ParseRules.SYMB_TIMER)
+	                  {
+	                     GlobInfo.hostCtl.printMsg("EXPIRED: Only timer symbols allowed " + allTokens[currIndex] + ".");
+	                     GlobInfo.parseFail = true;
+	                     state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	                     /* Calculate the bit position of the LED */
+	   	            	GlobInfo.fileRulesClass.printf("GlobInfo.tmrClass.expTmr & ConstClass.%s",
+	                       	allTokens[currIndex].toUpperCase());
+	   	            	GlobInfo.fileRulesClass.println("");
+	   	            }
+	               }
+	               currIndex++;
+	               if (currIndex != endIndex)
+	               {
+	                  GlobInfo.hostCtl.printMsg("EXPIRED: Extra information in statement.");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("MODE"))
+	            {
+	            	/* Next symbol should be == */
+	            	if (allTokens[currIndex + 1].equals("=="))
+	            	{
+		            	GlobInfo.fileRulesClass.printf("mode == ConstClass.%s", allTokens[currIndex].toUpperCase());
+		               currIndex += 3;
+	            	}
+	            	else
+	            	{
+	                  GlobInfo.hostCtl.printMsg("MODE: only support == match for mode");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+		            }
+	            }
+	            else
+	            {
+		         	foundSomething = false;
+	            }
+	         }
+	         else
+	         {
+	            /* Special objects that can only be found as the first parameter */
+	         	foundSomething = true;
+	            if (allTokens[currIndex].equals("DISABLE_SOLENOIDS"))
+	            {
+	            	GlobInfo.fileRulesClass.print("StdFuncs.DisableSolenoids()");
+	               currIndex++;
+	               if (currIndex != endIndex)
+	               {
+	                  GlobInfo.hostCtl.printMsg("DISABLE_SOLENOIDS: Extra information in statement.");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_ON"))
+	            {
+	               /* LED On functions just need a list of LEDs */
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+   	            	GlobInfo.fileRulesClass.print("StdFuncs.LedOn(");
+	                  currIndex = currIndex + 2;
+                     detParamType(currIndex, endIndex, false, false);
+                     currIndex = endIndex;
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_ON: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("KICK"))
+	            {
+	               currIndex++;
+	               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
+	               if (tstKey == null)
+	               {
+	                  /* I'm flamoozled.  I have no idea what is going on */
+	                  GlobInfo.hostCtl.printMsg("KICK: Parse symbol fail " + allTokens[currIndex] + ".");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	               else
+	               {
+	                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+	                  if (type != ParseRules.SYMB_SOL_PIN)
+	                  {
+	                     GlobInfo.hostCtl.printMsg("KICK: Only solenoid symbols allowed " + allTokens[currIndex] + ".");
+	                     GlobInfo.parseFail = true;
+	                     state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	                     /* Calculate the bit position of the LED */
+	   	            	GlobInfo.fileRulesClass.printf("StdFuncs.Kick(%d, ConstClass.%s);",
+	                       	((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8),
+	                       	allTokens[currIndex].toUpperCase());
+	   	            	GlobInfo.fileRulesClass.println("");
+	                  }
+	               }
+	               currIndex++;
+	               if (currIndex != endIndex)
+	               {
+	                  GlobInfo.hostCtl.printMsg("KICK: Extra information in statement.");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("START"))
+	            {
+	               currIndex++;
+	               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
+	               if (tstKey == null)
+	               {
+	                  /* I'm flamoozled.  I have no idea what is going on */
+	                  GlobInfo.hostCtl.printMsg("START: Parse symbol fail " + allTokens[currIndex] + ".");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	               else
+	               {
+	                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+	                  if (type != ParseRules.SYMB_TIMER)
+	                  {
+	                     GlobInfo.hostCtl.printMsg("START: Only timer symbols allowed " + allTokens[currIndex] + ".");
+	                     GlobInfo.parseFail = true;
+	                     state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	                     /* Calculate the bit position of the LED */
+	   	            	GlobInfo.fileRulesClass.println("StdFuncs.StartTimer(ConstClass." +
+	   	            		allTokens[currIndex].toUpperCase() + ");");
+	                  }
+	               }
+	               currIndex++;
+	               if (currIndex != endIndex)
+	               {
+	                  GlobInfo.hostCtl.printMsg("START: Extra information in statement.");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("ENABLE_SOLENOIDS"))
+	            {
+	               currIndex++;
+	               if (currIndex != endIndex)
+	               {
+	                  GlobInfo.hostCtl.printMsg("PREDEF_ENABLE_SOLENOIDS: Extra information in statement.");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	               else
+	               {
+   	            	GlobInfo.fileRulesClass.println("StdFuncs.EnableSolenoids();");
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("TEXT"))
+	            {
+	               /* HRS */
+	            	currIndex = endIndex;
+	            }
+	            else if (allTokens[currIndex].equals("SOUND"))
+	            {
+	               currIndex++;
+	               tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
+	               if (tstKey == null)
+	               {
+	                  /* I'm flamoozled.  I have no idea what is going on */
+	                  GlobInfo.hostCtl.printMsg("KICK: Parse symbol fail " + allTokens[currIndex] + ".");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	               else
+	               {
+	                  type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+	                  if (type != ParseRules.SYMB_SND)
+	                  {
+	                     GlobInfo.hostCtl.printMsg("SOUND: Only sound symbols allowed " + allTokens[currIndex] + ".");
+	                     GlobInfo.parseFail = true;
+	                     state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	                     /* Calculate the bit position of the LED */
+	   	            	GlobInfo.fileRulesClass.println("StdFuncs.PlaySound(ConstClass." +
+	   	            		allTokens[currIndex].toUpperCase() + ");");
+	                  }
+	               }
+	               currIndex++;
+	               if (currIndex != endIndex)
+	               {
+	                  GlobInfo.hostCtl.printMsg("SOUND: Extra information in statement.");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("WAIT"))
+	            {
+	               currIndex++;
+	               
+	               /* Check if this is an integer constant */
+	               try
+	               {
+		               tmpInt = Integer.parseInt(allTokens[currIndex]);
+	                  currIndex++;
+	                  if (currIndex != endIndex)
+	                  {
+	                     GlobInfo.hostCtl.printMsg("WAIT: Extra information in statement.");
+	                     GlobInfo.parseFail = true;
+	                     state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	   	            	GlobInfo.fileRulesClass.printf("StdFuncs.Wait(%d);", tmpInt);
+		   	            GlobInfo.fileRulesClass.println("");
+	                  }
+	               }
+	               catch (NumberFormatException e)
+	               {
+	                  GlobInfo.hostCtl.printMsg("WAIT: Only integers allowed " + allTokens[currIndex] + ".");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_ROT_LEFT"))
+	            {
+	               /* Rotate functions needs mask which is a constant, and a variable */
+	            	GlobInfo.fileRulesClass.print("StdFuncs.LedRotLeft(");
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+	                  currIndex = currIndex + 2;
+	                  tmpInt = currIndex;
+	                  while ((!allTokens[tmpInt].equals(",")) && (tmpInt < endIndex))
+	                  {
+	                  	tmpInt++;
+	                  }
+	                  if (tmpInt == endIndex)
+	                  {
+                        GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: Can't find variable to rotate");
                         GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
-                     }
-                  }
-               }
-               else
-               {
-                  GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: " + currName + " has misformed command");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("LED_ROT_RIGHT"))
-            {
-               /* Rotate functions needs mask which is a constant, and a variable */
-               prevProcObj.oper = ProcObj.OP_STATEMENT_PROC + ProcObj.PREDEF_LED_ROT_RIGHT;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_ROT_RIGHT;
-               if (allTokens[currIndex + 1].equals(","))
-               {
-                  currIndex = currIndex + 2;
-                  tmpInt = 0;
-                  while ((!allTokens[currIndex].equals(",")) && (currIndex < endIndex))
-                  {
-                     /* Ignore all open, close paren, and '+' and '|' since just creating a mask */
-                     if ((allTokens[currIndex].equals("(")) || (allTokens[currIndex].equals(")")) ||
-                        (allTokens[currIndex].equals("+")) || (allTokens[currIndex].equals("|")))
-                     {
-                        currIndex++;
-                     }
-                     else
-                     {
-                        tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-                        if (tstKey == null)
-                        {
-                           /* I'm flamoozled.  I have no idea what is going on */
-                           GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: Parse symbol fail " + allTokens[currIndex] + ".");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                        else
-                        {
-                           type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                           if (type != ParseRules.SYMB_LED_PIN)
-                           {
-                              GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: Only LED symbols allowed " + allTokens[currIndex] + ".");
-                              GlobInfo.parseFail = true;
-                              state = PCHAIN_ERROR;
-                           }
-                           else
-                           {
-                              /* Calculate the bit position of the LED */
-                              tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
-                                 ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
-                           }
-                        }
-                        currIndex++;
-                     }
-                  }
-                  if ((currIndex < endIndex) && allTokens[currIndex].equals(","))
-                  {
-                     /* tmpInt must be non-zero */
-                     if (tmpInt != 0)
-                     {
+	                  }
+	                  else
+	                  {
+	                     detParamType(currIndex, tmpInt, false, false);
+	                     currIndex = tmpInt + 1;
+	                     
                         /* Last part of the command should be a destination */
-                        prevProcObj.paramA = tmpInt;
-                        currIndex++;
-                        detParamType(prevProcObj, currIndex, endIndex, false, false);
+                     	GlobInfo.fileRulesClass.println(",");
+                     	GlobInfo.fileRulesClass.printf("%" + ((GlobInfo.currIndent + 1) * 3) + "s", "");
+                        detParamType(currIndex, endIndex, false, false);
                         currIndex = endIndex;
-                        if ((((prevProcObj.typeB / 1000) * 1000) != ProcObj.TYPE_VARIABLE) &&
-                           (((prevProcObj.typeB / 1000) * 1000) != ProcObj.TYPE_INDX_VAR))
-                        {
-                           GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: Destination must be a variable.");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                     }
-                     else
-                     {
-                        GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: Mask must be nonzero.");
+                     	GlobInfo.fileRulesClass.print(")");
+	                  }
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_ROT_LEFT: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_ROT_RIGHT"))
+	            {
+	               /* Rotate functions needs mask which is a constant, and a variable */
+	            	GlobInfo.fileRulesClass.print("StdFuncs.LedRotRight(");
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+	                  currIndex = currIndex + 2;
+	                  tmpInt = currIndex;
+	                  while ((!allTokens[tmpInt].equals(",")) && (tmpInt < endIndex))
+	                  {
+	                  	tmpInt++;
+	                  }
+	                  if (tmpInt == endIndex)
+	                  {
+                        GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: Can't find variable to rotate");
                         GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
-                     }
-                  }
-               }
-               else
-               {
-                  GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: " + currName + " has misformed command");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("LED_OFF"))
-            {
-               /* LED Off functions just need a list of LEDs */
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_LED_OFF;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_OFF;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               if (allTokens[currIndex + 1].equals(","))
-               {
-                  currIndex = currIndex + 2;
-                  tmpInt = 0;
-                  while (currIndex < endIndex)
-                  {
-                     /* Ignore all open, close paren, and '+' and '|' since just creating a mask */
-                     if ((allTokens[currIndex].equals("(")) || (allTokens[currIndex].equals(")")) ||
-                        (allTokens[currIndex].equals("+")) || (allTokens[currIndex].equals("|")))
-                     {
-                        currIndex++;
-                     }
-                     else
-                     {
-                        tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-                        if (tstKey == null)
-                        {
-                           /* I'm flamoozled.  I have no idea what is going on */
-                           GlobInfo.hostCtl.printMsg("LED_OFF: Parse symbol fail " + allTokens[currIndex] + ".");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                        else
-                        {
-                           type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                           if (type != ParseRules.SYMB_LED_PIN)
-                           {
-                              GlobInfo.hostCtl.printMsg("LED_OFF: Only LED symbols allowed " + allTokens[currIndex] + ".");
-                              GlobInfo.parseFail = true;
-                              state = PCHAIN_ERROR;
-                           }
-                           else
-                           {
-                              /* Calculate the bit position of the LED */
-                              tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
-                                 ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
-                           }
-                        }
-                        currIndex++;
-                     }
-                  }
-                  /* tmpInt must be non-zero */
-                  if (tmpInt != 0)
-                  {
-                     /* Last part of the command should be a destination */
-                     prevProcObj.paramA = tmpInt;
-                  }
-                  else
-                  {
-                     GlobInfo.hostCtl.printMsg("LED_OFF: Mask must be nonzero.");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-               }
-               else
-               {
-                  GlobInfo.hostCtl.printMsg("LED_OFF: " + currName + " has misformed command");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("LED_BLINK_100"))
-            {
-               /* LED Blink functions just need a list of LEDs */
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_LED_BLINK_100;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_100;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               if (allTokens[currIndex + 1].equals(","))
-               {
-                  currIndex = currIndex + 2;
-                  tmpInt = 0;
-                  while (currIndex < endIndex)
-                  {
-                     /* Ignore all open, close paren, and '+' and '|' since just creating a mask */
-                     if ((allTokens[currIndex].equals("(")) || (allTokens[currIndex].equals(")")) ||
-                        (allTokens[currIndex].equals("+")) || (allTokens[currIndex].equals("|")))
-                     {
-                        currIndex++;
-                     }
-                     else
-                     {
-                        tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-                        if (tstKey == null)
-                        {
-                           /* I'm flamoozled.  I have no idea what is going on */
-                           GlobInfo.hostCtl.printMsg("LED_BLINK_100: Parse symbol fail " + allTokens[currIndex] + ".");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                        else
-                        {
-                           type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                           if (type != ParseRules.SYMB_LED_PIN)
-                           {
-                              GlobInfo.hostCtl.printMsg("LED_BLINK_100: Only LED symbols allowed " + allTokens[currIndex] + ".");
-                              GlobInfo.parseFail = true;
-                              state = PCHAIN_ERROR;
-                           }
-                           else
-                           {
-                              /* Calculate the bit position of the LED */
-                              tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
-                                 ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
-                           }
-                        }
-                        currIndex++;
-                     }
-                  }
-                  /* tmpInt must be non-zero */
-                  if (tmpInt != 0)
-                  {
-                     /* Last part of the command should be a destination */
-                     prevProcObj.paramA = tmpInt;
-                  }
-                  else
-                  {
-                     GlobInfo.hostCtl.printMsg("LED_BLINK_100: Mask must be nonzero.");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-               }
-               else
-               {
-                  GlobInfo.hostCtl.printMsg("LED_BLINK_100: " + currName + " has misformed command");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("LED_BLINK_500"))
-            {
-               /* LED Blink functions just need a list of LEDs */
-               prevProcObj.oper = ProcObj.OP_PREDEF_FUNC + ProcObj.PREDEF_LED_BLINK_500;
-               prevProcObj.typeA = ProcObj.TYPE_FUNC + ProcObj.PREDEF_LED_BLINK_500;
-               prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-               if (allTokens[currIndex + 1].equals(","))
-               {
-                  currIndex = currIndex + 2;
-                  tmpInt = 0;
-                  while (currIndex < endIndex)
-                  {
-                     /* Ignore all open, close paren, and '+' and '|' since just creating a mask */
-                     if ((allTokens[currIndex].equals("(")) || (allTokens[currIndex].equals(")")) ||
-                        (allTokens[currIndex].equals("+")) || (allTokens[currIndex].equals("|")))
-                     {
-                        currIndex++;
-                     }
-                     else
-                     {
-                        tstKey = ParseRules.hmSymbol.get(allTokens[currIndex]);
-                        if (tstKey == null)
-                        {
-                           /* I'm flamoozled.  I have no idea what is going on */
-                           GlobInfo.hostCtl.printMsg("LED_BLINK_500: Parse symbol fail " + allTokens[currIndex] + ".");
-                           GlobInfo.parseFail = true;
-                           state = PCHAIN_ERROR;
-                        }
-                        else
-                        {
-                           type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
-                           if (type != ParseRules.SYMB_LED_PIN)
-                           {
-                              GlobInfo.hostCtl.printMsg("LED_BLINK_500: Only LED symbols allowed " + allTokens[currIndex] + ".");
-                              GlobInfo.parseFail = true;
-                              state = PCHAIN_ERROR;
-                           }
-                           else
-                           {
-                              /* Calculate the bit position of the LED */
-                              tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
-                                 ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
-                           }
-                        }
-                        currIndex++;
-                     }
-                  }
-                  /* tmpInt must be non-zero */
-                  if (tmpInt != 0)
-                  {
-                     /* Last part of the command should be a destination */
-                     prevProcObj.paramA = tmpInt;
-                  }
-                  else
-                  {
-                     GlobInfo.hostCtl.printMsg("LED_BLINK_500: Mask must be nonzero.");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-               }
-               else
-               {
-                  GlobInfo.hostCtl.printMsg("LED_BLINK_500: " + currName + " has misformed command");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else if (allTokens[currIndex].equals("MODE"))
-            {
-               prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_MODE;
-               if (allTokens[currIndex + 1].equals("="))
-               {
-                  prevProcObj.oper = ProcObj.OP_SET_VAL;
-                  prevProcObj.typeB = ProcObj.TYPE_CONSTANT;
-                  prevProcObj.paramB = GlobInfo.modeClass.CreateMode(allTokens[currIndex + 2]);
-                  if (endIndex != currIndex + 3)
-                  {
-                     GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " extra info in set mode command");
-                     GlobInfo.parseFail = true;
-                     state = PCHAIN_ERROR;
-                  }
-               }
-               else
-               {
-                  /* MODE command has wrong params */
-                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find = when setting mode");
-                  GlobInfo.parseFail = true;
-                  state = PCHAIN_ERROR;
-               }
-            }
-            else
-            {
-               foundType = false;
-            }
-         }
-      }
-      else
-      {
-         /* Check if the operation has already been filled out */
-         if ((prevProcObj.oper % 1000) == 0)
-         {
-            moreParam = fillCompOper(prevProcObj, allTokens[currIndex], ifStatement);
-            if (moreParam)
-            {
-               detParamType(prevProcObj, currIndex + 1, endIndex, false, ifStatement);
-               currIndex += 2;
-            }
-         }
-         else
-         {
-            foundType = false;
-         }
-      }
-      if (currIndex < endIndex)
-      {
-         if (!foundType)
-         {
+	                  }
+	                  else
+	                  {
+	                     detParamType(currIndex, tmpInt, false, false);
+	                     currIndex = tmpInt + 1;
+	                     
+                        /* Last part of the command should be a destination */
+                     	GlobInfo.fileRulesClass.println(",");
+                     	GlobInfo.fileRulesClass.printf("%" + ((GlobInfo.currIndent + 1) * 3) + "s", "");
+                        detParamType(currIndex, endIndex, false, false);
+                        currIndex = endIndex;
+                     	GlobInfo.fileRulesClass.print(")");
+	                  }
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_ROT_RIGHT: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_OFF"))
+	            {
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+	                  currIndex = currIndex + 2;
+                     detParamType(currIndex, endIndex, false, false);
+                     currIndex = endIndex;
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_OFF: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_BLINK_100"))
+	            {
+	               /* LED Blink functions just need a list of LEDs */
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+	                  currIndex = currIndex + 2;
+                     detParamType(currIndex, endIndex, false, false);
+                     currIndex = endIndex;
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_BLINK_100: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_BLINK_500"))
+	            {
+	               /* LED Blink functions just need a list of LEDs */
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+	                  currIndex = currIndex + 2;
+                     detParamType(currIndex, endIndex, false, false);
+                     currIndex = endIndex;
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_BLINK_500: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("MODE"))
+	            {
+	               if (allTokens[currIndex + 1].equals("="))
+	               {
+	                  if (endIndex != currIndex + 3)
+	                  {
+	                     GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " extra info in set mode command");
+	                     GlobInfo.parseFail = true;
+	                     state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	                  	GlobInfo.fileRulesClass.printf("mode = ConstClass.%s", allTokens[currIndex + 2]);
+	                  	currIndex += 3;
+	                  }
+	               }
+	               else
+	               {
+	                  /* MODE command has wrong params */
+	                  GlobInfo.hostCtl.printMsg("PCHAIN_PROC: " + currName + " couldn't find = when setting mode");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("LED_SET"))
+	            {
+	               /* Rotate functions needs mask which is a constant, and a variable */
+	            	GlobInfo.fileRulesClass.print("StdFuncs.LedSet(");
+	               if (allTokens[currIndex + 1].equals(","))
+	               {
+	                  currIndex = currIndex + 2;
+	                  tmpInt = currIndex;
+	                  while ((!allTokens[tmpInt].equals(",")) && (tmpInt < endIndex))
+	                  {
+	                  	tmpInt++;
+	                  }
+	                  if (tmpInt == endIndex)
+	                  {
+                        GlobInfo.hostCtl.printMsg("LED_SET: Can't find to use for set");
+                        GlobInfo.parseFail = true;
+                        state = PCHAIN_ERROR;
+	                  }
+	                  else
+	                  {
+	                     detParamType(currIndex, tmpInt, false, false);
+	                     currIndex = tmpInt + 1;
+	                     
+                        /* Last part of the command should be a destination */
+                     	GlobInfo.fileRulesClass.println(",");
+                     	GlobInfo.fileRulesClass.printf("%" + ((GlobInfo.currIndent + 1) * 3) + "s", "");
+                        detParamType(currIndex, endIndex, false, false);
+                        currIndex = endIndex;
+                     	GlobInfo.fileRulesClass.print(")");
+	                  }
+	               }
+	               else
+	               {
+	                  GlobInfo.hostCtl.printMsg("LED_SET: " + currName + " has misformed command");
+	                  GlobInfo.parseFail = true;
+	                  state = PCHAIN_ERROR;
+	               }
+	            }
+	            else if (allTokens[currIndex].equals("VIDEO"))
+	            {
+	               /* HRS */
+	            	currIndex = endIndex;
+	            }
+	            else
+	            {
+		         	foundSomething = false;
+	            }
+	         }
+	      }
+	      else if (!firstParam && !foundSomething)
+	      {
+	         /* Check if the operation has already been filled out */
+	         foundSomething = fillCompOper(allTokens[currIndex], ifStatement);
+	         if (foundSomething)
+	         {
+	         	currIndex++;
+	         }
+	      }
+	      if (!foundSomething)
+	      {
             /* Check if this is an integer constant */
             try
             {
+            	if (currIndex == 1139)
+            	{
+            		currIndex++;
+            		currIndex--;
+            	}
                tmpInt = Integer.parseInt(allTokens[currIndex]);
-               if (firstParam)
-               {
-                  prevProcObj.paramA = tmpInt;
-                  prevProcObj.typeA = ProcObj.TYPE_CONSTANT;
-               }
-               else
-               {
-                  prevProcObj.paramB = tmpInt;
-                  prevProcObj.typeB = ProcObj.TYPE_CONSTANT;
-               }
+            	GlobInfo.fileRulesClass.print(allTokens[currIndex]);
                currIndex++;
-               if (currIndex < endIndex)
-               {
-                  /* more parameters to process */
-                  procObj = detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
-                  currIndex = endIndex + 1;
-               }
-               else
-               {
-                  /* No more parameters */
-                  if (firstParam && ifStatement)
-                  {
-                     prevProcObj.oper = ProcObj.OP_NONZERO;
-                     prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-                  }
-               }
+               foundSomething = true;
             }
             catch (NumberFormatException e)
             {
@@ -1523,66 +1306,32 @@ public class ParsePChain
                else
                {
                   type = tstKey.intValue() & ParseRules.SYMB_TYPE_MASK;
+   	         	foundSomething = true;
                   switch (type)
                   {
                      case ParseRules.SYMB_SOL_PIN:
                      {
-                        if (firstParam)
-                        {
-                           prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
-                        }
-                        else
-                        {
-                           prevProcObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_SOL_INPUTS;
-                        }
+                     	if (ifStatement)
+                     	{
+	                     	GlobInfo.fileRulesClass.printf("((GlobInfo.solClass.currInputs[%d] & ConstClass.%s) != 0)",
+		                       	((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8),
+		                       	allTokens[currIndex].toUpperCase());
+                     	}
+                     	else
+                     	{
+	                     	GlobInfo.fileRulesClass.printf("(GlobInfo.solClass.currInputs[%d] & ConstClass.%s)",
+		                       	((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8),
+		                       	allTokens[currIndex].toUpperCase());
+                     	}
                         currIndex++;
-                        if (currIndex < endIndex)
-                        {
-                           /* more parameters to process */
-                           procObj = detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
-                           currIndex = endIndex + 1;
-                        }
-                        else
-                        {
-                           /* No more parameters */
-                           if (firstParam && ifStatement)
-                           {
-                              prevProcObj.oper = ProcObj.OP_NONZERO;
-                              prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-                           }
-                        }
                         break;
                      }
                      case ParseRules.SYMB_INP_PIN:
                      {
-                        if (firstParam)
-                        {
-                           prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeA = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
-                        }
-                        else
-                        {
-                           prevProcObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeB = ProcObj.TYPE_PREDEF_VAR + ProcObj.PDVAR_CARD_INPUTS;
-                        }
+                     	GlobInfo.fileRulesClass.printf("((GlobInfo.inpCardClass.currInputs[%d] & ConstClass.%s) != 0)",
+                     		((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8),
+                     		allTokens[currIndex].toUpperCase());
                         currIndex++;
-                        if (currIndex < endIndex)
-                        {
-                           /* more parameters to process */
-                           procObj = detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
-                           currIndex = endIndex + 1;
-                        }
-                        else
-                        {
-                           /* No more parameters */
-                           if (firstParam && ifStatement)
-                           {
-                              prevProcObj.oper = ProcObj.OP_NONZERO;
-                              prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-                           }
-                        }
                         break;
                      }
                      case ParseRules.SYMB_LED_PIN:
@@ -1621,77 +1370,37 @@ public class ParsePChain
                                     /* Calculate the bit position of the LED */
                                     tmpInt += (1 << (((((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 8) & 0xff) << 3) +
                                        ((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) & 0xff)));
+	        	                     	GlobInfo.fileRulesClass.print("ConstClass." + allTokens[currIndex].toUpperCase());
+                                       
                                  }
                               }
                               currIndex++;
                            }
                         }
-                        if (firstParam)
-                        {
-                           prevProcObj.paramA = tmpInt;
-                           prevProcObj.typeA = ProcObj.TYPE_CONSTANT;
-                        }
-                        else
-                        {
-                           prevProcObj.paramB = tmpInt;
-                           prevProcObj.typeB = ProcObj.TYPE_CONSTANT;
-                        }
                         break;
                      }
                      case ParseRules.SYMB_VAR:
                      {
-                        if (firstParam)
-                        {
-                           prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeA = ProcObj.TYPE_VARIABLE;
-                        }
-                        else
-                        {
-                           prevProcObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeB = ProcObj.TYPE_VARIABLE;
-                        }
+                     	GlobInfo.fileRulesClass.printf("Variable[ConstClass.%s]",
+                        	allTokens[currIndex].toUpperCase());
                         currIndex++;
                         if (currIndex < endIndex)
                         {
                            /* more parameters to process */
-                           procObj = detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
+                           detParamType(currIndex, endIndex, false, ifStatement);
                            currIndex = endIndex + 1;
+            	         	firstParam = false;
                         }
                         else
                         {
                            /* No more parameters */
-                           if (firstParam && ifStatement)
-                           {
-                              prevProcObj.oper = ProcObj.OP_NONZERO;
-                              prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-                           }
                         }
                         break;
                      }
                      case ParseRules.SYMB_INDX_VAR:
                      {
-                        /* An indexed variable requires its own ProcObj for extra params */
-                        procObj = new ProcObj();
-                        GlobInfo.procObjArr[GlobInfo.numProcObj] = procObj;
-                        procObj.num = GlobInfo.numProcObj;
-                        GlobInfo.numProcObj++;
-                        procObj.oper = ProcObj.OP_INDX_VAR;
-                        procObj.typeA = ProcObj.TYPE_INDX_VAR;
-                        procObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                        if (firstParam)
-                        {
-                           prevProcObj.paramA = procObj.num;
-                           prevProcObj.typeA = ProcObj.TYPE_INDX_VAR;
-                        }
-                        else
-                        {
-                           prevProcObj.paramB = procObj.num;
-                           prevProcObj.typeB = ProcObj.TYPE_INDX_VAR;
-                        }
-                        currIndex++;
-                        
-                        /* Next symbol must be [ */
-                        if (allTokens[currIndex].equals("["))
+                        /* Next symbol is either [ or =, if [ setting individual */
+                        if (allTokens[currIndex + 1].equals("["))
                         {
                            done = countDelim("[", "]", currIndex, endIndex);
                            if (done == 0)
@@ -1702,10 +1411,39 @@ public class ParsePChain
                            }
                            else
                            {
+                           	if (firstParam)
+                           	{
+                           		GlobInfo.fileRulesClass.printf("Variable[");
+                           	}
+                           	
+                              /* An indexed variable requires its own ProcObj for extra params */
+                           	GlobInfo.fileRulesClass.printf("ConstClass.%s + ",
+                                 	allTokens[currIndex].toUpperCase());
+                              
                               /* Find the variable that is used as the index */
-                              detParamType(procObj, currIndex + 1, done, false, false);
+                              detParamType(currIndex + 2, done, false, false);
+                           	if (firstParam)
+                           	{
+                           		GlobInfo.fileRulesClass.printf("]");
+                  	         	firstParam = false;
+                           	}
                            }
                            currIndex = done + 1;
+                        }
+                        else if (allTokens[currIndex + 1].equals("="))
+                        {
+                     		GlobInfo.fileRulesClass.printf("for (int autoGenIndex = 0; autoGenIndex < %d; autoGenIndex++)",
+                     			((tstKey.intValue() & ParseRules.SYMB_PARAM_MASK) >> 12));
+                        	GlobInfo.fileRulesClass.println("");
+                        	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     		GlobInfo.fileRulesClass.println("{");
+                        	GlobInfo.fileRulesClass.printf("%" + ((GlobInfo.currIndent + 1) * 3) + "s", "");
+                     		GlobInfo.fileRulesClass.printf("Variable[ConstClass.%s + autoGenIndex] = %s;",
+                     			allTokens[currIndex].toUpperCase(), allTokens[currIndex + 2]);
+                     		GlobInfo.fileRulesClass.println(";");
+                        	GlobInfo.fileRulesClass.printf("%" + (GlobInfo.currIndent * 3) + "s", "");
+                     		GlobInfo.fileRulesClass.println("}");
+                        	currIndex += 3;
                         }
                         else
                         {
@@ -1729,6 +1467,9 @@ public class ParsePChain
                      }
                      case ParseRules.SYMB_PCHAIN:
                      {
+      	            	GlobInfo.fileRulesClass.printf("StdFuncs.CallPChain(ConstClass.%s)",
+                          	allTokens[currIndex].toUpperCase());
+                        currIndex++;
                         break;
                      }
                      case ParseRules.SYMB_TIMER:
@@ -1737,61 +1478,9 @@ public class ParsePChain
                      }
                      case ParseRules.SYMB_CONST:
                      {
-                        if (firstParam)
-                        {
-                           prevProcObj.paramA = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeA = ProcObj.TYPE_CONSTANT;
-                        }
-                        else
-                        {
-                           prevProcObj.paramB = tstKey.intValue() & ParseRules.SYMB_PARAM_MASK;
-                           prevProcObj.typeB = ProcObj.TYPE_CONSTANT;
-                        }
+                     	GlobInfo.fileRulesClass.printf("ConstClass.%s",
+                           	allTokens[currIndex].toUpperCase());
                         currIndex++;
-                        if (currIndex < endIndex)
-                        {
-                           /* more parameters to process */
-                           procObj = detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
-                           moreParam = fillCompOper(prevProcObj, allTokens[currIndex], ifStatement);
-                           if (moreParam)
-                           {
-                              /* Check if there are more parameters available */
-                              currIndex++;
-                              if (currIndex < endIndex)
-                              {
-                                 if (firstParam)
-                                 {
-                                    /* Add second param to procObj */
-                                    detParamType(prevProcObj, currIndex, endIndex, false, ifStatement);
-                                 }
-                                 else
-                                 {
-                                    /* Need to create another procObj to attach to this one */
-                                    prevProcObj.typeB = ProcObj.TYPE_PREV_RSLT;
-                                    detParamType(prevProcObj, currIndex, endIndex, true, ifStatement);
-                                 }
-                              }
-                              else
-                              {
-                                 GlobInfo.hostCtl.printMsg("PARSE_PCHAIN: " + currName + " needs more params, but none avail.");
-                                 GlobInfo.parseFail = true;
-                                 state = PCHAIN_ERROR;
-                              }
-                           }
-                           else
-                           {
-                              /* Either an increment or decrement command */
-                           }
-                        }
-                        else
-                        {
-                           /* No more parameters */
-                           if (firstParam && ifStatement)
-                           {
-                              prevProcObj.oper = ProcObj.OP_NONZERO;
-                              prevProcObj.typeB = ProcObj.TYPE_UNUSED;
-                           }
-                        }
                         break;
                      }
                      default:
@@ -1799,13 +1488,17 @@ public class ParsePChain
                         GlobInfo.hostCtl.printMsg("PARSE_PCHAIN: Unknown symbol type = " + type + ".");
                         GlobInfo.parseFail = true;
                         state = PCHAIN_ERROR;
+         	         	foundSomething = false;
                         break;
                      }
                   }
                }
             }
          }
+	      if (foundSomething)
+	      {
+	      	firstParam = false;
+	      }
       }
-      return (procObj);
    } /* end detParamType */
 } /* End ParsePChain */
