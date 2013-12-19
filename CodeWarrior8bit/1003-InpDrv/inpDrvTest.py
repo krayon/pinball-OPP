@@ -72,10 +72,22 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
+<<<<<<< .mine
+solCfg = [ [ '\x00', '\xff', '\x07', '\x00', '\xff', '\x07', \
+             '\x00', '\xff', '\x07', '\x00', '\xff', '\x07', \
+             '\x00', '\xff', '\x07', '\x00', '\xff', '\x07', \
+             '\x00', '\xff', '\x07', '\x00', '\xff', '\x07' ] ]
+=======
 solCfg = [ [ rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
              rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
              rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
              rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04' ] ]
+>>>>>>> .r55
+
+solCfg1 = [ [ '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
+              '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
+              '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
+              '\x01', '\x30', '\x04', '\x01', '\x30', '\x04' ] ]
 
 #grab data from serial port
 def getSerialData():
@@ -100,6 +112,7 @@ def rcvInvResp():
     global inpAddrArr
     global currInpData
     data = getSerialData();
+    print repr(data)
     #First byte should be inventory cmd
     index = 1
     if (data[0] != rs232Intf.INV_CMD):
@@ -189,7 +202,7 @@ def rcvReadInpResp(cardNum):
     return (0)
 
 #send sol cfg cmd
-def sendSolCfgCmd(cardNum):
+def sendSolCfgCmd(cardNum, cfgNum):
     global ser
     global numSolBrd
     global solAddrArr
@@ -199,9 +212,14 @@ def sendSolCfgCmd(cardNum):
     cmdArr.append(solAddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_SOL_CMD)
     for loop in xrange(rs232Intf.NUM_SOL_PER_BRD):
-        cmdArr.append(solCfg[cardNum][loop * 3])
-        cmdArr.append(solCfg[cardNum][(loop * 3) + 1])
-        cmdArr.append(solCfg[cardNum][(loop * 3) + 2])
+        if cfgNum == 0:
+            cmdArr.append(solCfg[cardNum][loop * 3])
+            cmdArr.append(solCfg[cardNum][(loop * 3) + 1])
+            cmdArr.append(solCfg[cardNum][(loop * 3) + 2])
+        else:
+            cmdArr.append(solCfg1[cardNum][loop * 3])
+            cmdArr.append(solCfg1[cardNum][(loop * 3) + 1])
+            cmdArr.append(solCfg1[cardNum][(loop * 3) + 2])
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
@@ -255,6 +273,7 @@ def endTest(error):
 
 #Main code
 end = False
+boot = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -265,10 +284,13 @@ for arg in sys.argv:
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
     print "    -test=testNum      test number, defaults to 0\n"
+    print "    -boot              force a single board into bootloader\n"
     print "-test=0: Send inventory and verify response 10000 times."
     print "-test=1: Read first input board continuously.  ('x' exits)"
     print "-test=2: Read first solenoid board continuously.  ('x' exits)"
     end = True
+  elif arg.startswith('-boot'):
+    boot = True
 if end:
     print "\nPress any key to close window"
     ch = msvcrt.getch()
@@ -284,6 +306,21 @@ print "Sending inventory cmd"
 bad = False
 sendInvCmd()
 rcvInvResp()
+if (boot):
+    if ((numSolBrd == 0) and (numInpBrd == 1)) or ((numSolBrd == 1) and (numInpBrd == 1)):
+        cmdArr = []
+        if (numInpBrd == 1):
+            cmdArr.append(inpAddrArr[0])
+        else:
+            cmdArr.append(solAddrArr[0])
+        cmdArr.append(rs232Intf.GO_BOOT_CMD)
+        sendCmd = ''.join(cmdArr)
+        ser.write(sendCmd)
+        print "Sent Go Boot command."
+        time.sleep(1)
+    else:
+        print "Only one board should be attached"
+        bad = True
 if (testNum == 0):
     for superLoop in range(10000):
         sendInvCmd()
@@ -292,9 +329,11 @@ if (testNum == 0):
             print "Bad resp, index = %d, data = %d" % (0, ord(data[0]))
             bad = True
         if (data[1] != '\x10'):
+            print repr(data)
             print "Bad resp, index = %d, data = %d" % (1, ord(data[1]))
             bad = True
         if (data[2] != rs232Intf.EOM_CMD):
+            print repr(data)
             print "Bad resp, index = %d, data = %d" % (2, ord(data[2]))
             bad = True
         if (bad):
@@ -329,7 +368,63 @@ elif (testNum == 1):
                 print "\nCount = %d" % count
                 exitReq = True
 elif (testNum == 2):
-    sendSolCfgCmd(0)
+    sendSolCfgCmd(0,0)
+    error = rcvEomResp()
+    if error: endTest(error)
+    exitReq = False
+    count = 0
+    while (not exitReq):
+        sendReadSolBrdCmd(0)
+        error = rcvReadSolResp(0)
+        if error:
+            print "\nCount = %d" % count
+            endTest(error)
+        outArr = []
+        outArr.append('\r')
+        for loop in range(rs232Intf.NUM_SOL_PER_BRD):
+            if (currSolData[0] & (1 << (rs232Intf.NUM_SOL_PER_BRD - loop - 1))):
+                outArr.append('1')
+            else:
+                outArr.append('0')
+        sys.stdout.write(''.join(outArr))
+        count = count + 1
+        
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if ((char == 'x') or (char == 'X')):
+                print "\nCount = %d" % count
+                exitReq = True
+elif (testNum == 3):
+    sendSolCfgCmd(0,1)
+    error = rcvEomResp()
+    if error: endTest(error)
+    exitReq = False
+    count = 0
+    while (not exitReq):
+        sendReadSolBrdCmd(0)
+        error = rcvReadSolResp(0)
+        if error:
+            print "\nCount = %d" % count
+            endTest(error)
+        outArr = []
+        outArr.append('\r')
+        for loop in range(rs232Intf.NUM_SOL_PER_BRD):
+            if (currSolData[0] & (1 << (rs232Intf.NUM_SOL_PER_BRD - loop - 1))):
+                outArr.append('1')
+            else:
+                outArr.append('0')
+        sys.stdout.write(''.join(outArr))
+        count = count + 1
+        
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if ((char == 'x') or (char == 'X')):
+                print "\nCount = %d" % count
+                exitReq = True
+elif (testNum == 4):
+    sendSolCfgCmd(0,1)
     error = rcvEomResp()
     if error: endTest(error)
     exitReq = False
