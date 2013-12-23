@@ -51,6 +51,7 @@
 #include "stdtypes.h"
 #include "stdlintf.h"
 #include <hidef.h>          /* for EnableInterrupts macro */
+#include "derivative.h"     /* for pet watchdog */
 #include "interrupt.h"      /* For prod ID, version num */
 #define RS232I_INSTANTIATE
 #include "rs232intf.h"
@@ -261,6 +262,7 @@ void rs232proc_task(void)
           }
           else if (data == RS232I_CONFIG_SOL)
           {
+            solg_glob.cfgChecksum = 0xff;
             rs232_glob.state = RS232_RCV_DATA_CMD;
           }
           else if (data == RS232I_KICK_SOL)
@@ -275,6 +277,14 @@ void rs232proc_task(void)
             solg_glob.validSwitch = 0;
             EnableInterrupts;
             (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 3);
+          }
+          else if (data == RS232I_SAVE_CFG)
+          {
+            rs232_glob.state = RS232_RCV_DATA_CMD;
+          }
+          else if (data == RS232I_ERASE_CFG)
+          {
+            rs232_glob.state = RS232_RCV_DATA_CMD;
           }
           else
           {
@@ -338,6 +348,7 @@ void rs232proc_task(void)
       else if (rs232_glob.currCmd == RS232I_CONFIG_SOL)
       {
         /* Store data directly in structure */
+        solg_glob.cfgChecksum += data;
         ((U8 *)&solg_glob.solCfg[0])[rs232_glob.currIndex++] = data;
         if (rs232_glob.currIndex >= rs232_glob.cmdLen)
         {
@@ -364,6 +375,38 @@ void rs232proc_task(void)
           EnableInterrupts;
           rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
         }
+      }
+      else if (rs232_glob.currCmd == RS232I_SAVE_CFG)
+      {
+        /* Verify the check byte is correct, and config is valid */
+        if ((data == (U8)~RS232I_SAVE_CFG) &&
+          (solg_glob.state == SOL_STATE_NORM))
+        {
+          for (index = 0, src_p = (U8 *)&solg_glob.solCfg[0];
+            index < ((sizeof(SOLG_CFG_T) * RS232I_NUM_SOL) + 1);
+            index++, src_p++)
+          {
+            stdleeprom_start_flash_write(
+              (U8 *)(SAVE_CFG_ADDR + index), *src_p);
+            while (!stdleeprom_check_cmd_done())
+            {
+              __RESET_WATCHDOG(); /* feeds the dog */
+            }
+          }
+        }
+        rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+      }
+      else if (rs232_glob.currCmd == RS232I_ERASE_CFG)
+      {
+        if (data == (U8)~RS232I_ERASE_CFG)
+        {
+          stdleeprom_start_flash_sector_erase((U8 *)SAVE_CFG_ADDR);
+          while (!stdleeprom_check_cmd_done())
+          {
+            __RESET_WATCHDOG(); /* feeds the dog */
+          }
+        }
+        rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
       }
       else
       {

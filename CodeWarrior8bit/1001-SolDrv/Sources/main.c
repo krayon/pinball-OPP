@@ -98,6 +98,9 @@ void main(void)
 #define PB_XTRA_4           0x08
 
   SOLG_CFG_T                *solCfg_p;
+  U8                        index;
+  U8                        *src_p;
+  U8                        *dst_p;
   
   SOPT1  = INIT_SOPT1;
   SOPT2  = INIT_SOPT2;
@@ -116,15 +119,49 @@ void main(void)
 
   EnableInterrupts; /* enable interrupts */
   
+  /* Check if a config has been saved */
+  solg_glob.cfgChecksum = 0xff;
+  for (index = 0, src_p = (U8 *)SAVE_CFG_ADDR;
+    index < (sizeof(SOLG_CFG_T) * RS232I_NUM_SOL);
+    index++, src_p++)
+  {
+    solg_glob.cfgChecksum += *src_p;
+  }
+  
+  /* Check if the flash cfg has valid checksum */
+  if (solg_glob.cfgChecksum == *src_p)
+  {
+    /* Copy config into data struct */
+    for (index = 0, src_p = (U8 *)SAVE_CFG_ADDR, dst_p = (U8 *)&solg_glob.solCfg[0];
+      index < ((sizeof(SOLG_CFG_T) * RS232I_NUM_SOL) + 1);
+      index++)
+    {
+      *dst_p++ = *src_p++;
+    }
+    
+    solg_glob.state = SOL_STATE_NORM;
+    solg_glob.stateMask = 0;
+    for (index = 0; index < RS232I_NUM_SOL; index++)
+    {
+      if ((solg_glob.solCfg[index].type & USE_SWITCH) == 0)
+      {
+        solg_glob.stateMask |= (1 << index);
+      }
+    }
+  }
+  else
+  {
+    for (solCfg_p = &solg_glob.solCfg[0];
+      solCfg_p < &solg_glob.solCfg[RS232I_NUM_SOL]; solCfg_p++)
+    {
+      solCfg_p->type = 0;
+      solCfg_p->initialKick = 0;
+      solCfg_p->dutyCycle = 0;
+    }
+  }
+  
   solg_glob.procCtl = 0;
   solg_glob.validSwitch = 0;
-  for (solCfg_p = &solg_glob.solCfg[0];
-    solCfg_p < &solg_glob.solCfg[RS232I_NUM_SOL]; solCfg_p++)
-  {
-    solCfg_p->type = 0;
-    solCfg_p->initialKick = 0;
-    solCfg_p->dutyCycle = 0;
-  }
     
 
   /* Start the clock running, then start the sys tick timer for 10ms */

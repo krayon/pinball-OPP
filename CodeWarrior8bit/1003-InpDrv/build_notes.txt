@@ -9,7 +9,7 @@ where xx is major revision, yy is minor revision, and zz is engineering revision
 This extracts all the files from the repository.
 
 3.  Browse to the MiniBoot repository,
-https://open-pinball-project.googlecode.com/svn/trunk/CodeWarrior8bit/0103-HcsMiniBoot/bin/HCS08MiniBoot.asm.8k.sx
+https://open-pinball-project.googlecode.com/svn/trunk/CodeWarrior8bit/0103-HcsMiniBoot/bin/HCS08MiniBoot.asm.slow.8k.sx
 Save Link As... and save it into the xxxxxx\bin directory that was just created.
 
 4.  If HexMerge.exe isn't installed, browse to the subversion repository,
@@ -35,3 +35,4 @@ Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
 00.00.01	MC9S08SE08	00.00.05	0xdce94158	0xb9d49d83	0x7bd99710	Initial version
 00.00.02	MC9S08SE08	00.00.05	0x75f80832	0x793e63c	0xbeee3835	Fix location of APP_TABLE.  Processor should use small memory model.
 00.00.03	MC9S08SE08	00.00.05	0xbf273823	0xb279f41b	0x6d1f334e	Change osc to slow.  Fix addr compare to use input card.
+00.00.04	MC9S08SE08	00.00.05	0xefbc1f05	0x9884ac80	0x7c69081c	Updated bootloader for slow clock.

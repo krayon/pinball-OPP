@@ -5,8 +5,8 @@ NAMES END /* CodeWarrior will pass all the needed files to the linker by command
 SEGMENTS /* Here all RAM/ROM areas of the device are listed. Used in PLACEMENT below. */
     RAM                      =  READ_WRITE   0x0080 TO 0x01FF;
     MY_STACK                 =  NO_INIT      0x0200 TO 0x027F;
-    ROM                      =  READ_ONLY    0xE070 TO 0xF7FF;
-    EVENT_LOG                =  READ_ONLY    0xF800 TO 0xFBFF;
+    ROM                      =  READ_ONLY    0xE070 TO 0xF9FF;
+    CFG_STORE                =  READ_ONLY    0xFA00 TO 0xFBFF;
     INTVECTS                 =  READ_ONLY    0xFFC0 TO 0xFFFF;
 END
 

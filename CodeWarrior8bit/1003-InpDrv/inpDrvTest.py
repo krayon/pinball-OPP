@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.02'
+testVers = '00.00.03'
 
 import sys
 import serial
@@ -72,17 +72,10 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
-<<<<<<< .mine
-solCfg = [ [ '\x00', '\xff', '\x07', '\x00', '\xff', '\x07', \
-             '\x00', '\xff', '\x07', '\x00', '\xff', '\x07', \
-             '\x00', '\xff', '\x07', '\x00', '\xff', '\x07', \
-             '\x00', '\xff', '\x07', '\x00', '\xff', '\x07' ] ]
-=======
-solCfg = [ [ rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
-             rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
-             rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04', \
-             rs232Intf.CFG_INP_STATE, '\x30', '\x04', rs232Intf.CFG_INP_STATE, '\x30', '\x04' ] ]
->>>>>>> .r55
+solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+             rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00' ] ]
 
 solCfg1 = [ [ '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
               '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
@@ -112,7 +105,6 @@ def rcvInvResp():
     global inpAddrArr
     global currInpData
     data = getSerialData();
-    print repr(data)
     #First byte should be inventory cmd
     index = 1
     if (data[0] != rs232Intf.INV_CMD):
@@ -274,6 +266,8 @@ def endTest(error):
 #Main code
 end = False
 boot = False
+saveCfg = False
+eraseCfg = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -285,12 +279,21 @@ for arg in sys.argv:
     print "    -port=portName     COM port number, defaults to COM1"
     print "    -test=testNum      test number, defaults to 0\n"
     print "    -boot              force a single board into bootloader\n"
+    print "    -saveCfg           save a cfg on a single board\n"
+    print "    -eraseCfg          erase a cfg on a single board\n"
     print "-test=0: Send inventory and verify response 10000 times."
     print "-test=1: Read first input board continuously.  ('x' exits)"
     print "-test=2: Read first solenoid board continuously.  ('x' exits)"
+    print "   uses solCfg"
+    print "-test=3: Read first solenoid board continuously.  ('x' exits)"
+    print "   uses solCfg1"
     end = True
   elif arg.startswith('-boot'):
     boot = True
+  elif arg.startswith('-saveCfg'):
+    saveCfg = True
+  elif arg.startswith('-eraseCfg'):
+    eraseCfg = True
 if end:
     print "\nPress any key to close window"
     ch = msvcrt.getch()
@@ -307,7 +310,9 @@ bad = False
 sendInvCmd()
 rcvInvResp()
 if (boot):
-    if ((numSolBrd == 0) and (numInpBrd == 1)) or ((numSolBrd == 1) and (numInpBrd == 1)):
+    #Make test num invalid
+    testNum = 255
+    if ((numSolBrd == 0) and (numInpBrd == 1)) or ((numSolBrd == 1) and (numInpBrd == 0)):
         cmdArr = []
         if (numInpBrd == 1):
             cmdArr.append(inpAddrArr[0])
@@ -321,6 +326,62 @@ if (boot):
     else:
         print "Only one board should be attached"
         bad = True
+elif (saveCfg):
+    #Make test num invalid
+    testNum = 255
+    cmdArr = []
+    if ((numSolBrd == 0) and (numInpBrd == 1)):
+        #Save config for input board
+        sendInpCfgCmd(0, rs232Intf.CFG_INP_STATE)
+        error = rcvEomResp()
+        if error: endTest(error)
+        cmdArr.append(inpAddrArr[0])
+        cmdArr.append(rs232Intf.SAVE_CFG_CMD)
+        cmdArr.append(rs232Intf.SAVE_CFG_CHECK_BYTE)
+        sendCmd = ''.join(cmdArr)
+        ser.write(sendCmd)
+        print "Sent save cfg command."
+        time.sleep(1)
+    elif ((numSolBrd == 1) and (numInpBrd == 0)):
+        #Save config for solenoid board
+        sendSolCfgCmd(0,0)
+        error = rcvEomResp()
+        if error: endTest(error)
+        cmdArr.append(solAddrArr[0])
+        cmdArr.append(rs232Intf.SAVE_CFG_CMD)
+        cmdArr.append(rs232Intf.SAVE_CFG_CHECK_BYTE)
+        sendCmd = ''.join(cmdArr)
+        ser.write(sendCmd)
+        print "Sent save cfg command."
+        time.sleep(1)
+    else:
+        print "Only one board should be attached"
+        bad = True        
+elif (eraseCfg):
+    #Make test num invalid
+    testNum = 255
+    cmdArr = []
+    if ((numSolBrd == 0) and (numInpBrd == 1)):
+        #Erase config for input board
+        cmdArr.append(inpAddrArr[0])
+        cmdArr.append(rs232Intf.ERASE_CFG_CMD)
+        cmdArr.append(rs232Intf.ERASE_CFG_CHECK_BYTE)
+        sendCmd = ''.join(cmdArr)
+        ser.write(sendCmd)
+        print "Sent erase cfg command."
+        time.sleep(1)
+    elif ((numSolBrd == 1) and (numInpBrd == 0)):
+        #Erase config for solenoid board
+        cmdArr.append(solAddrArr[0])
+        cmdArr.append(rs232Intf.ERASE_CFG_CMD)
+        cmdArr.append(rs232Intf.ERASE_CFG_CHECK_BYTE)
+        sendCmd = ''.join(cmdArr)
+        ser.write(sendCmd)
+        print "Sent erase cfg command."
+        time.sleep(1)
+    else:
+        print "Only one board should be attached"
+        bad = True        
 if (testNum == 0):
     for superLoop in range(10000):
         sendInvCmd()
@@ -396,34 +457,6 @@ elif (testNum == 2):
                 print "\nCount = %d" % count
                 exitReq = True
 elif (testNum == 3):
-    sendSolCfgCmd(0,1)
-    error = rcvEomResp()
-    if error: endTest(error)
-    exitReq = False
-    count = 0
-    while (not exitReq):
-        sendReadSolBrdCmd(0)
-        error = rcvReadSolResp(0)
-        if error:
-            print "\nCount = %d" % count
-            endTest(error)
-        outArr = []
-        outArr.append('\r')
-        for loop in range(rs232Intf.NUM_SOL_PER_BRD):
-            if (currSolData[0] & (1 << (rs232Intf.NUM_SOL_PER_BRD - loop - 1))):
-                outArr.append('1')
-            else:
-                outArr.append('0')
-        sys.stdout.write(''.join(outArr))
-        count = count + 1
-        
-        #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
-            if ((char == 'x') or (char == 'X')):
-                print "\nCount = %d" % count
-                exitReq = True
-elif (testNum == 4):
     sendSolCfgCmd(0,1)
     error = rcvEomResp()
     if error: endTest(error)

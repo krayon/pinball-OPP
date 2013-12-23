@@ -89,6 +89,8 @@
 ; Include derivative-specific definitions
 ; !!! Note !!! The APP_START_ADDR is passed in to the assembler using -D
 ; !!! Note !!! The RAM_END is passed in to the assembler using -D
+; !!! Note !!! The BAUD_DIV is passed in to the assembler using -D
+; !!! Note !!! The FLASH_DIV is passed in to the assembler using -D
 
 SCI1BDL:            equ    $00000039           ;*** SCI1BDL - SCI1 Baud Rate Register Low ***
 SCI1C1:             equ    $0000003a           ;*** SCI1C1 - SCI1 Control Register 1 ***
@@ -354,16 +356,21 @@ _start_boot:                ; Setup the serial port to be 19.2, 8, N, 1
       lda     NVFTRIM
       sta     ICSSC
       
-      ; Set up clock for processor, ICSOUT = 32.00 MHz, BusClk = 16.00 MHz
+      ; Set up clock for processor,
+      ; Fast osc = ICSOUT = 32.00 MHz, BusClk = 16.00 MHz
+      ; Slow osc = ICSOUT = 16.00 MHz, BusClk = 8.00 MHz
       clr     ICSC2         ; Change BDIV[0:1] to 00
       clr     ICSC1         ; 
       lda     #$04          ; initialize FEI
       sta     ICSC1
       
-      lda     #$49          ; initialize flash clock register, 200 KHz
+      ; initialize flash clock register, 200 KHz depending on fast or slow osc speed
+      lda     #FLASH_DIV    ; 78 for 16 MHz, 39 for 8 MHz
       sta     FCDIV
 
-      mov     #52, SCI1BDL  ; Set baud = 16.00 MHz/(16 * 19200) = 52
+      ;Set baud div depending on fast or slow osc speed
+      mov     #BAUD_DIV, SCI1BDL  ; Set baud = 8.00 MHz/(16 * 19200) = 26
+                                  ; Set baud = 16.00 MHz/(16 * 19200) = 52
       clr     SCI1C1        ; Normal op, 8, N, 1
       mov     #$0c, SCI1C2  ; Xmt/Rcv enable
       

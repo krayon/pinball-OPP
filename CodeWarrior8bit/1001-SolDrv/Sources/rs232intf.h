@@ -71,6 +71,8 @@ typedef enum
   RS232I_READ_SOL_INP       = 0x08,     /* Data */
   RS232I_CONFIG_INP         = 0x09,     /* For each input, CFG_INP_TYPE */
   RS232I_READ_INP_BRD       = 0x0a,     /* Data, data */
+  RS232I_SAVE_CFG           = 0x0b,     /* Verify byte = 0xf4 */
+  RS232I_ERASE_CFG          = 0x0c,     /* Verify byte = 0xf3 */
   RS232I_NUM_CMDS,
   
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
@@ -87,7 +89,8 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
     0,  /* RS232I_RESET */          0,  /* RS232I_GO_BOOT */
     24, /* RS232I_CONFIG_SOL */     2,  /* RS232I_KICK_SOL */
     1,  /* RS232I_READ_SOL_INP */   16, /* RS232I_CONFIG_INP */
-    2,  /* RS232I_READ_INP_BRD */
+    2,  /* RS232I_READ_INP_BRD */   1,  /* RS232I_SAVE_CFG */
+    1,  /* RS232I_ERASE_CFG */
   }
 #endif
 ;

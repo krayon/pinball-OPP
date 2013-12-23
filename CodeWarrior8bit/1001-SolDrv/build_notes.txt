@@ -9,7 +9,7 @@ where xx is major revision, yy is minor revision, and zz is engineering revision
 This extracts all the files from the repository.
 
 3.  Browse to the MiniBoot repository,
-https://open-pinball-project.googlecode.com/svn/trunk/CodeWarrior8bit/0103-HcsMiniBoot/bin/HCS08MiniBoot.asm.8k.sx
+https://open-pinball-project.googlecode.com/svn/trunk/CodeWarrior8bit/0103-HcsMiniBoot/bin/HCS08MiniBoot.asm.slow.8k.sx
 Save Link As... and save it into the xxxxxx\bin directory that was just created.
 
 4.  If HexMerge.exe isn't installed, browse to the subversion repository,
@@ -41,3 +41,6 @@ Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
 00.00.06	MC9S08SE08	00.00.06	0x175409d9	0x710b7f7c	0xca21a842	Only look at 1 input per loop to insure rs232 cmds aren't missed,
 												if not using switch solenoid input, use it as a state input,
 												re-enable jump to bootloader. 
+00.00.07	MC9S08SE08	00.00.06	0x67495cf7	0xc3d154e2	0x3dd58a43	Updated bootloader for slow clock.  Solenoid configuration can now be stored
+												in the flash and retrieved at boot up.  Added SAVE_CFG
+												and ERASE_CFG commands.  Config is protected by a simple checksum.

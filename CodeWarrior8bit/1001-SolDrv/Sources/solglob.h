@@ -60,6 +60,7 @@
 #define FLASH_SECT_SIZE     0x0200
 #define SERNUM_ADDR         0xfc00
 #define BOOT_SECTOR_ADDR    0xfc00
+#define SAVE_CFG_ADDR       0xfa00
 
 #define SOLG_SWITCH_THRESH  50    /* Switch threshold in usecs */
 
@@ -83,6 +84,7 @@ typedef struct
   U8                        validSwitch;
   U8                        stateMask;
   SOLG_CFG_T                solCfg[RS232I_NUM_SOL];
+  U8                        cfgChecksum;
   STDLI_ELAPSED_TIME_T      elapsedTime;
 } SOLG_GLOB_T;
 
