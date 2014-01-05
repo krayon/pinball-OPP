@@ -1,90 +1,179 @@
-# EESchema Netlist Version 1.1 created  4/27/2012 3:40:06 PM
-(
- ( /4F9AEC37 C1 C1 1uF
-  ( 1 N-000021 )
-  ( 2 N-000017 )
- )
- ( /4F9AEBE9 C1 C2 1uF
-  ( 1 N-000018 )
-  ( 2 GND )
- )
- ( /4F9AEC4D C1 C3 1uF
-  ( 1 N-000016 )
-  ( 2 GND )
- )
- ( /4F9AEBC5 C1 C4 1uF
-  ( 1 N-000020 )
-  ( 2 N-000019 )
- )
- ( /4F9AF590 C1 C5 1uF
-  ( 1 GND )
-  ( 2 +5V )
- )
- ( /4F9AED42 DB9FC J1 DB9
-  ( 1 ? )
-  ( 2 N-000012 )
-  ( 3 N-000014 )
-  ( 4 ? )
-  ( 5 GND )
-  ( 6 ? )
-  ( 7 ? )
-  ( 8 ? )
-  ( 9 ? )
- )
- ( /4F9AECEA 00_th1x4x100-lock P1 CONN_4
-  ( 1 +5V )
-  ( 2 N-000015 )
-  ( 3 GND )
-  ( 4 N-000006 )
- )
- ( /4F9AEB5E DIP-16__300 U1 TRS322ECN
-  ( 1 N-000020 )
-  ( 2 N-000018 )
-  ( 3 N-000019 )
-  ( 4 N-000021 )
-  ( 5 N-000017 )
-  ( 6 N-000016 )
-  ( 7 ? )
-  ( 8 ? )
-  ( 9 ? )
-  ( 10 ? )
-  ( 11 N-000006 )
-  ( 12 N-000015 )
-  ( 13 N-000014 )
-  ( 14 N-000012 )
-  ( 15 GND )
-  ( 16 +5V )
- )
-)
-*
-{ Allowed footprints by component:
-$component C1
- SM*
- C?
- C1-1
-$endlist
-$component C2
- SM*
- C?
- C1-1
-$endlist
-$component C3
- SM*
- C?
- C1-1
-$endlist
-$component C4
- SM*
- C?
- C1-1
-$endlist
-$component C5
- SM*
- C?
- C1-1
-$endlist
-$component J1
- DB9*
-$endlist
-$endfootprintlist
-}
+(export (version D)
+  (design
+    (source C:/Users/Hugh/Desktop/OpenPinballProj/Kicad/1006-Rs232/1006.sch)
+    (date "12/23/2013 8:07:35 PM")
+    (tool "eeschema (2013-07-07 BZR 4022)-stable"))
+  (components
+    (comp (ref C5)
+      (value 1uF)
+      (libsource (lib device) (part C))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AF590))
+    (comp (ref J1)
+      (value DB9)
+      (libsource (lib conn) (part DB9))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AED42))
+    (comp (ref P1)
+      (value CONN_4)
+      (libsource (lib conn) (part CONN_4))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AECEA))
+    (comp (ref C3)
+      (value 1uF)
+      (libsource (lib device) (part C))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AEC4D))
+    (comp (ref C1)
+      (value 1uF)
+      (libsource (lib device) (part C))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AEC37))
+    (comp (ref C2)
+      (value 1uF)
+      (libsource (lib device) (part C))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AEBE9))
+    (comp (ref C4)
+      (value 1uF)
+      (libsource (lib device) (part C))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AEBC5))
+    (comp (ref U1)
+      (value TRS322ECN)
+      (libsource (lib 1006-cache) (part TRS322ECN))
+      (sheetpath (names /) (tstamps /))
+      (tstamp 4F9AEB5E)))
+  (libparts
+    (libpart (lib device) (part C)
+      (description "Condensateur non polarise")
+      (footprints
+        (fp SM*)
+        (fp C?)
+        (fp C1-1))
+      (fields
+        (field (name Reference) C)
+        (field (name Value) C)
+        (field (name Footprint) ~)
+        (field (name Datasheet) ~))
+      (pins
+        (pin (num 1) (name ~) (type passive))
+        (pin (num 2) (name ~) (type passive))))
+    (libpart (lib conn) (part CONN_4)
+      (description "Symbole general de connecteur")
+      (fields
+        (field (name Reference) P)
+        (field (name Value) CONN_4))
+      (pins
+        (pin (num 1) (name P1) (type passive))
+        (pin (num 2) (name P2) (type passive))
+        (pin (num 3) (name P3) (type passive))
+        (pin (num 4) (name P4) (type passive))))
+    (libpart (lib conn) (part DB9)
+      (footprints
+        (fp DB9*))
+      (fields
+        (field (name Reference) J)
+        (field (name Value) DB9))
+      (pins
+        (pin (num 1) (name 1) (type passive))
+        (pin (num 2) (name 2) (type passive))
+        (pin (num 3) (name 3) (type passive))
+        (pin (num 4) (name 4) (type passive))
+        (pin (num 5) (name 5) (type passive))
+        (pin (num 6) (name P6) (type passive))
+        (pin (num 7) (name P7) (type passive))
+        (pin (num 8) (name P8) (type passive))
+        (pin (num 9) (name P9) (type passive))))
+    (libpart (lib 1006-cache) (part TRS322ECN)
+      (fields
+        (field (name Reference) U)
+        (field (name Value) TRS322ECN)
+        (field (name Footprint) ~)
+        (field (name Datasheet) ~))
+      (pins
+        (pin (num 1) (name C1+) (type output))
+        (pin (num 2) (name VS+) (type output))
+        (pin (num 3) (name C1-) (type output))
+        (pin (num 4) (name C2+) (type output))
+        (pin (num 5) (name C2-) (type output))
+        (pin (num 6) (name VS-) (type output))
+        (pin (num 7) (name DOUT2) (type output))
+        (pin (num 8) (name RIN2) (type input))
+        (pin (num 9) (name ROUT2) (type output))
+        (pin (num 10) (name DIN2) (type input))
+        (pin (num 11) (name DIN1) (type input))
+        (pin (num 12) (name ROUT1) (type input))
+        (pin (num 13) (name RIN1) (type input))
+        (pin (num 14) (name DOUT1) (type input))
+        (pin (num 15) (name GND) (type input))
+        (pin (num 16) (name VCC) (type input)))))
+  (libraries
+    (library (logical device)
+      (uri "C:\\Program Files (x86)\\KiCad\\share\\library\\device.lib"))
+    (library (logical conn)
+      (uri "C:\\Program Files (x86)\\KiCad\\share\\library\\conn.lib"))
+    (library (logical 1006-cache)
+      (uri C:\Users\Hugh\Desktop\OpenPinballProj\Kicad\1006-Rs232\1006-cache.lib)))
+  (nets
+    (net (code 1) (name "")
+      (node (ref C3) (pin 1))
+      (node (ref U1) (pin 6)))
+    (net (code 2) (name GND)
+      (node (ref C5) (pin 1))
+      (node (ref U1) (pin 15))
+      (node (ref C2) (pin 2))
+      (node (ref J1) (pin 5))
+      (node (ref C3) (pin 2))
+      (node (ref P1) (pin 3)))
+    (net (code 3) (name "")
+      (node (ref U1) (pin 7)))
+    (net (code 4) (name "")
+      (node (ref U1) (pin 8)))
+    (net (code 5) (name "")
+      (node (ref U1) (pin 9)))
+    (net (code 6) (name "")
+      (node (ref U1) (pin 10)))
+    (net (code 7) (name "")
+      (node (ref P1) (pin 1))
+      (node (ref U1) (pin 11)))
+    (net (code 8) (name "")
+      (node (ref J1) (pin 9)))
+    (net (code 9) (name "")
+      (node (ref J1) (pin 8)))
+    (net (code 10) (name "")
+      (node (ref J1) (pin 7)))
+    (net (code 11) (name "")
+      (node (ref J1) (pin 6)))
+    (net (code 12) (name "")
+      (node (ref J1) (pin 4)))
+    (net (code 13) (name "")
+      (node (ref J1) (pin 2))
+      (node (ref U1) (pin 14)))
+    (net (code 14) (name "")
+      (node (ref J1) (pin 3))
+      (node (ref U1) (pin 13)))
+    (net (code 15) (name "")
+      (node (ref P1) (pin 2))
+      (node (ref U1) (pin 12)))
+    (net (code 16) (name "")
+      (node (ref J1) (pin 1)))
+    (net (code 17) (name "")
+      (node (ref U1) (pin 5))
+      (node (ref C1) (pin 2)))
+    (net (code 18) (name "")
+      (node (ref U1) (pin 4))
+      (node (ref C1) (pin 1)))
+    (net (code 19) (name "")
+      (node (ref C2) (pin 1))
+      (node (ref U1) (pin 2)))
+    (net (code 20) (name "")
+      (node (ref C4) (pin 2))
+      (node (ref U1) (pin 3)))
+    (net (code 21) (name "")
+      (node (ref C4) (pin 1))
+      (node (ref U1) (pin 1)))
+    (net (code 22) (name +5V)
+      (node (ref P1) (pin 4))
+      (node (ref U1) (pin 16))
+      (node (ref C5) (pin 2)))))
