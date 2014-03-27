@@ -20,9 +20,9 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   errIntf.py
+# @file:   tkinterThread.py
 # @author: Hugh Spahr
-# @date:   1/16/2012
+# @date:   3/26/2014
 #
 # @note:   Open Pinball Project
 #          Copyright 2014, Hugh Spahr
@@ -42,26 +42,47 @@
 #
 #===============================================================================
 #
-# This is the error interface file that lists the errors returned by interface
-# calls.
+# This is the tkinter thread file that is used for the debug GUI.
 #
 #===============================================================================
 
 vers = '00.00.01'
 
-#Public data
-CMD_OK              = 0
+import Tkinter as tk
+from threading import Thread
+import time
 
-#Errors returned from comm intf 
-BAD_SOL_BRD_NUM     =  100
-BAD_SOL_NUM         =  101
-BAD_PARAM_BYTES     =  102
-BAD_INP_BRD_NUM     =  103
-BAD_INP_NUM         =  104
-CANT_OPEN_COM       =  105
-INVENTORY_NO_RESP   =  106
-BAD_INV_RESP        =  107
-EXTRA_INFO_RCVD     =  108
+class TkinterThread(Thread):
+    def __init__(self):
+        super(TkinterThread, self).__init__()
+        
+        #Some queue stuff to send data back and forth
 
-#Errors returned from disp intf
-BAD_SCREEN_SIZE     =  200
+        #private members
+        self._runTkinterThread = True
+
+    #Initialize comms to the hardware
+    def init(self):
+        pass
+    
+    def start(self):
+        super(TkinterThread, self).start()
+    
+    def tkinterExit(self):
+        self._runTkinterThread = False
+    
+    def run(self):
+        count = 0
+        root = tk.Tk()
+        w, h = 50, 50
+        embed = tk.Frame(root, width=w, height=h)
+        embed.pack()
+        text = tk.Button(root, text = 'Blah.')
+        text.pack()
+        root.update()
+      
+        while self._runTkinterThread:
+            root.update()
+            count += 1
+            time.sleep(.1)
+            print "tkinter thread: %d" % count

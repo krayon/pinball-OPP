@@ -46,22 +46,20 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
+vers = '00.00.02'
 
-import array
 import rs232Intf
-import commThread
 import errIntf
 import commIntf
 
 #grab data from serial port
-def getSerialData(numBytes):
+def getSerialData(commThread, numBytes):
     resp = commThread.ser.read(numBytes)
     return (resp)
 
 #get inventory.  Note:  don't know the size of the
 #response since it depends on the number of installed cards.
-def getInventory():
+def getInventory(commThread):
     cmdArr = []
     cmdArr.append(rs232Intf.INV_CMD)
     cmdArr.append(rs232Intf.EOM_CMD)
@@ -69,7 +67,7 @@ def getInventory():
     commThread.ser.write(sendCmd)
     
     #add two extra bytes for command and EOM
-    data = getSerialData(rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
+    data = getSerialData(commThread, rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
 
     #Should at least inv command and eom
     if (len(data) < 2):
@@ -94,16 +92,16 @@ def getInventory():
             commThread.currSolData.append(0)
 
             #add to the config structure if necessary
-            if (len(commThread.solBrdCfg[]) < commThread.numSolBrd):
-                commThread.solBrdCfg.append(defaultSolCfg)
+            if (len(commThread.solBrdCfg[0]) < commThread.numSolBrd):
+                commThread.solBrdCfg.append(commThread.DFLT_SOL_CFG)
         elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
             commThread.numInpBrd += 1
             commThread.inpAddrArr.append(data[index])
             commThread.currInpData.append(0)
 
             #add to the config structure if necessary
-            if (len(commThread.inpBrdCfg[]) < commThread.numInpBrd):
-                commThread.inpBrdCfg.append(defaultInpCfg)
+            if (len(commThread.inpBrdCfg[0]) < commThread.numInpBrd):
+                commThread.inpBrdCfg.append(commThread.DFLT_INP_CFG)
         index += 1
     if (index != len(data)):
         return (errIntf.EXTRA_INFO_RCVD)

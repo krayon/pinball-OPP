@@ -47,17 +47,15 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
+vers = '00.00.02'
 
-import array
 import thread
 import pygame
 from pygame.locals import *
-import rulesData
+from rulesData import RulesData
 import dispConstIntf
 import dispIntf
 import errIntf
-import time
 
 updDispList = []
 updFeatList = []
@@ -84,10 +82,6 @@ simHeight = 0
 simLghtRadius = 0
 runDispThread = True
 
-#Switch input point values
-#just simple values to add to the active player's score
-scoreInc = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-
 orangeColor = (255, 131, 0)
 whiteColor = (255, 255, 255)
 
@@ -107,7 +101,7 @@ def updateDisp(player, value, blank):
 def createSndPlyr():
     global sndPlyr
     
-    for fileName in rulesData.sndFile:
+    for fileName in RulesData.SND_FILES:
         sndPlyr.append(pygame.mixer.Sound(fileName))
 
 def updateFeatLight(num, state):
@@ -242,8 +236,8 @@ def initFeatureLights():
     global simLghtRadius
     global simRatio
     
-    simLghtRadius = int((float(rulesData.lghtRadius) * simRatio) + .5)
-    for tmpLghtPos in rulesData.featureLghtPos:
+    simLghtRadius = int((float(RulesData.LGHT_RADIUS) * simRatio) + .5)
+    for tmpLghtPos in RulesData.FEATURE_LGHT_POS:
         tmpLghtXPos = int((float(tmpLghtPos[0]) * simRatio) + .5)
         tmpLghtYPos = int((float(tmpLghtPos[1]) * simRatio) + .5)
         featureSimLghtPos.append((tmpLghtXPos, tmpLghtYPos))
@@ -257,8 +251,8 @@ def initGenIllumLights():
     global simLghtRadius
     global simRatio
     
-    simLghtRadius = int((float(rulesData.lghtRadius) * simRatio) + .5)
-    for tmpLghtPos in rulesData.giLghtPos:
+    simLghtRadius = int((float(RulesData.LGHT_RADIUS) * simRatio) + .5)
+    for tmpLghtPos in RulesData.GI_LGHT_POS:
         tmpLghtXPos = int((float(tmpLghtPos[0]) * simRatio) + .5)
         tmpLghtYPos = int((float(tmpLghtPos[1]) * simRatio) + .5)
         giSimLghtPos.append((tmpLghtXPos, tmpLghtYPos))

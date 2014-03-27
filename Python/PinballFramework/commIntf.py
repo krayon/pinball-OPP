@@ -47,42 +47,38 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
+vers = '00.00.02'
 
-import array
 import rs232Intf
 import errIntf
-import commThread
 
-invResp = []
-
-def updateSol(brd, sol, params):
+def updateSol(commThread, brd, sol, params):
     if brd > commThread.numSolBrd:
         return errIntf.BAD_SOL_BRD_NUM
-    if sol > rs232Intf.NUM_SOL_PER_BRD
+    if sol > rs232Intf.NUM_SOL_PER_BRD:
         return errIntf.BAD_SOL_NUM
-    if len(params) != errIntf.CFG_BYTES_PER_SOL:
+    if len(params) != rs232Intf.CFG_BYTES_PER_SOL:
         return errIntf.BAD_PARAM_BYTES
-    for loop in range(errIntf.CFG_BYTES_PER_SOL):
-        commThread.solBrdCfg[brd][(errIntf.CFG_BYTES_PER_SOL * sol) + loop] = params[loop]
+    for loop in range(rs232Intf.CFG_BYTES_PER_SOL):
+        commThread.solBrdCfg[brd][(rs232Intf.CFG_BYTES_PER_SOL * sol) + loop] = params[loop]
     return errIntf.CMD_OK
 
-def sendSolCfg(brd):
-    if brd > numSolBrd:
+def sendSolCfg(commThread, brd):
+    if brd > commThread.numSolBrd:
         return errIntf.BAD_SOL_BRD_NUM
     commThread.updateSolBrdCfg |= (1 << brd)
     return errIntf.CMD_OK
 
-def updateInp(brd, inp, cfg):
+def updateInp(commThread, brd, inp, cfg):
     if brd > commThread.numInpBrd:
         return errIntf.BAD_INP_BRD_NUM
-    if inp > rs232Intf.NUM_INP_PER_BRD
+    if inp > rs232Intf.NUM_INP_PER_BRD:
         return errIntf.BAD_INP_NUM
-    commThread.inpBrdCfg[brd][errIntf.NUM_INP_PER_BRD] = cfg
+    commThread.inpBrdCfg[brd][rs232Intf.NUM_INP_PER_BRD] = cfg
     return errIntf.CMD_OK
 
-def sendInpCfg(brd):
-    if brd > numInpBrd:
+def sendInpCfg(commThread, brd):
+    if brd > commThread.numInpBrd:
         return errIntf.BAD_INP_BRD_NUM
     commThread.updateInpBrdCfg |= (1 << brd)
     return errIntf.CMD_OK

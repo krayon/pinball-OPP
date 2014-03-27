@@ -47,58 +47,58 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
+vers = '00.00.02'
 
-import array
-import thread
 import rs232Intf
-import errIntf
-import commHelp
+from threading import Thread
+import time
 
-#sound file list, note:  must be wav files
-sndFile = ["sounds/wah_wuh.wav", "sounds/ding_ding.wav", "sounds/opendoor.wav",
-           "sounds/jump.wav", "sounds/wfall1.wav", "sounds/wfall2.wav", "sounds/wfall3.wav"]
-
-#Game Parameters
-BALLS_PER_GAME = 3
-
-numCredits = 0
-numPlayers = 0
-
-#game mode
-GAME_ATTRACT = 0
-GAME_PLAYING = 1
-
-
-#Data that is shared with the interface file
-#List of boards needed to run the pinball machine
-BRD_INVENTORY = ['\x00', '\x10']
-INIT_SOL_CFG = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-                   rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-                   rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
-                   rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00' ] ]
-INIT_INP_CFG = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-                   rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-                   rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-                   rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
-
-#Comm thread states
-GAME_INIT           = 0
-GAME_OVER           = 1
-
-#Initialize rules thread
-def init(portId):
+class RulesThread(Thread):
+    #game mode
+    GAME_ATTRACT = 0
+    GAME_PLAYING = 1
+    
+    #Game Parameters
+    numCredits = 0
+    numPlayers = 0
     gameMode = GAME_ATTRACT
+    _runRulesThread = True
+    
+    #Data that is shared with the interface file
+    #List of boards needed to run the pinball machine
+    BRD_INVENTORY = ['\x00', '\x10']
+    INIT_SOL_CFG = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+                       rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+                       rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+                       rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00' ] ]
+    INIT_INP_CFG = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
+    
+    #Comm thread states
+    GAME_INIT           = 0
+    GAME_OVER           = 1
 
-def start():
-    #Verify correct number of boards
-    #Configure the boards
-    thread.start_new_thread(rulesThread, ("Rules Thread",))
+    #Initialize rules thread
+    def init(self):
+        #Nothing to do currently
+        pass
+        
+    def start(self):
+        #Verify correct number of boards
+        #Configure the boards
+        super(RulesThread, self).start()
+        
+    def rulesExit(self):
+        self._runRulesThread = False
 
-def rulesExit():
-    runRulesThread = False
+    def run(self):
+        count = 0
+      
+        while self._runRulesThread:
+            count += 1
+            time.sleep(1)
+            print "Rules thread: %d" % count
+            #Rules thread processing
 
-def rulesThread():
-    while runRulesThread:
-        #Comm thread processing
-        runTask = False

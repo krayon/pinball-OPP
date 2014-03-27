@@ -45,146 +45,164 @@
 # Start the pin
 #
 #===============================================================================
-vers = '00.00.01'
+vers = '00.00.02'
 
 import pygame
-from pygame.locals import *
 from sys import exit
 import sys
-from array import *
 import dispConstIntf
 import dispIntf
 import time
 import gameData
-import rulesData
+from commThread import CommThread
+from rulesData import RulesData
+from tkinterThread import TkinterThread
 
-normal = True
-debug = False
-end = False
-simWidth = 1920
-comPort = ""
+def main(argv=None):
+    #input mode
+    INPMODE_INPUT = 0
+    INPMODE_SOUND = 1
+    INPMODE_LIGHTS = 2
 
-#input mode
-INPMODE_INPUT = 0
-INPMODE_SOUND = 1
-INPMODE_LIGHTS = 2
+    end = False
+    simWidth = 1920
+    comPort = ""
+    inpMode = INPMODE_INPUT
+    debug = False
 
-inpMode = INPMODE_INPUT
-
-actWidth = 0
-fullScreen = False
-for arg in sys.argv:
-    if arg.startswith('-simWidth='):
-        simWidth = int(arg[10:])
-    elif arg.startswith('-actualWidth='):
-        actWidth = int(arg[13:])
-    elif arg.startswith('-fullscr'):
-        fullScreen = True
-    elif arg.startswith('-port='):
-        comPort = arg[6:]
-    elif arg.startswith('-?'):
-        print "python startPin.py [OPTIONS]"
-        print "    -?                 Options Help"
-        print "    -simWidth=         Width of simulation screen in pixels (assumes HD format)"
-        print "    -actualWidth=      Width of final screen in pixels (assumes HD format)"
-        print "                       Used for scaling.  If not set, assume simWidth is final"
-        print "    -fullscr           Full screen mode"
-        print "    -port=             COM port number (ex. COM1)"
-        end = True
-if end:
-    exit()
-
-#Set actual width if not entered
-if (actWidth < simWidth):
-    actWidth = simWidth
-error = dispIntf.initDisp(simWidth, actWidth, fullScreen)
-if error: exit()
-dispIntf.startDisp()
-
-NO_KEY_PRESS = '\xff'
-keyPress = NO_KEY_PRESS
-done = False
-while not done:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            done = True
-        if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:
+    actWidth = 0
+    fullScreen = False
+    if argv is None:
+        argv = sys.argv
+    for arg in argv:
+        if arg.startswith('-simWidth='):
+            simWidth = int(arg[10:])
+        elif arg.startswith('-actualWidth='):
+            actWidth = int(arg[13:])
+        elif arg.startswith('-fullscr'):
+            fullScreen = True
+        elif arg.startswith('-port='):
+            comPort = arg[6:]
+        elif arg.startswith('-?'):
+            print "python startPin.py [OPTIONS]"
+            print "    -?                 Options Help"
+            print "    -simWidth=         Width of simulation screen in pixels (assumes HD format)"
+            print "    -actualWidth=      Width of final screen in pixels (assumes HD format)"
+            print "                       Used for scaling.  If not set, assume simWidth is final"
+            print "    -fullscr           Full screen mode"
+            print "    -port=             COM port number (ex. COM1)"
+            end = True
+    if end:
+        return 0
+    
+    #Set actual width if not entered
+    if (actWidth < simWidth):
+        actWidth = simWidth
+    error = dispIntf.initDisp(simWidth, actWidth, fullScreen)
+    if error: exit()
+    dispIntf.startDisp()
+    
+    #Initialize the COMMs to the hardware
+    commThread = CommThread()
+    commThread.init(comPort)
+    commThread.start()
+    
+    #HRS:  Debug
+    if debug:
+        tkinterThread = TkinterThread()
+        tkinterThread.init()
+        tkinterThread.start()
+    
+    NO_KEY_PRESS = '\xff'
+    keyPress = NO_KEY_PRESS
+    done = False
+    while not done:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
                 done = True
-            elif event.key == pygame.K_i:
-                inpMode = INPMODE_INPUT
-                print "Input mode"
-            elif event.key == pygame.K_s:
-                inpMode = INPMODE_SOUND
-                print "Sound mode"
-            elif event.key == pygame.K_l:
-                inpMode = INPMODE_LIGHTS
-                print "Light mode"
-            elif event.key == pygame.K_c:
-                gameData.numCredits += 1
-                if (gameData.gameMode == gameData.GAME_ATTRACT):
-                      dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.numCredits, False)
-            elif event.key == pygame.K_g:
-                #Check if starting a game
-                if (gameData.gameMode == gameData.GAME_ATTRACT) and (gameData.numCredits > 0):
-                    gameData.numCredits -= 1
-                    gameData.gameMode = gameData.GAME_PLAYING
-                    numPlayers = 1
-                    currBall = 0
-                    currPlayer = 0
-                    gameData.score[0] = 0
-                  
-                    #Set up player 1 score
-                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER1, gameData.score[0], False)
-                  
-                    #Clear player 2, 3, 4 scores
-                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER2, 0, True)
-                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER3, 0, True)
-                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER4, 0, True)
-
-                    #Set player number, ball number
-                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
-                    dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, 1, False)
-                  
-                    #Play background music
-                    pygame.mixer.music.load("sounds/bgndtrack.mp3")
-                    pygame.mixer.music.play(-1)
-                #Check if another player is being added  
-                elif (gameData.gameMode == gameData.GAME_PLAYING) and (gameData.numCredits > 0):
-                    #Only allow adding players if during first ball
-                    if (currBall < 1) and (numPlayers < 4):
-                        gameData.numCredits -= 1
-                        gameData.score[numPlayers] = 0
-                        dispIntf.updateDisp(numPlayers, gameData.score[numPlayers], False)
-                        numPlayers += 1
-            elif event.key == pygame.K_d:
-                #Drain the current ball
-                if (gameData.gameMode == gameData.GAME_PLAYING):
-                    #If more players, increment currPlayers
-                    if (currPlayer + 1 < numPlayers):
-                        currPlayer += 1
-                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
-                    elif (currBall + 1 < rulesData.BALLS_PER_GAME):
-                        currPlayer = 0
-                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
-                        currBall += 1
-                        dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, currBall + 1, False)
-                    else:
-                        #Game over, blank player number
-                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, 0, True)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
+                    done = True
+                elif event.key == pygame.K_i:
+                    inpMode = INPMODE_INPUT
+                    print "Input mode"
+                elif event.key == pygame.K_s:
+                    inpMode = INPMODE_SOUND
+                    print "Sound mode"
+                elif event.key == pygame.K_l:
+                    inpMode = INPMODE_LIGHTS
+                    print "Light mode"
+                elif event.key == pygame.K_c:
+                    gameData.numCredits += 1
+                    if (gameData.gameMode == gameData.GAME_ATTRACT):
                         dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.numCredits, False)
-                        pygame.mixer.music.stop()
-                        gameData.gameMode = gameData.GAME_ATTRACT
-            elif (event.key >= pygame.K_0) and (event.key <= pygame.K_9):
-                keyPress = event.key - pygame.K_0
-    if keyPress != NO_KEY_PRESS:
-        #keypress processing here
-        if inpMode == INPMODE_SOUND:
-            dispIntf.playSound(keyPress)
-        elif inpMode == INPMODE_LIGHTS:
-            dispIntf.updateFeatureLight(keyPress, dispConstIntf.LGHT_TOGGLE)
-        if gameData.gameMode == gameData.GAME_PLAYING:
-            gameData.score[currPlayer] += rulesData.scoreInc[keyPress]
-            dispIntf.updateDisp(currPlayer, gameData.score[currPlayer], False)
-        keyPress = NO_KEY_PRESS
-    time.sleep(.01)    
+                elif event.key == pygame.K_g:
+                    #Check if starting a game
+                    if (gameData.gameMode == gameData.GAME_ATTRACT) and (gameData.numCredits > 0):
+                        gameData.numCredits -= 1
+                        gameData.gameMode = gameData.GAME_PLAYING
+                        numPlayers = 1
+                        currBall = 0
+                        currPlayer = 0
+                        gameData.score[0] = 0
+                      
+                        #Set up player 1 score
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER1, gameData.score[0], False)
+                      
+                        #Clear player 2, 3, 4 scores
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER2, 0, True)
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER3, 0, True)
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER4, 0, True)
+    
+                        #Set player number, ball number
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
+                        dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, 1, False)
+                      
+                        #Play background music
+                        pygame.mixer.music.load("sounds/bgndtrack.mp3")
+                        pygame.mixer.music.play(-1)
+                    #Check if another player is being added  
+                    elif (gameData.gameMode == gameData.GAME_PLAYING) and (gameData.numCredits > 0):
+                        #Only allow adding players if during first ball
+                        if (currBall < 1) and (numPlayers < 4):
+                            gameData.numCredits -= 1
+                            gameData.score[numPlayers] = 0
+                            dispIntf.updateDisp(numPlayers, gameData.score[numPlayers], False)
+                            numPlayers += 1
+                elif event.key == pygame.K_d:
+                    #Drain the current ball
+                    if (gameData.gameMode == gameData.GAME_PLAYING):
+                        #If more players, increment currPlayers
+                        if (currPlayer + 1 < numPlayers):
+                            currPlayer += 1
+                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
+                        elif (currBall + 1 < RulesData.BALLS_PER_GAME):
+                            currPlayer = 0
+                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
+                            currBall += 1
+                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, currBall + 1, False)
+                        else:
+                            #Game over, blank player number
+                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, 0, True)
+                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.numCredits, False)
+                            pygame.mixer.music.stop()
+                            gameData.gameMode = gameData.GAME_ATTRACT
+                elif (event.key >= pygame.K_0) and (event.key <= pygame.K_9):
+                    keyPress = event.key - pygame.K_0
+        if keyPress != NO_KEY_PRESS:
+            #keypress processing here
+            if inpMode == INPMODE_SOUND:
+                dispIntf.playSound(keyPress)
+            elif inpMode == INPMODE_LIGHTS:
+                dispIntf.updateFeatureLight(keyPress, dispConstIntf.LGHT_TOGGLE)
+            if gameData.gameMode == gameData.GAME_PLAYING:
+                gameData.score[currPlayer] += RulesData.SCORE_INC[keyPress]
+                dispIntf.updateDisp(currPlayer, gameData.score[currPlayer], False)
+            keyPress = NO_KEY_PRESS
+        time.sleep(.01)    
+    commThread.commExit()
+    if debug:
+        tkinterThread.tkinterExit()
+
+if __name__ == "__main__":
+    sys.exit(main())

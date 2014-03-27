@@ -47,78 +47,90 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
+vers = '00.00.02'
 
-import array
-import thread
 import rs232Intf
 import errIntf
+import serial
+import thread
+from threading import Thread
+import time
 import commHelp
 
-#Data that is shared with the interface file
-numSolBrd = 0
-updateSolBrdCfg = 0
-solBrdCfg = [][]
-solAddrArr = []
-currSolData = []
-numInpBrd = 0
-updateInpBrdCfg = 0
-inpBrdCfg = [][]
-inpAddrArr = []
-currInpData = []
+class CommThread(Thread):
+    #Comm thread states
+    COMM_INIT           = 0
+    COMM_INV_DONE       = 1
+    COMM_CFG_DONE       = 2
+    COMM_SENT_CFG_CMD   = 3
+    COMM_SENT_GET_INP   = 4
+    COMM_EXIT           = 5
+    COMM_ERROR_OCC      = 6
+    COMM_NO_COMM_PORT   = 7
 
-#Comm thread states
-COMM_INIT           = 0
-COMM_INV_DONE       = 1
-COMM_CFG_DONE       = 2
-COMM_SENT_CFG_CMD   = 3
-COMM_SENT_GET_INP   = 4
-COMM_EXIT           = 5
-COMM_ERROR_OCC      = 6
-state = COMM_INIT
-
-#Data not shared to the outside world
-defaultSolCfg = [ rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                  rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00' ]
-
-defaultInpCfg = [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
-                  rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
-                  rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
-                  rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ]
-runCommThread = True
-threadlock = thread.allocate_lock()
-
-#Initialize comms to the hardware
-def init(portId):
-    global ser
+    #Data not shared to the outside world
+    DFLT_SOL_CFG = [ rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
+                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00' ]
     
-    try:
-        ser=serial.Serial(port, baudrate=19200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
-    except serial.SerialException:
-        state = COMM_ERROR_OCC
-        return(errIntf.CANT_OPEN_COM)
-    retCode = commHelp.getInventory()
-    if retCode:
-        state = COMM_ERROR_OCC
-        return (retCode)
-    state = COMM_INV_DONE
-    return(errIntf.CMD_OK)
+    DFLT_INP_CFG = [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
+                      rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
+                      rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
+                      rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ]
+    
+    def __init__(self):
+        super(CommThread, self).__init__()
+        
+        #Data that is shared with the interface file
+        self.numSolBrd = 0
+        self.updateSolBrdCfg = 0
+        self.solBrdCfg = [[]]
+        self.solAddrArr = []
+        self.numInpBrd = 0
+        self.updateInpBrdCfg = 0
+        self.inpBrdCfg = [[]]
+        self.inpAddrArr = []
+        self.currInpData = []
+        self.state = CommThread.COMM_INIT
+        self.ser = None
 
-def start():
-    thread.start_new_thread(commThread, ("Comm Thread",))
+        #private members
+        self._runCommThread = True
+        self._threadlock = thread.allocate_lock()
 
-def commExit():
-    runCommThread = False
-
-def commThread():
-    global ser
-  
-    while runCommThread:
-        #Comm thread processing
-        runTask = False
+    #Initialize comms to the hardware
+    def init(self, portId):
+        if (portId != ""):
+            try:
+                self.ser=serial.Serial(portId, baudrate=19200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
+            except serial.SerialException:
+                self.state = CommThread.COMM_ERROR_OCC
+                return(errIntf.CANT_OPEN_COM)
+            retCode = commHelp.getInventory(self)
+            if retCode:
+                self.state = CommThread.COMM_ERROR_OCC
+                return (retCode)
+            self.state = CommThread.COMM_INV_DONE
+        else:
+            self.state = CommThread.COMM_NO_COMM_PORT
+        return(errIntf.CMD_OK)
+    
+    def start(self):
+        super(CommThread, self).start()
+    
+    def commExit(self):
+        self._runCommThread = False
+    
+    def run(self):
+        count = 0
+      
+        while self._runCommThread:
+            count += 1
+            time.sleep(1)
+            print "Comm thread: %d" % count
+            #Comm thread processing

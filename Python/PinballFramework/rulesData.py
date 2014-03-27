@@ -47,28 +47,29 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
+vers = '00.00.02'
 
-#sound file list, note:  must be wav files
-sndFile = ["sounds/wah_wuh.wav", "sounds/ding_ding.wav", "sounds/opendoor.wav",
-           "sounds/jump.wav", "sounds/wfall1.wav", "sounds/wfall2.wav", "sounds/wfall3.wav"]
-
-BALLS_PER_GAME = 3
-
-#feature lights list
-#located using actual screen x,y coordinates (auto scaled to simulation)
-lghtRadius = 20
-featureLghtPos = [[200,200], [300,300], [400,300], [500,300],
-                  [600,300], [700,300], [800,300], [900,300],
-                  [1000,300], [1100,200]]
-
-#General illumination lights list
-#located using actual screen x,y coordinates (auto scaled to simulation)
-giLghtPos = [[200,100], [300,100], [400,100], [500,100],
-             [600,100], [700,100], [800,100], [900,100],
-             [1000,100], [1100,100]]
-
-#Switch input point values
-#just simple values to add to the active player's score
-scoreInc = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+class RulesData:
+    #sound file list, note:  must be wav files
+    SND_FILES = ["sounds/wah_wuh.wav", "sounds/ding_ding.wav", "sounds/opendoor.wav",
+               "sounds/jump.wav", "sounds/wfall1.wav", "sounds/wfall2.wav", "sounds/wfall3.wav"]
+    
+    BALLS_PER_GAME = 3
+    
+    #feature lights list
+    #located using actual screen x,y coordinates (auto scaled to simulation)
+    LGHT_RADIUS = 20
+    FEATURE_LGHT_POS = [[200,200], [300,300], [400,300], [500,300],
+                      [600,300], [700,300], [800,300], [900,300],
+                      [1000,300], [1100,200]]
+    
+    #General illumination lights list
+    #located using actual screen x,y coordinates (auto scaled to simulation)
+    GI_LGHT_POS = [[200,100], [300,100], [400,100], [500,100],
+                 [600,100], [700,100], [800,100], [900,100],
+                 [1000,100], [1100,100]]
+    
+    #Switch input point values
+    #just simple values to add to the active player's score
+    SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
