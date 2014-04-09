@@ -73,3 +73,17 @@ class RulesData:
     #just simple values to add to the active player's score
     SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
+    #Number of boards in the system
+    NUM_INP_BRDS = 1
+    NUM_SOL_BRDS = 1
+    INV_ADDR_LIST = [0x10, 0x00]
+
+    #Input board bit names
+    INP_BRD_BIT_NAMES = [["CoinDrop", "StartBtn", "TiltSwitch", "Spinner",
+                    "LftOutln", "RghtOutln", "LftFlipLn", "RghtFlipLn",
+                    "BallAtPlunger", "InlaneLft", "InlaneCtr", "InlaneRght",
+                    "LftTrgt1", "LftTrgt2", "RghtTrgt1", "RghtTrgt2"]]
+
+    #Solenoid board bit names
+    SOL_BRD_BIT_NAMES = [["LftFlip", "RghtFlip", "LftSlingshot", "RghtSlingshot",
+                    "BallInPlay", "PopBumper1", "PopBumper2", "KickoutHole"]]

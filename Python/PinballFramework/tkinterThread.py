@@ -50,7 +50,12 @@ vers = '00.00.01'
 
 import Tkinter as tk
 from threading import Thread
+from tkInpBrd import tkInpBrd
+from tkSolBrd import tkSolBrd
 import time
+from rulesData import RulesData
+import rs232Intf
+import gameData
 
 class TkinterThread(Thread):
     def __init__(self):
@@ -74,15 +79,21 @@ class TkinterThread(Thread):
     def run(self):
         count = 0
         root = tk.Tk()
-        w, h = 50, 50
-        embed = tk.Frame(root, width=w, height=h)
-        embed.pack()
-        text = tk.Button(root, text = 'Blah.')
-        text.pack()
+        root.wm_title("Debug Window")
+        root.columnconfigure(0, weight=1)
+        root.rowconfigure(0, weight=1)
+        bgndFrm = tk.Frame(root)
+        bgndFrm.grid()
+        for i in range(len(RulesData.INV_ADDR_LIST)):
+            if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
+                inpBrd = tkInpBrd(gameData.numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                gameData.numInpBrds += 1
+            elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
+                solBrd = tkSolBrd(gameData.numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                gameData.numSolBrds += 1
         root.update()
       
         while self._runTkinterThread:
             root.update()
             count += 1
             time.sleep(.1)
-            print "tkinter thread: %d" % count

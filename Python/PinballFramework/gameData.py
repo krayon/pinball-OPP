@@ -55,4 +55,10 @@ GAME_PLAYING = 1
 numCredits = 0
 gameMode = GAME_ATTRACT
 score = [0, 0, 0, 0]
+currBall = 0
+currPlayer = 0
+numPlayers = 0
+
+numSolBrds = 0
+numInpBrds = 0
 

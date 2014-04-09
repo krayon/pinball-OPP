@@ -132,5 +132,4 @@ class CommThread(Thread):
         while self._runCommThread:
             count += 1
             time.sleep(1)
-            print "Comm thread: %d" % count
             #Comm thread processing

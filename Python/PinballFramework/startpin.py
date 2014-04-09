@@ -83,6 +83,8 @@ def main(argv=None):
             fullScreen = True
         elif arg.startswith('-port='):
             comPort = arg[6:]
+        elif arg.startswith('-debug'):
+            debug = True
         elif arg.startswith('-?'):
             print "python startPin.py [OPTIONS]"
             print "    -?                 Options Help"
@@ -141,9 +143,9 @@ def main(argv=None):
                     if (gameData.gameMode == gameData.GAME_ATTRACT) and (gameData.numCredits > 0):
                         gameData.numCredits -= 1
                         gameData.gameMode = gameData.GAME_PLAYING
-                        numPlayers = 1
-                        currBall = 0
-                        currPlayer = 0
+                        gameData.numPlayers = 1
+                        gameData.currBall = 0
+                        gameData.currPlayer = 0
                         gameData.score[0] = 0
                       
                         #Set up player 1 score
@@ -155,7 +157,7 @@ def main(argv=None):
                         dispIntf.updateDisp(dispConstIntf.DISP_PLAYER4, 0, True)
     
                         #Set player number, ball number
-                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, gameData.currPlayer + 1, False)
                         dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, 1, False)
                       
                         #Play background music
@@ -164,23 +166,23 @@ def main(argv=None):
                     #Check if another player is being added  
                     elif (gameData.gameMode == gameData.GAME_PLAYING) and (gameData.numCredits > 0):
                         #Only allow adding players if during first ball
-                        if (currBall < 1) and (numPlayers < 4):
+                        if (gameData.currBall < 1) and (gameData.numPlayers < 4):
                             gameData.numCredits -= 1
-                            gameData.score[numPlayers] = 0
-                            dispIntf.updateDisp(numPlayers, gameData.score[numPlayers], False)
-                            numPlayers += 1
+                            gameData.score[gameData.numPlayers] = 0
+                            dispIntf.updateDisp(gameData.numPlayers, gameData.score[gameData.numPlayers], False)
+                            gameData.numPlayers += 1
                 elif event.key == pygame.K_d:
                     #Drain the current ball
                     if (gameData.gameMode == gameData.GAME_PLAYING):
                         #If more players, increment currPlayers
-                        if (currPlayer + 1 < numPlayers):
-                            currPlayer += 1
-                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
-                        elif (currBall + 1 < RulesData.BALLS_PER_GAME):
+                        if (gameData.currPlayer + 1 < gameData.numPlayers):
+                            gameData.currPlayer += 1
+                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, gameData.currPlayer + 1, False)
+                        elif (gameData.currBall + 1 < RulesData.BALLS_PER_GAME):
                             currPlayer = 0
                             dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
-                            currBall += 1
-                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, currBall + 1, False)
+                            gameData.currBall += 1
+                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.currBall + 1, False)
                         else:
                             #Game over, blank player number
                             dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, 0, True)
