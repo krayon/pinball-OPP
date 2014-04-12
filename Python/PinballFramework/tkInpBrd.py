@@ -50,7 +50,9 @@
 vers = '00.00.01'
 
 import rs232Intf
-import Tkinter as tk
+from Tkinter import Button as Btn
+from Tkinter import *
+from ttk import *
 from rulesData import RulesData
 
 class tkInpBrd():
@@ -64,6 +66,7 @@ class tkInpBrd():
     toggleBtn = []
     toggleState = []
     inpCardFrm = 0
+    bitFrms = []
     btnCfgBitfield = 0              #Set bits to 1 to default to toggle buttons
     simSwitchBits = 0
     
@@ -71,24 +74,24 @@ class tkInpBrd():
         self.brdNum = brdNum
         self.brdPos = brdPos
         self.brdAddr = addr
-        self.statLbl = tk.StringVar()
+        self.statLbl = StringVar()
         
         #Create main frame
-        self.inpCardFrm = tk.Frame(parentFrm, padx = 5, pady = 5, borderwidth = 5, relief=tk.RAISED)
-        self.inpCardFrm.grid(column = 0, row = brdPos)
+        self.inpCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
+        self.inpCardFrm.grid(column = 0, row = brdPos + 1)
         
         #Create card info frame
-        inpCardInfoFrm = tk.Frame(self.inpCardFrm)
+        inpCardInfoFrm = Frame(self.inpCardFrm)
         inpCardInfoFrm.grid(column = 8, row = 0, columnspan = 2)
         
         #Add card info
-        tmpLbl = tk.Label(inpCardInfoFrm, text="Inp Card %d" % (brdNum + 1))
+        tmpLbl = Label(inpCardInfoFrm, text="Inp Card %d" % (brdNum + 1))
         tmpLbl.grid(column = 0, row = 0)
-        tmpLbl = tk.Label(inpCardInfoFrm, text="Addr = 0x%02x" % addr)
+        tmpLbl = Label(inpCardInfoFrm, text="Addr = 0x%02x" % addr)
         tmpLbl.grid(column = 0, row = 1)
-        tmpLbl = tk.Label(inpCardInfoFrm, text="Status")
+        tmpLbl = Label(inpCardInfoFrm, text="Status")
         tmpLbl.grid(column = 0, row = 2)
-        tmpLbl = tk.Label(inpCardInfoFrm, textvariable=self.statLbl, relief=tk.SUNKEN)
+        tmpLbl = Label(inpCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
         self.statLbl.set("0x%04x" % self.dispInpValue)
         tmpLbl.grid(column = 0, row = 3)
 
@@ -100,10 +103,10 @@ class tkInpBrd():
         if (self.btnCfgBitfield & (1 << bit) != 0):
             self.toggleState[bit] = not self.toggleState[bit]
             if self.toggleState[bit]:
-                self.toggleBtn[bit].config(relief=tk.SUNKEN)
+                self.toggleBtn[bit].config(relief=SUNKEN)
                 self.simSwitchBits &= ~(1 << bit)
             else:
-                self.toggleBtn[bit].config(relief=tk.RAISED)
+                self.toggleBtn[bit].config(relief=RAISED)
                 self.simSwitchBits |= (1 << bit)
         #Else this is a pulsed button, set the bit and it will be auto cleared
         else:
@@ -112,11 +115,26 @@ class tkInpBrd():
             
     def optmenucallback(self, bit):
         if self.indBitOptMenu[bit].get() == "Pulse":
-            self.toggleBtn[bit].config(relief=tk.RAISED)
+            #Create a new button that is pulse
+            tmpCnvs = Canvas(self.bitFrms[bit], width=100, height=40)
+            tmpCnvs.grid(column = 0, row = 2, columnspan = 2)
+            tmpBtn = Button(self.bitFrms[bit], text="SimSwitch", command=lambda tmp=bit: self.toggle(tmp))
+            tmpBtn.grid(column = 0, row = 2, columnspan = 2, padx=4, pady=12)
+            self.toggleBtn[bit] = tmpBtn
+
+            #Set the state variables            
             self.toggleState[bit] = False
             self.btnCfgBitfield &= ~(1 << bit)
             self.simSwitchBits &= ~(1 << bit)
         else:
+            #Create a new button that is toggle
+            tmpCnvs = Canvas(self.bitFrms[bit], width=100, height=40)
+            tmpCnvs.grid(column = 0, row = 2, columnspan = 2)
+            tmpBtn = Btn(self.bitFrms[bit], text="SimSwitch", command=lambda tmp=bit: self.toggle(tmp))
+            tmpBtn.grid(column = 0, row = 2, columnspan = 2, padx=8, pady=8)
+            self.toggleBtn[bit] = tmpBtn
+            
+            #Set the state variables            
             self.btnCfgBitfield |= (1 << bit)
             if self.toggleState[bit]:
                 self.simSwitchBits &= ~(1 << bit)
@@ -124,32 +142,40 @@ class tkInpBrd():
                 self.simSwitchBits |= (1 << bit)
             
     def createBitFrame(self, bit):
-        inpCardBitFrm = tk.Frame(self.inpCardFrm, padx = 5, pady = 5, borderwidth = 5, relief=tk.RAISED)
+        inpCardBitFrm = Frame(self.inpCardFrm, borderwidth = 5, relief=RAISED)
+        self.bitFrms.append(inpCardBitFrm)
         if (bit < 8):
             inpCardBitFrm.grid(column = bit, row = 0)
         else:
             inpCardBitFrm.grid(column = bit - 8, row = 1)
-        tmpLbl = tk.Label(inpCardBitFrm, text="Name: %s" % RulesData.INP_BRD_BIT_NAMES[self.brdNum][bit])
+        tmpLbl = Label(inpCardBitFrm, text="%s" % RulesData.INP_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
-        #Option menu for button presses
-        self.indBitOptMenu.append(tk.StringVar())
+        #Combobox menu for button presses
+        self.indBitOptMenu.append(StringVar())
         if (self.btnCfgBitfield & (1 << bit)):
             self.indBitOptMenu[bit].set("Toggle")
         else:
             self.indBitOptMenu[bit].set("Pulse")
-        tmpOM = tk.OptionMenu(inpCardBitFrm, self.indBitOptMenu[bit], "Pulse", "Toggle")
-        tmpOM.grid(column = 0, row = 1, columnspan = 2)
+        tmpCB = Combobox(inpCardBitFrm, textvariable=self.indBitOptMenu[bit], width=6, state="readonly")
+        tmpCB["values"] = ("Pulse", "Toggle")
+        tmpCB.grid(column = 0, row = 1, columnspan = 2)
         self.indBitOptMenu[bit].trace("w", lambda name, index, op, tmp=bit: self.optmenucallback(tmp))
         
         #Button code
-        tmpBtn = tk.Button(inpCardBitFrm, text="SimSwitch", command=lambda tmp=bit: self.toggle(tmp))
-        tmpBtn.grid(column = 0, row = 2, columnspan = 2)
+        if (self.btnCfgBitfield & (1 << bit)):
+            #Toggle button so use the old style so button can stay pressed
+            tmpBtn = Btn(inpCardBitFrm, text="SimSwitch", command=lambda tmp=bit: self.toggle(tmp))
+            tmpBtn.grid(column = 0, row = 2, columnspan = 2, padx=8, pady=8)
+        else:
+            #Pulse button so use the new style
+            tmpBtn = Button(inpCardBitFrm, text="SimSwitch", command=lambda tmp=bit: self.toggle(tmp))
+            tmpBtn.grid(column = 0, row = 2, columnspan = 2, padx=4, pady=12)
         self.toggleBtn.append(tmpBtn)
         self.toggleState.append(False)
-        tmpLbl = tk.Label(inpCardBitFrm, text="Value")
+        tmpLbl = Label(inpCardBitFrm, text="Value")
         tmpLbl.grid(column = 0, row = 3)
-        self.indBitStatLbl.append(tk.StringVar())
+        self.indBitStatLbl.append(StringVar())
         self.indBitStatLbl[bit].set("0")
-        tmpLbl = tk.Label(inpCardBitFrm, textvariable=self.indBitStatLbl[bit], relief=tk.SUNKEN)
+        tmpLbl = Label(inpCardBitFrm, textvariable=self.indBitStatLbl[bit], relief=SUNKEN)
         tmpLbl.grid(column = 1, row = 3)

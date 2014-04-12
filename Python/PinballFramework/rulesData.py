@@ -74,8 +74,7 @@ class RulesData:
     SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
     #Number of boards in the system
-    NUM_INP_BRDS = 1
-    NUM_SOL_BRDS = 1
+    NUM_LED_BRDS = 1
     INV_ADDR_LIST = [0x10, 0x00]
 
     #Input board bit names
@@ -87,3 +86,7 @@ class RulesData:
     #Solenoid board bit names
     SOL_BRD_BIT_NAMES = [["LftFlip", "RghtFlip", "LftSlingshot", "RghtSlingshot",
                     "BallInPlay", "PopBumper1", "PopBumper2", "KickoutHole"]]
+
+    #LED board bit names
+    LED_BRD_BIT_NAMES = [["InlaneLft", "InlaneCtr", "InlaneRght", "LftTrgt1",
+                    "LftTrgt2", "RghtTrgt1", "RghtTrgt2", "Special"]]

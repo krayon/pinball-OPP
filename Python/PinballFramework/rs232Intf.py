@@ -87,3 +87,4 @@ CFG_SOL_USE_SWITCH  = '\x01'
 CFG_SOL_AUTO_CLR    = '\x02'
 CFG_SOL_DISABLE     = '\x00'
 
+NUM_LED_PER_BRD     = 8
