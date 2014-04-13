@@ -48,6 +48,7 @@
 #===============================================================================
 
 vers = '00.00.02'
+import rs232Intf
 
 class RulesData:
     #sound file list, note:  must be wav files
@@ -83,9 +84,20 @@ class RulesData:
                     "BallAtPlunger", "InlaneLft", "InlaneCtr", "InlaneRght",
                     "LftTrgt1", "LftTrgt2", "RghtTrgt1", "RghtTrgt2"]]
 
+    INP_BRD_CFG = [ [ rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+         rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
+         rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
+         rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE ] ]
+
+
     #Solenoid board bit names
     SOL_BRD_BIT_NAMES = [["LftFlip", "RghtFlip", "LftSlingshot", "RghtSlingshot",
                     "BallInPlay", "PopBumper1", "PopBumper2", "KickoutHole"]]
+
+    SOL_BRD_CFG = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+         rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+         rs232Intf.CFG_SOL_AUTO_CLR, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+         rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00' ] ]
 
     #LED board bit names
     LED_BRD_BIT_NAMES = [["InlaneLft", "InlaneCtr", "InlaneRght", "LftTrgt1",
