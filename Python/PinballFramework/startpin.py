@@ -53,10 +53,11 @@ import sys
 import dispConstIntf
 import dispIntf
 import time
-import gameData
 from commThread import CommThread
 from rulesData import RulesData
 from tkinterThread import TkinterThread
+from gameData import GameData
+from rulesData import State
 
 def main(argv=None):
     #input mode
@@ -135,21 +136,21 @@ def main(argv=None):
                     inpMode = INPMODE_LIGHTS
                     print "Light mode"
                 elif event.key == pygame.K_c:
-                    gameData.numCredits += 1
-                    if (gameData.gameMode == gameData.GAME_ATTRACT):
-                        dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.numCredits, False)
+                    GameData.credits += 1
+                    if (GameData.gameMode == State.ATTRACT):
+                        dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, GameData.credits, False)
                 elif event.key == pygame.K_g:
                     #Check if starting a game
-                    if (gameData.gameMode == gameData.GAME_ATTRACT) and (gameData.numCredits > 0):
-                        gameData.numCredits -= 1
-                        gameData.gameMode = gameData.GAME_PLAYING
-                        gameData.numPlayers = 1
-                        gameData.currBall = 0
-                        gameData.currPlayer = 0
-                        gameData.score[0] = 0
+                    if (GameData.gameMode == State.ATTRACT) and (GameData.credits > 0):
+                        GameData.credits -= 1
+                        GameData.gameMode = State.NORMAL_PLAY
+                        GameData.numPlayers = 1
+                        GameData.currBall = 0
+                        GameData.currPlayer = 0
+                        GameData.score[0] = 0
                       
                         #Set up player 1 score
-                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER1, gameData.score[0], False)
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER1, GameData.score[0], False)
                       
                         #Clear player 2, 3, 4 scores
                         dispIntf.updateDisp(dispConstIntf.DISP_PLAYER2, 0, True)
@@ -157,38 +158,38 @@ def main(argv=None):
                         dispIntf.updateDisp(dispConstIntf.DISP_PLAYER4, 0, True)
     
                         #Set player number, ball number
-                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, gameData.currPlayer + 1, False)
+                        dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, GameData.currPlayer + 1, False)
                         dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, 1, False)
                       
                         #Play background music
                         pygame.mixer.music.load("sounds/bgndtrack.mp3")
                         pygame.mixer.music.play(-1)
                     #Check if another player is being added  
-                    elif (gameData.gameMode == gameData.GAME_PLAYING) and (gameData.numCredits > 0):
+                    elif (GameData.gameMode == State.NORMAL_PLAY) and (GameData.credits > 0):
                         #Only allow adding players if during first ball
-                        if (gameData.currBall < 1) and (gameData.numPlayers < 4):
-                            gameData.numCredits -= 1
-                            gameData.score[gameData.numPlayers] = 0
-                            dispIntf.updateDisp(gameData.numPlayers, gameData.score[gameData.numPlayers], False)
-                            gameData.numPlayers += 1
+                        if (GameData.ballNum < 1) and (GameData.numPlayers < 4):
+                            GameData.credits -= 1
+                            GameData.score[GameData.numPlayers] = 0
+                            dispIntf.updateDisp(GameData.numPlayers, GameData.score[GameData.numPlayers], False)
+                            GameData.numPlayers += 1
                 elif event.key == pygame.K_d:
                     #Drain the current ball
-                    if (gameData.gameMode == gameData.GAME_PLAYING):
+                    if (GameData.gameMode == State.NORMAL_PLAY):
                         #If more players, increment currPlayers
-                        if (gameData.currPlayer + 1 < gameData.numPlayers):
-                            gameData.currPlayer += 1
-                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, gameData.currPlayer + 1, False)
-                        elif (gameData.currBall + 1 < RulesData.BALLS_PER_GAME):
-                            currPlayer = 0
-                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, currPlayer + 1, False)
-                            gameData.currBall += 1
-                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.currBall + 1, False)
+                        if (GameData.currPlayer + 1 < GameData.numPlayers):
+                            GameData.currPlayer += 1
+                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, GameData.currPlayer + 1, False)
+                        elif (GameData.ballNum + 1 < RulesData.BALLS_PER_GAME):
+                            GameData.currPlayer = 0
+                            dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, GameData.currPlayer + 1, False)
+                            GameData.ballNum += 1
+                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, GameData.ballNum + 1, False)
                         else:
                             #Game over, blank player number
                             dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, 0, True)
-                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, gameData.numCredits, False)
+                            dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, GameData.credits, False)
                             pygame.mixer.music.stop()
-                            gameData.gameMode = gameData.GAME_ATTRACT
+                            GameData.gameMode = State.ATTRACT
                 elif (event.key >= pygame.K_0) and (event.key <= pygame.K_9):
                     keyPress = event.key - pygame.K_0
         if keyPress != NO_KEY_PRESS:
@@ -197,9 +198,9 @@ def main(argv=None):
                 dispIntf.playSound(keyPress)
             elif inpMode == INPMODE_LIGHTS:
                 dispIntf.updateFeatureLight(keyPress, dispConstIntf.LGHT_TOGGLE)
-            if gameData.gameMode == gameData.GAME_PLAYING:
-                gameData.score[currPlayer] += RulesData.SCORE_INC[keyPress]
-                dispIntf.updateDisp(currPlayer, gameData.score[currPlayer], False)
+            if GameData.gameMode == State.NORMAL_PLAY:
+                GameData.score[GameData.currPlayer] += RulesData.SCORE_INC[keyPress]
+                dispIntf.updateDisp(GameData.currPlayer, GameData.score[GameData.currPlayer], False)
             keyPress = NO_KEY_PRESS
         time.sleep(.01)    
     commThread.commExit()

@@ -64,18 +64,6 @@ class RulesThread(Thread):
     gameMode = GAME_ATTRACT
     _runRulesThread = True
     
-    #Data that is shared with the interface file
-    #List of boards needed to run the pinball machine
-    BRD_INVENTORY = ['\x00', '\x10']
-    INIT_SOL_CFG = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-                       rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-                       rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
-                       rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00' ] ]
-    INIT_INP_CFG = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
-                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
-    
     #Comm thread states
     GAME_INIT           = 0
     GAME_OVER           = 1

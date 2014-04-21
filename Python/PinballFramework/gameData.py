@@ -48,17 +48,56 @@
 
 vers = '00.00.01'
 
-#game mode
-GAME_ATTRACT = 0
-GAME_PLAYING = 1
+from rulesData import State
 
-numCredits = 0
-gameMode = GAME_ATTRACT
-score = [0, 0, 0, 0]
-currBall = 0
-currPlayer = 0
-numPlayers = 0
+class GameData():
+    credits = 0
+    creditsInRow = 0
+    partCreditsNum = 0
+    extraCredit = 0
+    partCreditsDenom = 0
+    
+    gameMode = State.ATTRACT
+    score = [0, 0, 0, 0]
+    ballNum = 0
+    currPlayer = 0
+    numPlayers = 0
+    inlaneLights = []
+    scoreLvl = 0
+    specialLvl = 0
+    kick_retries = 0
+    
+    numSolBrds = 0
+    numInpBrds = 0
+    
+    currInpStatus = 0
+    currSolStatus = 0
+    currLeds = 0
+    currBlinkLeds = 0
+    expiredTimers = 0
 
-numSolBrds = 0
-numInpBrds = 0
+    def __init__(self):
+        self.credits = 0
+        self.creditsInRow = 0
+        self.partCreditsNum = 0
+        self.extraCredit = 4
+        self.partCreditsDenom = 2
+        
+        self.gameMode = State.ATTRACT
+        self.score = [0, 0, 0, 0]
+        self.ballNum = 0
+        self.currPlayer = 0
+        self.numPlayers = 0
+        self.inlaneLights = []
+        self.scoreLvl = 0
+        self.specialLvl = 0
+        self.kick_retries = 0
+        
+        self.numSolBrds = 0
+        self.numInpBrds = 0
 
+        self.currInpStatus = 0
+        self.currSolStatus = 0
+        self.currLeds = 0
+        self.currBlinkLeds = 0
+        self.expiredTimers = 0

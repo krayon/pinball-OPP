@@ -59,7 +59,7 @@ from tkLedBrd import tkLedBrd
 import time
 from rulesData import RulesData
 import rs232Intf
-import gameData
+from gameData import GameData
 
 class TkinterThread(Thread):
     def __init__(self):
@@ -91,13 +91,13 @@ class TkinterThread(Thread):
         cmdFrm = tkCmdFrm(bgndFrm)
         for i in range(len(RulesData.INV_ADDR_LIST)):
             if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                inpBrd = tkInpBrd(gameData.numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
-                gameData.numInpBrds += 1
+                inpBrd = tkInpBrd(GameData.numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                GameData.numInpBrds += 1
             elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                solBrd = tkSolBrd(gameData.numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
-                gameData.numSolBrds += 1
+                solBrd = tkSolBrd(GameData.numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                GameData.numSolBrds += 1
         for i in range(RulesData.NUM_LED_BRDS):
-            ledBrd = tkLedBrd(i, gameData.numSolBrds + gameData.numInpBrds + i + 1, bgndFrm)
+            ledBrd = tkLedBrd(i, GameData.numSolBrds + GameData.numInpBrds + i + 1, bgndFrm)
         root.update()
       
         while self._runTkinterThread:

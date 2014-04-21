@@ -202,7 +202,7 @@ PROCESS_CHAINS
                                  {(Var_kick_retries++)
                                  if (Var_kick_retries > 5)
                                     {(MODE = Mode_Error) (TEXT = "Can't clear kickout hole")}
-                                 (START Timeout_Kickout_Timer) (KICK Sol_Ball_In_Play)}}
+                                 (START Timeout_Kickout_Timer) (KICK Sol_Kickout_Hole)}}
                            if (EXPIRED Timeout_Ball_Locate)
                               {(MODE = Mode_Error) (TEXT = "Lost Ball")}}
    
