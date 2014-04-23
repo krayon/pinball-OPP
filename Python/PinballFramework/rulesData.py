@@ -75,7 +75,7 @@ class RulesData:
     #just simple values to add to the active player's score
     SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 
-    #Number of boards in the system
+    #Number of LED boards in the system and inventory list
     NUM_LED_BRDS = 1
     INV_ADDR_LIST = [0x10, 0x00]
 

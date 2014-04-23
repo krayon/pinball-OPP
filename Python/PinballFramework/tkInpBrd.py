@@ -95,6 +95,7 @@ class tkInpBrd():
         self.statLbl.set("0x%04x" % self.dispInpValue)
         tmpLbl.grid(column = 0, row = 3)
 
+        #Configure btnCfgBitfield to initial value set by card cfg
         for i in range(rs232Intf.NUM_INP_PER_BRD):
             tkInpBrd.createBitFrame(self, i)
 
@@ -150,6 +151,10 @@ class tkInpBrd():
             inpCardBitFrm.grid(column = bit - 8, row = 1)
         tmpLbl = Label(inpCardBitFrm, text="%s" % RulesData.INP_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
+        
+        #Read config and set btnCfg
+        if (RulesData.INP_BRD_CFG[self.brdNum][bit] == rs232Intf.CFG_INP_STATE):
+            self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses
         self.indBitOptMenu.append(StringVar())

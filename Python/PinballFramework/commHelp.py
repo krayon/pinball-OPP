@@ -51,6 +51,7 @@ vers = '00.00.02'
 import rs232Intf
 import errIntf
 import commIntf
+from rulesData import RulesData
 
 #grab data from serial port
 def getSerialData(commThread, numBytes):
@@ -105,7 +106,16 @@ def getInventory(commThread):
         index += 1
     if (index != len(data)):
         return (errIntf.EXTRA_INFO_RCVD)
+    
     #Store off the response removing command and EOM
-    commIntf.invResp = list(data[1:-1])
+    commThread.invResp = list(data[1:-1])
+    
+    #Verify the number of cards is correct
+    if len(commThread.invResp) != len(RulesData.INV_ADDR_LIST):
+        return (errIntf.BAD_NUM_CARDS)
+    for i in range(len(commThread.invResp)):
+        if (commThread.invResp[i] != RulesData.INV_ADDR_LIST[i]):
+            return (errIntf.INV_MATCH_FAIL)
+        
     return (errIntf.CMD_OK)
 

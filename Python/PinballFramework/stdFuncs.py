@@ -47,6 +47,7 @@
 vers = '00.00.01'
 
 from gameData import GameData
+from ledBrd import LedBrd
 
 class StdFuncs():
     def CheckInpBit(self, cardBitPos):
@@ -68,7 +69,7 @@ class StdFuncs():
     def CheckLedBit(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xffff
-        if ((GameData.currLeds[cardNum] & bitPos) != 0):
+        if ((LedBrd.currLedData[cardNum] & bitPos) != 0):
             return True
         else:
             return False
@@ -113,11 +114,11 @@ class StdFuncs():
                     lastBit = index
                     foundLastBit = True
         if (foundFirstBit and foundLastBit):
-            tmpLed = GameData.currLeds[cardNum] << 1
+            tmpLed = LedBrd.currLedData[cardNum] << 1
             if ((tmpLed & (1 << lastBit)) != 0):
                 tmpLed |= (1 << firstBit)
             tmpLed &= ~rotMask
-            GameData.currLeds[cardNum] = (GameData.currLeds[cardNum] & ~rotMask) | tmpLed
+            LedBrd.currLedData[cardNum] = (LedBrd.currLedData[cardNum] & ~rotMask) | tmpLed
 
     def Var_Rot_Left(self, rotMask, data):
         index = 0
@@ -161,11 +162,11 @@ class StdFuncs():
                     lastBit = index
                     foundLastBit = True
         if (foundFirstBit and foundLastBit):
-            tmpLed = GameData.currLeds[cardNum]
-            if ((GameData.currLeds[cardNum] & (1 << firstBit)) != 0):
+            tmpLed = LedBrd.currLedData[cardNum]
+            if ((LedBrd.currLedData[cardNum] & (1 << firstBit)) != 0):
                 tmpLed |= (1 << lastBit)
             tmpLed = (tmpLed >> 1) & ~rotMask
-            GameData.currLeds[cardNum] = (GameData.currLeds[cardNum] & ~rotMask) | tmpLed
+            LedBrd.currLedData[cardNum] = (LedBrd.currLedData[cardNum] & ~rotMask) | tmpLed
 
     def Var_Rot_Right(self, rotMask, data):
         index = 0
@@ -194,23 +195,26 @@ class StdFuncs():
     def Led_On(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
-        GameData.currLeds[cardNum] |= bitPos
+        LedBrd.currLedData[cardNum] |= bitPos
+        LedBrd.currBlinkLeds[cardNum] &= ~bitPos
 
     def Led_Off(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
-        GameData.currLeds[cardNum] &= ~bitPos
+        LedBrd.currLedData[cardNum] &= ~bitPos
+        LedBrd.currBlinkLeds[cardNum] &= ~bitPos
 
     def Led_Set(self, mask, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
-        GameData.currLeds[cardNum] &= ~mask
-        GameData.currLeds[cardNum] |= bitPos
+        LedBrd.currLedData[cardNum] &= ~mask
+        LedBrd.currLedData[cardNum] |= bitPos
+        LedBrd.currBlinkLeds[cardNum] &= ~mask
 
     def Led_Blink_100(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
-        GameData.currBlinkLeds[cardNum] |= bitPos 
+        LedBrd.currBlinkLeds[cardNum] |= bitPos 
         
     def Sounds(self, soundIdx):
         #HRS:  Finish

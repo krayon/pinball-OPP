@@ -52,6 +52,8 @@ vers = '00.00.01'
 from Tkinter import Button as Btn
 from Tkinter import *
 from ttk import *
+from rulesData import RulesData
+from gameData import GameData
 
 class tkCmdFrm():
     #indices for stuff
@@ -106,7 +108,7 @@ class tkCmdFrm():
         tmpLbl.grid(column = 2, row = 0)
         self.stateVar = StringVar()
         self.stateVar.set("No State")
-        tmpLbl = Label(self.cmdFrm, textvariable=self.stateVar, relief=SUNKEN)
+        tmpLbl = Label(self.cmdFrm, textvariable=self.stateVar, relief=SUNKEN, width=20, anchor=CENTER)
         tmpLbl.grid(column = 2, row = 1, padx=8, pady=8)
         
     def toggle(self, whichThread):
@@ -142,3 +144,6 @@ class tkCmdFrm():
             #Set the state variables            
             self.btnCfgBitfield |= (1 << whichThread)
             self.toggleState[whichThread] = False
+
+    def Update_Cmd_Frm(self):
+        self.stateVar.set(RulesData.STATE_STR[GameData.gameMode])

@@ -20,9 +20,9 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   errIntf.py
+# @file:   ledBrd.py
 # @author: Hugh Spahr
-# @date:   1/16/2012
+# @date:   4/23/2014
 #
 # @note:   Open Pinball Project
 #          Copyright 2014, Hugh Spahr
@@ -42,28 +42,22 @@
 #
 #===============================================================================
 #
-# This is the error interface file that lists the errors returned by interface
-# calls.
+# This is the class that keeps information about the LED boards. 
 #
 #===============================================================================
 
 vers = '00.00.01'
 
-#Public data
-CMD_OK              = 0
-
-#Errors returned from comm intf 
-BAD_SOL_BRD_NUM     =  100
-BAD_SOL_NUM         =  101
-BAD_PARAM_BYTES     =  102
-BAD_INP_BRD_NUM     =  103
-BAD_INP_NUM         =  104
-CANT_OPEN_COM       =  105
-INVENTORY_NO_RESP   =  106
-BAD_INV_RESP        =  107
-EXTRA_INFO_RCVD     =  108
-BAD_NUM_CARDS       =  109
-INV_MATCH_FAIL      =  110
-
-#Errors returned from disp intf
-BAD_SCREEN_SIZE     =  200
+class LedBrd():
+    numLedBrds = 0
+    
+    #Used for blinking Leds at 500 ms.
+    currBlinkLeds = []
+    
+    #Current data output to the LEDs
+    currLedData = []
+    
+    def add_card(self):
+        self.numLedBrds += 1
+        self.currBlinkLeds.append(0)
+        self.currLedData.append(0)

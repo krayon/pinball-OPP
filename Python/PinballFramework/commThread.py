@@ -95,9 +95,11 @@ class CommThread(Thread):
         self.updateInpBrdCfg = 0
         self.inpBrdCfg = [[]]
         self.inpAddrArr = []
-        self.currInpData = []
+        self.switchInpData = []
+        self.switchSolData = []
         self.state = CommThread.COMM_INIT
         self.ser = None
+        self.invResp = []
 
         #private members
         self._runCommThread = True

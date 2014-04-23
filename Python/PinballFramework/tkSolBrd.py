@@ -153,6 +153,13 @@ class tkSolBrd():
         tmpLbl = Label(solCardBitFrm, text="%s" % RulesData.SOL_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
+        #Read config and set btnCfg
+        cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
+        holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
+        if (RulesData.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
+               (ord(RulesData.SOL_BRD_CFG[self.brdNum][holdOffset]) != 0):
+            self.btnCfgBitfield |= (1 << bit)
+        
         #Combobox menu for button presses
         self.indBitOptMenu.append(StringVar())
         if (self.btnCfgBitfield & (1 << bit)):

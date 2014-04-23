@@ -89,18 +89,21 @@ class TkinterThread(Thread):
         bgndFrm = Frame(root)
         bgndFrm.grid()
         cmdFrm = tkCmdFrm(bgndFrm)
+        numInpBrds = 0
+        numSolBrds = 0
         for i in range(len(RulesData.INV_ADDR_LIST)):
             if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                inpBrd = tkInpBrd(GameData.numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
-                GameData.numInpBrds += 1
+                inpBrd = tkInpBrd(numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                numInpBrds += 1
             elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                solBrd = tkSolBrd(GameData.numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
-                GameData.numSolBrds += 1
+                solBrd = tkSolBrd(numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                numSolBrds += 1
         for i in range(RulesData.NUM_LED_BRDS):
-            ledBrd = tkLedBrd(i, GameData.numSolBrds + GameData.numInpBrds + i + 1, bgndFrm)
+            ledBrd = tkLedBrd(i, numSolBrds + numInpBrds + i + 1, bgndFrm)
         root.update()
       
         while self._runTkinterThread:
             root.update()
+            cmdFrm.Update_Cmd_Frm()
             count += 1
             time.sleep(.1)

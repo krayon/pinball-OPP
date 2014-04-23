@@ -20,9 +20,9 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   errIntf.py
+# @file:   inpBrd.py
 # @author: Hugh Spahr
-# @date:   1/16/2012
+# @date:   4/23/2014
 #
 # @note:   Open Pinball Project
 #          Copyright 2014, Hugh Spahr
@@ -42,28 +42,43 @@
 #
 #===============================================================================
 #
-# This is the error interface file that lists the errors returned by interface
-# calls.
+# This is the class that keeps information about the input boards. 
 #
 #===============================================================================
 
 vers = '00.00.01'
 
-#Public data
-CMD_OK              = 0
+import rs232Intf
+from rulesData import RulesData
 
-#Errors returned from comm intf 
-BAD_SOL_BRD_NUM     =  100
-BAD_SOL_NUM         =  101
-BAD_PARAM_BYTES     =  102
-BAD_INP_BRD_NUM     =  103
-BAD_INP_NUM         =  104
-CANT_OPEN_COM       =  105
-INVENTORY_NO_RESP   =  106
-BAD_INV_RESP        =  107
-EXTRA_INFO_RCVD     =  108
-BAD_NUM_CARDS       =  109
-INV_MATCH_FAIL      =  110
-
-#Errors returned from disp intf
-BAD_SCREEN_SIZE     =  200
+class InpBrd():
+    numInpBrds = 0
+    
+    #Used for switch input processing.  A '1' means it is a state input bit and
+    #  the latest value is used.  A '0' means is an edge triggered input, and it
+    #  is automatically cleared after being used.
+    inpCfgBitfield = []
+    
+    #Current data read from card
+    currInpData = []
+    
+    def add_card(self):
+        brdNum = self.numInpBrds
+        self.numInpBrds += 1
+        bitField = 0
+        for bit in range(rs232Intf.NUM_INP_PER_BRD):
+            if (RulesData.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
+                bitField |= (1 << bit)
+        self.inpCfgBitfield.append(0)
+        self.currInpData.append(0)
+    
+    def update_status(self, card, data):
+        self.currInpData[card] &= ~self.inpCfgBitfield[card]
+        self.currInpData[card] |= data
+        
+    def get_status(self, card):
+        #Clear all the edge triggered bits
+        data = self.currInpData[card]
+        self.curInpData &= self.inpCfgBitfield[card]
+        return data
+    
