@@ -46,31 +46,41 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
-from rulesData import State
-from rulesData import RulesData
+from rules.rulesData import RulesData
 from inpBrd import InpBrd
 from solBrd import SolBrd
 from ledBrd import LedBrd
 import rs232Intf
+import dispConstIntf
 
 class GameData():
     credits = 0
     creditsInRow = 0
     partCreditsNum = 0
-    extraCredit = 0
-    partCreditsDenom = 0
+    extraCredit = 5
+    partCreditsDenom = 2
     
-    gameMode = State.ATTRACT
+    prevGameMode = 0xffffffff
+    gameMode = RulesData.INIT_MODE
     score = [0, 0, 0, 0]
     ballNum = 0
     currPlayer = 0
     numPlayers = 0
-    inlaneLights = []
+    inlaneLights = [0, 0, 0, 0]
     scoreLvl = 0
+    numSpinners = 0
     specialLvl = 0
     kick_retries = 0
+    
+    debug = False
+    inpBrd = InpBrd()
+    solBrd = SolBrd()
+    ledBrd = LedBrd()
+    
+    #Filled out if debug frame is created
+    tkInpBrd = []
+    tkSolBrd = []
+    tkLedBrd = []
     
     #Used for switch input processing.  Logical OR of debug data (simSwitchBits)
     #  and Comms data (switchInpData, switchSolData)
@@ -80,37 +90,15 @@ class GameData():
     expiredTimers = 0
 
     def __init__(self):
-        self.credits = 0
-        self.creditsInRow = 0
-        self.partCreditsNum = 0
-        self.extraCredit = 4
-        self.partCreditsDenom = 2
-        
-        self.gameMode = State.ATTRACT
-        self.score = [0, 0, 0, 0]
-        self.ballNum = 0
-        self.currPlayer = 0
-        self.numPlayers = 0
-        self.inlaneLights = []
-        self.scoreLvl = 0
-        self.specialLvl = 0
-        self.kick_retries = 0
-        
-        self.currInpStatus = []
-        self.currSolStatus = []
-        self.expiredTimers = 0
+        pass
 
-    def add_inp_brd(self):
-        self.currInpStatus.append(0)
-        
-    def add_sol_brd(self):
-        self.currSolStatus.append(0)
-        
     def init_brd_objs(self):
         for i in range(len(RulesData.INV_ADDR_LIST)):
             if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                InpBrd.add_card()
+                InpBrd.add_card(self.inpBrd)
+                GameData.currInpStatus.append(0)
             elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                SolBrd.add_card()
+                SolBrd.add_card(self.solBrd)
+                GameData.currSolStatus.append(0)
         for i in range(RulesData.NUM_LED_BRDS):
-            LedBrd.add_card()
+            LedBrd.add_card(self.ledBrd)

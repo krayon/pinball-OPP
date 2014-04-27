@@ -46,10 +46,8 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 import rs232Intf
-from rulesData import RulesData
+from rules.rulesData import RulesData
 
 class SolBrd():
     numSolBrds = 0
@@ -64,7 +62,7 @@ class SolBrd():
     
     def add_card(self):
         brdNum = self.numSolBrds
-        self.numSolBrds += 1
+        SolBrd.numSolBrds += 1
         bitField = 0
         for bit in range(rs232Intf.NUM_SOL_PER_BRD):
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
@@ -72,16 +70,16 @@ class SolBrd():
             if (RulesData.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
                    (ord(RulesData.SOL_BRD_CFG[brdNum][holdOffset]) != 0):
                 bitField |= (1 << bit)
-        self.solCfgBitfield.append(0)
-        self.currSolData.append(0)
+        SolBrd.solCfgBitfield.append(0)
+        SolBrd.currSolData.append(0)
     
     def update_status(self, card, data):
-        self.currSolData[card] &= ~self.solCfgBitfield[card]
-        self.currSolData[card] |= data
+        SolBrd.currSolData[card] &= ~SolBrd.solCfgBitfield[card]
+        SolBrd.currSolData[card] |= data
         
     def get_status(self, card):
         #Clear all the edge triggered bits
-        data = self.currSolData[card]
-        self.curSolData &= self.solCfgBitfield[card]
+        data = SolBrd.currSolData[card]
+        SolBrd.currSolData[card] &= SolBrd.solCfgBitfield[card]
         return data
     

@@ -44,10 +44,10 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 from gameData import GameData
 from ledBrd import LedBrd
+from rules.rulesData import RulesData
+import dispConstIntf 
 
 class StdFuncs():
     def CheckInpBit(self, cardBitPos):
@@ -223,3 +223,10 @@ class StdFuncs():
     def Wait(self, delay):
         #HRS:  Finish
         pass
+    
+    def BlankScoreDisps(self):
+        for index in range(RulesData.MAX_NUM_PLYRS):
+            GameData.score[dispConstIntf.DISP_PLAYER1 + index] = dispConstIntf.DISP_BLANK
+
+    def BlankPlyrNumDisp(self):
+        GameData.currPlayer = dispConstIntf.DISP_BLANK

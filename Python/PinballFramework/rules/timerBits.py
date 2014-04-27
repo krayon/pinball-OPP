@@ -20,9 +20,9 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   inpBrd.py
+# @file:   timerBits.py
 # @author: Hugh Spahr
-# @date:   4/23/2014
+# @date:   4/25/2014
 #
 # @note:   Open Pinball Project
 #          Copyright 2014, Hugh Spahr
@@ -42,41 +42,11 @@
 #
 #===============================================================================
 #
-# This is the class that keeps information about the input boards. 
+# These are the timer bit names.  It has a bitmask for each timer used.
 #
 #===============================================================================
 
-import rs232Intf
-from rules.rulesData import RulesData
-
-class InpBrd():
-    numInpBrds = 0
-    
-    #Used for switch input processing.  A '1' means it is a state input bit and
-    #  the latest value is used.  A '0' means is an edge triggered input, and it
-    #  is automatically cleared after being used.
-    inpCfgBitfield = []
-    
-    #Current data read from card
-    currInpData = []
-    
-    def add_card(self):
-        brdNum = self.numInpBrds
-        InpBrd.numInpBrds += 1
-        bitField = 0
-        for bit in range(rs232Intf.NUM_INP_PER_BRD):
-            if (RulesData.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
-                bitField |= (1 << bit)
-        InpBrd.inpCfgBitfield.append(0)
-        InpBrd.currInpData.append(0)
-    
-    def update_status(self, card, data):
-        InpBrd.currInpData[card] &= ~InpBrd.inpCfgBitfield[card]
-        InpBrd.currInpData[card] |= data
-        
-    def get_status(self, card):
-        #Clear all the edge triggered bits
-        data = InpBrd.currInpData[card]
-        InpBrd.currInpData[card] &= InpBrd.inpCfgBitfield[card]
-        return data
-    
+class Timers:
+    KICKOUT_TIMER       = 0x0001
+    BALL_LOCATE         = 0x0002
+    SPECIAL_TIMER       = 0x0004

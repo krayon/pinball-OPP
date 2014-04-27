@@ -47,15 +47,13 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 import rs232Intf
 from Tkinter import Button as Btn
 from Tkinter import *
 from ttk import *
-from rulesData import RulesData
+from rules.rulesData import RulesData
 
-class tkInpBrd():
+class TkInpBrd():
     brdAddr = 0
     brdNum = 0
     brdPos = 0
@@ -97,7 +95,7 @@ class tkInpBrd():
 
         #Configure btnCfgBitfield to initial value set by card cfg
         for i in range(rs232Intf.NUM_INP_PER_BRD):
-            tkInpBrd.createBitFrame(self, i)
+            TkInpBrd.createBitFrame(self, i)
 
     def toggle(self, bit):
         #If this is configured as a toggle button
@@ -105,10 +103,10 @@ class tkInpBrd():
             self.toggleState[bit] = not self.toggleState[bit]
             if self.toggleState[bit]:
                 self.toggleBtn[bit].config(relief=SUNKEN)
-                self.simSwitchBits &= ~(1 << bit)
+                self.simSwitchBits |= (1 << bit)
             else:
                 self.toggleBtn[bit].config(relief=RAISED)
-                self.simSwitchBits |= (1 << bit)
+                self.simSwitchBits &= ~(1 << bit)
         #Else this is a pulsed button, set the bit and it will be auto cleared
         else:
             self.simSwitchBits |= (1 << bit)
@@ -138,9 +136,9 @@ class tkInpBrd():
             #Set the state variables            
             self.btnCfgBitfield |= (1 << bit)
             if self.toggleState[bit]:
-                self.simSwitchBits &= ~(1 << bit)
-            else:
                 self.simSwitchBits |= (1 << bit)
+            else:
+                self.simSwitchBits &= ~(1 << bit)
             
     def createBitFrame(self, bit):
         inpCardBitFrm = Frame(self.inpCardFrm, borderwidth = 5, relief=RAISED)
@@ -184,3 +182,9 @@ class tkInpBrd():
         self.indBitStatLbl[bit].set("0")
         tmpLbl = Label(inpCardBitFrm, textvariable=self.indBitStatLbl[bit], relief=SUNKEN)
         tmpLbl.grid(column = 1, row = 3)
+
+    def get_status(self):
+        #Clear all the edge triggered bits
+        data = self.simSwitchBits
+        self.simSwitchBits &= self.btnCfgBitfield
+        return data

@@ -45,7 +45,6 @@
 # Start the pin
 #
 #===============================================================================
-vers = '00.00.02'
 
 from sys import exit
 import sys
@@ -53,14 +52,17 @@ import time
 from commThread import CommThread
 from tkinterThread import TkinterThread
 from pygameFunc import Pygame_Data
+from rulesThread import RulesThread
 import dispIntf
+from gameData import GameData
 
 def main(argv=None):
 
     end = False
     simWidth = 1920
     comPort = ""
-    debug = False
+    GameData.debug = False
+    GameData.init_brd_objs(GameData())
 
     actWidth = 0
     fullScreen = False
@@ -76,7 +78,7 @@ def main(argv=None):
         elif arg.startswith('-port='):
             comPort = arg[6:]
         elif arg.startswith('-debug'):
-            debug = True
+            GameData.debug = True
         elif arg.startswith('-?'):
             print "python startPin.py [OPTIONS]"
             print "    -?                 Options Help"
@@ -96,26 +98,35 @@ def main(argv=None):
     if error: exit()
     dispIntf.startDisp()
     
+    #Initialize Pygame class
+    pygame = Pygame_Data()
+    
+    #If Debugging created debug window
+    if GameData.debug:
+        tkinterThread = TkinterThread()
+        tkinterThread.init()
+        tkinterThread.start()
+        while not TkinterThread.doneInit:
+            time.sleep(.1)
+    
     #Initialize the COMMs to the hardware
     commThread = CommThread()
     commThread.init(comPort)
     commThread.start()
     
-    #Initialize Pygame class
-    pygame = Pygame_Data()
-    
-    #If Debugging created debug window
-    if debug:
-        tkinterThread = TkinterThread()
-        tkinterThread.init()
-        tkinterThread.start()
+    #Initialize the rules thread
+    rulesThread = RulesThread()
+    rulesThread.init()
+    rulesThread.start()
     
     done = False
     while not done:
-        done = pygame.Proc_Pygame_Events();
+        done = pygame.Proc_Pygame_Events()
+        pygame.Update_Displays()
         time.sleep(.01)    
     commThread.commExit()
-    if debug:
+    rulesThread.rulesExit()
+    if GameData.debug:
         tkinterThread.tkinterExit()
 
 if __name__ == "__main__":

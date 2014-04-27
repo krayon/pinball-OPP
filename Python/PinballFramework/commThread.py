@@ -47,12 +47,11 @@
 #
 #===============================================================================
 
-vers = '00.00.02'
-
 import rs232Intf
 import errIntf
 import serial
-import thread
+from gameData import GameData
+from tkCmdFrm import TkCmdFrm
 from threading import Thread
 import time
 import commHelp
@@ -83,6 +82,10 @@ class CommThread(Thread):
                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
                       rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ]
     
+    #private members
+    _runCommThread = True
+    _threadlock = 0
+    
     def __init__(self):
         super(CommThread, self).__init__()
         
@@ -100,10 +103,6 @@ class CommThread(Thread):
         self.state = CommThread.COMM_INIT
         self.ser = None
         self.invResp = []
-
-        #private members
-        self._runCommThread = True
-        self._threadlock = thread.allocate_lock()
 
     #Initialize comms to the hardware
     def init(self, portId):
@@ -126,12 +125,28 @@ class CommThread(Thread):
         super(CommThread, self).start()
     
     def commExit(self):
-        self._runCommThread = False
+        CommThread._runCommThread = False
+        
+    def proc_comms(self):
+        pass
     
     def run(self):
         count = 0
       
-        while self._runCommThread:
-            count += 1
+        while CommThread._runCommThread:
+            #Process comms if not running in debug mode
+            if not GameData.debug: 
+                self.proc_rules()
+            #Process comms if run button is active
+            elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX] and \
+                    TkCmdFrm.toggleState[TkCmdFrm.COMMS_THREAD_IDX]:
+                self.proc_rules()
+            #Process comms if send step was pressed
+            elif GameData.debug and (not TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX]) and \
+                    TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX]:
+                TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX] = False
+                self.proc_rules()
+            
+            #Sleep until next rules processing time
             time.sleep(1)
-            #Comm thread processing
+            count += 1

@@ -47,15 +47,13 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 from Tkinter import Button as Btn
 from Tkinter import *
 from ttk import *
-from rulesData import RulesData
+from rules.rulesData import RulesData
 from gameData import GameData
 
-class tkCmdFrm():
+class TkCmdFrm():
     #indices for stuff
     RULES_THREAD_IDX = 0
     COMMS_THREAD_IDX = 1
@@ -76,74 +74,82 @@ class tkCmdFrm():
         #Add rules thread controls
         tmpLbl = Label(self.cmdFrm, text="Rules Thread")
         tmpLbl.grid(column = 0, row = 0)
-        self.comboVar.append(StringVar())
-        self.comboVar[tkCmdFrm.RULES_THREAD_IDX].set("Run")
-        self.threadRun.append(True)
-        self.toggleState.append(False)
-        tmpCB = Combobox(self.cmdFrm, textvariable=self.comboVar[tkCmdFrm.RULES_THREAD_IDX], width=11, state="readonly")
+        TkCmdFrm.comboVar.append(StringVar())
+        TkCmdFrm.comboVar[TkCmdFrm.RULES_THREAD_IDX].set("Run")
+        TkCmdFrm.threadRun.append(True)
+        TkCmdFrm.toggleState.append(False)
+        TkCmdFrm.threadSendStep.append(False)
+        tmpCB = Combobox(self.cmdFrm, textvariable=TkCmdFrm.comboVar[TkCmdFrm.RULES_THREAD_IDX], width=11, state="readonly")
         tmpCB["values"] = ("Run", "Single Step")
         tmpCB.grid(column = 0, row = 1, padx=8, pady=8)
-        self.comboVar[tkCmdFrm.RULES_THREAD_IDX].trace("w", lambda name, index, op, tmp=tkCmdFrm.RULES_THREAD_IDX: self.comboboxcallback(tmp))
-        tmpBtn = Btn(self.cmdFrm, text="Run", command=lambda tmp=tkCmdFrm.RULES_THREAD_IDX: self.toggle(tmp))
+        TkCmdFrm.comboVar[TkCmdFrm.RULES_THREAD_IDX].trace("w", lambda name, index, op, tmp=TkCmdFrm.RULES_THREAD_IDX: self.comboboxcallback(tmp))
+        tmpBtn = Btn(self.cmdFrm, text="Run", command=lambda tmp=TkCmdFrm.RULES_THREAD_IDX: self.toggle(tmp))
         tmpBtn.grid(column = 0, row = 2, padx=8, pady=8)
-        self.toggleBtn.append(tmpBtn)
+        TkCmdFrm.toggleBtn.append(tmpBtn)
         
         #Add comms thread controls
         tmpLbl = Label(self.cmdFrm, text="Comms Thread")
         tmpLbl.grid(column = 1, row = 0)
-        self.comboVar.append(StringVar())
-        self.comboVar[tkCmdFrm.COMMS_THREAD_IDX].set("Run")
-        self.threadRun.append(True)
-        self.toggleState.append(False)
-        tmpCB = Combobox(self.cmdFrm, textvariable=self.comboVar[tkCmdFrm.COMMS_THREAD_IDX], width=11, state="readonly")
+        TkCmdFrm.comboVar.append(StringVar())
+        TkCmdFrm.comboVar[TkCmdFrm.COMMS_THREAD_IDX].set("Run")
+        TkCmdFrm.threadRun.append(True)
+        TkCmdFrm.toggleState.append(False)
+        TkCmdFrm.threadSendStep.append(False)
+        tmpCB = Combobox(self.cmdFrm, textvariable=TkCmdFrm.comboVar[TkCmdFrm.COMMS_THREAD_IDX], width=11, state="readonly")
         tmpCB["values"] = ("Run", "Single Step")
         tmpCB.grid(column = 1, row = 1, padx=8, pady=8)
-        self.comboVar[tkCmdFrm.COMMS_THREAD_IDX].trace("w", lambda name, index, op, tmp=tkCmdFrm.COMMS_THREAD_IDX: self.comboboxcallback(tmp))
-        tmpBtn = Btn(self.cmdFrm, text="Run", command=lambda tmp=tkCmdFrm.COMMS_THREAD_IDX: self.toggle(tmp))
+        TkCmdFrm.comboVar[TkCmdFrm.COMMS_THREAD_IDX].trace("w", lambda name, index, op, tmp=TkCmdFrm.COMMS_THREAD_IDX: self.comboboxcallback(tmp))
+        tmpBtn = Btn(self.cmdFrm, text="Run", command=lambda tmp=TkCmdFrm.COMMS_THREAD_IDX: self.toggle(tmp))
         tmpBtn.grid(column = 1, row = 2, padx=8, pady=8)
-        self.toggleBtn.append(tmpBtn)
+        TkCmdFrm.toggleBtn.append(tmpBtn)
         
         #Add state status
         tmpLbl = Label(self.cmdFrm, text="State")
         tmpLbl.grid(column = 2, row = 0)
-        self.stateVar = StringVar()
-        self.stateVar.set("No State")
-        tmpLbl = Label(self.cmdFrm, textvariable=self.stateVar, relief=SUNKEN, width=20, anchor=CENTER)
+        TkCmdFrm.stateVar = StringVar()
+        TkCmdFrm.stateVar.set("No State")
+        tmpLbl = Label(self.cmdFrm, textvariable=TkCmdFrm.stateVar, relief=SUNKEN, width=20, anchor=CENTER)
         tmpLbl.grid(column = 2, row = 1, padx=8, pady=8)
         
     def toggle(self, whichThread):
         #If this is configured as a toggle button
-        if (self.btnCfgBitfield & (1 << whichThread) != 0):
-            self.toggleState[whichThread] = not self.toggleState[whichThread]
-            if self.toggleState[whichThread]:
-                self.toggleBtn[whichThread].config(relief=SUNKEN)
+        if (TkCmdFrm.btnCfgBitfield & (1 << whichThread) != 0):
+            TkCmdFrm.toggleState[whichThread] = not TkCmdFrm.toggleState[whichThread]
+            if TkCmdFrm.toggleState[whichThread]:
+                TkCmdFrm.toggleBtn[whichThread].config(relief=SUNKEN)
             else:
-                self.toggleBtn[whichThread].config(relief=RAISED)
+                TkCmdFrm.toggleBtn[whichThread].config(relief=RAISED)
+        else:
+            TkCmdFrm.threadSendStep[whichThread] = True
+
             
     def comboboxcallback(self, whichThread):
-        if self.comboVar[whichThread].get() == "Single Step":
+        if TkCmdFrm.comboVar[whichThread].get() == "Single Step":
             #Create a new button that is pulse
             tmpCnvs = Canvas(self.cmdFrm, width=100, height=40)
             tmpCnvs.grid(column = whichThread, row = 2)
             tmpBtn = Button(self.cmdFrm, text="Single Step", command=lambda tmp=whichThread: self.toggle(tmp))
             tmpBtn.grid(column = whichThread, row = 2, padx=4, pady=12)
-            self.toggleBtn[whichThread] = tmpBtn
+            TkCmdFrm.toggleBtn[whichThread] = tmpBtn
 
             #Set the state variables            
-            self.toggleState[whichThread] = False
-            self.btnCfgBitfield &= ~(1 << whichThread)
+            TkCmdFrm.toggleState[whichThread] = False
+            TkCmdFrm.threadSendStep[whichThread] = False
+            TkCmdFrm.threadRun[whichThread] = False
+            TkCmdFrm.btnCfgBitfield &= ~(1 << whichThread)
         else:
             #Create a new button that is toggle
             tmpCnvs = Canvas(self.cmdFrm, width=100, height=40)
             tmpCnvs.grid(column = whichThread, row = 2)
             tmpBtn = Btn(self.cmdFrm, text="Run", command=lambda tmp=whichThread: self.toggle(tmp))
-            tmpBtn.grid(column = 0, row = 2, padx=8, pady=8)
-            print whichThread
-            self.toggleBtn[whichThread] = tmpBtn
+            tmpBtn.grid(column = whichThread, row = 2, padx=8, pady=8)
+            TkCmdFrm.toggleBtn[whichThread] = tmpBtn
             
             #Set the state variables            
-            self.btnCfgBitfield |= (1 << whichThread)
-            self.toggleState[whichThread] = False
+            TkCmdFrm.toggleState[whichThread] = False
+            TkCmdFrm.threadSendStep[whichThread] = False
+            TkCmdFrm.threadRun[whichThread] = True
+            TkCmdFrm.btnCfgBitfield |= (1 << whichThread)
 
     def Update_Cmd_Frm(self):
-        self.stateVar.set(RulesData.STATE_STR[GameData.gameMode])
+        TkCmdFrm.stateVar.set(RulesData.STATE_STR[GameData.gameMode])

@@ -20,9 +20,9 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   inpBrd.py
+# @file:   solBitNames.py
 # @author: Hugh Spahr
-# @date:   4/23/2014
+# @date:   4/25/2014
 #
 # @note:   Open Pinball Project
 #          Copyright 2014, Hugh Spahr
@@ -42,41 +42,18 @@
 #
 #===============================================================================
 #
-# This is the class that keeps information about the input boards. 
+# These are the solenoid bit names.  It has a bitmask for each solenoid.
 #
 #===============================================================================
 
-import rs232Intf
-from rules.rulesData import RulesData
+#Top most nibble is the solenoid card index base 0
+class SolBitNames:
+    LFT_FLIP            = 0x00001
+    RGHT_FLIP           = 0x00002
+    LFT_SLINGSHOT       = 0x00004
+    RGHT_SLINGSHOT      = 0x00008
+    BALL_IN_PLAY        = 0x00010
+    POP_BUMPER_1        = 0x00020
+    POP_BUMPER_2        = 0x00040
+    KICKOUT_HOLE        = 0x00080
 
-class InpBrd():
-    numInpBrds = 0
-    
-    #Used for switch input processing.  A '1' means it is a state input bit and
-    #  the latest value is used.  A '0' means is an edge triggered input, and it
-    #  is automatically cleared after being used.
-    inpCfgBitfield = []
-    
-    #Current data read from card
-    currInpData = []
-    
-    def add_card(self):
-        brdNum = self.numInpBrds
-        InpBrd.numInpBrds += 1
-        bitField = 0
-        for bit in range(rs232Intf.NUM_INP_PER_BRD):
-            if (RulesData.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
-                bitField |= (1 << bit)
-        InpBrd.inpCfgBitfield.append(0)
-        InpBrd.currInpData.append(0)
-    
-    def update_status(self, card, data):
-        InpBrd.currInpData[card] &= ~InpBrd.inpCfgBitfield[card]
-        InpBrd.currInpData[card] |= data
-        
-    def get_status(self, card):
-        #Clear all the edge triggered bits
-        data = InpBrd.currInpData[card]
-        InpBrd.currInpData[card] &= InpBrd.inpCfgBitfield[card]
-        return data
-    

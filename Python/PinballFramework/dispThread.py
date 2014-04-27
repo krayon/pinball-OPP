@@ -47,12 +47,10 @@
 #
 #===============================================================================
 
-vers = '00.00.02'
-
 import thread
 import pygame
 from pygame.locals import *
-from rulesData import RulesData
+from rules.rulesData import RulesData
 import dispConstIntf
 import dispIntf
 import errIntf
@@ -63,8 +61,6 @@ updGiState = dispConstIntf.LGHT_ON
 sndPlyr = []
 
 #Positions for score
-#xPos = array('i',[])
-#yPos = array('i',[])
 xPos = []
 yPos = []
 clearRect = []

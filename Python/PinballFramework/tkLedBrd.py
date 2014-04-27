@@ -47,15 +47,13 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 import rs232Intf
 from Tkinter import Button as Btn
 from Tkinter import *
 from ttk import *
-from rulesData import RulesData
+from rules.rulesData import RulesData
 
-class tkLedBrd():
+class TkLedBrd():
     brdNum = 0
     brdPos = 0
     saveStatus = 0x55                  #1 is on, 0 is off
@@ -93,7 +91,7 @@ class tkLedBrd():
         tmpLbl.grid(column = 0, row = 2)
 
         for i in range(rs232Intf.NUM_LED_PER_BRD):
-            tkLedBrd.createBitFrame(self, i)
+            TkLedBrd.createBitFrame(self, i)
 
     def createBitFrame(self, bit):
         ledCardBitFrm = Frame(self.ledCardFrm, borderwidth = 5, relief=RAISED)

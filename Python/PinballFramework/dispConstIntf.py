@@ -47,8 +47,6 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 #Display constants
 DISP_PLAYER1 = 0
 DISP_PLAYER2 = 1
@@ -56,6 +54,9 @@ DISP_PLAYER3 = 2
 DISP_PLAYER4 = 3
 DISP_PLAYER_NUM = 4
 DISP_CREDIT_BALL_NUM = 5
+
+#Blank a display
+DISP_BLANK = 0xffffffff
 
 #Feature light constants
 LGHT_OFF = 0

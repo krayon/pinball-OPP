@@ -45,14 +45,13 @@
 # Pygame functions
 #
 #===============================================================================
-vers = '00.00.01'
 
 import pygame
 from gameData import GameData
 import dispConstIntf
 import dispIntf
-from rulesData import RulesData
-from rulesData import State
+from rules.rulesData import RulesData
+from rules.rulesData import State
 
 class Pygame_Data():
     #input mode
@@ -61,14 +60,16 @@ class Pygame_Data():
     INPMODE_LIGHTS = 2
     
     NO_KEY_PRESS = '\xff'
-
-    inpMode = INPMODE_INPUT
     
+    prevScore = [0, 0, 0, 0]
+    prevPlyrNum = 0
+    prevCreditBallNum = 0
+
     def __init__(self):
-        self.inpMode = self.INPMODE_INPUT
+        Pygame_Data.inpMode = Pygame_Data.INPMODE_INPUT
         
     def Proc_Pygame_Events(self):
-        keyPress = self.NO_KEY_PRESS
+        keyPress = Pygame_Data.NO_KEY_PRESS
         done = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -77,13 +78,13 @@ class Pygame_Data():
                 if event.key == pygame.K_ESCAPE:
                     done = True
                 elif event.key == pygame.K_i:
-                    self.inpMode = self.INPMODE_INPUT
+                    Pygame_Data.inpMode = Pygame_Data.INPMODE_INPUT
                     print "Input mode"
                 elif event.key == pygame.K_s:
-                    self.inpMode = self.INPMODE_SOUND
+                    Pygame_Data.inpMode = Pygame_Data.INPMODE_SOUND
                     print "Sound mode"
                 elif event.key == pygame.K_l:
-                    self.inpMode = self.INPMODE_LIGHTS
+                    Pygame_Data.inpMode = Pygame_Data.INPMODE_LIGHTS
                     print "Light mode"
                 elif event.key == pygame.K_c:
                     GameData.credits += 1
@@ -142,16 +143,35 @@ class Pygame_Data():
                             GameData.gameMode = State.ATTRACT
                 elif (event.key >= pygame.K_0) and (event.key <= pygame.K_9):
                     keyPress = event.key - pygame.K_0
-        if keyPress != self.NO_KEY_PRESS:
+        if keyPress != Pygame_Data.NO_KEY_PRESS:
             #keypress processing here
-            if self.inpMode == self.INPMODE_SOUND:
+            if Pygame_Data.inpMode == Pygame_Data.INPMODE_SOUND:
                 dispIntf.playSound(keyPress)
-            elif self.inpMode == self.INPMODE_LIGHTS:
+            elif Pygame_Data.inpMode == Pygame_Data.INPMODE_LIGHTS:
                 dispIntf.updateFeatureLight(keyPress, dispConstIntf.LGHT_TOGGLE)
             if GameData.gameMode == State.NORMAL_PLAY:
                 GameData.score[GameData.currPlayer] += RulesData.SCORE_INC[keyPress]
                 dispIntf.updateDisp(GameData.currPlayer, GameData.score[GameData.currPlayer], False)
-            keyPress = self.NO_KEY_PRESS
+            keyPress = Pygame_Data.NO_KEY_PRESS
         return done
 
-
+    def Update_Displays(self):
+        if (Pygame_Data.prevPlyrNum != GameData.currPlayer):
+            if (GameData.currPlayer != dispConstIntf.DISP_BLANK):
+                dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, GameData.currPlayer + 1, False)
+            else:
+                dispIntf.updateDisp(dispConstIntf.DISP_PLAYER_NUM, 0, True)
+            Pygame_Data.prevPlyrNum = GameData.currPlayer
+        if (Pygame_Data.prevCreditBallNum != GameData.credits):
+            if (GameData.credits != dispConstIntf.DISP_BLANK):
+                dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, GameData.credits, False)
+            else:
+                dispIntf.updateDisp(dispConstIntf.DISP_CREDIT_BALL_NUM, 0, True)
+            Pygame_Data.prevCreditBallNum = GameData.credits
+        for index in range(RulesData.MAX_NUM_PLYRS):
+            if (Pygame_Data.prevScore[index] != GameData.score[index]):
+                if (GameData.score[index] != dispConstIntf.DISP_BLANK):
+                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER1 + index, GameData.score[index], False)
+                else:
+                    dispIntf.updateDisp(dispConstIntf.DISP_PLAYER1 + index, 0, True)
+                Pygame_Data.prevScore[index] = GameData.score[index]

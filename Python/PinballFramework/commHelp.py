@@ -46,12 +46,10 @@
 #
 #===============================================================================
 
-vers = '00.00.02'
-
 import rs232Intf
 import errIntf
 import commIntf
-from rulesData import RulesData
+from rules.rulesData import RulesData
 
 #grab data from serial port
 def getSerialData(commThread, numBytes):

@@ -46,22 +46,22 @@
 #
 #===============================================================================
 
-vers = '00.00.01'
-
 from Tkinter import *
 from ttk import *
 
 from threading import Thread
-from tkCmdFrm import tkCmdFrm
-from tkInpBrd import tkInpBrd
-from tkSolBrd import tkSolBrd
-from tkLedBrd import tkLedBrd
+from tkCmdFrm import TkCmdFrm
+from tkInpBrd import TkInpBrd
+from tkSolBrd import TkSolBrd
+from tkLedBrd import TkLedBrd
 import time
-from rulesData import RulesData
+from rules.rulesData import RulesData
 import rs232Intf
 from gameData import GameData
 
 class TkinterThread(Thread):
+    doneInit = False
+    
     def __init__(self):
         super(TkinterThread, self).__init__()
         
@@ -88,19 +88,20 @@ class TkinterThread(Thread):
         root.rowconfigure(0, weight=1)
         bgndFrm = Frame(root)
         bgndFrm.grid()
-        cmdFrm = tkCmdFrm(bgndFrm)
+        cmdFrm = TkCmdFrm(bgndFrm)
         numInpBrds = 0
         numSolBrds = 0
         for i in range(len(RulesData.INV_ADDR_LIST)):
             if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                inpBrd = tkInpBrd(numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                GameData.tkInpBrd.append(TkInpBrd(numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm))
                 numInpBrds += 1
             elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                solBrd = tkSolBrd(numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm)
+                GameData.tkSolBrd.append(TkSolBrd(numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm))
                 numSolBrds += 1
         for i in range(RulesData.NUM_LED_BRDS):
-            ledBrd = tkLedBrd(i, numSolBrds + numInpBrds + i + 1, bgndFrm)
+            GameData.tkLedBrd.append(TkLedBrd(i, numSolBrds + numInpBrds + i + 1, bgndFrm))
         root.update()
+        TkinterThread.doneInit = True
       
         while self._runTkinterThread:
             root.update()
