@@ -136,16 +136,16 @@ class CommThread(Thread):
         while CommThread._runCommThread:
             #Process comms if not running in debug mode
             if not GameData.debug: 
-                self.proc_rules()
+                self.proc_comms()
             #Process comms if run button is active
             elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.COMMS_THREAD_IDX]:
-                self.proc_rules()
+                self.proc_comms()
             #Process comms if send step was pressed
             elif GameData.debug and (not TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX]) and \
                     TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX]:
                 TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX] = False
-                self.proc_rules()
+                self.proc_comms()
             
             #Sleep until next rules processing time
             time.sleep(1)

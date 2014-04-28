@@ -48,12 +48,12 @@
 
 #Top most nibble is the solenoid card index base 0
 class SolBitNames:
-    LFT_FLIP            = 0x00001
-    RGHT_FLIP           = 0x00002
-    LFT_SLINGSHOT       = 0x00004
-    RGHT_SLINGSHOT      = 0x00008
+    RGHT_FLIP           = 0x00001
+    LFT_FLIP            = 0x00002
+    RGHT_SLINGSHOT      = 0x00004
+    LFT_SLINGSHOT       = 0x00008
     BALL_IN_PLAY        = 0x00010
-    POP_BUMPER_1        = 0x00020
     POP_BUMPER_2        = 0x00040
+    POP_BUMPER_1        = 0x00020
     KICKOUT_HOLE        = 0x00080
 

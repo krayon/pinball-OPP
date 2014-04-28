@@ -48,9 +48,9 @@
 
 #Top most nibble is the LED card index base 0
 class LedBitNames:
-    INLANE_LFT          = 0x00001
+    INLANE_RGHT         = 0x00001
     INLANE_CTR          = 0x00002
-    INLANE_RGHT         = 0x00004
+    INLANE_LFT          = 0x00004
     INLANE_MSK          = 0x00007
     LFT_TRGT_1          = 0x00008
     LFT_TRGT_2          = 0x00010

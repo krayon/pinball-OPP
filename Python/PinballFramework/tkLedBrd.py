@@ -56,8 +56,9 @@ from rules.rulesData import RulesData
 class TkLedBrd():
     brdNum = 0
     brdPos = 0
-    saveStatus = 0x55                  #1 is on, 0 is off
+    prevLedState = 0x00                  #1 is on, 0 is off
     bitFrms = []
+    canvas = []
     ledCardFrm = 0
     statLbl = 0
     ledOffImage = 0
@@ -87,7 +88,7 @@ class TkLedBrd():
         tmpLbl = Label(ledCardInfoFrm, text="Status")
         tmpLbl.grid(column = 0, row = 1)
         tmpLbl = Label(ledCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
-        self.statLbl.set("0x%02x" % self.saveStatus)
+        self.statLbl.set("0x%02x" % self.prevLedState)
         tmpLbl.grid(column = 0, row = 2)
 
         for i in range(rs232Intf.NUM_LED_PER_BRD):
@@ -96,15 +97,27 @@ class TkLedBrd():
     def createBitFrame(self, bit):
         ledCardBitFrm = Frame(self.ledCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(ledCardBitFrm)
-        ledCardBitFrm.grid(column = bit, row = 0)
+        ledCardBitFrm.grid(column = rs232Intf.NUM_LED_PER_BRD - bit - 1, row = 0)
         tmpLbl = Label(ledCardBitFrm, text="%s" % RulesData.LED_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0)
         
         #Graphic of LED on
-        canvas = Canvas(ledCardBitFrm, width=100, height=80) #bg="black"
-        canvas.grid(column = 0, row = 1)
+        self.canvas.append(Canvas(ledCardBitFrm, width=100, height=80))
+        self.canvas[bit].grid(column = 0, row = 1)
         
-        if ((self.saveStatus & (1 << bit)) != 0):
-            canvas.create_image(48, 40, image=self.ledOffImage)
+        if ((self.prevLedState & (1 << bit)) == 0):
+            self.canvas[bit].create_image(48, 40, image=self.ledOffImage)
         else:
-            canvas.create_image(48, 40, image=self.ledOnGrnImage)
+            self.canvas[bit].create_image(48, 40, image=self.ledOnGrnImage)
+
+    def updateLeds(self, data):
+        if (self.prevLedState != data):
+            for index in range(rs232Intf.NUM_LED_PER_BRD):
+                if ((self.prevLedState ^ data) & (1 << index)):
+                    if (data & (1 << index)) != 0:
+                        self.canvas[index].create_image(48, 40, image=self.ledOnGrnImage)
+                    else:
+                        self.canvas[index].create_image(48, 40, image=self.ledOffImage)
+            self.prevLedState = data
+            self.statLbl.set("0x%02x" % self.prevLedState)
+                        

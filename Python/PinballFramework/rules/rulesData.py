@@ -82,7 +82,7 @@ class RulesData:
     #Input board bit names
     INP_BRD_BIT_NAMES = [["CoinDrop", "StartBtn", "TiltSwitch", "Spinner",
                     "LftOutln", "RghtOutln", "LftFlipLn", "RghtFlipLn",
-                    "BallAtPlunger", "InlaneLft", "InlaneCtr", "InlaneRght",
+                    "BallAtPlunger", "InlaneRght", "InlaneCtr", "InlaneLft",
                     "LftTrgt1", "LftTrgt2", "RghtTrgt1", "RghtTrgt2"]]
 
     INP_BRD_CFG = [ [ rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
@@ -92,8 +92,8 @@ class RulesData:
 
 
     #Solenoid board bit names
-    SOL_BRD_BIT_NAMES = [["LftFlip", "RghtFlip", "LftSlingshot", "RghtSlingshot",
-                    "BallInPlay", "PopBumper1", "PopBumper2", "KickoutHole"]]
+    SOL_BRD_BIT_NAMES = [["RghtFlip", "LftFlip", "RghtSlingshot", "LftSlingshot",
+                    "BallInPlay", "PopBumper2", "PopBumper1", "KickoutHole"]]
 
     SOL_BRD_CFG = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
          rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
@@ -101,7 +101,7 @@ class RulesData:
          rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00' ] ]
 
     #LED board bit names
-    LED_BRD_BIT_NAMES = [["InlaneLft", "InlaneCtr", "InlaneRght", "LftTrgt1",
+    LED_BRD_BIT_NAMES = [["InlaneRght", "InlaneCtr", "InlaneLft", "LftTrgt1",
                     "LftTrgt2", "RghtTrgt1", "RghtTrgt2", "Special"]]
 
     #State name strings.  Must match State enumeration

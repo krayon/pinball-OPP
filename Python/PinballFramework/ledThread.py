@@ -20,9 +20,9 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   ledBrd.py
+# @file:   ledThread.py
 # @author: Hugh Spahr
-# @date:   4/23/2014
+# @date:   4/27/2014
 #
 # @note:   Open Pinball Project
 #          Copyright 2014, Hugh Spahr
@@ -42,20 +42,58 @@
 #
 #===============================================================================
 #
-# This is the class that keeps information about the LED boards. 
+# This is the LED thread file that is used to change LEDs on and off.  It needs
+# a thread to support blinking and communication to the hardware.
 #
 #===============================================================================
 
-class LedBrd():
-    numLedBrds = 0
+import errIntf
+from gameData import GameData
+from tkCmdFrm import TkCmdFrm
+from threading import Thread
+from rules.rulesData import RulesData
+from ledBrd import LedBrd
+import time
+
+class LedThread(Thread):
+    #private members
+    _runLedThread = True
+    _threadlock = 0
+    _prevLedState = []
     
-    #Used for blinking Leds at 500 ms.
-    currBlinkLeds = []
+    def __init__(self):
+        super(LedThread, self).__init__()
+
+    #Initialize the SPI hardware
+    def init(self):
+        for index in range(RulesData.NUM_LED_BRDS):
+            index = index
+            LedThread._prevLedState.append(0)
+        return(errIntf.CMD_OK)
     
-    #Current data output to the LEDs
-    currLedData = []
+    def start(self):
+        super(LedThread, self).start()
     
-    def add_card(self):
-        LedBrd.numLedBrds += 1
-        LedBrd.currBlinkLeds.append(0)
-        LedBrd.currLedData.append(0)
+    def ledExit(self):
+        LedThread._runLedThread = False
+
+    def proc_leds(self):
+        for index in range(RulesData.NUM_LED_BRDS):
+            if GameData.debug:
+                GameData.tkLedBrd[index].updateLeds(LedBrd.currLedData[index])
+            
+    def run(self):
+        count = 0
+      
+        while LedThread._runLedThread:
+            #Process LEDs if not running in debug mode
+            if not GameData.debug: 
+                self.proc_leds()
+            #Process LEDs if run button is active
+            elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
+                    TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
+                self.proc_leds()
+            
+            #Sleep until next rules processing time
+            time.sleep(.1)
+            count += 1

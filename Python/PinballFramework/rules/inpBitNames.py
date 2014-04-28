@@ -54,12 +54,12 @@ class InpBitNames:
     SPINNER             = 0x00008
     LFT_OUT_LN          = 0x00010
     RGHT_OUT_LN         = 0x00020
-    LFT_FLIP_LN         =  0x00040
+    LFT_FLIP_LN         = 0x00040
     RGHT_FLIP_LN        = 0x00080
     BALL_AT_PLUNGER     = 0x00100
-    INLANE_LFT          = 0x00200
+    INLANE_RGHT         = 0x00200
     INLANE_CTR          = 0x00400
-    INLANE_RGHT         = 0x00800
+    INLANE_LFT          = 0x00800
     INLANE_MSK          = 0x00e00
     LFT_TRGT_1          = 0x01000
     LFT_TRGT_2          = 0x02000

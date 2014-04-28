@@ -54,6 +54,8 @@ from ttk import *
 from rules.rulesData import RulesData
 
 class TkInpBrd():
+    BITS_IN_ROW = 8
+    
     brdAddr = 0
     brdNum = 0
     brdPos = 0
@@ -80,7 +82,7 @@ class TkInpBrd():
         
         #Create card info frame
         inpCardInfoFrm = Frame(self.inpCardFrm)
-        inpCardInfoFrm.grid(column = 8, row = 0, columnspan = 2)
+        inpCardInfoFrm.grid(column = TkInpBrd.BITS_IN_ROW, row = 0, columnspan = 2)
         
         #Add card info
         tmpLbl = Label(inpCardInfoFrm, text="Inp Card %d" % (brdNum + 1))
@@ -143,10 +145,10 @@ class TkInpBrd():
     def createBitFrame(self, bit):
         inpCardBitFrm = Frame(self.inpCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(inpCardBitFrm)
-        if (bit < 8):
-            inpCardBitFrm.grid(column = bit, row = 0)
+        if (bit < TkInpBrd.BITS_IN_ROW):
+            inpCardBitFrm.grid(column = TkInpBrd.BITS_IN_ROW - bit - 1, row = 0)
         else:
-            inpCardBitFrm.grid(column = bit - 8, row = 1)
+            inpCardBitFrm.grid(column = rs232Intf.NUM_INP_PER_BRD - bit - 1, row = 1)
         tmpLbl = Label(inpCardBitFrm, text="%s" % RulesData.INP_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         

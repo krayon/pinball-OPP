@@ -72,7 +72,7 @@ class RulesFunc():
     
     #Initialize rules functions
     def init(self):
-        self.prev_flipper = 0
+        RulesFunc.prev_flipper = 0
     
     def Proc_Tilt(self):
         if (StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.TILT_SWITCH)):
@@ -81,21 +81,21 @@ class RulesFunc():
 
     def Proc_Flipper(self):
         if (StdFuncs.CheckSolBit(self.stdFuncs, SolBitNames.LFT_FLIP)):
-            if ((self.prev_flipper & self.LEFT_FLIPPER) == 0):
+            if ((RulesFunc.prev_flipper & self.LEFT_FLIPPER) == 0):
                 StdFuncs.Led_Rot_Left(self.stdFuncs, LedBitNames.INLANE_MSK)
                 GameData.inlaneLights[GameData.currPlayer] = StdFuncs.Var_Rot_Left(self.stdFuncs,  \
                     LedBitNames.INLANE_MSK, GameData.inlaneLights[GameData.currPlayer])
-                self.prev_flipper |= self.LEFT_FLIPPER
+                RulesFunc.prev_flipper |= self.LEFT_FLIPPER
         else:
-            self.prev_flipper &= ~self.LEFT_FLIPPER
+            RulesFunc.prev_flipper &= ~self.LEFT_FLIPPER
         if (StdFuncs.CheckSolBit(self.stdFuncs, SolBitNames.RGHT_FLIP)):
-            if ((self.prev_flipper & self.RIGHT_FLIPPER) == 0):
+            if ((RulesFunc.prev_flipper & self.RIGHT_FLIPPER) == 0):
                 StdFuncs.Led_Rot_Right(self.stdFuncs, LedBitNames.INLANE_MSK)
                 GameData.inlaneLights[GameData.currPlayer] = StdFuncs.Var_Rot_Right(self.stdFuncs,  \
                     LedBitNames.INLANE_MSK, GameData.inlaneLights[GameData.currPlayer])
-                self.prev_flipper |= self.RIGHT_FLIPPER
+                RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
         else:
-            self.prev_flipper &= ~self.RIGHT_FLIPPER
+            RulesFunc.prev_flipper &= ~self.RIGHT_FLIPPER
 
     def Proc_Inlane(self):
         if (StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.INLANE_LFT) and \
@@ -235,17 +235,24 @@ class RulesFunc():
     def Proc_Ball_In_Play_Init(self):
         StdFuncs.Led_Off(self.stdFuncs, LedBitNames.INLANE_MSK | LedBitNames.TRGT_MSK | LedBitNames.SPECIAL)
         StdFuncs.Led_Blink_100(self.stdFuncs, LedBitNames.INLANE_CTR)
-        GameData.prev_flipper = 0
+        RulesFunc.prev_flipper = 0
         GameData.targets = 0
         GameData.tilted = 0
         GameData.scoreLvl = 1
         GameData.numSpinners = 0
 
     def Proc_Ball_In_Play_Start(self):
-        if (StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.INLANE_LFT) or \
-                StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.INLANE_RGHT)):
+        if StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.INLANE_LFT):
+            StdFuncs.Led_On(self.stdFuncs, LedBitNames.INLANE_LFT)
+            GameData.inlaneLights[GameData.currPlayer] |= LedBitNames.INLANE_LFT
+            GameData.gameMode = State.NORMAL_PLAY
+        if StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.INLANE_RGHT):
+            StdFuncs.Led_On(self.stdFuncs, LedBitNames.INLANE_RGHT)
+            GameData.inlaneLights[GameData.currPlayer] |= LedBitNames.INLANE_RGHT
             GameData.gameMode = State.NORMAL_PLAY
         if StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.INLANE_CTR):
+            StdFuncs.Led_On(self.stdFuncs, LedBitNames.INLANE_CTR)
+            GameData.inlaneLights[GameData.currPlayer] |= LedBitNames.INLANE_CTR
             StdFuncs.Sounds(self.stdFuncs, Sounds.DING_DING_DING)
             print "Skill Shot"
             GameData.score[GameData.currPlayer] += 10
@@ -296,8 +303,8 @@ class RulesFunc():
    
     def Proc_Targets_Comp_Init(self):
         StdFuncs.Led_Blink_100(self.stdFuncs, LedBitNames.SPECIAL)
-        print "Super Mode!"
-        GameData.specialLvl[GameData.currPlayer] += 1
+        GameData.specialLvl += 1
+        print "Bonus mult = %d" % GameData.specialLvl
         GameData.score[GameData.currPlayer] += (GameData.specialLvl[GameData.currPlayer] * 10)
         StdFuncs.Start(self.stdFuncs, Timers.SPECIAL_TIMER)
 

@@ -113,11 +113,12 @@ class StdFuncs():
                 if foundFirstBit:
                     lastBit = index
                     foundLastBit = True
+            index += 1
         if (foundFirstBit and foundLastBit):
             tmpLed = LedBrd.currLedData[cardNum] << 1
             if ((tmpLed & (1 << lastBit)) != 0):
                 tmpLed |= (1 << firstBit)
-            tmpLed &= ~rotMask
+            tmpLed &= rotMask
             LedBrd.currLedData[cardNum] = (LedBrd.currLedData[cardNum] & ~rotMask) | tmpLed
 
     def Var_Rot_Left(self, rotMask, data):
@@ -135,11 +136,12 @@ class StdFuncs():
                 if foundFirstBit:
                     lastBit = index
                     foundLastBit = True
+            index += 1
         if (foundFirstBit and foundLastBit):
             tmpData = data << 1
             if ((tmpData & (1 << lastBit)) != 0):
                 tmpData |= (1 << firstBit)
-            tmpData &= ~rotMask
+            tmpData &= rotMask
             return tmpData
         else:
             return 0
@@ -161,11 +163,12 @@ class StdFuncs():
                 if foundFirstBit:
                     lastBit = index
                     foundLastBit = True
+            index += 1
         if (foundFirstBit and foundLastBit):
-            tmpLed = LedBrd.currLedData[cardNum]
+            tmpLed = LedBrd.currLedData[cardNum] & rotMask
             if ((LedBrd.currLedData[cardNum] & (1 << firstBit)) != 0):
                 tmpLed |= (1 << lastBit)
-            tmpLed = (tmpLed >> 1) & ~rotMask
+            tmpLed = (tmpLed >> 1) & rotMask
             LedBrd.currLedData[cardNum] = (LedBrd.currLedData[cardNum] & ~rotMask) | tmpLed
 
     def Var_Rot_Right(self, rotMask, data):
@@ -183,11 +186,12 @@ class StdFuncs():
                 if foundFirstBit:
                     lastBit = index
                     foundLastBit = True
+            index += 1
         if (foundFirstBit and foundLastBit):
-            tmpData = data
+            tmpData = data & rotMask
             if ((data & (1 << firstBit)) != 0):
                 tmpData |= (1 << lastBit)
-            tmpData = (tmpData >> 1) & ~rotMask
+            tmpData = (tmpData >> 1) & rotMask
             return tmpData
         else:
             return 0

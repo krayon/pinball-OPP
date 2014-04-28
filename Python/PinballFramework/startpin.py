@@ -53,6 +53,7 @@ from commThread import CommThread
 from tkinterThread import TkinterThread
 from pygameFunc import Pygame_Data
 from rulesThread import RulesThread
+from ledThread import LedThread
 import dispIntf
 from gameData import GameData
 
@@ -119,6 +120,11 @@ def main(argv=None):
     rulesThread.init()
     rulesThread.start()
     
+    #Initialize the rules thread
+    ledThread = LedThread()
+    ledThread.init()
+    ledThread.start()
+    
     done = False
     while not done:
         done = pygame.Proc_Pygame_Events()
@@ -126,6 +132,7 @@ def main(argv=None):
         time.sleep(.01)    
     commThread.commExit()
     rulesThread.rulesExit()
+    ledThread.ledExit()
     if GameData.debug:
         tkinterThread.tkinterExit()
 

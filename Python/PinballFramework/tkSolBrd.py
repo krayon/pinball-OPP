@@ -147,7 +147,7 @@ class TkSolBrd():
     def createBitFrame(self, bit):
         solCardBitFrm = Frame(self.solCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(solCardBitFrm)
-        solCardBitFrm.grid(column = bit, row = 0)
+        solCardBitFrm.grid(column = rs232Intf.NUM_SOL_PER_BRD - bit - 1, row = 0)
         tmpLbl = Label(solCardBitFrm, text="%s" % RulesData.SOL_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
