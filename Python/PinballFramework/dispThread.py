@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   dispThread.py
-# @author: Hugh Spahr
-# @date:   1/18/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,23 +34,30 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    dispThread.py
+# @author  Hugh Spahr
+# @date    1/18/2014
 #
-# This is the display thread file that is used to display scores, GI lighting,
-# and feature lights
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the display thread file that is used to display scores, GI lighting,
+# and feature lights.
+
 #===============================================================================
 
 import thread
 import pygame
 from pygame.locals import *
 from rules.rulesData import RulesData
-import dispConstIntf
-import dispIntf
+from dispConstIntf import DispConst
 import errIntf
 
+# HRS:  This should be moved into a class.
 updDispList = []
 updFeatList = []
-updGiState = dispConstIntf.LGHT_ON
+updGiState = DispConst.LGHT_ON
 sndPlyr = []
 
 #Positions for score
@@ -81,6 +81,14 @@ runDispThread = True
 orangeColor = (255, 131, 0)
 whiteColor = (255, 255, 255)
 
+## Update display function
+#
+#  Add the update to the update display list
+#
+#  @param  player        [in]   Player score to updated
+#  @param  value         [in]   New score value
+#  @param  blank         [in]   True to blank the player score
+#  @return None
 def updateDisp(player, value, blank):
     global digiFont
     global screen
@@ -94,19 +102,31 @@ def updateDisp(player, value, blank):
         screen.blit(text, textpos)
     pygame.display.update(clearRect[player])
 
+## Create the sound player function
+#
+#  Add all the sound files into the player
+#
+#  @return None
 def createSndPlyr():
     global sndPlyr
     
     for fileName in RulesData.SND_FILES:
         sndPlyr.append(pygame.mixer.Sound(fileName))
 
+## Update a feature light to on/off or blink
+#
+#  Add the update to the update feature list
+#
+#  @param  num           [in]   Index of the feature light
+#  @param  state         [in]   on/off or blink
+#  @return None
 def updateFeatLight(num, state):
     global screen
     global simLghtRadius
     global background
     
     if (num < len(featOn)):
-        if (state == dispConstIntf.LGHT_ON) or ((state == dispConstIntf.LGHT_TOGGLE) and (not featOn[num])):
+        if (state == DispConst.LGHT_ON) or ((state == DispConst.LGHT_TOGGLE) and (not featOn[num])):
             pygame.draw.circle(screen, whiteColor, (featureSimLghtPos[num][0], featureSimLghtPos[num][1]), simLghtRadius)
             featOn[num] = True
         else:
@@ -114,6 +134,12 @@ def updateFeatLight(num, state):
             featOn[num] = False
         pygame.display.update(clearFeatRect[num])
 
+## Update a general illumination lights
+#
+#  Change general illumination lights on or off
+#
+#  @param  on            [in]   True if on
+#  @return None
 def giLightOn(on):
     global screen
     global simLghtRadius
@@ -128,14 +154,21 @@ def giLightOn(on):
     for tmpLghtRect in clearGiRect:
         pygame.display.update(tmpLghtRect)
 
+## Play a sound
+#
+#  @param  num           [in]   Index of sound to play
+#  @return None
 def playSound(num):
     global sndPlyr
     
     if (num < len(sndPlyr)):
         sndPlyr[num].play()
 
-#Init score displays.  Figures out the size and sets up the clear rects
-#to update the displays
+## Init the score displays
+#
+#  Figures out the size and sets up the clear rects to update the displays
+#
+#  @return None
 def initScoreDisps():
     global digiFont
     global simWidth
@@ -147,6 +180,7 @@ def initScoreDisps():
     videoRatio = .8
     vidHeight = int((simHeight * videoRatio) + .5)
     vidWidth = int((simWidth * videoRatio) + .5)
+    vidWidth = vidWidth
 
     #Check if the requested size can be displayed
     pygame.init()
@@ -226,8 +260,11 @@ def initScoreDisps():
     tmpRect.midright = xPos[5], yPos[5]
     clearRect.append(tmpRect)
 
-#Init feature lights.  Figures out the size and sets up the clear rects
-#to update the feature lights
+## Init the feature lights
+#
+#  Figures out the size and sets up the clear rects to update the feature lights
+#
+#  @return None
 def initFeatureLights():
     global simLghtRadius
     global simRatio
@@ -241,8 +278,11 @@ def initFeatureLights():
         tmpRect = pygame.Rect(tmpLghtXPos - simLghtRadius, tmpLghtYPos - simLghtRadius, simLghtRadius * 2, simLghtRadius * 2)
         clearFeatRect.append(tmpRect)
 
-#Init general illumination lights.  Figures out the size and sets up the clear rects
-#to update the general illumination lights
+## Init the general illumination lights
+#
+#  Figures out the size and sets up the clear rects to update the general illumination lights
+#
+#  @return None
 def initGenIllumLights():
     global simLghtRadius
     global simRatio
@@ -255,7 +295,12 @@ def initGenIllumLights():
         tmpRect = pygame.Rect(tmpLghtXPos - simLghtRadius, tmpLghtYPos - simLghtRadius, simLghtRadius * 2, simLghtRadius * 2)
         clearGiRect.append(tmpRect)
 
-#Create the display screen
+## Create the display screen
+#
+#  Figures out the size and sets up the clear rects to update the general illumination lights
+#
+#  @param  mode          [in]   Either full screen or windowed mode
+#  @return None
 def createScreen(mode):
     global screen
     global simWidth
@@ -264,7 +309,6 @@ def createScreen(mode):
 
     print "simWidth, simHeight:  %d, %d" % (simWidth, simHeight)
     screen=pygame.display.set_mode((simWidth, simHeight),mode, 24)
-    clock = pygame.time.Clock()
 
     # Fill background
     background = pygame.Surface(screen.get_size())
@@ -282,25 +326,31 @@ def createScreen(mode):
     # Show player/credit positions
     text = digiFont.render("8", 1, orangeColor)
     textpos = text.get_rect()
-    textpos.midright = xPos[dispConstIntf.DISP_PLAYER_NUM], yPos[dispConstIntf.DISP_PLAYER_NUM]
+    textpos.midright = xPos[DispConst.DISP_PLAYER_NUM], yPos[DispConst.DISP_PLAYER_NUM]
     screen.blit(text, textpos)
     text = digiFont.render("88", 1, orangeColor)
     textpos = text.get_rect()
-    textpos.midright = xPos[dispConstIntf.DISP_CREDIT_BALL_NUM], yPos[dispConstIntf.DISP_CREDIT_BALL_NUM]
+    textpos.midright = xPos[DispConst.DISP_CREDIT_BALL_NUM], yPos[DispConst.DISP_CREDIT_BALL_NUM]
     screen.blit(text, textpos)
 
     #Show screen
     pygame.display.update()
-
-    # run the game loop
-    score = [0, 0, 0, 0]
 
     #Playing a sound
     pygame.mixer.init()
     createSndPlyr()
     giLightOn(True)
 
-#Init display
+## Initialize display function
+#
+#  Initialize the display.  Initialize the sound mixer.  Set up
+#  all the player displays, feature lights, general illumination lights,
+#  and creates the screens.
+#
+#  @param  passedSimWidth [in]   Simulated screen width
+#  @param  actWidth       [in]   Width of full sized screen
+#  @param  fullScr        [in]   True if full screen mode.
+#  @return CMD_OK
 def init(passedSimWidth, actWidth, fullScr):
     global simWidth
     global simRatio
@@ -318,14 +368,26 @@ def init(passedSimWidth, actWidth, fullScr):
     createScreen(mode)
     return(errIntf.CMD_OK)
 
+## Start the display thread
+#
+#  @return None
 def start():
     thread.start_new_thread(dispThread, ("Disp Thread",))
 
+## Exit the display thread
+#
+#  @return None
 def dispExit():
     global runDispThread
     
     runDispThread = False
 
+## Display thread
+#
+#  Update the display scores using update list.  Update feature lights
+#  using the update list.  
+#
+#  @return None
 def dispThread(unused):
     global runDispThread
     global updDispList

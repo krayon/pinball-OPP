@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   solBrd.py
-# @author: Hugh Spahr
-# @date:   4/23/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,25 +34,41 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    solBrd.py
+# @author  Hugh Spahr
+# @date    4/23/2014
 #
-# This is the class that keeps information about the solenoid boards. 
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the class that keeps information about the solenoid boards.
+
 #===============================================================================
 
 import rs232Intf
 from rules.rulesData import RulesData
 
+## Solenoid board class.
+#  Keep information about the solenoid board including configuration and current
+#  input status.
 class SolBrd():
     numSolBrds = 0
     
-    #Used for switch input processing.  A '1' means it is a state input bit and
+    ## Used for switch input processing.  A '1' means it is a state input bit and
     #  the latest value is used.  A '0' means is an edge triggered input, and it
     #  is automatically cleared after being used.
     solCfgBitfield = []
     
-    #Current data read from card
+    ## Current data read from card
     currSolData = []
     
+    ## Add input card function
+    #
+    #  Called to add an input card
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
     def add_card(self):
         brdNum = self.numSolBrds
         SolBrd.numSolBrds += 1
@@ -73,10 +82,27 @@ class SolBrd():
         SolBrd.solCfgBitfield.append(0)
         SolBrd.currSolData.append(0)
     
+    ## Update the input status.
+    #
+    #  Clear the state input bits, and OR the new data read from
+    #  the card to get the current state.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Solenoid board instance index (base 0)
+    #  @param  data          [in]   Data read from hardware card
+    #  @return None
     def update_status(self, card, data):
         SolBrd.currSolData[card] &= ~SolBrd.solCfgBitfield[card]
         SolBrd.currSolData[card] |= data
         
+    ## Get input status
+    #
+    #  Grab the stored input status and return it.  Clear all the edge
+    #  triggered inputs so they are only acted upon once.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Input board instance index (base 0)
+    #  @return Input card status
     def get_status(self, card):
         #Clear all the edge triggered bits
         data = SolBrd.currSolData[card]

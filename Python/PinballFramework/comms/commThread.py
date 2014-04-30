@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   commThread.py
-# @author: Hugh Spahr
-# @date:   1/16/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,21 +34,32 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    commThread.py
+# @author  Hugh Spahr
+# @date    1/16/2014
 #
-# This is the communication thread file that is used to communicate with
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
+#
+# @brief This is the communication thread file that is used to communicate with
 # the hardware.  commIntf.py should be the only file importing this file.
-#
+
 #===============================================================================
 
 import rs232Intf
 import errIntf
 import serial
 from gameData import GameData
-from tkCmdFrm import TkCmdFrm
+from tk.tkCmdFrm import TkCmdFrm
 from threading import Thread
 import time
 import commHelp
 
+## Communication thread class.
+#
+#  Communicates at periodic intervals to the hardware.  Inherits from Thread class.
+#  Multiple Comms threads could be supported if the hardware had multiple serial ports.
 class CommThread(Thread):
     #Comm thread states
     COMM_INIT           = 0
@@ -86,25 +90,59 @@ class CommThread(Thread):
     _runCommThread = True
     _threadlock = 0
     
+    ## The constructor.
     def __init__(self):
         super(CommThread, self).__init__()
         
         #Data that is shared with the interface file
+        ## Number of solenoid boards
         self.numSolBrd = 0
+        
+        ## Bitmask to request update cfg for solenoid brd
         self.updateSolBrdCfg = 0
+        
+        ## Solenoid board configurations
         self.solBrdCfg = [[]]
+        
+        ## Solenoid board addresses
         self.solAddrArr = []
+        
+        ## Number of input boards
         self.numInpBrd = 0
+        
+        ## Bitmask to request update cfg for input brd
         self.updateInpBrdCfg = 0
+        
+        ## Input board configurations
         self.inpBrdCfg = [[]]
+        
+        ## Input board addresses
         self.inpAddrArr = []
+        
+        ## Rcvd switch data from input boards
         self.switchInpData = []
+        
+        ## Rcvd switch data from solenoid boards
         self.switchSolData = []
+        
+        ## Current comms thread state
         self.state = CommThread.COMM_INIT
+        
+        ## Serial port object
         self.ser = None
+        
+        ## Response from inventory command
         self.invResp = []
 
-    #Initialize comms to the hardware
+    ## Initialize comms to the hardware
+    #
+    #  Hands back error if comm port can't be opened.  If comm port is blank,
+    #  disables communications to hardware.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  portId        [in]   String for port name.  Ex. COM1
+    #  @return Can return CMD_OK if good, or CANT_OPEN_COM or error codes
+    #     from [getInventory](@ref comms.commHelp.getInventory).
     def init(self, portId):
         if (portId != ""):
             try:
@@ -121,15 +159,39 @@ class CommThread(Thread):
             self.state = CommThread.COMM_NO_COMM_PORT
         return(errIntf.CMD_OK)
     
+    ## Start the comms thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def start(self):
         super(CommThread, self).start()
     
+    ## Exit the comms thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def commExit(self):
         CommThread._runCommThread = False
         
+    ## Process the comms thread
+    #
+    #  Periodically send get status commands to get switch status.
+    #  Check bitfields to see if configurations need to be updated.
+    #  Send solenoid kick commands if necessary.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def proc_comms(self):
         pass
     
+    ## The Comms thread
+    #
+    #  If debug is not set, just run the comms thread processing.  If debug is set,
+    #  run debug processing if set to run the comms thread, or if a single step
+    #  command has been received.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def run(self):
         count = 0
       

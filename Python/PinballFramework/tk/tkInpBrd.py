@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   tkInpBrd.py
-# @author: Hugh Spahr
-# @date:   4/1/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,10 +34,17 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    tkInpBrd.py
+# @author  Hugh Spahr
+# @date    4/10/2014
 #
-# This is the tk input board interface.  It allows inputs to be simulated,
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
+#
+# @brief This is the tk input board interface.  It allows inputs to be simulated,
 # and the displays the current status.
-#
+
 #===============================================================================
 
 import rs232Intf
@@ -53,6 +53,12 @@ from Tkinter import *
 from ttk import *
 from rules.rulesData import RulesData
 
+## Tk input board class.
+#  The input board frame contains the controls observe the current state of the
+#  input bits, or simulate switch inputs.  It lists the bit string name to make
+#  debugging easier.  If a bit is configured as a state input, the simulate
+#  button is a toggle button.  If the bit is configured as an edge triggered
+#  input, the button is a pushbutton.
 class TkInpBrd():
     BITS_IN_ROW = 8
     
@@ -70,6 +76,17 @@ class TkInpBrd():
     btnCfgBitfield = 0              #Set bits to 1 to default to toggle buttons
     simSwitchBits = 0
     
+    ## The constructor
+    #
+    #  Creates the TK frame interface for the input board.  Creates a frame
+    #  for each of the input bits, and an overall frame for card information.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  brdNum        [in]   Input board instance index (base 0)
+    #  @param  brdPos        [in]   Board position in comms chain (base 0)
+    #  @param  addr          [in]   Board address
+    #  @param  parentFrm     [in]   Parent frame
+    #  @return None
     def __init__(self, brdNum, brdPos, addr, parentFrm):
         self.brdNum = brdNum
         self.brdPos = brdPos
@@ -99,6 +116,14 @@ class TkInpBrd():
         for i in range(rs232Intf.NUM_INP_PER_BRD):
             TkInpBrd.createBitFrame(self, i)
 
+    ## Toggle function
+    #
+    #  Called when the button is pressed.  The button is either a toggle button
+    #  or a push button depending on the combobox.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  bit           [in]   Input bit number
+    #  @return None
     def toggle(self, bit):
         #If this is configured as a toggle button
         if (self.btnCfgBitfield & (1 << bit) != 0):
@@ -114,7 +139,16 @@ class TkInpBrd():
             self.simSwitchBits |= (1 << bit)
         print "Bits = 0x%04x" % self.simSwitchBits
             
-    def optmenucallback(self, bit):
+    ## Combobox callback function
+    #
+    #  Called when the combobox is changed.  Set to either pulse or switch.
+    #  If pulse, the button is a pushbutton.  If switch, the button is a
+    #  toggle button.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  bit           [in]   Input bit number
+    #  @return None
+    def comboboxcallback(self, bit):
         if self.indBitOptMenu[bit].get() == "Pulse":
             #Create a new button that is pulse
             tmpCnvs = Canvas(self.bitFrms[bit], width=100, height=40)
@@ -142,6 +176,15 @@ class TkInpBrd():
             else:
                 self.simSwitchBits &= ~(1 << bit)
             
+    ## Create Bit Frame function
+    #
+    #  Called for each input bit on an input card.
+    #  Uses [INP_BRD_BIT_NAMES](@ref rules.rulesData.RulesData.INP_BRD_BIT_NAMES) for names of bits.
+    #  Uses [INP_BRD_CFG](@ref rules.rulesData.RulesData.INP_BRD_CFG) for initial cfg of bits.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  bit           [in]   Input bit number
+    #  @return None
     def createBitFrame(self, bit):
         inpCardBitFrm = Frame(self.inpCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(inpCardBitFrm)
@@ -165,7 +208,7 @@ class TkInpBrd():
         tmpCB = Combobox(inpCardBitFrm, textvariable=self.indBitOptMenu[bit], width=6, state="readonly")
         tmpCB["values"] = ("Pulse", "Toggle")
         tmpCB.grid(column = 0, row = 1, columnspan = 2)
-        self.indBitOptMenu[bit].trace("w", lambda name, index, op, tmp=bit: self.optmenucallback(tmp))
+        self.indBitOptMenu[bit].trace("w", lambda name, index, op, tmp=bit: self.comboboxcallback(tmp))
         
         #Button code
         if (self.btnCfgBitfield & (1 << bit)):
@@ -185,6 +228,13 @@ class TkInpBrd():
         tmpLbl = Label(inpCardBitFrm, textvariable=self.indBitStatLbl[bit], relief=SUNKEN)
         tmpLbl.grid(column = 1, row = 3)
 
+    ## Get Tk input frame status
+    #
+    #  Read the input frame status, and clear all the edge triggered inputs so they are
+    #  only acted upon once.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return Input debug bit data
     def get_status(self):
         #Clear all the edge triggered bits
         data = self.simSwitchBits

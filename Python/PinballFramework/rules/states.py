@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   states.py
-# @author: Hugh Spahr
-# @date:   4/25/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,11 +34,20 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    states.py
+# @author  Hugh Spahr
+# @date    4/25/2014
 #
-# These are the rules states.  It is an enumeration of all the states.
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is an enumeration of all the states.
+
 #===============================================================================
 
+## State enumeration.
+#  Contains an entry for each state
 class State:
     INIT                = 0
     ATTRACT             = 1

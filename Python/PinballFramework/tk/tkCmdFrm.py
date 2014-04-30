@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   tkCmdFrm.py
-# @author: Hugh Spahr
-# @date:   4/10/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,10 +34,17 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    tkCmdFrm.py
+# @author  Hugh Spahr
+# @date    4/10/2014
 #
-# This is the tk command frame.  It provides buttons to control the running
-# of the rules thread, command thread, and list the current state.
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the tk command frame.  It provides buttons to control the running
+# of the rules thread, command thread, and lists the current state.
+
 #===============================================================================
 
 from Tkinter import Button as Btn
@@ -53,6 +53,9 @@ from ttk import *
 from rules.rulesData import RulesData
 from gameData import GameData
 
+## Tk command frame class.
+#  The command frame contains the controls to run or single step the command, and
+#  rules threads.  It also lists the current state of the machine for debug purposes.
 class TkCmdFrm():
     #indices for stuff
     RULES_THREAD_IDX = 0
@@ -66,6 +69,7 @@ class TkCmdFrm():
     stateVar = 0
     btnCfgBitfield = 0x3                #Both button start as toggle buttons
     
+    ## The constructor.
     def __init__(self, parentFrm):
         #Create main frame
         self.cmdFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
@@ -111,6 +115,14 @@ class TkCmdFrm():
         tmpLbl = Label(self.cmdFrm, textvariable=TkCmdFrm.stateVar, relief=SUNKEN, width=20, anchor=CENTER)
         tmpLbl.grid(column = 2, row = 1, padx=8, pady=8)
         
+    ## Toggle function
+    #
+    #  Called when the button is pressed.  The button is either a toggle button
+    #  or a push button depending on the combobox.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  whichThread   [in]   Either RULES_THREAD_IDX or COMMS_THREAD_IDX
+    #  @return None
     def toggle(self, whichThread):
         #If this is configured as a toggle button
         if (TkCmdFrm.btnCfgBitfield & (1 << whichThread) != 0):
@@ -123,6 +135,15 @@ class TkCmdFrm():
             TkCmdFrm.threadSendStep[whichThread] = True
 
             
+    ## Combobox callback function
+    #
+    #  Called when the combobox is changed.  Set to either single step or run.
+    #  If single step, the button is a pushbutton.  If run, the button is a
+    #  toggle button.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  whichThread   [in]   Either RULES_THREAD_IDX or COMMS_THREAD_IDX
+    #  @return None
     def comboboxcallback(self, whichThread):
         if TkCmdFrm.comboVar[whichThread].get() == "Single Step":
             #Create a new button that is pulse
@@ -151,5 +172,12 @@ class TkCmdFrm():
             TkCmdFrm.threadRun[whichThread] = True
             TkCmdFrm.btnCfgBitfield |= (1 << whichThread)
 
+    ## Update command frame state string
+    #
+    #  Updates the state string which lists the current state of the machine.
+    #  State string is grabbed from [STATE_STR](@ref rules.rulesData.RulesData.STATE_STR). 
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
     def Update_Cmd_Frm(self):
         TkCmdFrm.stateVar.set(RulesData.STATE_STR[GameData.gameMode])

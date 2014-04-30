@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   ledThread.py
-# @author: Hugh Spahr
-# @date:   4/27/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,47 +34,90 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    ledThread.py
+# @author  Hugh Spahr
+# @date    4/27/2014
 #
-# This is the LED thread file that is used to change LEDs on and off.  It needs
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
+#
+# @brief This is the LED thread file that is used to change LEDs on and off.  It needs
 # a thread to support blinking and communication to the hardware.
-#
+
 #===============================================================================
 
 import errIntf
 from gameData import GameData
-from tkCmdFrm import TkCmdFrm
+from tk.tkCmdFrm import TkCmdFrm
 from threading import Thread
 from rules.rulesData import RulesData
-from ledBrd import LedBrd
+from hwobjs.ledBrd import LedBrd
 import time
 
+## LED thread class.
+#
+#  Updates LEDs on the LED boards and the debug interface periodically.
 class LedThread(Thread):
     #private members
     _runLedThread = True
     _threadlock = 0
+    
+    ## Holds previous LED state to see if there are changes
     _prevLedState = []
     
+    ## The constructor.
     def __init__(self):
         super(LedThread, self).__init__()
 
-    #Initialize the SPI hardware
+    ## Initialize LED hardware
+    #
+    #  Initialize the SPI interface to the LED hardware.  Create
+    #  previous LED state for each LED board using
+    #  [NUM_LED_BRDS](@ref rules.rulesData.RulesData.NUM_LED_BRDS).
+    #
+    #  @param  self          [in]   Object reference
+    #  @return CMD_OK
     def init(self):
         for index in range(RulesData.NUM_LED_BRDS):
             index = index
             LedThread._prevLedState.append(0)
         return(errIntf.CMD_OK)
     
+    ## Start the comms thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def start(self):
         super(LedThread, self).start()
     
+    ## Exit the LED thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def ledExit(self):
         LedThread._runLedThread = False
 
+    ## Process the LEDs
+    #
+    #  Periodically tk LED graphics.  Will eventually send SPI msg
+    #  updates.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def proc_leds(self):
         for index in range(RulesData.NUM_LED_BRDS):
             if GameData.debug:
                 GameData.tkLedBrd[index].updateLeds(LedBrd.currLedData[index])
             
+    ## The LED thread
+    #
+    #  If debug is not set, just run the LED thead processing.  If debug is set,
+    #  run debug processing if set to run the rules thread, or if a single step
+    #  command has been received.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def run(self):
         count = 0
       

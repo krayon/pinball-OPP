@@ -35,42 +35,36 @@
 #
 #===============================================================================
 ##
-# @file    procChains.py
+# @file    ledBrd.py
 # @author  Hugh Spahr
-# @date    4/25/2014
+# @date    4/23/2014
 #
 # @note    Open Pinball Project
 # @note    Copyright 2014, Hugh Spahr
 #
-# @brief These are the processing chains.  It includes initial chains and normal
-# processing chains that are run each time the rules thread runs.
+# @brief This is the class that keeps information about the LED boards.
 
 #===============================================================================
 
-from rulesFunc import RulesFunc
-from rules.states import State
-
-## Process chain lists.
-class ProcChain:
-    INIT_CHAIN_OFFSET = 1
-    NORM_CHAIN_OFFSET = 2
+## LED board class.
+#  Keep information about the LED board including blinking LEDs and current
+#  status.
+class LedBrd():
+    numLedBrds = 0
     
-    ## Create process chain lists.
-    #    - First entry is State number, only used to ease debugging
-    #    - Second entry is initial processing functions, called only when first entering a state
-    #    - Third entry are processing functions, called each time the rules thread runs
-    PROC_CHAIN = [ 
-        [State.INIT, [RulesFunc.Proc_Init], []],
-        [State.ATTRACT, [], [RulesFunc.Proc_Init, RulesFunc.Proc_Add_Coin]],
-        [State.PRESS_START, [], [RulesFunc.Proc_Start_and_Coin]],
-        [State.START_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game, RulesFunc.Proc_Start_and_Coin]],
-        [State.START_BALL, [RulesFunc.Proc_Start_Ball_Init], [RulesFunc.Proc_Start_Ball_Start, RulesFunc.Proc_Start_and_Coin]],
-        [State.BALL_IN_PLAY, [RulesFunc.Proc_Ball_In_Play_Init], [RulesFunc.Proc_Ball_In_Play_Start, RulesFunc.Proc_Start_and_Coin]],
-        [State.NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play]],
-        [State.SPECIAL_PLAY, [], []],
-        [State.ERROR, [], []],
-        [State.TILT, [RulesFunc.Proc_Tilt_Init], [RulesFunc.Proc_Tilt_State]],
-        [State.END_OF_BALL, [RulesFunc.Proc_End_Of_Ball], []],
-        [State.INLANE_COMPLETE, [RulesFunc.Proc_Inlane_Comp], []],
-        [State.TARGETS_COMPLETE, [RulesFunc.Proc_Targets_Comp_Init], [RulesFunc.Proc_Targets_Comp_State]],
-    ]
+    ## Used for blinking Leds at 500 ms.
+    currBlinkLeds = []
+    
+    ## Current data output to the LEDs
+    currLedData = []
+    
+    ## Add LED card function
+    #
+    #  Called to add an LED card
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def add_card(self):
+        LedBrd.numLedBrds += 1
+        LedBrd.currBlinkLeds.append(0)
+        LedBrd.currLedData.append(0)

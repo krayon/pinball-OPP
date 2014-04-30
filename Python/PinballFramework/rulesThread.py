@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   rulesThread.py
-# @author: Hugh Spahr
-# @date:   1/18/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,42 +34,66 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    rulesThread.py
+# @author  Hugh Spahr
+# @date    1/18/2014
 #
-# This is the rules thread file that is used to implement the rules for the
-# pinball machine
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the rules thread file that is used to implement the rules for the
+# pinball machine.
+
 #===============================================================================
 
 from threading import Thread
 import time
 from gameData import GameData
-from tkCmdFrm import TkCmdFrm
+from tk.tkCmdFrm import TkCmdFrm
 from rulesFunc import RulesFunc
 from rules.procChains import ProcChain
-from solBrd import SolBrd
-from inpBrd import InpBrd
-from tkSolBrd import TkSolBrd
-from tkInpBrd import TkInpBrd
+from hwobjs.solBrd import SolBrd
+from hwobjs.inpBrd import InpBrd
+from tk.tkSolBrd import TkSolBrd
+from tk.tkInpBrd import TkInpBrd
 
 
+## Rules thread class.
+#
+#  Create thread the runs the rules.  This includes updating solenoid and input boards
+#  state, figuring out which rules chain need to be run, and running it.
 class RulesThread(Thread):
     _runRulesThread = True
     
     #Create rulesFunc instance
     rulesFunc = RulesFunc()
 
+    ## The constructor.
     def __init__(self):
         super(RulesThread, self).__init__()
         
-    #Initialize rules thread
+    ## Initialize rule thead
+    #
+    #  @param  self          [in]   Object reference
     def init(self):
         pass
         
+    ## Start the rules thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def start(self):
-        #Verify correct number of boards
-        #Configure the boards
         super(RulesThread, self).start()
     
+    ## Process the rules thread
+    #
+    #  Grab status from solenoid and input boards and merge it with status from
+    #  the tk interface.  If the mode has changed, run the INIT_CHAIN.  Otherwise
+    #  run the NORM_CHAIN for the current mode.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def proc_rules(self):
         #Update the inputs from solenoid and input cards
         for index in range(SolBrd.numSolBrds):
@@ -98,9 +115,21 @@ class RulesThread(Thread):
         for proc in chain:
             proc(RulesThread.rulesFunc)
         
+    ## Exit the rules thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def rulesExit(self):
         RulesThread._runRulesThread = False
 
+    ## The rules thread
+    #
+    #  If debug is not set, just run the rules thread processing.  If debug is set,
+    #  run debug processing if set to run the rules thread, or if a single step
+    #  command has been received.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def run(self):
         while RulesThread._runRulesThread:
             

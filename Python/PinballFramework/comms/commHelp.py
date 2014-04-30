@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   commHelp.py
-# @author: Hugh Spahr
-# @date:   1/16/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,23 +34,41 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    commHelp.py
+# @author  Hugh Spahr
+# @date    1/16/2014
 #
-# This is the communication helper file.  It should only be call by commThread.
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the communication helper file.  It should only be called by commThread.
+
 #===============================================================================
 
 import rs232Intf
 import errIntf
-import commIntf
 from rules.rulesData import RulesData
 
-#grab data from serial port
+## Get Data from serial port
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  numBytes      [in]   Number of bytes to read
+#  @return List of bytes that were read
 def getSerialData(commThread, numBytes):
     resp = commThread.ser.read(numBytes)
     return (resp)
 
-#get inventory.  Note:  don't know the size of the
-#response since it depends on the number of installed cards.
+## Get inventory
+#
+#  Grab the inventory and make sure a valid response was received.  Verify
+#  the received inventory matches [INV_ADDR_LIST](@ref rules.rulesData.RulesData.INV_ADDR_LIST).
+#
+#  @param  commThread    [in]   Comm thread object
+#  @return Can return CMD_OK if good, or INVENTORY_NO_RESP, BAD_INV_RESP,
+#     EXTRA_INFO_RCVD, BAD_NUM_CARDS, INV_MATCH_FAIL if an error
+#  @note   Don't know size of the response since it depends on the
+#     number of installed cards.
 def getInventory(commThread):
     cmdArr = []
     cmdArr.append(rs232Intf.INV_CMD)
@@ -68,9 +79,10 @@ def getInventory(commThread):
     #add two extra bytes for command and EOM
     data = getSerialData(commThread, rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
 
-    #Should at least inv command and eom
+    #Response must have at least inv command and eom or return INVENTORY_NO_RESP
     if (len(data) < 2):
         return (errIntf.INVENTORY_NO_RESP)
+    #Response must have inv command at start or return BAD_INV_RESP
     if (data[0] != rs232Intf.INV_CMD):
         return (errIntf.BAD_INV_RESP)
     index = 1

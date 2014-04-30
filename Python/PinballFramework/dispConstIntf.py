@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   dispConstIntf.py
-# @author: Hugh Spahr
-# @date:   1/22/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,24 +34,34 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    dispConstIntf.py
+# @author  Hugh Spahr
+# @date    1/22/2014
 #
-# This is the display constants interface file.  Constants are separated into
-# this file to make imports easier.
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the display constants interface file.  Constants are separated into
+# this file to make imports cleaner.
+
 #===============================================================================
 
-#Display constants
-DISP_PLAYER1 = 0
-DISP_PLAYER2 = 1
-DISP_PLAYER3 = 2
-DISP_PLAYER4 = 3
-DISP_PLAYER_NUM = 4
-DISP_CREDIT_BALL_NUM = 5
+## Display constants.
+#  Contains constants for update the displays and the feature lights
+class DispConst:
+    #Display constants
+    DISP_PLAYER1 = 0
+    DISP_PLAYER2 = 1
+    DISP_PLAYER3 = 2
+    DISP_PLAYER4 = 3
+    DISP_PLAYER_NUM = 4
+    DISP_CREDIT_BALL_NUM = 5
+    
+    #Blank a display
+    DISP_BLANK = 0xffffffff
 
-#Blank a display
-DISP_BLANK = 0xffffffff
-
-#Feature light constants
-LGHT_OFF = 0
-LGHT_ON = 1
-LGHT_TOGGLE = 2
+    #Feature light constants
+    LGHT_OFF = 0
+    LGHT_ON = 1
+    LGHT_TOGGLE = 2

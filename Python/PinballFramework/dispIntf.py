@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   dispIntf.py
-# @author: Hugh Spahr
-# @date:   1/22/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,36 +34,84 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    dispIntf.py
+# @author  Hugh Spahr
+# @date    1/22/2014
 #
-# This is the display interface file that is used to send changes to the
-# display thread
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the display interface file that is used to send changes to the
+# display thread.
+
 #===============================================================================
 
 import errIntf
-import dispConstIntf
 import dispThread
 
+## Initialize display function
+#
+#  Call display thread init.  Return any errors from the init call.
+#
+#  @param  simWidth      [in]   Simulated screen width
+#  @param  actWidth      [in]   Width of full sized screen
+#  @param  fullScr       [in]   True if full screen mode.
+#  @return Errors from display thread initialization.
 def initDisp(simWidth, actWidth, fullScr):
     retVal = dispThread.init(simWidth, actWidth, fullScr)
     return (retVal)
 
+## Start display function
+#
+#  Call display thread start.
+#
+#  @return CMD_OK
 def startDisp():
     dispThread.start()
     return (errIntf.CMD_OK)
 
+## Update display function
+#
+#  Add the update to the update display list
+#
+#  @param  player        [in]   Player score to updated
+#  @param  value         [in]   New score value
+#  @param  blank         [in]   True to blank the player score
+#  @return None
 def updateDisp(player, value, blank):
     dispThread.updDispList.append([player, value, blank])
 
+## Update a feature light to on/off or blink
+#
+#  Add the update to the update feature list
+#
+#  @param  num           [in]   Index of the feature light
+#  @param  value         [in]   on/off or blink
+#  @return None
 def updateFeatureLight(num, value):
     dispThread.updFeatList.append([num, value])
   
+## Update a general illumination lights to on or off
+#
+#  Change general illumination lights on or off
+#
+#  @param  value         [in]   True to turn GI on
+#  @return None
 def updateGiLights(value):
     dispThread.updGiState = value
 
+## Play a sound
+#
+#  @param  num           [in]   Index of sound to play
+#  @return None
 def playSound(num):
     dispThread.playSound(num)
 
+## Stop display function
+#
+#  Call display thread exit.
+#
+#  @return None
 def stopDisp():
     dispThread.dispExit()
-

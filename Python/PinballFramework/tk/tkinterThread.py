@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   tkinterThread.py
-# @author: Hugh Spahr
-# @date:   3/26/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,9 +34,16 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    tkinterThread.py
+# @author  Hugh Spahr
+# @date    3/26/2014
 #
-# This is the tkinter thread file that is used for the debug GUI.
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the tkinter thread file that is used for the debug GUI.
+
 #===============================================================================
 
 from Tkinter import *
@@ -59,27 +59,50 @@ from rules.rulesData import RulesData
 import rs232Intf
 from gameData import GameData
 
+## Tkinter thread class.
+#  Create tk frame instances for all the configured hardware.
+#  Update the command frame.
 class TkinterThread(Thread):
     doneInit = False
     
+    ## The constructor.
     def __init__(self):
         super(TkinterThread, self).__init__()
         
-        #Some queue stuff to send data back and forth
-
         #private members
         self._runTkinterThread = True
 
-    #Initialize comms to the hardware
+    ## Init the tkinter thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def init(self):
         pass
     
+    ## Start the tkinter thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def start(self):
         super(TkinterThread, self).start()
     
+    ## Exit the tkinter thread
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def tkinterExit(self):
         self._runTkinterThread = False
     
+    ## The tkinter thread
+    #
+    #  Create the tk frames based on
+    #  [INV_ADDR_LIST](@ref rules.rulesData.RulesData.INV_ADDR_LIST) and
+    #  [NUM_LED_BRDS](@ref rules.rulesData.RulesData.NUM_LED_BRDS).  Mark
+    #  doneInit as True so debug inputs can be polled.  Update the current
+    #  state string periodically.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
     def run(self):
         count = 0
         root = Tk()

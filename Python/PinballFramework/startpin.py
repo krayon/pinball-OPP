@@ -1,31 +1,25 @@
 #!/usr/bin/env python
 #
 #===============================================================================
+## @mainpage
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   startPin.py
-# @author: Hugh Spahr
-# @date:   1/15/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -39,24 +33,43 @@
 #
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-#
+
 #===============================================================================
+##
+# @file    startPin.py
+# @author  Hugh Spahr
+# @date    1/15/2014
 #
-# Start the pin
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief Main entry point to start the pinball machine
+
 #===============================================================================
 
 from sys import exit
 import sys
 import time
-from commThread import CommThread
-from tkinterThread import TkinterThread
+from comms.commThread import CommThread
+from tk.tkinterThread import TkinterThread
 from pygameFunc import Pygame_Data
 from rulesThread import RulesThread
 from ledThread import LedThread
 import dispIntf
 from gameData import GameData
 
+## Main
+#
+#  Read passed in arguments and set simWidth, actWidth, fullScr,
+#  if tk debug window should be created, and the serial port id.
+#  Initialize the display and start it.  Initialize pygame.  If
+#  debug is set, create the tk window and thread.  Create comms,
+#  rules and LED threads and start them.  In the main loop process
+#  pygame events watching for an exit command.  If exited, close
+#  down all threads.
+#
+#  @param  argv          [in]   Passed in arguments
+#  @return None 
 def main(argv=None):
 
     end = False

@@ -2,30 +2,23 @@
 #
 #===============================================================================
 #
-#                         OOOO
-#                       OOOOOOOO
-#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#  PPP          PPP   OOO      OOO   PPP          PPP
-#   PPP         PPP   OOO      OOO   PPP         PPP
-#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
-#     PPPPPPPPPPPPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP   OOO      OOO   PPP
-#               PPP    OOO    OOO    PPP
-#               PPP     OOOOOOOO     PPP
-#              PPPPP      OOOO      PPPPP
-#
-# @file:   tkLedBrd.py
-# @author: Hugh Spahr
-# @date:   4/11/2014
-#
-# @note:   Open Pinball Project
-#          Copyright 2014, Hugh Spahr
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -41,10 +34,17 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #===============================================================================
+##
+# @file    tkLedBrd.py
+# @author  Hugh Spahr
+# @date    4/11/2014
 #
-# This is the tk LED board interface.  It displays the current status of the
-# LEDs. 
+# @note    Open Pinball Project
+# @note    Copyright 2014, Hugh Spahr
 #
+# @brief This is the tk LED board interface.  It displays the current status of the
+# LEDs.
+
 #===============================================================================
 
 import rs232Intf
@@ -53,6 +53,9 @@ from Tkinter import *
 from ttk import *
 from rules.rulesData import RulesData
 
+## Tk LED board class.
+#  The LED board frame contains pictures of if each LED is on or off.
+#  It lists the bit string name to make debugging easier.
 class TkLedBrd():
     brdNum = 0
     brdPos = 0
@@ -65,6 +68,16 @@ class TkLedBrd():
     ledOnWhtImage = 0
     ledOnGrnImage = 0
     
+    ## The constructor
+    #
+    #  Creates the TK frame interface for the input board.  Creates a frame
+    #  for each of the input bits, and an overall frame for card information.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  brdNum        [in]   Input board instance index (base 0)
+    #  @param  frmRow        [in]   Row to display LED board.  (LED boards after input/sol cards)
+    #  @param  parentFrm     [in]   Parent frame
+    #  @return None
     def __init__(self, brdNum, frmRow, parentFrm):
         self.brdNum = brdNum
         self.brdPos = frmRow
@@ -94,6 +107,13 @@ class TkLedBrd():
         for i in range(rs232Intf.NUM_LED_PER_BRD):
             TkLedBrd.createBitFrame(self, i)
 
+    ## Create Bit Frame function
+    #
+    #  Called for each bit on an LED card.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  bit           [in]   Input bit number
+    #  @return None
     def createBitFrame(self, bit):
         ledCardBitFrm = Frame(self.ledCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(ledCardBitFrm)
@@ -110,6 +130,13 @@ class TkLedBrd():
         else:
             self.canvas[bit].create_image(48, 40, image=self.ledOnGrnImage)
 
+    ## Update LED states
+    #
+    #  If the LED state has changed, the graphics are updated.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  data          [in]   New LED state
+    #  @return None
     def updateLeds(self, data):
         if (self.prevLedState != data):
             for index in range(rs232Intf.NUM_LED_PER_BRD):
