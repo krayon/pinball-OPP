@@ -53,6 +53,8 @@ from tk.tkCmdFrm import TkCmdFrm
 from threading import Thread
 from rules.rulesData import RulesData
 from hwobjs.ledBrd import LedBrd
+from stdFuncs import StdFuncs
+from rules.ledChains import LedChains
 import time
 
 ## LED thread class.
@@ -119,9 +121,46 @@ class LedThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def run(self):
-        count = 0
+        chainIndex = 0
+        ledChTime = 0
+        ledCmdWaitTime = 0
+        
+        #Create stdFunc instance
+        stdFuncs = StdFuncs()
       
         while LedThread._runLedThread:
+            # Check if the LED chain is not empty
+            if GameData.ledChain:
+                updateLeds = False
+                updateCmd = False
+                
+                # New LED chain is being started
+                if GameData.newLedChain:
+                    GameData.newLedChain = False
+                    chainIndex = 0
+                    updateCmd = True
+                else:
+                    ledChTime += 100
+                    if (ledChTime > ledCmdWaitTime):
+                        chainIndex += 1
+                        updateCmd = True
+                if updateCmd:
+                    ledChTime = 0
+                    ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.CH_CMD_OFFSET]
+                    
+                    # If this is repeat command, move index back to beginning
+                    if (ledCmd == LedChains.REPEAT):
+                        chainIndex = 0
+                        ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.CH_CMD_OFFSET]
+                    if (ledCmd == LedChains.WAIT):
+                        ledCmdWaitTime = GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.PARAM_OFFSET]
+                        updateLeds = True
+                    elif (ledCmd == LedChains.END_CHAIN):
+                        GameData.ledChain = []
+                if updateLeds:
+                    StdFuncs.Led_Set(stdFuncs, GameData.ledChain[LedChains.MASK_OFFSET], \
+                        GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.CH_LED_BITS_OFFSET])
+                    
             #Process LEDs if not running in debug mode
             if not GameData.debug: 
                 self.proc_leds()
@@ -129,7 +168,6 @@ class LedThread(Thread):
             elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
                 self.proc_leds()
-            
+                    
             #Sleep until next rules processing time
             time.sleep(.1)
-            count += 1

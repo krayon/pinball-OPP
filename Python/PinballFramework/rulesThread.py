@@ -107,7 +107,9 @@ class RulesThread(Thread):
         
         if (GameData.gameMode != GameData.prevGameMode):
             GameData.prevGameMode = GameData.gameMode
-            chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.INIT_CHAIN_OFFSET] 
+            chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.INIT_CHAIN_OFFSET]
+            GameData.ledChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.LED_CHAIN_OFFSET]
+            GameData.newLedChain = True
         else:
             chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.NORM_CHAIN_OFFSET]
             

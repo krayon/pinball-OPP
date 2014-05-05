@@ -49,28 +49,31 @@
 
 from rulesFunc import RulesFunc
 from rules.states import State
+from rules.ledChains import LedChains
 
 ## Process chain lists.
 class ProcChain:
     INIT_CHAIN_OFFSET = 1
     NORM_CHAIN_OFFSET = 2
+    LED_CHAIN_OFFSET = 3
     
     ## Create process chain lists.
     #    - First entry is State number, only used to ease debugging
     #    - Second entry is initial processing functions, called only when first entering a state
     #    - Third entry are processing functions, called each time the rules thread runs
+    #    - Third entry are processing functions, called each time the rules thread runs
     PROC_CHAIN = [ 
-        [State.INIT, [RulesFunc.Proc_Init], []],
-        [State.ATTRACT, [], [RulesFunc.Proc_Init, RulesFunc.Proc_Add_Coin]],
-        [State.PRESS_START, [], [RulesFunc.Proc_Start_and_Coin]],
-        [State.START_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game, RulesFunc.Proc_Start_and_Coin]],
-        [State.START_BALL, [RulesFunc.Proc_Start_Ball_Init], [RulesFunc.Proc_Start_Ball_Start, RulesFunc.Proc_Start_and_Coin]],
-        [State.BALL_IN_PLAY, [RulesFunc.Proc_Ball_In_Play_Init], [RulesFunc.Proc_Ball_In_Play_Start, RulesFunc.Proc_Start_and_Coin]],
-        [State.NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play]],
-        [State.SPECIAL_PLAY, [], []],
-        [State.ERROR, [], []],
-        [State.TILT, [RulesFunc.Proc_Tilt_Init], [RulesFunc.Proc_Tilt_State]],
-        [State.END_OF_BALL, [RulesFunc.Proc_End_Of_Ball], []],
-        [State.INLANE_COMPLETE, [RulesFunc.Proc_Inlane_Comp], []],
-        [State.TARGETS_COMPLETE, [RulesFunc.Proc_Targets_Comp_Init], [RulesFunc.Proc_Targets_Comp_State]],
+        [State.INIT, [RulesFunc.Proc_Init], [], []],
+        [State.ATTRACT, [], [RulesFunc.Proc_Init, RulesFunc.Proc_Add_Coin], LedChains.LedCh_Attract],
+        [State.PRESS_START, [RulesFunc.Proc_Press_Start_Init], [RulesFunc.Proc_Start_and_Coin], []],
+        [State.START_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game, RulesFunc.Proc_Start_and_Coin], []],
+        [State.START_BALL, [RulesFunc.Proc_Start_Ball_Init], [RulesFunc.Proc_Start_Ball_Start, RulesFunc.Proc_Start_and_Coin], []],
+        [State.BALL_IN_PLAY, [RulesFunc.Proc_Ball_In_Play_Init], [RulesFunc.Proc_Ball_In_Play_Start, RulesFunc.Proc_Start_and_Coin], []],
+        [State.NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play], []],
+        [State.SPECIAL_PLAY, [], [], []],
+        [State.ERROR, [], [], []],
+        [State.TILT, [RulesFunc.Proc_Tilt_Init], [RulesFunc.Proc_Tilt_State], []],
+        [State.END_OF_BALL, [RulesFunc.Proc_End_Of_Ball], [], []],
+        [State.INLANE_COMPLETE, [RulesFunc.Proc_Inlane_Comp], [], []],
+        [State.TARGETS_COMPLETE, [RulesFunc.Proc_Targets_Comp_Init], [RulesFunc.Proc_Targets_Comp_State], []],
     ]

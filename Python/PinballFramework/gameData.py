@@ -91,6 +91,10 @@ class GameData():
     
     expiredTimers = 0
 
+    #LED Chain 
+    ledChain = []
+    newLedChain = False
+
     ## The constructor.
     def __init__(self):
         pass

@@ -76,7 +76,7 @@ class RulesFunc():
     tilted = False
     kick_retries = 0
     
-    #Create rulesFunc instance
+    #Create stdFunc instance
     stdFuncs = StdFuncs()
     
     ## Initialize the rules class
@@ -286,6 +286,15 @@ class RulesFunc():
             StdFuncs.BlankPlyrNumDisp(self.stdFuncs)
             GameData.gameMode = State.START_GAME
                 
+    ## Process press start initialization
+    #
+    #  Turn off all the LEDs
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Press_Start_Init(self):
+        StdFuncs.Led_Off(self.stdFuncs, LedBitNames.ALL_BITS_MSK)
+
     ## Process start and coin switches
     #
     #  Call Proc_Add_Coin and Proc_Press_Start
