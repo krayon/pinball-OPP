@@ -57,7 +57,9 @@ from hwobjs.solBrd import SolBrd
 from hwobjs.inpBrd import InpBrd
 from tk.tkSolBrd import TkSolBrd
 from tk.tkInpBrd import TkInpBrd
-
+from globConst import GlobConst
+from rules.soundChains import SoundChains
+from stdFuncs import StdFuncs
 
 ## Rules thread class.
 #
@@ -65,6 +67,12 @@ from tk.tkInpBrd import TkInpBrd
 #  state, figuring out which rules chain need to be run, and running it.
 class RulesThread(Thread):
     _runRulesThread = True
+    _chainIndex = 0
+    _soundChTime = 0
+    _soundCmdWaitTime = 0
+    
+    #Create stdFunc instance
+    _stdFuncs = StdFuncs()
     
     #Create rulesFunc instance
     rulesFunc = RulesFunc()
@@ -110,6 +118,8 @@ class RulesThread(Thread):
             chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.INIT_CHAIN_OFFSET]
             GameData.ledChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.LED_CHAIN_OFFSET]
             GameData.newLedChain = True
+            GameData.soundChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.SOUND_CHAIN_OFFSET]
+            GameData.newSoundChain = True
         else:
             chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.NORM_CHAIN_OFFSET]
             
@@ -124,6 +134,53 @@ class RulesThread(Thread):
     def rulesExit(self):
         RulesThread._runRulesThread = False
 
+    ## Process the sound chains
+    #
+    #  If no sound chain return.  If the sound chain is new, set the index to 0 and
+    #  set updateCmd flag.  Otherwise increment sound chain time and if it is
+    #  longer than the command wait increment the index and set updateCmd flag.
+    #  If updating the command, clear the time, grab the new command.  If it
+    #  is a repeat, move index back to 0.  If it is a wait, update the LEDs and
+    #  grab the new wait time.  If it is the end of the chain, clear the chain.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
+    def proc_sound_chain(self):
+        # Check if the sound chain is not empty
+        if GameData.soundChain:
+            updateSound = False
+            updateCmd = False
+            clearChain = False
+            
+            # New LED chain is being started
+            if GameData.newSoundChain:
+                GameData.newSoundChain = False
+                RulesThread._chainIndex = 0
+                updateCmd = True
+            else:
+                RulesThread._soundChTime += GlobConst.RULES_SLEEP
+                if (RulesThread._soundChTime > RulesThread._soundCmdWaitTime):
+                    RulesThread._chainIndex += 1
+                    updateCmd = True
+            if updateCmd:
+                RulesThread._soundChTime = 0
+                soundCmd = GameData.soundChain[RulesThread._chainIndex][SoundChains.CH_CMD_OFFSET]
+                
+                # If this is repeat command, move index back to beginning
+                if (soundCmd == SoundChains.REPEAT):
+                    RulesThread._chainIndex = 0
+                    soundCmd = GameData.soundChain[RulesThread._chainIndex][SoundChains.CH_CMD_OFFSET]
+                if (soundCmd == SoundChains.WAIT):
+                    RulesThread._soundCmdWaitTime = GameData.soundChain[RulesThread._chainIndex][SoundChains.PARAM_OFFSET]
+                    updateSound = True
+                elif (soundCmd == SoundChains.END_CHAIN):
+                    updateSound = True
+                    clearChain = True
+            if updateSound:
+                StdFuncs.Sounds(RulesThread._stdFuncs, GameData.soundChain[RulesThread._chainIndex][SoundChains.SOUND_OFFSET])
+            if clearChain:
+                GameData.soundChain = []
+                
     ## The rules thread
     #
     #  If debug is not set, just run the rules thread processing.  If debug is set,
@@ -134,6 +191,9 @@ class RulesThread(Thread):
     #  @return None 
     def run(self):
         while RulesThread._runRulesThread:
+            
+            #Process the sound chain
+            self.proc_sound_chain()
             
             #Process rules if not running in debug mode
             if not GameData.debug: 
@@ -149,5 +209,4 @@ class RulesThread(Thread):
                 self.proc_rules()
             
             #Sleep until next rules processing time
-            time.sleep(.01)
-
+            time.sleep(float(GlobConst.RULES_SLEEP)/1000.0)

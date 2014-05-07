@@ -51,9 +51,10 @@
 from rules.inpBitNames import InpBitNames
 from rules.solBitNames import SolBitNames
 from rules.ledBitNames import LedBitNames
-from rules.timerBits import Timers
+from rules.timers import Timers
 from rules.rulesData import RulesData
 from rules.sounds import Sounds
+from rules.sounds import BgndMusic
 from rules.states import State
 from gameData import GameData
 from stdFuncs import StdFuncs
@@ -240,6 +241,7 @@ class RulesFunc():
     #  @return None
     def Proc_Init(self):
         StdFuncs.Disable_Solenoids(self.stdFuncs)
+        GameData.creditBallNum = GameData.credits
         if (GameData.credits == 0):
             GameData.gameMode = State.ATTRACT
         else:
@@ -258,10 +260,14 @@ class RulesFunc():
             GameData.partCreditsNum += 1
             if (GameData.creditsInRow == GameData.extraCredit):
                 GameData.credits += 1
+                if GameData.gameMode == State.PRESS_START:
+                    GameData.creditBallNum = GameData.credits
                 GameData.creditsInRow = 0
                 GameData.partCreditsNum = 0
             if (GameData.partCreditsNum == GameData.partCreditsDenom):
                 GameData.credits += 1
+                if GameData.gameMode == State.PRESS_START:
+                    GameData.creditBallNum = GameData.credits
                 GameData.partCreditsNum = 0
         if StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.START_BTN):
             GameData.creditsInRow = 0
@@ -281,10 +287,11 @@ class RulesFunc():
                 GameData.credits -= 1
                 GameData.score[GameData.numPlayers] = 0
                 GameData.numPlayers += 1
+                GameData.creditBallNum = GameData.ballNum + 1
+            GameData.gameMode = State.START_GAME
         if (GameData.gameMode == State.PRESS_START):
             StdFuncs.BlankScoreDisps(self.stdFuncs)
             StdFuncs.BlankPlyrNumDisp(self.stdFuncs)
-            GameData.gameMode = State.START_GAME
                 
     ## Process press start initialization
     #
@@ -329,7 +336,8 @@ class RulesFunc():
         if StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.BALL_AT_PLUNGER) or \
                 StdFuncs.CheckSolBit(self.stdFuncs, SolBitNames.KICKOUT_HOLE):
             GameData.gameMode = State.BALL_IN_PLAY
-        elif StdFuncs.CheckSolBit(self.stdFuncs, SolBitNames.BALL_IN_PLAY):
+        elif StdFuncs.CheckSolBit(self.stdFuncs, SolBitNames.BALL_IN_PLAY) and \
+                (GameData.gameMode == State.START_GAME):
             GameData.gameMode = State.START_BALL
         else:
             GameData.gameMode = State.ERROR
@@ -407,6 +415,8 @@ class RulesFunc():
             print "Skill Shot"
             GameData.score[GameData.currPlayer] += 10
             GameData.gameMode = State.NORMAL_PLAY
+        if GameData.gameMode == State.NORMAL_PLAY:
+            StdFuncs.PlayBgnd(self.stdFuncs, BgndMusic.BGND_TRACK)
             
     ## Process normal play init
     #
@@ -445,11 +455,13 @@ class RulesFunc():
             GameData.score[GameData.currPlayer] += (GameData.scoreLvl * GameData.numSpinners)
             StdFuncs.Wait(self.stdFuncs, 3000)
         GameData.currPlayer += 1
-        if (GameData.currPlayer > GameData.numPlayers):
+        if (GameData.currPlayer >= GameData.numPlayers):
             GameData.currPlayer = 0
             GameData.ballNum += 1
             if (GameData.ballNum >= RulesData.BALLS_PER_GAME):
                 print "Game over"
+                GameData.creditBallNum = GameData.credits
+                StdFuncs.StopBgnd(self.stdFuncs);
                 StdFuncs.Wait(self.stdFuncs, 3000)
                 if (GameData.credits == 0):
                     GameData.gameMode = State.ATTRACT
@@ -458,6 +470,7 @@ class RulesFunc():
             else:
                 print "Player %d, Ball %d" % (GameData.currPlayer + 1, GameData.ballNum + 1) 
                 GameData.gameMode = State.START_BALL
+                GameData.creditBallNum = GameData.ballNum + 1
         else:
             print "Player %d, Ball %d" % (GameData.currPlayer + 1, GameData.ballNum + 1) 
             GameData.gameMode = State.START_BALL

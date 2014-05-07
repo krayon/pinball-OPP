@@ -58,6 +58,10 @@ class RulesData:
     SND_FILES = ["sounds/wah_wuh.wav", "sounds/ding_ding.wav", "sounds/opendoor.wav",
                "sounds/jump.wav", "sounds/wfall1.wav", "sounds/wfall2.wav", "sounds/wfall3.wav"]
     
+    ## Sound file list
+    # Indexed into using the [BgndMusic](@ref rules.sounds.BgndMusic) class
+    BGND_MUSIC_FILES = ["sounds/bgndtrack.mp3"]
+    
     ## Number of balls per game
     BALLS_PER_GAME = 3
     

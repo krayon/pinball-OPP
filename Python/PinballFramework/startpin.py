@@ -55,8 +55,10 @@ from tk.tkinterThread import TkinterThread
 from pygameFunc import Pygame_Data
 from rulesThread import RulesThread
 from ledThread import LedThread
+from timerThread import TimerThread
 import dispIntf
 from gameData import GameData
+from globConst import GlobConst
 
 ## Main
 #
@@ -128,12 +130,17 @@ def main(argv=None):
     commThread.init(comPort)
     commThread.start()
     
+    #Initialize the timer thread
+    timerThread = TimerThread()
+    timerThread.init()
+    timerThread.start()
+    
     #Initialize the rules thread
     rulesThread = RulesThread()
     rulesThread.init()
     rulesThread.start()
     
-    #Initialize the rules thread
+    #Initialize the LED thread
     ledThread = LedThread()
     ledThread.init()
     ledThread.start()
@@ -142,12 +149,14 @@ def main(argv=None):
     while not done:
         done = pygame.Proc_Pygame_Events()
         pygame.Update_Displays()
-        time.sleep(.01)    
+        pygame.Update_Bgnd_Music()
+        time.sleep(float(GlobConst.PYGAME_SLEEP)/1000.0)    
+    if GameData.debug:
+        tkinterThread.tkinterExit()
     commThread.commExit()
     rulesThread.rulesExit()
     ledThread.ledExit()
-    if GameData.debug:
-        tkinterThread.tkinterExit()
+    timerThread.timerExit()
 
 if __name__ == "__main__":
     sys.exit(main())

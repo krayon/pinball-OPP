@@ -54,10 +54,12 @@ from tkCmdFrm import TkCmdFrm
 from tkInpBrd import TkInpBrd
 from tkSolBrd import TkSolBrd
 from tkLedBrd import TkLedBrd
+from hwobjs.ledBrd import LedBrd
 import time
 from rules.rulesData import RulesData
 import rs232Intf
 from gameData import GameData
+from globConst import GlobConst
 
 ## Tkinter thread class.
 #  Create tk frame instances for all the configured hardware.
@@ -65,13 +67,13 @@ from gameData import GameData
 class TkinterThread(Thread):
     doneInit = False
     
+    #private members
+    _runTkinterThread = True
+    
     ## The constructor.
     def __init__(self):
         super(TkinterThread, self).__init__()
         
-        #private members
-        self._runTkinterThread = True
-
     ## Init the tkinter thread
     #
     #  @param  self          [in]   Object reference
@@ -91,7 +93,7 @@ class TkinterThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def tkinterExit(self):
-        self._runTkinterThread = False
+        TkinterThread._runTkinterThread = False
     
     ## The tkinter thread
     #
@@ -126,8 +128,10 @@ class TkinterThread(Thread):
         root.update()
         TkinterThread.doneInit = True
       
-        while self._runTkinterThread:
+        while TkinterThread._runTkinterThread:
             root.update()
             cmdFrm.Update_Cmd_Frm()
+            for i in range(RulesData.NUM_LED_BRDS):
+                GameData.tkLedBrd[i].updateLeds(LedBrd.currLedData[i])
             count += 1
-            time.sleep(.1)
+            time.sleep(float(GlobConst.TK_SLEEP)/1000.0)

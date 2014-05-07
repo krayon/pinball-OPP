@@ -61,6 +61,7 @@ class GameData():
     partCreditsNum = 0
     extraCredit = 5
     partCreditsDenom = 2
+    creditBallNum = 0
     
     prevGameMode = 0xffffffff
     gameMode = RulesData.INIT_MODE
@@ -89,11 +90,22 @@ class GameData():
     currInpStatus = []
     currSolStatus = []
     
-    expiredTimers = 0
+    #Timer information
+    expiredTimers = []
+    runningTimers = []
+    timerCnt = []
 
     #LED Chain 
     ledChain = []
     newLedChain = False
+    
+    #Sound Chain 
+    soundChain = []
+    newSoundChain = False
+    
+    #Bgnd music
+    prevBgndSound = 0xffffffff
+    bgndSound = 0xffffffff
 
     ## The constructor.
     def __init__(self):

@@ -57,16 +57,10 @@ from rules.rulesData import RulesData
 #  The LED board frame contains pictures of if each LED is on or off.
 #  It lists the bit string name to make debugging easier.
 class TkLedBrd():
-    brdNum = 0
-    brdPos = 0
-    prevLedState = 0x00                  #1 is on, 0 is off
-    bitFrms = []
-    canvas = []
-    ledCardFrm = 0
-    statLbl = 0
-    ledOffImage = 0
-    ledOnWhtImage = 0
-    ledOnGrnImage = 0
+    #Private data
+    _ledOffImage = 0
+    _ledOnWhtImage = 0
+    _ledOnGrnImage = 0
     
     ## The constructor
     #
@@ -82,10 +76,16 @@ class TkLedBrd():
         self.brdNum = brdNum
         self.brdPos = frmRow
         self.statLbl = StringVar()
-        self.ledOffImage = PhotoImage(file="graphics/ledOff.gif")
-        self.ledOnWhtImage = PhotoImage(file="graphics/ledOnWht.gif")
-        self.ledOnGrnImage = PhotoImage(file="graphics/ledOnGrn.gif")
-
+        self.prevLedState = 0x00                  #1 is on, 0 is off
+        self.bitFrms = []
+        self.canvas = []
+        
+        if (TkLedBrd._ledOffImage == 0):
+            TkLedBrd._ledOffImage = PhotoImage(file="graphics/ledOff.gif")
+        if (TkLedBrd._ledOnWhtImage == 0):
+            TkLedBrd._ledOnWhtImage = PhotoImage(file="graphics/ledOnWht.gif")
+        if (TkLedBrd._ledOnGrnImage == 0):
+            TkLedBrd._ledOnGrnImage = PhotoImage(file="graphics/ledOnGrn.gif")
         
         #Create main frame
         self.ledCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
@@ -126,9 +126,9 @@ class TkLedBrd():
         self.canvas[bit].grid(column = 0, row = 1)
         
         if ((self.prevLedState & (1 << bit)) == 0):
-            self.canvas[bit].create_image(48, 40, image=self.ledOffImage)
+            self.canvas[bit].create_image(48, 40, image=TkLedBrd._ledOffImage)
         else:
-            self.canvas[bit].create_image(48, 40, image=self.ledOnGrnImage)
+            self.canvas[bit].create_image(48, 40, image=TkLedBrd._ledOnGrnImage)
 
     ## Update LED states
     #
@@ -142,9 +142,19 @@ class TkLedBrd():
             for index in range(rs232Intf.NUM_LED_PER_BRD):
                 if ((self.prevLedState ^ data) & (1 << index)):
                     if (data & (1 << index)) != 0:
-                        self.canvas[index].create_image(48, 40, image=self.ledOnGrnImage)
+                        self.canvas[index].create_image(48, 40, image=TkLedBrd._ledOnGrnImage)
                     else:
-                        self.canvas[index].create_image(48, 40, image=self.ledOffImage)
+                        self.canvas[index].create_image(48, 40, image=TkLedBrd._ledOffImage)
             self.prevLedState = data
             self.statLbl.set("0x%02x" % self.prevLedState)
+
+    ## Remove images
+    #
+    #  Remove images so threads can be cleaned
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def removeImages(self):
+        for index in range(rs232Intf.NUM_LED_PER_BRD):
+            self.canvas[index].create_image(48, 40, image="")
                         

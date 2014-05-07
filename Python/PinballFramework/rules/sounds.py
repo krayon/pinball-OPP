@@ -56,3 +56,8 @@ class Sounds:
     WATERFALL1          = 4
     WATERFALL2          = 5
     WATERFALL3          = 6
+    
+## Background music enumeration
+#  Contains an entry for each background enumeration
+class BgndMusic:
+    BGND_TRACK          = 0

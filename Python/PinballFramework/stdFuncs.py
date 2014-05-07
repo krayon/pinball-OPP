@@ -50,6 +50,7 @@ from gameData import GameData
 from hwobjs.ledBrd import LedBrd
 from rules.rulesData import RulesData
 from dispConstIntf import DispConst
+import dispIntf
 
 ## Standard functions class.
 #
@@ -140,6 +141,11 @@ class StdFuncs():
     #  @param  timeout       [in]   bit position of the timer
     #  @return None 
     def Start(self, timeout):
+        index = timeout >> 6
+        bitPos = timeout & 0x1f
+        GameData.expiredTimers[index] &= ~(1 << bitPos)
+        GameData.timerCnt[timeout] = 0
+        GameData.runningTimers[index] |= (1 << bitPos)
         #HRS:  Finish
         pass
     
@@ -151,7 +157,9 @@ class StdFuncs():
     #  @param  timeout       [in]   bit position of the timer
     #  @return True if expired 
     def Expired(self, timeout):
-        if ((GameData.expiredTimers & timeout) != 0):
+        index = timeout >> 6
+        bitPos = timeout & 0x1f
+        if ((GameData.expiredTimers[index] & (1 << bitPos)) != 0):
             return True
         else:
             return False
@@ -351,8 +359,26 @@ class StdFuncs():
     #  @param  soundIdx      [in]   Sound index
     #  @return None
     def Sounds(self, soundIdx):
-        #HRS:  Finish
-        pass
+        dispIntf.playSound(soundIdx)
+
+    ## Play background music
+    #
+    #  Play the background music, index of bgnd track 
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  soundIdx      [in]   Sound index
+    #  @return None
+    def PlayBgnd(self, soundIdx):
+        GameData.bgndSound = soundIdx
+
+    ## Stop background music
+    #
+    #  Stop the background music 
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def StopBgnd(self):
+        GameData.bgndSound = 0xffffffff
 
     ## Wait
     #

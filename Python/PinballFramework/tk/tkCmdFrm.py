@@ -69,6 +69,9 @@ class TkCmdFrm():
     stateVar = 0
     btnCfgBitfield = 0x3                #Both button start as toggle buttons
     
+    #private members
+    _prevState = 0
+    
     ## The constructor.
     def __init__(self, parentFrm):
         #Create main frame
@@ -180,4 +183,6 @@ class TkCmdFrm():
     #  @param  self          [in]   Object reference
     #  @return None
     def Update_Cmd_Frm(self):
-        TkCmdFrm.stateVar.set(RulesData.STATE_STR[GameData.gameMode])
+        if TkCmdFrm._prevState != GameData.gameMode:
+            TkCmdFrm.stateVar.set(RulesData.STATE_STR[GameData.gameMode])
+            TkCmdFrm._prevState = GameData.gameMode

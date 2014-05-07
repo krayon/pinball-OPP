@@ -187,12 +187,12 @@ class Pygame_Data():
             else:
                 dispIntf.updateDisp(DispConst.DISP_PLAYER_NUM, 0, True)
             Pygame_Data.prevPlyrNum = GameData.currPlayer
-        if (Pygame_Data.prevCreditBallNum != GameData.credits):
-            if (GameData.credits != DispConst.DISP_BLANK):
-                dispIntf.updateDisp(DispConst.DISP_CREDIT_BALL_NUM, GameData.credits, False)
+        if (Pygame_Data.prevCreditBallNum != GameData.creditBallNum):
+            if (GameData.creditBallNum != DispConst.DISP_BLANK):
+                dispIntf.updateDisp(DispConst.DISP_CREDIT_BALL_NUM, GameData.creditBallNum, False)
             else:
                 dispIntf.updateDisp(DispConst.DISP_CREDIT_BALL_NUM, 0, True)
-            Pygame_Data.prevCreditBallNum = GameData.credits
+            Pygame_Data.prevCreditBallNum = GameData.creditBallNum
         for index in range(RulesData.MAX_NUM_PLYRS):
             if (Pygame_Data.prevScore[index] != GameData.score[index]):
                 if (GameData.score[index] != DispConst.DISP_BLANK):
@@ -200,3 +200,20 @@ class Pygame_Data():
                 else:
                     dispIntf.updateDisp(DispConst.DISP_PLAYER1 + index, 0, True)
                 Pygame_Data.prevScore[index] = GameData.score[index]
+
+    ## Update background music
+    #
+    #  See if the background music bitfield has changed.  If so,
+    #  turn on/off the channels.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Update_Bgnd_Music(self):
+        if GameData.bgndSound != GameData.prevBgndSound:
+            if GameData.bgndSound == 0xffffffff:
+                pygame.mixer.music.stop()
+            else:
+                pygame.mixer.music.load(RulesData.BGND_MUSIC_FILES[GameData.bgndSound])
+                pygame.mixer.music.play(-1)
+            GameData.prevBgndSound = GameData.bgndSound
+            

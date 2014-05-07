@@ -55,6 +55,7 @@ from rules.rulesData import RulesData
 from hwobjs.ledBrd import LedBrd
 from stdFuncs import StdFuncs
 from rules.ledChains import LedChains
+from globConst import GlobConst
 import time
 
 ## LED thread class.
@@ -64,6 +65,12 @@ class LedThread(Thread):
     #private members
     _runLedThread = True
     _threadlock = 0
+    _chainIndex = 0
+    _ledChTime = 0
+    _ledCmdWaitTime = 0
+        
+    #Create stdFunc instance
+    _stdFuncs = StdFuncs()
     
     ## Holds previous LED state to see if there are changes
     _prevLedState = []
@@ -100,74 +107,88 @@ class LedThread(Thread):
     def ledExit(self):
         LedThread._runLedThread = False
 
+    ## Process the LED chains
+    #
+    #  If no LED chain return.  If the LED chain is new, set the index to 0 and
+    #  set updateCmd flag.  Otherwise increment LED chain time and if it is
+    #  longer than the command wait increment the index and set updateCmd flag.
+    #  If updating the command, clear the time, grab the new command.  If it
+    #  is a repeat, move index back to 0.  If it is a wait, update the LEDs and
+    #  grab the new wait time.  If it is the end of the chain, clear the chain.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
+    def proc_led_chain(self):
+        # Check if the LED chain is not empty
+        if GameData.ledChain:
+            updateLeds = False
+            updateCmd = False
+            clearChain = False
+            
+            # New LED chain is being started
+            if GameData.newLedChain:
+                GameData.newLedChain = False
+                LedThread._chainIndex = 0
+                updateCmd = True
+            else:
+                LedThread._ledChTime += GlobConst.LED_SLEEP
+                if (LedThread._ledChTime > LedThread._ledCmdWaitTime):
+                    LedThread._chainIndex += 1
+                    updateCmd = True
+            if updateCmd:
+                LedThread._ledChTime = 0
+                ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.CH_CMD_OFFSET]
+                
+                # If this is repeat command, move index back to beginning
+                if (ledCmd == LedChains.REPEAT):
+                    LedThread._chainIndex = 0
+                    ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.CH_CMD_OFFSET]
+                if (ledCmd == LedChains.WAIT):
+                    LedThread._ledCmdWaitTime = GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.PARAM_OFFSET]
+                    updateLeds = True
+                elif (ledCmd == LedChains.END_CHAIN):
+                    updateLeds = True
+                    clearChain = True
+            if updateLeds:
+                StdFuncs.Led_Set(LedThread._stdFuncs, GameData.ledChain[LedChains.MASK_OFFSET], \
+                    GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.CH_LED_BITS_OFFSET])
+            if clearChain:
+                GameData.ledChain = []
+            
     ## Process the LEDs
     #
-    #  Periodically tk LED graphics.  Will eventually send SPI msg
+    #  Periodically update tk LED graphics.  Will eventually send SPI msg
     #  updates.
     #
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_leds(self):
         for index in range(RulesData.NUM_LED_BRDS):
-            if GameData.debug:
-                GameData.tkLedBrd[index].updateLeds(LedBrd.currLedData[index])
+            if (LedBrd.currBlinkLeds[index] != 0):
+                LedBrd.currLedData[index] ^= LedBrd.currBlinkLeds[index]
             
     ## The LED thread
     #
-    #  If debug is not set, just run the LED thead processing.  If debug is set,
+    #  If debug is not set, just run the LED thread processing.  If debug is set,
     #  run debug processing if set to run the rules thread, or if a single step
     #  command has been received.
     #
     #  @param  self          [in]   Object reference
     #  @return None 
     def run(self):
-        chainIndex = 0
-        ledChTime = 0
-        ledCmdWaitTime = 0
-        
-        #Create stdFunc instance
-        stdFuncs = StdFuncs()
       
         while LedThread._runLedThread:
-            # Check if the LED chain is not empty
-            if GameData.ledChain:
-                updateLeds = False
-                updateCmd = False
-                
-                # New LED chain is being started
-                if GameData.newLedChain:
-                    GameData.newLedChain = False
-                    chainIndex = 0
-                    updateCmd = True
-                else:
-                    ledChTime += 100
-                    if (ledChTime > ledCmdWaitTime):
-                        chainIndex += 1
-                        updateCmd = True
-                if updateCmd:
-                    ledChTime = 0
-                    ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.CH_CMD_OFFSET]
-                    
-                    # If this is repeat command, move index back to beginning
-                    if (ledCmd == LedChains.REPEAT):
-                        chainIndex = 0
-                        ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.CH_CMD_OFFSET]
-                    if (ledCmd == LedChains.WAIT):
-                        ledCmdWaitTime = GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.PARAM_OFFSET]
-                        updateLeds = True
-                    elif (ledCmd == LedChains.END_CHAIN):
-                        GameData.ledChain = []
-                if updateLeds:
-                    StdFuncs.Led_Set(stdFuncs, GameData.ledChain[LedChains.MASK_OFFSET], \
-                        GameData.ledChain[LedChains.CHAIN_OFFSET][chainIndex][LedChains.CH_LED_BITS_OFFSET])
-                    
+            #Process LED chain
+            self.proc_led_chain()
+            
             #Process LEDs if not running in debug mode
             if not GameData.debug: 
                 self.proc_leds()
+            
             #Process LEDs if run button is active
             elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
                 self.proc_leds()
                     
-            #Sleep until next rules processing time
-            time.sleep(.1)
+            #Sleep until next LED processing time
+            time.sleep(float(GlobConst.LED_SLEEP)/1000.0)
