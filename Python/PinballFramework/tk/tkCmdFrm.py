@@ -52,6 +52,7 @@ from Tkinter import *
 from ttk import *
 from rules.rulesData import RulesData
 from gameData import GameData
+from comms.commIntf import CommsState
 
 ## Tk command frame class.
 #  The command frame contains the controls to run or single step the command, and
@@ -71,6 +72,8 @@ class TkCmdFrm():
     
     #private members
     _prevState = 0
+    _prevCommState = 0
+
     
     ## The constructor.
     def __init__(self, parentFrm):
@@ -110,13 +113,21 @@ class TkCmdFrm():
         tmpBtn.grid(column = 1, row = 2, padx=8, pady=8)
         TkCmdFrm.toggleBtn.append(tmpBtn)
         
-        #Add state status
-        tmpLbl = Label(self.cmdFrm, text="State")
-        tmpLbl.grid(column = 2, row = 0)
-        TkCmdFrm.stateVar = StringVar()
-        TkCmdFrm.stateVar.set("No State")
-        tmpLbl = Label(self.cmdFrm, textvariable=TkCmdFrm.stateVar, relief=SUNKEN, width=20, anchor=CENTER)
-        tmpLbl.grid(column = 2, row = 1, padx=8, pady=8)
+        #Add rules state status
+        tmpLbl = Label(self.cmdFrm, text="Rules State:")
+        tmpLbl.grid(column = 2, row = 1)
+        TkCmdFrm.rulesStateVar = StringVar()
+        TkCmdFrm.rulesStateVar.set("No State")
+        tmpLbl = Label(self.cmdFrm, textvariable=TkCmdFrm.rulesStateVar, relief=SUNKEN, width=20, anchor=CENTER)
+        tmpLbl.grid(column = 3, row = 1, padx=8, pady=8)
+        
+        #Add comms state status
+        tmpLbl = Label(self.cmdFrm, text="Comms State:")
+        tmpLbl.grid(column = 2, row = 2)
+        TkCmdFrm.commsStateVar = StringVar()
+        TkCmdFrm.commsStateVar.set("No State")
+        tmpLbl = Label(self.cmdFrm, textvariable=TkCmdFrm.commsStateVar, relief=SUNKEN, width=20, anchor=CENTER)
+        tmpLbl.grid(column = 3, row = 2, padx=8, pady=8)
         
     ## Toggle function
     #
@@ -184,5 +195,8 @@ class TkCmdFrm():
     #  @return None
     def Update_Cmd_Frm(self):
         if TkCmdFrm._prevState != GameData.gameMode:
-            TkCmdFrm.stateVar.set(RulesData.STATE_STR[GameData.gameMode])
+            TkCmdFrm.rulesStateVar.set(RulesData.STATE_STR[GameData.gameMode])
             TkCmdFrm._prevState = GameData.gameMode
+        if TkCmdFrm._prevCommState != GameData.commState: 
+            TkCmdFrm.commsStateVar.set(CommsState.STATE_STR[GameData.commState])
+            TkCmdFrm._prevCommState = GameData.commState

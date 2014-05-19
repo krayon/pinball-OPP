@@ -129,7 +129,7 @@ class RulesFunc():
     ## Process inlane switch inputs
     #
     #  If inlane switch is closed and inlane wasn't set before, turn the LED on.
-    #  If all the inlanes are complete, change state to INLANE_COMPLETE.
+    #  If all the inlanes are complete, add complete score and clear LEDs.
     #
     #  @param  self          [in]   Object reference
     #  @return None
@@ -147,7 +147,10 @@ class RulesFunc():
             StdFuncs.Led_On(self.stdFuncs, LedBitNames.INLANE_RGHT)
             GameData.inlaneLights[GameData.currPlayer] |= LedBitNames.INLANE_RGHT
         if (GameData.inlaneLights[GameData.currPlayer] & LedBitNames.INLANE_MSK) == LedBitNames.INLANE_MSK:
-            GameData.gameMode = State.INLANE_COMPLETE
+            print "Inlanes Complete!!"
+            GameData.score[GameData.currPlayer] += 10
+            GameData.inlaneLights[GameData.currPlayer] = 0
+            StdFuncs.Led_Off(self.stdFuncs, LedBitNames.INLANE_MSK)
 
     ## Process target switch inputs
     #
@@ -172,6 +175,17 @@ class RulesFunc():
         if (self.curr_targets & (self.TRGT_MSK)) == self.TRGT_MSK:
             GameData.gameMode = State.TARGETS_COMPLETE
 
+    ## Process spinner input
+    #
+    #  Needs special processing since it is used for bonus and
+    #  jackpot scoring.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Spinner(self):
+        if StdFuncs.CheckInpBit(self.stdFuncs, InpBitNames.SPINNER):
+            GameData.numSpinners += 1
+            
     ## Process kickout hole
     #
     #  If the kickout hole switch is close, kick the kickout hole solenoid
@@ -320,7 +334,7 @@ class RulesFunc():
     #  @return None
     def Proc_Init_Game(self):
         GameData.ballNum = 0
-        GameData.specialLvl = 0
+        GameData.bonusMult = 1
         for i in range(RulesData.MAX_NUM_PLYRS):
             GameData.inlaneLights[i] = 0
             
@@ -388,7 +402,7 @@ class RulesFunc():
         RulesFunc.prev_flipper = 0
         GameData.targets = 0
         GameData.tilted = 0
-        GameData.scoreLvl = 1
+        GameData.scoreLvl = 0
         GameData.numSpinners = 0
 
     ## Process ball in play start
@@ -416,6 +430,7 @@ class RulesFunc():
             GameData.score[GameData.currPlayer] += 10
             GameData.gameMode = State.NORMAL_PLAY
         if GameData.gameMode == State.NORMAL_PLAY:
+            GameData.scoring = True
             StdFuncs.PlayBgnd(self.stdFuncs, BgndMusic.BGND_TRACK)
             
     ## Process normal play init
@@ -439,6 +454,7 @@ class RulesFunc():
         self.Proc_Flipper()
         self.Proc_Inlane()
         self.Proc_Targets()
+        self.Proc_Spinner()
         self.Proc_Kickout_Hole()
         self.Proc_Start_and_Coin()
         self.Proc_Ball_Drain()
@@ -451,9 +467,13 @@ class RulesFunc():
     #  @return None
     def Proc_End_Of_Ball(self):
         if not self.tilted:
-            print "Bonus %d x %d" % (GameData.scoreLvl, GameData.numSpinners)
-            GameData.score[GameData.currPlayer] += (GameData.scoreLvl * GameData.numSpinners)
+            print "Bonus %d x %d" % (GameData.bonusMult, GameData.numSpinners)
+            GameData.score[GameData.currPlayer] += (GameData.bonusMult * GameData.numSpinners)
             StdFuncs.Wait(self.stdFuncs, 3000)
+        GameData.bonusMult = 1
+        GameData.scoreLvl = 0
+        GameData.numSpinners = 0
+        GameData.scoring = False
         GameData.currPlayer += 1
         if (GameData.currPlayer >= GameData.numPlayers):
             GameData.currPlayer = 0
@@ -475,21 +495,6 @@ class RulesFunc():
             print "Player %d, Ball %d" % (GameData.currPlayer + 1, GameData.ballNum + 1) 
             GameData.gameMode = State.START_BALL
 
-    ## Process inlane complete
-    #
-    #  Inlane complete so increment score level.  Clear inlane lights and go back to
-    #  NORMAL_PLAY.
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Inlane_Comp(self):
-        print "Inlanes Complete!!"
-        GameData.scoreLvl += 1
-        GameData.score[GameData.currPlayer] += 10
-        GameData.inlaneLights[GameData.currPlayer] = 0
-        StdFuncs.Led_Off(self.stdFuncs, LedBitNames.INLANE_MSK)
-        GameData.gameMode = State.NORMAL_PLAY
-   
     ## Process targets complete init
     #
     #  Targets complete so start blinking the special LED.  Increment special level.
@@ -499,23 +504,28 @@ class RulesFunc():
     #  @return None
     def Proc_Targets_Comp_Init(self):
         StdFuncs.Led_Blink_100(self.stdFuncs, LedBitNames.SPECIAL)
-        GameData.specialLvl += 1
-        print "Bonus mult = %d" % GameData.specialLvl
+        GameData.scoreLvl = 1
+        self.curr_targets = 0
+        StdFuncs.Led_Off(self.stdFuncs, LedBitNames.TRGT_MSK)
+        GameData.bonusMult += 1
+        print "Bonus mult = %d" % GameData.bonusMult
         GameData.score[GameData.currPlayer] += 10
         StdFuncs.Start(self.stdFuncs, Timers.SPECIAL_TIMER)
 
     ## Process targets complete state
     #
-    #  Give jackpot if hit kickout hole.
+    #  Give jackpot if hit kickout hole.  If timer expired, turn of special timer.
     #  HRS:  These rules need changed.
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Targets_Comp_State(self):
+        self.Proc_Normal_Play()
         if (StdFuncs.CheckSolBit(self.stdFuncs, SolBitNames.KICKOUT_HOLE)):
-            print "Jackpot"
-            GameData.score[GameData.currPlayer] += (GameData.specialLvl[GameData.currPlayer] * 100)
+            print "Collect Bonus"
+            GameData.score[GameData.currPlayer] += (GameData.bonusMult * GameData.numSpinners)
         if (StdFuncs.Expired(self.stdFuncs, Timers.SPECIAL_TIMER)):
+            StdFuncs.Led_Off(self.stdFuncs, LedBitNames.SPECIAL)
+            GameData.scoreLvl = 0
             GameData.gameMode = State.NORMAL_PLAY
-            self.Proc_Normal_Play()
 

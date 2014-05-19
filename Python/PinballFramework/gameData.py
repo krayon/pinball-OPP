@@ -50,6 +50,7 @@ from rules.rulesData import RulesData
 from hwobjs.inpBrd import InpBrd
 from hwobjs.solBrd import SolBrd
 from hwobjs.ledBrd import LedBrd
+from comms.commIntf import CommsState
 import rs232Intf
 
 ## Game data class.
@@ -65,6 +66,7 @@ class GameData():
     
     prevGameMode = 0xffffffff
     gameMode = RulesData.INIT_MODE
+    commState = CommsState.COMM_INIT
     score = [0, 0, 0, 0]
     ballNum = 0
     currPlayer = 0
@@ -72,8 +74,9 @@ class GameData():
     inlaneLights = [0, 0, 0, 0]
     scoreLvl = 0
     numSpinners = 0
-    specialLvl = 0
+    bonusMult = 0
     kick_retries = 0
+    scoring = False
     
     debug = False
     inpBrd = InpBrd()

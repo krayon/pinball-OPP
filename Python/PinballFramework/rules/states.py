@@ -56,10 +56,8 @@ class State:
     START_BALL          = 4
     BALL_IN_PLAY        = 5
     NORMAL_PLAY         = 6
-    SPECIAL_PLAY        = 7
-    ERROR               = 8
-    TILT                = 9
-    END_OF_BALL         = 10
-    INLANE_COMPLETE     = 11
-    TARGETS_COMPLETE    = 12
+    ERROR               = 7
+    TILT                = 8
+    END_OF_BALL         = 9
+    TARGETS_COMPLETE    = 10
 

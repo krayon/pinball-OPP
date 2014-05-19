@@ -49,6 +49,7 @@
 
 from threading import Thread
 import time
+import rs232Intf
 from gameData import GameData
 from tk.tkCmdFrm import TkCmdFrm
 from rulesFunc import RulesFunc
@@ -57,6 +58,7 @@ from hwobjs.solBrd import SolBrd
 from hwobjs.inpBrd import InpBrd
 from tk.tkSolBrd import TkSolBrd
 from tk.tkInpBrd import TkInpBrd
+from rules.rulesData import RulesData
 from globConst import GlobConst
 from rules.soundChains import SoundChains
 from stdFuncs import StdFuncs
@@ -113,6 +115,7 @@ class RulesThread(Thread):
             if GameData.debug:
                 GameData.currInpStatus[index] |= TkInpBrd.get_status(GameData.tkInpBrd[index])
         
+        #Figure out the correct processing chain
         if (GameData.gameMode != GameData.prevGameMode):
             GameData.prevGameMode = GameData.gameMode
             chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.INIT_CHAIN_OFFSET]
@@ -181,6 +184,30 @@ class RulesThread(Thread):
             if clearChain:
                 GameData.soundChain = []
                 
+    ## Process scoring
+    #
+    #  If no sound chain return.  If the sound chain is new, set the index to 0 and
+    #  set updateCmd flag.  Otherwise increment sound chain time and if it is
+    #  longer than the command wait increment the index and set updateCmd flag.
+    #  If updating the command, clear the time, grab the new command.  If it
+    #  is a repeat, move index back to 0.  If it is a wait, update the LEDs and
+    #  grab the new wait time.  If it is the end of the chain, clear the chain.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
+    def proc_scoring(self):
+        if GameData.scoring:
+            for cardNum in range(SolBrd.numSolBrds):
+                if GameData.currSolStatus[cardNum] != 0:
+                    for bit in range(rs232Intf.NUM_SOL_PER_BRD):
+                        if (GameData.currSolStatus[cardNum] & (1 << bit)) != 0:
+                            GameData.score[GameData.currPlayer] += RulesData.SOL_SCORE[GameData.scoreLvl][cardNum][bit]
+            for cardNum in range(InpBrd.numInpBrds):
+                if GameData.currInpStatus[cardNum] != 0:
+                    for bit in range(rs232Intf.NUM_INP_PER_BRD):
+                        if (GameData.currInpStatus[cardNum] & (1 << bit)) != 0:
+                            GameData.score[GameData.currPlayer] += RulesData.INP_SCORE[GameData.scoreLvl][cardNum][bit]
+        
     ## The rules thread
     #
     #  If debug is not set, just run the rules thread processing.  If debug is set,
@@ -207,6 +234,9 @@ class RulesThread(Thread):
                     TkCmdFrm.threadSendStep[TkCmdFrm.RULES_THREAD_IDX]:
                 TkCmdFrm.threadSendStep[TkCmdFrm.RULES_THREAD_IDX] = False
                 self.proc_rules()
+            
+            #Process the scoring
+            self.proc_scoring()
             
             #Sleep until next rules processing time
             time.sleep(float(GlobConst.RULES_SLEEP)/1000.0)

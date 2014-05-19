@@ -50,6 +50,24 @@
 import rs232Intf
 import errIntf
 
+## State enumeration for Comms
+#  Contains an entry for each state
+class CommsState:
+    #Comm thread states
+    COMM_INIT           = 0
+    COMM_INV_DONE       = 1
+    COMM_CFG_DONE       = 2
+    COMM_SENT_CFG_CMD   = 3
+    COMM_SENT_GET_INP   = 4
+    COMM_EXIT           = 5
+    COMM_ERROR_OCC      = 6
+    COMM_NO_COMM_PORT   = 7
+
+    ## State strings for Comms
+    #  Contains an entry for each state
+    STATE_STR = ["Init", "Inv_Done", "Cfg_Done", "Sent_Cfg_Cmd",
+                    "Sent_Get_Inp", "Exit", "Error_Occ", "No_Comm_Port"]
+
 ## Update the stored solenoid configuration so it can be sent to the board. 
 #
 #  Verify the board is valid and solenoid number is valid.  Copy configuration

@@ -51,6 +51,7 @@ from hwobjs.ledBrd import LedBrd
 from rules.rulesData import RulesData
 from dispConstIntf import DispConst
 import dispIntf
+import time
 
 ## Standard functions class.
 #
@@ -146,8 +147,6 @@ class StdFuncs():
         GameData.expiredTimers[index] &= ~(1 << bitPos)
         GameData.timerCnt[timeout] = 0
         GameData.runningTimers[index] |= (1 << bitPos)
-        #HRS:  Finish
-        pass
     
     ## Check for expired timeout
     #
@@ -388,8 +387,7 @@ class StdFuncs():
     #  @param  delay         [in]   Delay in ms
     #  @return None
     def Wait(self, delay):
-        #HRS:  Finish
-        pass
+        time.sleep(float(delay)/1000.0)
     
     ## Blank score displays
     #

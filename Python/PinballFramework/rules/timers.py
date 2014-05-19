@@ -63,4 +63,4 @@ class Timers:
     timeouts = [
         [KICKOUT_TIMER, 1000],
         [BALL_LOCATE, 5000],
-        [SPECIAL_TIMER, 30000] ]
+        [SPECIAL_TIMER, 15000] ]

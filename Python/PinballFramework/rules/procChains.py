@@ -73,10 +73,8 @@ class ProcChain:
         [State.START_BALL, [RulesFunc.Proc_Start_Ball_Init], [RulesFunc.Proc_Start_Ball_Start, RulesFunc.Proc_Start_and_Coin], [], []],
         [State.BALL_IN_PLAY, [RulesFunc.Proc_Ball_In_Play_Init], [RulesFunc.Proc_Ball_In_Play_Start, RulesFunc.Proc_Start_and_Coin], [], []],
         [State.NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play], [], []],
-        [State.SPECIAL_PLAY, [], [], [], []],
         [State.ERROR, [], [], [], []],
         [State.TILT, [RulesFunc.Proc_Tilt_Init], [RulesFunc.Proc_Tilt_State], LedChains.Tilt, SoundChains.Tilt],
         [State.END_OF_BALL, [RulesFunc.Proc_End_Of_Ball], [], [], []],
-        [State.INLANE_COMPLETE, [RulesFunc.Proc_Inlane_Comp], [], [], []],
         [State.TARGETS_COMPLETE, [RulesFunc.Proc_Targets_Comp_Init], [RulesFunc.Proc_Targets_Comp_State], [], []],
     ]

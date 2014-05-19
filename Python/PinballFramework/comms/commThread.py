@@ -55,21 +55,13 @@ from tk.tkCmdFrm import TkCmdFrm
 from threading import Thread
 import time
 import commHelp
+from comms.commIntf import CommsState
 
 ## Communication thread class.
 #
 #  Communicates at periodic intervals to the hardware.  Inherits from Thread class.
 #  Multiple Comms threads could be supported if the hardware had multiple serial ports.
 class CommThread(Thread):
-    #Comm thread states
-    COMM_INIT           = 0
-    COMM_INV_DONE       = 1
-    COMM_CFG_DONE       = 2
-    COMM_SENT_CFG_CMD   = 3
-    COMM_SENT_GET_INP   = 4
-    COMM_EXIT           = 5
-    COMM_ERROR_OCC      = 6
-    COMM_NO_COMM_PORT   = 7
 
     #Data not shared to the outside world
     DFLT_SOL_CFG = [ rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
@@ -125,9 +117,6 @@ class CommThread(Thread):
         ## Rcvd switch data from solenoid boards
         self.switchSolData = []
         
-        ## Current comms thread state
-        self.state = CommThread.COMM_INIT
-        
         ## Serial port object
         self.ser = None
         
@@ -148,15 +137,15 @@ class CommThread(Thread):
             try:
                 self.ser=serial.Serial(portId, baudrate=19200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
             except serial.SerialException:
-                self.state = CommThread.COMM_ERROR_OCC
+                GameData.commState = CommsState.COMM_ERROR_OCC
                 return(errIntf.CANT_OPEN_COM)
             retCode = commHelp.getInventory(self)
             if retCode:
-                self.state = CommThread.COMM_ERROR_OCC
+                GameData.commState = CommsState.COMM_ERROR_OCC
                 return (retCode)
-            self.state = CommThread.COMM_INV_DONE
+            GameData.commState = CommsState.COMM_INV_DONE
         else:
-            self.state = CommThread.COMM_NO_COMM_PORT
+            GameData.commState = CommsState.COMM_NO_COMM_PORT
         return(errIntf.CMD_OK)
     
     ## Start the comms thread

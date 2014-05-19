@@ -100,18 +100,25 @@ class RulesData:
                     "BallAtPlunger", "InlaneRght", "InlaneCtr", "InlaneLft",
                     "LftTrgt1", "LftTrgt2", "RghtTrgt1", "RghtTrgt2"]]
 
+    ## Input board scoring
+    INP_SCORE = [ [ [ 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 ] ],   # Normal scoring
+                  [ [ 0, 0, 0, 2, 2, 2, 2, 2, 0, 2, 2, 2, 2, 2, 2, 2 ] ] ]  # Special scoring
+
     ## Input board configuration
-    INP_BRD_CFG = [ [ rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+    INP_BRD_CFG = [ [ rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_FALL_EDGE, \
          rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
          rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, \
          rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE, rs232Intf.CFG_INP_FALL_EDGE ] ]
-
 
     ## Solenoid board bit names
     # Indexed into using the [SolBitNames](@ref rules.solBitNames.SolBitNames) class
     SOL_BRD_BIT_NAMES = [["RghtFlip", "LftFlip", "RghtSlingshot", "LftSlingshot",
                     "BallInPlay", "PopBumper2", "PopBumper1", "KickoutHole"]]
 
+    ## Input board scoring
+    SOL_SCORE = [ [ [ 0, 0, 0, 0, 0, 1, 1, 0 ] ],   # Normal scoring
+                  [ [ 0, 0, 0, 0, 0, 2, 2, 0 ] ] ]  # Special scoring
+    
     ## Solenoid board configuration
     # Three bytes for each solenoid being configured
     SOL_BRD_CFG = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
@@ -127,9 +134,8 @@ class RulesData:
     ## State name strings.
     # Indexed into using [State](@ref rules.states.State) enumeration
     STATE_STR = ["Init", "Attract", "Press_Start", "Start_Game",
-                    "Start_Ball", "Ball_in_Play", "Normal_Play", "Special_Play",
-                    "Error", "Tilt", "End_of_Ball", "Inlane_Complete",
-                    "Mode_Targets_Complete"]
+                    "Start_Ball", "Ball_in_Play", "Normal_Play", "Error",
+                    "Tilt", "End_of_Ball", "Mode_Targets_Complete"]
     
     ## Initial State
     INIT_MODE = State.INIT
