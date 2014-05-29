@@ -70,10 +70,10 @@ class InpBrd():
     #  @param  self          [in]   Object reference
     #  @return None
     def add_card(self):
-        brdNum = self.numInpBrds
+        brdNum = InpBrd.numInpBrds
         InpBrd.numInpBrds += 1
         bitField = 0
-        for bit in range(rs232Intf.NUM_INP_PER_BRD):
+        for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
             if (RulesData.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
                 bitField |= (1 << bit)
         InpBrd.inpCfgBitfield.append(0)

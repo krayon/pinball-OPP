@@ -55,6 +55,8 @@ from tkInpBrd import TkInpBrd
 from tkSolBrd import TkSolBrd
 from tkLedBrd import TkLedBrd
 from hwobjs.ledBrd import LedBrd
+from hwobjs.solBrd import SolBrd
+from hwobjs.inpBrd import InpBrd
 import time
 from rules.rulesData import RulesData
 import rs232Intf
@@ -116,14 +118,14 @@ class TkinterThread(Thread):
         cmdFrm = TkCmdFrm(bgndFrm)
         numInpBrds = 0
         numSolBrds = 0
-        for i in range(len(RulesData.INV_ADDR_LIST)):
+        for i in xrange(len(RulesData.INV_ADDR_LIST)):
             if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
                 GameData.tkInpBrd.append(TkInpBrd(numInpBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm))
                 numInpBrds += 1
             elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
                 GameData.tkSolBrd.append(TkSolBrd(numSolBrds, i, RulesData.INV_ADDR_LIST[i], bgndFrm))
                 numSolBrds += 1
-        for i in range(RulesData.NUM_LED_BRDS):
+        for i in xrange(RulesData.NUM_LED_BRDS):
             GameData.tkLedBrd.append(TkLedBrd(i, numSolBrds + numInpBrds + i + 1, bgndFrm))
         root.update()
         TkinterThread.doneInit = True
@@ -131,7 +133,11 @@ class TkinterThread(Thread):
         while TkinterThread._runTkinterThread:
             root.update()
             cmdFrm.Update_Cmd_Frm()
-            for i in range(RulesData.NUM_LED_BRDS):
+            for i in xrange(RulesData.NUM_LED_BRDS):
                 GameData.tkLedBrd[i].updateLeds(LedBrd.currLedData[i])
+            for i in xrange(numSolBrds):
+                GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
+            for i in xrange(numInpBrds):
+                GameData.tkInpBrd[i].update_status_field(InpBrd.currInpData[i])
             count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)

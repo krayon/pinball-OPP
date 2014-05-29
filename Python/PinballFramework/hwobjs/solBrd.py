@@ -70,10 +70,10 @@ class SolBrd():
     #  @param  self          [in]   Object reference
     #  @return None
     def add_card(self):
-        brdNum = self.numSolBrds
+        brdNum = SolBrd.numSolBrds
         SolBrd.numSolBrds += 1
         bitField = 0
-        for bit in range(rs232Intf.NUM_SOL_PER_BRD):
+        for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
             holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
             if (RulesData.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \

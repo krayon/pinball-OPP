@@ -335,7 +335,7 @@ class RulesFunc():
     def Proc_Init_Game(self):
         GameData.ballNum = 0
         GameData.bonusMult = 1
-        for i in range(RulesData.MAX_NUM_PLYRS):
+        for i in xrange(RulesData.MAX_NUM_PLYRS):
             GameData.inlaneLights[i] = 0
             
     ## Process start game

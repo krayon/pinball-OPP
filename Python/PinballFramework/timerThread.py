@@ -66,7 +66,7 @@ class TimerThread(Thread):
         super(TimerThread, self).__init__()
         
         # Create the timer variables
-        for i in range(len(Timers.timeouts)):
+        for i in xrange(len(Timers.timeouts)):
             # Every 32 timers requires another bitfield
             if (i & 0x1f) == 0:
                 GameData.expiredTimers.append(0) 
@@ -104,12 +104,12 @@ class TimerThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_timers(self):
-        for tmrGrp in range(len(GameData.runningTimers)):
+        for tmrGrp in xrange(len(GameData.runningTimers)):
             if (GameData.runningTimers[tmrGrp] != 0):
                 numTmr = len(GameData.timerCnt) - (tmrGrp * Timers.TIMERS_PER_GROUP)
                 if numTmr >= Timers.TIMERS_PER_GROUP:
                     numTmr = Timers.TIMERS_PER_GROUP
-                for timer in range(numTmr):
+                for timer in xrange(numTmr):
                     if GameData.runningTimers[tmrGrp] & (1 << timer) != 0:
                         # Calculate the timer index, increment time
                         currTmr = (tmrGrp * Timers.TIMERS_PER_GROUP) + timer

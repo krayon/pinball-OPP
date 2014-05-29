@@ -86,7 +86,7 @@ def updateSol(commThread, brd, sol, params):
         return errIntf.BAD_SOL_NUM
     if len(params) != rs232Intf.CFG_BYTES_PER_SOL:
         return errIntf.BAD_PARAM_BYTES
-    for loop in range(rs232Intf.CFG_BYTES_PER_SOL):
+    for loop in xrange(rs232Intf.CFG_BYTES_PER_SOL):
         commThread.solBrdCfg[brd][(rs232Intf.CFG_BYTES_PER_SOL * sol) + loop] = params[loop]
     return errIntf.CMD_OK
 

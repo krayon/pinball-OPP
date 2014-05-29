@@ -124,12 +124,12 @@ class GameData():
     #  @return Can return CMD_OK if good, or CANT_OPEN_COM or error codes
     #     from [getInventory](@ref comms.commHelp.getInventory).
     def init_brd_objs(self):
-        for i in range(len(RulesData.INV_ADDR_LIST)):
+        for i in xrange(len(RulesData.INV_ADDR_LIST)):
             if ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
                 InpBrd.add_card(self.inpBrd)
                 GameData.currInpStatus.append(0)
             elif ((RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
                 SolBrd.add_card(self.solBrd)
                 GameData.currSolStatus.append(0)
-        for i in range(RulesData.NUM_LED_BRDS):
+        for i in xrange(RulesData.NUM_LED_BRDS):
             LedBrd.add_card(self.ledBrd)

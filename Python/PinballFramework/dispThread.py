@@ -235,7 +235,7 @@ def initScoreDisps():
     xPos.append(xPosCol3 + int((text.get_width()/2.0) + .5))
 
     #Create clear rect for player displays
-    for index in range(0,4):
+    for index in xrange(RulesData.MAX_NUM_PLYRS):
         tmpRect = pygame.Rect(0, 0, scoreWidth, scoreHeight)
         tmpRect.midright = xPos[index], yPos[index]
         clearRect.append(tmpRect)
@@ -318,7 +318,7 @@ def createScreen(mode):
 
     # Show score positions
     text = digiFont.render("8888888888", 1, orangeColor)
-    for index in range(0,4):
+    for index in xrange(RulesData.MAX_NUM_PLYRS):
         textpos = text.get_rect()
         textpos.midright = xPos[index], yPos[index]
         screen.blit(text, textpos)

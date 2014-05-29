@@ -47,7 +47,6 @@
 
 #===============================================================================
 
-import rs232Intf
 import errIntf
 import serial
 from gameData import GameData
@@ -56,27 +55,13 @@ from threading import Thread
 import time
 import commHelp
 from comms.commIntf import CommsState
+import rs232Intf
 
 ## Communication thread class.
 #
 #  Communicates at periodic intervals to the hardware.  Inherits from Thread class.
 #  Multiple Comms threads could be supported if the hardware had multiple serial ports.
 class CommThread(Thread):
-
-    #Data not shared to the outside world
-    DFLT_SOL_CFG = [ rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-                      rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00' ]
-    
-    DFLT_INP_CFG = [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
-                      rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
-                      rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE,
-                      rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ]
     
     #private members
     _runCommThread = True
@@ -94,7 +79,7 @@ class CommThread(Thread):
         self.updateSolBrdCfg = 0
         
         ## Solenoid board configurations
-        self.solBrdCfg = [[]]
+        self.solBrdCfg = []
         
         ## Solenoid board addresses
         self.solAddrArr = []
@@ -106,7 +91,7 @@ class CommThread(Thread):
         self.updateInpBrdCfg = 0
         
         ## Input board configurations
-        self.inpBrdCfg = [[]]
+        self.inpBrdCfg = []
         
         ## Input board addresses
         self.inpAddrArr = []
@@ -123,6 +108,12 @@ class CommThread(Thread):
         ## Response from inventory command
         self.invResp = []
 
+        ## Read inputs cmd array
+        self.readInpCmd = []
+        
+        ## Read inputs str
+        self.readInpStr = []
+        
     ## Initialize comms to the hardware
     #
     #  Hands back error if comm port can't be opened.  If comm port is blank,
@@ -138,6 +129,7 @@ class CommThread(Thread):
                 self.ser=serial.Serial(portId, baudrate=19200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
             except serial.SerialException:
                 GameData.commState = CommsState.COMM_ERROR_OCC
+                print "Can't open COM port: %s" % portId
                 return(errIntf.CANT_OPEN_COM)
             retCode = commHelp.getInventory(self)
             if retCode:
@@ -171,7 +163,18 @@ class CommThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_comms(self):
-        pass
+        if (self.updateSolBrdCfg != 0):
+            for board in xrange(rs232Intf.MAX_NUM_SOL_BRD):
+                if ((self.updateSolBrdCfg & (1 << board)) != 0):
+                    self.updateSolBrdCfg &= ~(1 << board)
+                    commHelp.sendConfig(self, True, board)
+        if (self.updateInpBrdCfg != 0):
+            for board in xrange(rs232Intf.MAX_NUM_INP_BRD):
+                if ((self.updateInpBrdCfg & (1 << board)) != 0):
+                    self.updateInpBrdCfg &= ~(1 << board)
+                    commHelp.sendConfig(self, False, board)
+        commHelp.readInputs(self)
+        
     
     ## The Comms thread
     #

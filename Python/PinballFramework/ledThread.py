@@ -88,7 +88,7 @@ class LedThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return CMD_OK
     def init(self):
-        for index in range(RulesData.NUM_LED_BRDS):
+        for index in xrange(RulesData.NUM_LED_BRDS):
             index = index
             LedThread._prevLedState.append(0)
         return(errIntf.CMD_OK)
@@ -163,7 +163,7 @@ class LedThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_leds(self):
-        for index in range(RulesData.NUM_LED_BRDS):
+        for index in xrange(RulesData.NUM_LED_BRDS):
             if (LedBrd.currBlinkLeds[index] != 0):
                 LedBrd.currLedData[index] ^= LedBrd.currBlinkLeds[index]
             

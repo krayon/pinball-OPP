@@ -394,7 +394,7 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None
     def BlankScoreDisps(self):
-        for index in range(RulesData.MAX_NUM_PLYRS):
+        for index in xrange(RulesData.MAX_NUM_PLYRS):
             GameData.score[DispConst.DISP_PLAYER1 + index] = DispConst.DISP_BLANK
 
     ## Blank player num display

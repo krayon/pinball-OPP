@@ -113,7 +113,7 @@ class TkInpBrd():
         tmpLbl.grid(column = 0, row = 3)
 
         #Configure btnCfgBitfield to initial value set by card cfg
-        for i in range(rs232Intf.NUM_INP_PER_BRD):
+        for i in xrange(rs232Intf.NUM_INP_PER_BRD):
             TkInpBrd.createBitFrame(self, i)
 
     ## Toggle function
@@ -240,3 +240,15 @@ class TkInpBrd():
         data = self.simSwitchBits
         self.simSwitchBits &= self.btnCfgBitfield
         return data
+
+    ## Update status field
+    #
+    #  If the data has changed, update the status label.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  data          [in]   Current state
+    #  @return None
+    def update_status_field(self, data):
+        if (self.dispInpValue != data):
+            self.dispInpValue = data
+            self.statLbl.set("0x%02x" % self.dispInpValue)

@@ -104,7 +104,7 @@ class TkLedBrd():
         self.statLbl.set("0x%02x" % self.prevLedState)
         tmpLbl.grid(column = 0, row = 2)
 
-        for i in range(rs232Intf.NUM_LED_PER_BRD):
+        for i in xrange(rs232Intf.NUM_LED_PER_BRD):
             TkLedBrd.createBitFrame(self, i)
 
     ## Create Bit Frame function
@@ -139,7 +139,7 @@ class TkLedBrd():
     #  @return None
     def updateLeds(self, data):
         if (self.prevLedState != data):
-            for index in range(rs232Intf.NUM_LED_PER_BRD):
+            for index in xrange(rs232Intf.NUM_LED_PER_BRD):
                 if ((self.prevLedState ^ data) & (1 << index)):
                     if (data & (1 << index)) != 0:
                         self.canvas[index].create_image(48, 40, image=TkLedBrd._ledOnGrnImage)
@@ -155,6 +155,6 @@ class TkLedBrd():
     #  @param  self          [in]   Object reference
     #  @return None
     def removeImages(self):
-        for index in range(rs232Intf.NUM_LED_PER_BRD):
+        for index in xrange(rs232Intf.NUM_LED_PER_BRD):
             self.canvas[index].create_image(48, 40, image="")
                         

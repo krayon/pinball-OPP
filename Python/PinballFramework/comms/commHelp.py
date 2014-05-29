@@ -49,6 +49,9 @@
 import rs232Intf
 import errIntf
 from rules.rulesData import RulesData
+from gameData import GameData
+from hwobjs.solBrd import SolBrd
+from hwobjs.inpBrd import InpBrd
 
 ## Get Data from serial port
 #
@@ -58,6 +61,16 @@ from rules.rulesData import RulesData
 def getSerialData(commThread, numBytes):
     resp = commThread.ser.read(numBytes)
     return (resp)
+
+## Rcv EOM response
+#
+#  @param  commThread    [in]   Comm thread object
+#  @return True if error
+def rcvEomResp(commThread):
+    data = getSerialData(commThread, 1);
+    if (data[0] != rs232Intf.EOM_CMD):
+        return (True)
+    return (False)
 
 ## Get inventory
 #
@@ -81,9 +94,12 @@ def getInventory(commThread):
 
     #Response must have at least inv command and eom or return INVENTORY_NO_RESP
     if (len(data) < 2):
+        print "Inventory response fail"
         return (errIntf.INVENTORY_NO_RESP)
     #Response must have inv command at start or return BAD_INV_RESP
     if (data[0] != rs232Intf.INV_CMD):
+        print "Inventory response fail.  Expected = 0x%02x, Rcvd = 0x%02x" % \
+            (ord(rs232Intf.INV_CMD), data[0])
         return (errIntf.BAD_INV_RESP)
     index = 1
 
@@ -96,25 +112,40 @@ def getInventory(commThread):
     commThread.inpAddrArr = []
     commThread.currInpData = []
     
+    added = False
     while (data[index] != rs232Intf.EOM_CMD):
         if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_SOL_CARD)):
             commThread.numSolBrd += 1
             commThread.solAddrArr.append(data[index])
             commThread.currSolData.append(0)
 
-            #add to the config structure if necessary
-            if (len(commThread.solBrdCfg[0]) < commThread.numSolBrd):
-                commThread.solBrdCfg.append(commThread.DFLT_SOL_CFG)
+            #add to the config/read cmd if necessary
+            if (len(commThread.solBrdCfg) < commThread.numSolBrd):
+                commThread.solBrdCfg.append(RulesData.SOL_BRD_CFG[commThread.numSolBrd - 1])
+                commThread.updateSolBrdCfg |= (1 << (commThread.numSolBrd - 1))
+                commThread.readInpCmd.append(data[index])
+                commThread.readInpCmd.append(rs232Intf.READ_SOL_INP_CMD)
+                commThread.readInpCmd.append('\x00')
+                added = True
         elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
             commThread.numInpBrd += 1
             commThread.inpAddrArr.append(data[index])
             commThread.currInpData.append(0)
 
-            #add to the config structure if necessary
-            if (len(commThread.inpBrdCfg[0]) < commThread.numInpBrd):
-                commThread.inpBrdCfg.append(commThread.DFLT_INP_CFG)
+            #add to the config/read cmd if necessary
+            if (len(commThread.inpBrdCfg) < commThread.numInpBrd):
+                commThread.inpBrdCfg.append(RulesData.INP_BRD_CFG[commThread.numInpBrd - 1])
+                commThread.updateInpBrdCfg |= (1 << (commThread.numInpBrd - 1))
+                commThread.readInpCmd.append(data[index])
+                commThread.readInpCmd.append(rs232Intf.READ_INP_BRD_CMD)
+                commThread.readInpCmd.append('\x00')
+                commThread.readInpCmd.append('\x00')
+                added = True
         index += 1
-    if (index != len(data)):
+    if added:
+        commThread.readInpCmd.append(rs232Intf.EOM_CMD)
+        commThread.readInpStr = ''.join(commThread.readInpCmd)
+    if (index + 1 != len(data)):
         return (errIntf.EXTRA_INFO_RCVD)
     
     #Store off the response removing command and EOM
@@ -122,10 +153,82 @@ def getInventory(commThread):
     
     #Verify the number of cards is correct
     if len(commThread.invResp) != len(RulesData.INV_ADDR_LIST):
+        print "Bad Num Cards.  Expected = %d, Found = %d" % \
+            (len(RulesData.INV_ADDR_LIST), len(commThread.invResp))
         return (errIntf.BAD_NUM_CARDS)
-    for i in range(len(commThread.invResp)):
-        if (commThread.invResp[i] != RulesData.INV_ADDR_LIST[i]):
+    for i in xrange(len(commThread.invResp)):
+        if (ord(commThread.invResp[i]) != RulesData.INV_ADDR_LIST[i]):
+            print "Inv match fail.  Expected = 0x%02x, Rcvd = 0x%02x, index = %d" % \
+                (RulesData.INV_ADDR_LIST[i], ord(commThread.invResp[i]), i)
             return (errIntf.INV_MATCH_FAIL)
         
     return (errIntf.CMD_OK)
 
+## Send configuration
+#
+#  Send the current configuration to the card.
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  solBrd        [in]   True if solenoid board
+#  @param  index         [in]   Index of board to configure
+#  @return Can return CMD_OK if good, or INVENTORY_NO_RESP, BAD_INV_RESP,
+#     EXTRA_INFO_RCVD, BAD_NUM_CARDS, INV_MATCH_FAIL if an error
+#  @note   Don't know size of the response since it depends on the
+#     number of installed cards.
+def sendConfig(commThread, solBrd, index):
+    cmdArr = []
+    if solBrd:
+        addr = commThread.solAddrArr[index]
+        cmdArr.append(addr)
+        cmdArr.append(rs232Intf.CFG_SOL_CMD)
+        for loop in xrange(rs232Intf.NUM_SOL_PER_BRD):
+            cmdArr.append(commThread.solBrdCfg[index][loop * 3])
+            cmdArr.append(commThread.solBrdCfg[index][(loop * 3) + 1])
+            cmdArr.append(commThread.solBrdCfg[index][(loop * 3) + 2])
+    else:
+        addr = commThread.inpAddrArr[index]
+        cmdArr.append(addr)
+        cmdArr.append(rs232Intf.CFG_INP_CMD)
+        for loop in xrange(rs232Intf.NUM_INP_PER_BRD):
+            cmdArr.append(commThread.inpBrdCfg[index][loop])
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    commThread.ser.write(sendCmd)
+    
+    #Config command just return EOM.
+    error = rcvEomResp(commThread)
+    if error:
+        print "Cfg error, Addr = 0x%02x" % addr
+        return (errIntf.CFG_BAD_RESP)
+    return (errIntf.CMD_OK)
+
+## Read inputs
+#
+#  Send the read inputs commands and get response
+#
+#  @param  commThread    [in]   Comm thread object
+#  @return Can return CMD_OK if good, or INVENTORY_NO_RESP, BAD_INV_RESP,
+#     EXTRA_INFO_RCVD, BAD_NUM_CARDS, INV_MATCH_FAIL if an error
+#  @note   Don't know size of the response since it depends on the
+#     number of installed cards.
+def readInputs(commThread):
+    commThread.ser.write(commThread.readInpStr)
+    data = getSerialData(commThread, len(commThread.readInpStr))
+    print repr(data)
+    if (len(data) == len(commThread.readInpStr)):
+        index = 0
+        while index < len(data):
+            boardIndex = ord(data[index]) & 0x0f
+            if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_SOL_CARD)):
+                if data[index + 1] == rs232Intf.READ_SOL_INP_CMD:
+                    SolBrd.update_status(GameData.solBrd, boardIndex, ord(data[index + 2]))
+                    index += 3
+            elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
+                if data[index + 1] == rs232Intf.READ_INP_BRD_CMD:
+                    InpBrd.update_status(GameData.inpBrd, boardIndex, (ord(data[index + 2]) << 8) | ord(data[index + 3]))
+                    index += 4
+            else:
+                index +=1
+    else:
+        print "Bad read input response."
+    

@@ -193,7 +193,7 @@ class Pygame_Data():
             else:
                 dispIntf.updateDisp(DispConst.DISP_CREDIT_BALL_NUM, 0, True)
             Pygame_Data.prevCreditBallNum = GameData.creditBallNum
-        for index in range(RulesData.MAX_NUM_PLYRS):
+        for index in xrange(RulesData.MAX_NUM_PLYRS):
             if (Pygame_Data.prevScore[index] != GameData.score[index]):
                 if (GameData.score[index] != DispConst.DISP_BLANK):
                     dispIntf.updateDisp(DispConst.DISP_PLAYER1 + index, GameData.score[index], False)
