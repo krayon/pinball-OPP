@@ -52,6 +52,8 @@ import serial
 from gameData import GameData
 from tk.tkCmdFrm import TkCmdFrm
 from threading import Thread
+from hwobjs.solBrd import SolBrd
+from hwobjs.inpBrd import InpBrd
 import time
 import commHelp
 from comms.commIntf import CommsState
@@ -78,11 +80,17 @@ class CommThread(Thread):
         ## Bitmask to request update cfg for solenoid brd
         self.updateSolBrdCfg = 0
         
+        ## Bitmask to request a solenoid board sends a kick
+        self.kickSolBrd = 0
+        
         ## Solenoid board configurations
         self.solBrdCfg = []
         
         ## Solenoid board addresses
         self.solAddrArr = []
+        
+        ## Solenoid kick value
+        self.solKickVal = []
         
         ## Number of input boards
         self.numInpBrd = 0
@@ -163,13 +171,18 @@ class CommThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_comms(self):
+        if (self.kickSolBrd != 0):
+            for board in xrange(SolBrd.numSolBrds):
+                if ((self.kickSolBrd & (1 << board)) != 0):
+                    self.kickSolBrd &= ~(1 << board)
+                    commHelp.sendKick(self, board)
         if (self.updateSolBrdCfg != 0):
-            for board in xrange(rs232Intf.MAX_NUM_SOL_BRD):
+            for board in xrange(SolBrd.numSolBrds):
                 if ((self.updateSolBrdCfg & (1 << board)) != 0):
                     self.updateSolBrdCfg &= ~(1 << board)
                     commHelp.sendConfig(self, True, board)
         if (self.updateInpBrdCfg != 0):
-            for board in xrange(rs232Intf.MAX_NUM_INP_BRD):
+            for board in xrange(InpBrd.numInpBrds):
                 if ((self.updateInpBrdCfg & (1 << board)) != 0):
                     self.updateInpBrdCfg &= ~(1 << board)
                     commHelp.sendConfig(self, False, board)
@@ -188,18 +201,19 @@ class CommThread(Thread):
         count = 0
       
         while CommThread._runCommThread:
-            #Process comms if not running in debug mode
-            if not GameData.debug: 
-                self.proc_comms()
-            #Process comms if run button is active
-            elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX] and \
-                    TkCmdFrm.toggleState[TkCmdFrm.COMMS_THREAD_IDX]:
-                self.proc_comms()
-            #Process comms if send step was pressed
-            elif GameData.debug and (not TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX]) and \
-                    TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX]:
-                TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX] = False
-                self.proc_comms()
+            if self.ser != None:
+                #Process comms if not running in debug mode
+                if not GameData.debug: 
+                    self.proc_comms()
+                #Process comms if run button is active
+                elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX] and \
+                        TkCmdFrm.toggleState[TkCmdFrm.COMMS_THREAD_IDX]:
+                    self.proc_comms()
+                #Process comms if send step was pressed
+                elif GameData.debug and (not TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX]) and \
+                        TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX]:
+                    TkCmdFrm.threadSendStep[TkCmdFrm.COMMS_THREAD_IDX] = False
+                    self.proc_comms()
             
             #Sleep until next rules processing time
             time.sleep(1)

@@ -65,6 +65,11 @@ xPos = []
 yPos = []
 clearRect = []
 
+#Pos for video
+vidXPos = 0
+vidWidth = 0
+vidHeight = 0
+
 #Positions for simulated lights
 featureSimLghtPos = []
 featOn = []
@@ -173,6 +178,9 @@ def initScoreDisps():
     global digiFont
     global simWidth
     global simHeight
+    global vidXPos
+    global vidHeight
+    global vidWidth
     
     #Make screen HD ratio, video will take up 80% of height/width
     hdRatio = 1920.0/1080.0
@@ -180,7 +188,7 @@ def initScoreDisps():
     videoRatio = .8
     vidHeight = int((simHeight * videoRatio) + .5)
     vidWidth = int((simWidth * videoRatio) + .5)
-    vidWidth = vidWidth
+    vidXPos = int((simWidth - vidWidth)/2.0 + .5)
 
     #Check if the requested size can be displayed
     pygame.init()
@@ -306,6 +314,9 @@ def createScreen(mode):
     global simWidth
     global simHeight
     global background
+    global vidXPos
+    global vidHeight
+    global vidWidth
 
     print "simWidth, simHeight:  %d, %d" % (simWidth, simHeight)
     screen=pygame.display.set_mode((simWidth, simHeight),mode, 24)
@@ -315,6 +326,12 @@ def createScreen(mode):
     background = background.convert()
     background.fill((0, 0, 0))
     screen.blit(background, (0, 0))
+    if len(RulesData.BGND_GRAPHIC_FILES) != 0:
+        background_image = pygame.image.load(RulesData.BGND_GRAPHIC_FILES[0])
+        if (mode & pygame.FULLSCREEN) == 0:
+            background_image = pygame.transform.scale(background_image, (simWidth, simHeight)).convert()
+        background_image.convert()
+        screen.blit(background_image, (0, 0))
 
     # Show score positions
     text = digiFont.render("8888888888", 1, orangeColor)

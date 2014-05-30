@@ -52,6 +52,7 @@ from rules.rulesData import RulesData
 from dispConstIntf import DispConst
 import dispIntf
 import time
+import comms.commIntf
 
 ## Standard functions class.
 #
@@ -131,8 +132,9 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   solenoid card index and bit position
     #  @return None 
     def Kick(self, cardBitPos):
-        #HRS:  Finish
-        pass
+        cardNum = (cardBitPos >> 16) & 0xf
+        bitPos = cardBitPos & 0xffff
+        comms.commIntf.sendSolKick(GameData.commThread, cardNum, bitPos)
 
     ## Start a timer
     #

@@ -58,9 +58,13 @@ class RulesData:
     SND_FILES = ["sounds/wah_wuh.wav", "sounds/ding_ding.wav", "sounds/opendoor.wav",
                "sounds/jump.wav", "sounds/wfall1.wav", "sounds/wfall2.wav", "sounds/wfall3.wav"]
     
-    ## Sound file list
+    ## Background sound file list
     # Indexed into using the [BgndMusic](@ref rules.sounds.BgndMusic) class
     BGND_MUSIC_FILES = ["sounds/bgndtrack.mp3"]
+    
+    ## Background image
+    # Currently one one is supported, but could easily be coded to change images.
+    BGND_GRAPHIC_FILES = ["graphics/full_bgnd_image.jpg"]
     
     ## Number of balls per game
     BALLS_PER_GAME = 3
@@ -73,15 +77,13 @@ class RulesData:
     
     ## Location of feature lights
     # Located using actual screen x,y coordinates.  Auto scaled in simulation.
-    FEATURE_LGHT_POS = [[200,200], [300,300], [400,300], [500,300],
-                      [600,300], [700,300], [800,300], [900,300],
-                      [1000,300], [1100,200]]
+    # Only used if backglass is in front of monitor
+    FEATURE_LGHT_POS = []       #Ex:  [[200, 300], [300,300], [400,300]]
     
     ## Location of general illumination lights
     # Located using actual screen x,y coordinates.  Auto scaled in simulation.
-    GI_LGHT_POS = [[200,100], [300,100], [400,100], [500,100],
-                 [600,100], [700,100], [800,100], [900,100],
-                 [1000,100], [1100,100]]
+    # Only used if backglass is in front of monitor
+    GI_LGHT_POS = []            #Ex: [[200,100], [300,200], [400,100]]
     
     ## Switch input point values
     SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]

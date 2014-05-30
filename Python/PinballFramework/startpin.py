@@ -127,6 +127,7 @@ def main(argv=None):
     
     #Initialize the COMMs to the hardware
     commThread = CommThread()
+    GameData.commThread = commThread
     commThread.init(comPort)
     commThread.start()
     

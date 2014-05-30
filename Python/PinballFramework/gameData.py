@@ -88,6 +88,9 @@ class GameData():
     tkSolBrd = []
     tkLedBrd = []
     
+    #Comm obj
+    commThread = 0
+    
     #Used for switch input processing.  Logical OR of debug data (simSwitchBits)
     #  and Comms data (switchInpData, switchSolData)
     currInpStatus = []

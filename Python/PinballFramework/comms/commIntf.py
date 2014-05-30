@@ -110,8 +110,8 @@ def sendSolCfg(commThread, brd):
 #  into [inpBrdCfg](@ref comms.commThread.CommThread.inpBrdCfg).
 #
 #  @param  commThread    [in]   Comm thread object
-#  @param  brd           [in]   Solenoid board number base 0
-#  @param  inp           [in]   Solenoid number base 0
+#  @param  brd           [in]   Input board number base 0
+#  @param  inp           [in]   Input number base 0
 #  @param  cfg           [in]   Parameter for input cfg
 #  @return Can return CMD_OK if good, or BAD_INP_BRD_NUM, BAD_INP_NUM
 #     if an error.
@@ -136,3 +136,22 @@ def sendInpCfg(commThread, brd):
         return errIntf.BAD_INP_BRD_NUM
     commThread.updateInpBrdCfg |= (1 << brd)
     return errIntf.CMD_OK
+
+## Mark a solenoid board to send a kick.
+#
+#  Verify the board is valid.  Mark a bit to indicate the solenoid kick must be sent to the
+#  board.
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  brd           [in]   Solenoid board number base 0
+#  @param  sol           [in]   Solenoid number base 0
+#  @return Can return CMD_OK if good, or BAD_SOL_BRD_NUM if an error.
+def sendSolKick(commThread, brd, sol):
+    if brd > commThread.numSolBrd:
+        return errIntf.BAD_SOL_BRD_NUM
+    if sol > rs232Intf.NUM_SOL_PER_BRD:
+        return errIntf.BAD_SOL_NUM
+    commThread.solKickVal[brd] |= (1 << sol)
+    commThread.kickSolBrd |= (1 << brd)
+    return errIntf.CMD_OK
+

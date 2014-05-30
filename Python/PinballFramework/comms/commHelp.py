@@ -108,6 +108,7 @@ def getInventory(commThread):
     commThread.numSolBrd = 0
     commThread.solAddrArr = []
     commThread.currSolData = []
+    commThread.solKickVal = []
     commThread.numInpBrd = 0
     commThread.inpAddrArr = []
     commThread.currInpData = []
@@ -118,6 +119,7 @@ def getInventory(commThread):
             commThread.numSolBrd += 1
             commThread.solAddrArr.append(data[index])
             commThread.currSolData.append(0)
+            commThread.solKickVal.append(0)
 
             #add to the config/read cmd if necessary
             if (len(commThread.solBrdCfg) < commThread.numSolBrd):
@@ -171,10 +173,7 @@ def getInventory(commThread):
 #  @param  commThread    [in]   Comm thread object
 #  @param  solBrd        [in]   True if solenoid board
 #  @param  index         [in]   Index of board to configure
-#  @return Can return CMD_OK if good, or INVENTORY_NO_RESP, BAD_INV_RESP,
-#     EXTRA_INFO_RCVD, BAD_NUM_CARDS, INV_MATCH_FAIL if an error
-#  @note   Don't know size of the response since it depends on the
-#     number of installed cards.
+#  @return Can return CMD_OK if good, or CFG_BAD_RESP if an error
 def sendConfig(commThread, solBrd, index):
     cmdArr = []
     if solBrd:
@@ -204,13 +203,11 @@ def sendConfig(commThread, solBrd, index):
 
 ## Read inputs
 #
-#  Send the read inputs commands and get response
+#  Send the read inputs commands and get response.  Update the status
+#  fields in the board objects.
 #
 #  @param  commThread    [in]   Comm thread object
-#  @return Can return CMD_OK if good, or INVENTORY_NO_RESP, BAD_INV_RESP,
-#     EXTRA_INFO_RCVD, BAD_NUM_CARDS, INV_MATCH_FAIL if an error
-#  @note   Don't know size of the response since it depends on the
-#     number of installed cards.
+#  @return None, but can print an error if response format is wrong
 def readInputs(commThread):
     commThread.ser.write(commThread.readInpStr)
     data = getSerialData(commThread, len(commThread.readInpStr))
@@ -232,3 +229,28 @@ def readInputs(commThread):
     else:
         print "Bad read input response."
     
+## Send kick
+#
+#  Send a kick to a solenoid card
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  solBrd        [in]   Solenoid board number base 0
+#  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
+def sendKick(commThread, solBrd):
+    cmdArr = []
+    addr = commThread.solAddrArr[solBrd]
+    cmdArr.append(addr)
+    cmdArr.append(rs232Intf.KICK_SOL_CMD)
+    cmdArr.append(commThread.solKickVal[solBrd])
+    commThread.solKickVal[solBrd] = 0
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    commThread.ser.write(sendCmd)
+    
+    #Kick command, just return EOM.
+    error = rcvEomResp(commThread)
+    if error:
+        print "Kick error, Addr = 0x%02x" % addr
+        return (errIntf.KICK_BAD_RESP)
+    return (errIntf.CMD_OK)
+

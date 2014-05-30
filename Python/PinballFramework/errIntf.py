@@ -63,6 +63,7 @@ EXTRA_INFO_RCVD     =  108
 BAD_NUM_CARDS       =  109
 INV_MATCH_FAIL      =  110
 CFG_BAD_RESP        =  111
+KICK_BAD_RESP       =  112
 
 #Errors returned from disp intf
 BAD_SCREEN_SIZE     =  200
