@@ -49,6 +49,7 @@
 
 import errIntf
 import dispThread
+from gameData import GameData
 
 ## Initialize display function
 #
@@ -73,14 +74,12 @@ def startDisp():
 
 ## Update display function
 #
-#  Add the update to the update display list
+#  Or the update bit for the display
 #
-#  @param  player        [in]   Player score to updated
-#  @param  value         [in]   New score value
-#  @param  blank         [in]   True to blank the player score
+#  @param  disp          [in]   Display to be updated
 #  @return None
-def updateDisp(player, value, blank):
-    dispThread.updDispList.append([player, value, blank])
+def updateDisp(disp):
+    GameData.updDisp |= (1 << disp)
 
 ## Update a feature light to on/off or blink
 #
@@ -107,6 +106,13 @@ def updateGiLights(value):
 #  @return None
 def playSound(num):
     dispThread.playSound(num)
+
+## Update background
+#
+#  @param  num           [in]   Index of image to show
+#  @return None
+def updateBgnd(num):
+    dispThread.updateBgnd(num)
 
 ## Stop display function
 #

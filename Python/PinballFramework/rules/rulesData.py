@@ -62,9 +62,10 @@ class RulesData:
     # Indexed into using the [BgndMusic](@ref rules.sounds.BgndMusic) class
     BGND_MUSIC_FILES = ["sounds/bgndtrack.mp3"]
     
-    ## Background image
-    # Currently one one is supported, but could easily be coded to change images.
-    BGND_GRAPHIC_FILES = ["graphics/full_bgnd_image.jpg"]
+    ## Background images
+    # Indexed into using the [Images](@ref rules.images.Images) class
+    BGND_GRAPHIC_FILES = ["graphics/full_bgnd_image.jpg", "graphics/left_guy.jpg",
+                          "graphics/right_guy.jpg", "graphics/lftctr_guy.jpg"]
     
     ## Number of balls per game
     BALLS_PER_GAME = 3

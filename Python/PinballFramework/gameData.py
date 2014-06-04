@@ -52,6 +52,7 @@ from hwobjs.solBrd import SolBrd
 from hwobjs.ledBrd import LedBrd
 from comms.commIntf import CommsState
 import rs232Intf
+from dispConstIntf import DispConst
 
 ## Game data class.
 #
@@ -71,12 +72,18 @@ class GameData():
     ballNum = 0
     currPlayer = 0
     numPlayers = 0
+    bgndImage = 0
     inlaneLights = [0, 0, 0, 0]
     scoreLvl = 0
     numSpinners = 0
     bonusMult = 0
     kick_retries = 0
     scoring = False
+    
+    # Current display values
+    currDisp = [DispConst.DISP_BLANK, DispConst.DISP_BLANK, DispConst.DISP_BLANK, DispConst.DISP_BLANK,
+                DispConst.DISP_BLANK, DispConst.DISP_BLANK]
+    updDisp = 0
     
     debug = False
     inpBrd = InpBrd()
@@ -108,6 +115,10 @@ class GameData():
     #Sound Chain 
     soundChain = []
     newSoundChain = False
+    
+    #Image Chain 
+    imageChain = []
+    newImageChain = False
     
     #Bgnd music
     prevBgndSound = 0xffffffff

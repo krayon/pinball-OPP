@@ -52,10 +52,10 @@ import pygame
 from pygame.locals import *
 from rules.rulesData import RulesData
 from dispConstIntf import DispConst
+from gameData import GameData
 import errIntf
 
 # HRS:  This should be moved into a class.
-updDispList = []
 updFeatList = []
 updGiState = DispConst.LGHT_ON
 sndPlyr = []
@@ -64,6 +64,7 @@ sndPlyr = []
 xPos = []
 yPos = []
 clearRect = []
+bgndRect = 0
 
 #Pos for video
 vidXPos = 0
@@ -76,6 +77,9 @@ featOn = []
 clearFeatRect = []
 giSimLghtPos = []
 clearGiRect = []
+
+#Array to hold background images
+imageArr = []
 
 simRatio = 1.0
 simWidth = 0
@@ -90,22 +94,21 @@ whiteColor = (255, 255, 255)
 #
 #  Add the update to the update display list
 #
-#  @param  player        [in]   Player score to updated
-#  @param  value         [in]   New score value
-#  @param  blank         [in]   True to blank the player score
+#  @param  disp          [in]   Display to be updated
 #  @return None
-def updateDisp(player, value, blank):
+def updateDisp(disp):
     global digiFont
     global screen
     global background
-    
-    screen.blit(background, clearRect[player], clearRect[player])
-    if (not blank):
-        text = digiFont.render(str(value), 1, orangeColor)
+    global clearRect
+
+    screen.blit(background, clearRect[disp], clearRect[disp])
+    if (GameData.currDisp[disp] != DispConst.DISP_BLANK):
+        text = digiFont.render(str(GameData.currDisp[disp]), 1, orangeColor)
         textpos = text.get_rect()
-        textpos.midright = xPos[player], yPos[player]
+        textpos.midright = xPos[disp], yPos[disp]
         screen.blit(text, textpos)
-    pygame.display.update(clearRect[player])
+    pygame.display.update(clearRect[disp])
 
 ## Create the sound player function
 #
@@ -169,6 +172,23 @@ def playSound(num):
     if (num < len(sndPlyr)):
         sndPlyr[num].play()
 
+## Update background
+#
+#  @param  num           [in]   Index of image to show
+#  @return None
+def updateBgnd(num):
+    global imageArr
+    global screen
+    global background
+    global bgndRect
+    
+    if (num < len(imageArr)):
+        #blit the background image and update all the displays
+        screen.blit(background, bgndRect, bgndRect)
+        screen.blit(imageArr[num], (0, 0))
+        pygame.display.update(bgndRect)
+        GameData.updDisp |= DispConst.UPD_ALL_DISPS
+
 ## Init the score displays
 #
 #  Figures out the size and sets up the clear rects to update the displays
@@ -181,6 +201,8 @@ def initScoreDisps():
     global vidXPos
     global vidHeight
     global vidWidth
+    global clearRect
+    global bgndRect
     
     #Make screen HD ratio, video will take up 80% of height/width
     hdRatio = 1920.0/1080.0
@@ -267,6 +289,7 @@ def initScoreDisps():
     tmpRect = pygame.Rect(0, 0, creditWidth, creditHeight)
     tmpRect.midright = xPos[5], yPos[5]
     clearRect.append(tmpRect)
+    bgndRect = pygame.Rect(0, 0, simWidth, simHeight)
 
 ## Init the feature lights
 #
@@ -317,6 +340,7 @@ def createScreen(mode):
     global vidXPos
     global vidHeight
     global vidWidth
+    global imageArr
 
     print "simWidth, simHeight:  %d, %d" % (simWidth, simHeight)
     screen=pygame.display.set_mode((simWidth, simHeight),mode, 24)
@@ -327,11 +351,13 @@ def createScreen(mode):
     background.fill((0, 0, 0))
     screen.blit(background, (0, 0))
     if len(RulesData.BGND_GRAPHIC_FILES) != 0:
-        background_image = pygame.image.load(RulesData.BGND_GRAPHIC_FILES[0])
-        if (mode & pygame.FULLSCREEN) == 0:
-            background_image = pygame.transform.scale(background_image, (simWidth, simHeight)).convert()
-        background_image.convert()
-        screen.blit(background_image, (0, 0))
+        for index in xrange(len(RulesData.BGND_GRAPHIC_FILES)):
+            image = pygame.image.load(RulesData.BGND_GRAPHIC_FILES[index])
+            if (mode & pygame.FULLSCREEN) == 0:
+                image = pygame.transform.scale(image, (simWidth, simHeight))
+            image.convert()
+            imageArr.append(image)
+        screen.blit(imageArr[0], (0, 0))
 
     # Show score positions
     text = digiFont.render("8888888888", 1, orangeColor)
@@ -407,14 +433,16 @@ def dispExit():
 #  @return None
 def dispThread(unused):
     global runDispThread
-    global updDispList
     global updFeatList
     
     clock = pygame.time.Clock()
     while runDispThread:
-        for tmpUpdDisp in updDispList:
-            updateDisp(tmpUpdDisp[0], tmpUpdDisp[1], tmpUpdDisp[2])
-        updDispList = []
+        if GameData.updDisp != 0:
+            update = GameData.updDisp
+            GameData.updDisp &= ~update
+            for index in xrange(DispConst.NUM_DISPS):
+                if (update & (1 << index))!= 0:
+                    updateDisp(index) 
         for tmpUpdFeat in updFeatList:
             updateFeatLight(tmpUpdFeat[0], tmpUpdFeat[1])
         updFeatList = []

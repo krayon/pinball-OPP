@@ -56,6 +56,7 @@ from rules.rulesData import RulesData
 from rules.sounds import Sounds
 from rules.sounds import BgndMusic
 from rules.states import State
+from rules.images import Images
 from gameData import GameData
 from stdFuncs import StdFuncs
 
@@ -315,6 +316,7 @@ class RulesFunc():
     #  @return None
     def Proc_Press_Start_Init(self):
         StdFuncs.Led_Off(self.stdFuncs, LedBitNames.ALL_BITS_MSK)
+        StdFuncs.BgndImage(self.stdFuncs, Images.FULL_BGND)
 
     ## Process start and coin switches
     #

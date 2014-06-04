@@ -61,6 +61,7 @@ from tk.tkInpBrd import TkInpBrd
 from rules.rulesData import RulesData
 from globConst import GlobConst
 from rules.soundChains import SoundChains
+from rules.imageChains import ImageChains
 from stdFuncs import StdFuncs
 
 ## Rules thread class.
@@ -72,6 +73,9 @@ class RulesThread(Thread):
     _chainIndex = 0
     _soundChTime = 0
     _soundCmdWaitTime = 0
+    _imageChainIndex = 0
+    _imageChTime = 0
+    _imageCmdWaitTime = 0
     
     #Create stdFunc instance
     _stdFuncs = StdFuncs()
@@ -123,6 +127,8 @@ class RulesThread(Thread):
             GameData.newLedChain = True
             GameData.soundChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.SOUND_CHAIN_OFFSET]
             GameData.newSoundChain = True
+            GameData.imageChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.IMAGE_CHAIN_OFFSET]
+            GameData.newImageChain = True
         else:
             chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.NORM_CHAIN_OFFSET]
             
@@ -184,6 +190,53 @@ class RulesThread(Thread):
             if clearChain:
                 GameData.soundChain = []
                 
+    ## Process the image chains
+    #
+    #  If no image chain return.  If the image chain is new, set the index to 0 and
+    #  set updateCmd flag.  Otherwise increment image chain time and if it is
+    #  longer than the command wait increment the index and set updateCmd flag.
+    #  If updating the command, clear the time, grab the new command.  If it
+    #  is a repeat, move index back to 0.  If it is a wait, update the image and
+    #  grab the new wait time.  If it is the end of the chain, clear the chain.
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
+    def proc_image_chain(self):
+        # Check if the image chain is not empty
+        if GameData.imageChain:
+            updateImage = False
+            updateCmd = False
+            clearChain = False
+            
+            # New image chain is being started
+            if GameData.newImageChain:
+                GameData.newImageChain = False
+                RulesThread._imageChainIndex = 0
+                updateCmd = True
+            else:
+                RulesThread._imageChTime += GlobConst.RULES_SLEEP
+                if (RulesThread._imageChTime > RulesThread._imageCmdWaitTime):
+                    RulesThread._imageChainIndex += 1
+                    updateCmd = True
+            if updateCmd:
+                RulesThread._imageChTime = 0
+                imageCmd = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.CH_CMD_OFFSET]
+                
+                # If this is repeat command, move index back to beginning
+                if (imageCmd == ImageChains.REPEAT):
+                    RulesThread._imageChainIndex = 0
+                    imageCmd = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.CH_CMD_OFFSET]
+                if (imageCmd == ImageChains.WAIT):
+                    RulesThread._imageCmdWaitTime = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.PARAM_OFFSET]
+                    updateImage = True
+                elif (imageCmd == ImageChains.END_CHAIN):
+                    updateImage = True
+                    clearChain = True
+            if updateImage:
+                GameData.bgndImage = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.IMAGE_OFFSET]
+            if clearChain:
+                GameData.imageChain = []
+                
     ## Process scoring
     #
     #  If no sound chain return.  If the sound chain is new, set the index to 0 and
@@ -221,6 +274,9 @@ class RulesThread(Thread):
             
             #Process the sound chain
             self.proc_sound_chain()
+            
+            #Process the image chain
+            self.proc_image_chain()
             
             #Process rules if not running in debug mode
             if not GameData.debug: 

@@ -362,6 +362,16 @@ class StdFuncs():
     def Sounds(self, soundIdx):
         dispIntf.playSound(soundIdx)
 
+    ## Show a background image
+    #
+    #  Show an image
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  imageIdx      [in]   Image index
+    #  @return None
+    def BgndImage(self, imageIdx):
+        GameData.bgndImage = imageIdx
+
     ## Play background music
     #
     #  Play the background music, index of bgnd track 

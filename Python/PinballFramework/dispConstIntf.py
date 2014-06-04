@@ -57,6 +57,8 @@ class DispConst:
     DISP_PLAYER4 = 3
     DISP_PLAYER_NUM = 4
     DISP_CREDIT_BALL_NUM = 5
+    NUM_DISPS = 6
+    UPD_ALL_DISPS = 0x3f
     
     #Blank a display
     DISP_BLANK = 0xffffffff
