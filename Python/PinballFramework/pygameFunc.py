@@ -143,8 +143,8 @@ class Pygame_Data():
                         if (GameData.ballNum < 1) and (GameData.numPlayers < 4):
                             GameData.credits -= 1
                             GameData.score[GameData.numPlayers] = 0
-                            GameData.currDisp[GameData.numPlayers] = GameData.score[GameData.numPlayers]
-                            GameData.updDisp |= (1 << GameData.numPlayers)
+                            GameData.currDisp[GameData.numPlayers + DispConst.DISP_PLAYER1] = GameData.score[GameData.numPlayers]
+                            GameData.updDisp |= (1 << (GameData.numPlayers + DispConst.DISP_PLAYER1))
                             GameData.numPlayers += 1
                 elif event.key == pygame.K_d:
                     #Drain the current ball
@@ -179,8 +179,8 @@ class Pygame_Data():
                 dispIntf.updateFeatureLight(keyPress, DispConst.LGHT_TOGGLE)
             if GameData.gameMode == State.NORMAL_PLAY:
                 GameData.score[GameData.currPlayer] += RulesData.SCORE_INC[keyPress]
-                GameData.currDisp[GameData.currPlayer] = GameData.score[GameData.currPlayer]
-                GameData.updDisp |= (1 << GameData.currPlayer)
+                GameData.currDisp[GameData.currPlayer + DispConst.DISP_PLAYER1] = GameData.score[GameData.currPlayer]
+                GameData.updDisp |= (1 << (GameData.currPlayer + DispConst.DISP_PLAYER1))
             keyPress = Pygame_Data.NO_KEY_PRESS
         return done
 
@@ -199,27 +199,24 @@ class Pygame_Data():
         if (Pygame_Data.prevPlyrNum != GameData.currPlayer):
             if (GameData.currPlayer != DispConst.DISP_BLANK):
                 GameData.currDisp[DispConst.DISP_PLAYER_NUM] = GameData.currPlayer + 1
-                GameData.updDisp |= (1 << DispConst.DISP_PLAYER_NUM)
             else:
                 GameData.currDisp[DispConst.DISP_PLAYER_NUM] = DispConst.DISP_BLANK
-                GameData.updDisp |= (1 << DispConst.DISP_PLAYER_NUM)
+            GameData.updDisp |= (1 << DispConst.DISP_PLAYER_NUM)
             Pygame_Data.prevPlyrNum = GameData.currPlayer
         if (Pygame_Data.prevCreditBallNum != GameData.creditBallNum):
             if (GameData.creditBallNum != DispConst.DISP_BLANK):
                 GameData.currDisp[DispConst.DISP_CREDIT_BALL_NUM] = GameData.creditBallNum
-                GameData.updDisp |= (1 << DispConst.DISP_CREDIT_BALL_NUM)
             else:
                 GameData.currDisp[DispConst.DISP_CREDIT_BALL_NUM] = DispConst.DISP_BLANK
-                GameData.updDisp |= (1 << DispConst.DISP_CREDIT_BALL_NUM)
+            GameData.updDisp |= (1 << DispConst.DISP_CREDIT_BALL_NUM)
             Pygame_Data.prevCreditBallNum = GameData.creditBallNum
         for index in xrange(RulesData.MAX_NUM_PLYRS):
             if (Pygame_Data.prevScore[index] != GameData.score[index]):
                 if (GameData.score[index] != DispConst.DISP_BLANK):
                     GameData.currDisp[DispConst.DISP_PLAYER1 + index] = GameData.score[index]
-                    GameData.updDisp |= (1 << DispConst.DISP_PLAYER1 + index)
                 else:
                     GameData.currDisp[DispConst.DISP_PLAYER1 + index] = DispConst.DISP_BLANK
-                    GameData.updDisp |= (1 << DispConst.DISP_PLAYER1 + index)
+                GameData.updDisp |= (1 << (DispConst.DISP_PLAYER1 + index))
                 Pygame_Data.prevScore[index] = GameData.score[index]
 
     ## Update background music

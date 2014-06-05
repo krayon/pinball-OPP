@@ -75,7 +75,9 @@ from globConst import GlobConst
 def main(argv=None):
 
     end = False
-    simWidth = 1920
+    actWidth = 1920
+    actHeight = 1080
+    simWidth = 0
     comPort = ""
     GameData.debug = False
     GameData.init_brd_objs(GameData())
@@ -87,8 +89,10 @@ def main(argv=None):
     for arg in argv:
         if arg.startswith('-simWidth='):
             simWidth = int(arg[10:])
-        elif arg.startswith('-actualWidth='):
-            actWidth = int(arg[13:])
+        elif arg.startswith('-screen='):
+            temp = arg[8:].split('x')
+            actWidth = int(temp[0])
+            actHeight = int(temp[1])
         elif arg.startswith('-fullscr'):
             fullScreen = True
         elif arg.startswith('-port='):
@@ -99,8 +103,7 @@ def main(argv=None):
             print "python startPin.py [OPTIONS]"
             print "    -?                 Options Help"
             print "    -simWidth=         Width of simulation screen in pixels (assumes HD format)"
-            print "    -actualWidth=      Width of final screen in pixels (assumes HD format)"
-            print "                       Used for scaling.  If not set, assume simWidth is final"
+            print "    -screen=           Resolution of screen.  -screen=1920x1080 specifies HD format screen"
             print "    -fullscr           Full screen mode"
             print "    -port=             COM port number (ex. COM1)"
             end = True
@@ -108,9 +111,11 @@ def main(argv=None):
         return 0
     
     #Set actual width if not entered
+    if simWidth == 0:
+        simWidth = actWidth
     if (actWidth < simWidth):
         actWidth = simWidth
-    error = dispIntf.initDisp(simWidth, actWidth, fullScreen)
+    error = dispIntf.initDisp(simWidth, actWidth, actHeight, fullScreen)
     if error: exit()
     dispIntf.startDisp()
     
@@ -155,6 +160,7 @@ def main(argv=None):
     if GameData.debug:
         tkinterThread.tkinterExit()
     commThread.commExit()
+    dispIntf.stopDisp()
     rulesThread.rulesExit()
     ledThread.ledExit()
     timerThread.timerExit()

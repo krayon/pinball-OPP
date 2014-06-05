@@ -57,10 +57,11 @@ from gameData import GameData
 #
 #  @param  simWidth      [in]   Simulated screen width
 #  @param  actWidth      [in]   Width of full sized screen
+#  @param  actHeight     [in]   Height of full sized screen
 #  @param  fullScr       [in]   True if full screen mode.
 #  @return Errors from display thread initialization.
-def initDisp(simWidth, actWidth, fullScr):
-    retVal = dispThread.init(simWidth, actWidth, fullScr)
+def initDisp(simWidth, actWidth, actHeight, fullScr):
+    retVal = dispThread.init(simWidth, actWidth, actHeight, fullScr)
     return (retVal)
 
 ## Start display function

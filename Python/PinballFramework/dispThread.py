@@ -203,13 +203,13 @@ def initScoreDisps():
     global vidWidth
     global clearRect
     global bgndRect
+    global simRatio
     
     #Make screen HD ratio, video will take up 80% of height/width
     hdRatio = 1920.0/1080.0
-    simHeight = int((simWidth/hdRatio) + .5)
     videoRatio = .8
-    vidHeight = int((simHeight * videoRatio) + .5)
     vidWidth = int((simWidth * videoRatio) + .5)
+    vidHeight = int((vidWidth/hdRatio) + .5)
     vidXPos = int((simWidth - vidWidth)/2.0 + .5)
 
     #Check if the requested size can be displayed
@@ -219,19 +219,15 @@ def initScoreDisps():
         print "Screen size: %d x %d not supported" % (simWidth, simHeight)
         return(errIntf.BAD_SCREEN_SIZE)
 
+    #Convert score height and positions to simulation size
+    if simRatio != 1.0:
+        RulesData.SCORE_HEIGHT = int((RulesData.SCORE_HEIGHT * simRatio) + .5)
+        for index in xrange(len(RulesData.SCORE_DISP_POS)):
+            RulesData.SCORE_DISP_POS[index][0] = int((RulesData.SCORE_DISP_POS[index][0] * simRatio) + .5)
+            RulesData.SCORE_DISP_POS[index][1] = int((RulesData.SCORE_DISP_POS[index][1] * simRatio) + .5)
+        
     #Figure out size of score boxes
-    plyrScoreHeight = int(((simHeight - vidHeight)/2.0) + .5)
-    creditWidth = 2 * plyrScoreHeight
-    plyrScoreWidth = int(((simWidth - creditWidth)/2.0) + .5)
-
-    #Calculate y position of rows
-    yPosRow1 = vidHeight + int((plyrScoreHeight/2.0) + .5)
-    yPosRow2 = yPosRow1 + plyrScoreHeight
-
-    #Calculate x position of player/credit
-    xPosCol1 = int((plyrScoreWidth/2.0) + .5)
-    xPosCol2 = int((simWidth/2.0) + .5)
-    xPosCol3 = plyrScoreWidth + creditWidth + xPosCol1
+    plyrScoreHeight = RulesData.SCORE_HEIGHT
 
     #Optimize font size to height to plyrScoreHeight
     fontHeightGoal = int((plyrScoreHeight * .8) + .5)
@@ -243,52 +239,40 @@ def initScoreDisps():
         text = digiFont.render("0", 1, (10, 10, 10))
         fontHeight = text.get_height()
       
-    #Figure out the player score width, create position arrays
-    text = digiFont.render("8888888888", 1, orangeColor)
-    scoreWidth = text.get_width()
-    scoreHeight = text.get_height()
-
-    #Player 1
-    yPos.append(yPosRow1)
-    xPos.append(xPosCol1 + int((text.get_width()/2.0) + .5))
-
-    #Player 2
-    yPos.append(yPosRow1)
-    xPos.append(xPosCol3 + int((text.get_width()/2.0) + .5))
-
-    #Player 3
-    yPos.append(yPosRow2)
-    xPos.append(xPosCol1 + int((text.get_width()/2.0) + .5))
-
-    #Player 4
-    yPos.append(yPosRow2)
-    xPos.append(xPosCol3 + int((text.get_width()/2.0) + .5))
-
-    #Create clear rect for player displays
-    for index in xrange(RulesData.MAX_NUM_PLYRS):
-        tmpRect = pygame.Rect(0, 0, scoreWidth, scoreHeight)
-        tmpRect.midright = xPos[index], yPos[index]
-        clearRect.append(tmpRect)
-
     #Active Player, single digit
     text = digiFont.render("8", 1, orangeColor)
-    yPos.append(yPosRow1)
-    xPos.append(xPosCol2 + int((text.get_width()/2.0) + .5))
+    yPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER_NUM][1])
+    xPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER_NUM][0] + int((text.get_width()/2.0) + .5))
 
     #Credits/Ball Num, two digits
     text = digiFont.render("88", 1, orangeColor)
-    yPos.append(yPosRow2)
-    xPos.append(xPosCol2 + int((text.get_width()/2.0) + .5))
+    yPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_CREDIT_BALL_NUM][1])
+    xPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_CREDIT_BALL_NUM][0] + int((text.get_width()/2.0) + .5))
     creditWidth = text.get_width()
     creditHeight = text.get_height()
 
     #Create clear rect for other displays
     tmpRect = pygame.Rect(0, 0, creditWidth, creditHeight)
-    tmpRect.midright = xPos[4], yPos[4]
+    tmpRect.midright = xPos[DispConst.DISP_PLAYER_NUM], yPos[DispConst.DISP_PLAYER_NUM]
     clearRect.append(tmpRect)
     tmpRect = pygame.Rect(0, 0, creditWidth, creditHeight)
-    tmpRect.midright = xPos[5], yPos[5]
+    tmpRect.midright = xPos[DispConst.DISP_CREDIT_BALL_NUM], yPos[DispConst.DISP_CREDIT_BALL_NUM]
     clearRect.append(tmpRect)
+    
+    #Figure out the player score width, create position arrays
+    text = digiFont.render("8888888888", 1, orangeColor)
+    scoreWidth = text.get_width()
+    scoreHeight = text.get_height()
+
+    #Create clear rect for player displays
+    for index in xrange(RulesData.MAX_NUM_PLYRS):
+        yPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][1])
+        xPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][0] + int((text.get_width()/2.0) + .5))
+        tmpRect = pygame.Rect(0, 0, scoreWidth, scoreHeight)
+        tmpRect.midright = xPos[index], yPos[index]
+        clearRect.append(tmpRect)
+
+    #Create background rectangle for updating bgnd image
     bgndRect = pygame.Rect(0, 0, simWidth, simHeight)
 
 ## Init the feature lights
@@ -344,11 +328,12 @@ def createScreen(mode):
 
     print "simWidth, simHeight:  %d, %d" % (simWidth, simHeight)
     screen=pygame.display.set_mode((simWidth, simHeight),mode, 24)
+    pygame.display.set_caption("Pinball Framework")
 
     # Fill background
     background = pygame.Surface(screen.get_size())
-    background = background.convert()
     background.fill((0, 0, 0))
+    background.convert()
     screen.blit(background, (0, 0))
     if len(RulesData.BGND_GRAPHIC_FILES) != 0:
         for index in xrange(len(RulesData.BGND_GRAPHIC_FILES)):
@@ -357,13 +342,14 @@ def createScreen(mode):
                 image = pygame.transform.scale(image, (simWidth, simHeight))
             image.convert()
             imageArr.append(image)
-        screen.blit(imageArr[0], (0, 0))
+        if (RulesData.INIT_BGND_IMAGE != DispConst.DISP_BLANK):
+            screen.blit(imageArr[RulesData.INIT_BGND_IMAGE], (0, 0))
 
     # Show score positions
     text = digiFont.render("8888888888", 1, orangeColor)
     for index in xrange(RulesData.MAX_NUM_PLYRS):
         textpos = text.get_rect()
-        textpos.midright = xPos[index], yPos[index]
+        textpos.midright = xPos[index + DispConst.DISP_PLAYER1], yPos[index + DispConst.DISP_PLAYER1]
         screen.blit(text, textpos)
 
     # Show player/credit positions
@@ -392,17 +378,23 @@ def createScreen(mode):
 #
 #  @param  passedSimWidth [in]   Simulated screen width
 #  @param  actWidth       [in]   Width of full sized screen
+#  @param  actHeight      [in]   Height of full sized screen
 #  @param  fullScr        [in]   True if full screen mode.
 #  @return CMD_OK
-def init(passedSimWidth, actWidth, fullScr):
+def init(passedSimWidth, actWidth, actHeight, fullScr):
     global simWidth
+    global simHeight
     global simRatio
 
     simWidth = passedSimWidth
-    mode = pygame.NOFRAME
     if fullScr:
-        mode |= pygame.FULLSCREEN
+        mode = pygame.FULLSCREEN | pygame.NOFRAME
+    else:
+        mode = 0
     simRatio = float(simWidth)/float(actWidth)
+    if (simWidth != actWidth):
+        print "Sim Ratio = %f" % simRatio
+    simHeight = int((simRatio * actHeight) + .5)
     pygame.mixer.pre_init(44100, -16, 2, 2048) # setup mixer to avoid sound lag
 
     initScoreDisps()

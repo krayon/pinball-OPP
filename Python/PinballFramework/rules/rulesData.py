@@ -49,6 +49,7 @@
 
 import rs232Intf
 from rules.states import State
+from rules.images import Images
 
 ## Rule data class.
 #  Contains most of the information for the configuration of the pinball machine
@@ -85,6 +86,17 @@ class RulesData:
     # Located using actual screen x,y coordinates.  Auto scaled in simulation.
     # Only used if backglass is in front of monitor
     GI_LGHT_POS = []            #Ex: [[200,100], [300,200], [400,100]]
+    
+    ## Location of score displays/player num/ball num displays
+    # Located using actual screen x,y coordinates for center of display.
+    # Auto scaled in simulation.  First entry is playerNum, second entry
+    # is BallNum/Credits, third entry is player 1 score, fourth entry is
+    # player 2 score, etc. 
+    SCORE_DISP_POS = [[683,653], [683,730],
+        [304,653], [1064,653], [304,730], [1064,730]]   #Player score positions
+    
+    ## Height of score displays
+    SCORE_HEIGHT = 77
     
     ## Switch input point values
     SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -139,6 +151,9 @@ class RulesData:
     STATE_STR = ["Init", "Attract", "Press_Start", "Start_Game",
                     "Start_Ball", "Ball_in_Play", "Normal_Play", "Error",
                     "Tilt", "End_of_Ball", "Mode_Targets_Complete"]
+    
+    ## Initial State
+    INIT_BGND_IMAGE = Images.FULL_BGND
     
     ## Initial State
     INIT_MODE = State.INIT

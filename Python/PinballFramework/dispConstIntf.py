@@ -51,12 +51,12 @@
 #  Contains constants for update the displays and the feature lights
 class DispConst:
     #Display constants
-    DISP_PLAYER1 = 0
-    DISP_PLAYER2 = 1
-    DISP_PLAYER3 = 2
-    DISP_PLAYER4 = 3
-    DISP_PLAYER_NUM = 4
-    DISP_CREDIT_BALL_NUM = 5
+    DISP_PLAYER_NUM = 0
+    DISP_CREDIT_BALL_NUM = 1
+    DISP_PLAYER1 = 2
+    DISP_PLAYER2 = 3
+    DISP_PLAYER3 = 4
+    DISP_PLAYER4 = 5
     NUM_DISPS = 6
     UPD_ALL_DISPS = 0x3f
     
