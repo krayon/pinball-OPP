@@ -47,7 +47,6 @@
 
 #===============================================================================
 
-from sys import exit
 import sys
 import time
 from comms.commThread import CommThread
@@ -82,7 +81,6 @@ def main(argv=None):
     GameData.debug = False
     GameData.init_brd_objs(GameData())
 
-    actWidth = 0
     fullScreen = False
     if argv is None:
         argv = sys.argv
