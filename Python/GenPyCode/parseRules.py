@@ -48,9 +48,10 @@
 #===============================================================================
 
 import os
-import procSolCards
-import procInpCards
-import procLedCards
+from helpFuncs import HelpFuncs
+from procSolCards import ProcSolCards
+from procInpCards import ProcInpCards
+from procLedCards import ProcLedCards
 
 ## Parse rules class.
 #
@@ -63,7 +64,7 @@ class ParseRules:
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Used to log information and get configuration
     def __init__(self, parent):
-        self._parent = parent
+        self.consoleObj = parent
         
     ## Verify parameters
     #
@@ -73,29 +74,30 @@ class ParseRules:
     #  @return 0 if successful, non-zero if unsuccessful 
     def verifyParameters(self):
         # If rulesFile wasn't passed, return error code
-        if not self._parent.rulesFile:
-            self._parent.updateConsole("Rules file not configured.  Use -rulesFile= command line argument to set it.")
+        if not self.consoleObj.rulesFile:
+            self.consoleObj.updateConsole("Rules file not configured.  Use -rulesFile= command line argument to set it.")
             return 100
         # If rulesFile doesn't exist, return error code
-        if not os.path.isfile(self._parent.rulesFile):
-            self._parent.updateConsole("Rules file %s%s%s does not exist." % (os.getcwd(), os.sep, self._parent.rulesFile))
+        if not os.path.isfile(self.consoleObj.rulesFile):
+            self.consoleObj.updateConsole("Rules file %s%s%s does not exist." % (os.getcwd(), os.sep, self.consoleObj.rulesFile))
             return 101
         # If outDir is empty, write warning that generated files will be in base directory
-        if not self._parent.outDir:
-            self._parent.updateConsole("!!! Warning !!! Generated files output in default directory.")
+        if not self.consoleObj.outDir:
+            self.consoleObj.updateConsole("!!! Warning !!! Generated files output in default directory.")
         else:
             # Check if directory exists
-            if not os.path.isdir(self._parent.outDir):
+            if not os.path.isdir(self.consoleObj.outDir):
                 # Create the directory
-                self._parent.updateConsole("Creating output directory %s%s%s does not exist." % (os.getcwd(), os.sep, self._parent.outDir))
+                self.consoleObj.updateConsole("Creating output directory %s%s%s does not exist." % (os.getcwd(), os.sep, self.consoleObj.outDir))
         # Open the rules files and verify the braces match properly
-        hndl = open(self._parent.rulesFile, 'r')
+        hndl = open(self.consoleObj.rulesFile, 'r')
         if not self.verifyMatchingBrackets(hndl.read()):
-            self._parent.updateConsole("!!! Error !!! Matching bracket not found.")
+            self.consoleObj.updateConsole("!!! Error !!! Matching bracket not found.")
         # Rewind the file
         hndl.seek(0)
         self.splitIntoTokens(hndl.read())
         hndl.close()
+        self.findNextGroupCmd()
         return 0
     
     ## Verify matching brackets
@@ -122,7 +124,7 @@ class ParseRules:
                     posStack.append(charPos)
                 elif c in popChars :
                     if not len(stack) :
-                        self._parent.updateConsole("!!! Error !!! Found too many closing braces - %c...Line %d: Pos %d." % (c, lineNum, charPos))
+                        self.consoleObj.updateConsole("!!! Error !!! Found too many closing braces - %c...Line %d: Pos %d." % (c, lineNum, charPos))
                         return False
                     else :
                         stackTop = stack.pop()
@@ -130,18 +132,18 @@ class ParseRules:
                         openPos = posStack.pop()
                         balancingBracket = pushChars[popChars.index(c)]
                         if stackTop != balancingBracket :
-                            self._parent.updateConsole("!!! Error !!! Closing brace doesn't match opening brace - %c...Line %d: Pos %d." % (c, lineNum, charPos))
-                            self._parent.updateConsole("Opening brace - %c...Line %d: Pos %d." % (stackTop, openLine, openPos))
+                            self.consoleObj.updateConsole("!!! Error !!! Closing brace doesn't match opening brace - %c...Line %d: Pos %d." % (c, lineNum, charPos))
+                            self.consoleObj.updateConsole("Opening brace - %c...Line %d: Pos %d." % (stackTop, openLine, openPos))
                             return False
                 charPos += 1
             lineNum += 1
         if len(stack):
-            self._parent.updateConsole("!!! Error !!! Not enough closing braces - %d leftover." % (len(stack)))
+            self.consoleObj.updateConsole("!!! Error !!! Not enough closing braces - %d leftover." % (len(stack)))
             while len(stack) != 0:
                 stackTop = stack.pop()
                 openLine = lineStack.pop()
                 openPos = posStack.pop()
-                self._parent.updateConsole("No match for opening brace - %c...Line %d: Pos %d." % (stackTop, openLine, openPos))
+                self.consoleObj.updateConsole("No match for opening brace - %c...Line %d: Pos %d." % (stackTop, openLine, openPos))
         return not len(stack)
     
     ## Split into tokens
@@ -176,14 +178,23 @@ class ParseRules:
     #
     #  @param  self          [in]   Object reference
     #  @return None 
-    def findNextGroupCmd(self, text):
+    def findNextGroupCmd(self):
         self.currToken = 0
-        groupCmdDict = dict({'SOLENOID_CARDS': procSolCards,
-            'INPUT_CARDS': procInpCards,
-            'LED_CARDS': procLedCards})
+        self.helpFuncs = HelpFuncs()
+        self.procSolCards = ProcSolCards()
+        self.procInpCards = ProcInpCards()
+        self.procLedCards = ProcLedCards()
+        self.procSolCards.init()
+        self.procInpCards.init()
+        self.procLedCards.init()
+        groupCmdDict = dict({'SOLENOID_CARDS': self.procSolCards.procSection,
+            'INPUT_CARDS': self.procInpCards.procSection,
+            'LED_CARDS': self.procLedCards.procSection})
         
         func = groupCmdDict.get(self.tokens[self.currToken], None)
         if (func == None):
-            self._parent.updateConsole("!!! Error !!! Don't understand %s token at line %d." %
+            self.consoleObj.updateConsole("!!! Error !!! Don't understand %s token at line %d." %
                (self.tokens[self.currToken], self.lineNumList[self.currToken]))
             return 110
+        else:
+            func(self)

@@ -48,3 +48,28 @@
 
 import os
 
+## Proc Input Cards class.
+#
+#  Contains functions for INPUT_CARDS section.
+class ProcInpCards():
+
+    ## Initialize the ProcInpCards class
+    #
+    #  Initialize input cards to zero
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def init(self):
+        ProcInpCards.numInpCards = 0
+
+    ## Process section
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def procSection(self, parent):
+        if (parent.tokens[parent.currToken] != "INPUT_CARDS"):
+            parent.consoleObj.updateConsole("!!! SW Error !!! Expected INPUT_CARDS, read %s, at line num %d." %
+               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+            return (300)
+        return (0)
+

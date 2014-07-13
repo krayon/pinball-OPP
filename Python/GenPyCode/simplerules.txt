@@ -46,15 +46,15 @@
 
 SOLENOID_CARDS       1
 {
-   #Name                      Card  I/O   Flags       InitKick    DutyCycle   MinOff
-   Sol_Left_Flipper           1     1     USE_SWITCH     200         7        0
-   Sol_Right_Flipper          1     2     USE_SWITCH     200         7        0
-   Sol_Left_Slingshot         1     3     USE_SWITCH     100         0        1
-   Sol_Right_Slingshot        1     4     USE_SWITCH     100         0        1
-   Sol_Ball_In_Play           1     5     AUTO_CLR       200         0        0
-   Sol_Left_Pop_Bumper        1     6     USE_SWITCH     100         0        1
-   Sol_Right_Pop_Bumper       1     7     USE_SWITCH     100         0        1
-   Sol_Kickout_Hole           1     8     AUTO_CLR       200         0        0
+   #Name                      Card  I/O   Flags       InitKick    DutyCycle   MinOff	Desc
+   Sol_Left_Flipper           1     1     USE_SWITCH     200         7        0			"LftFlip"
+   Sol_Right_Flipper          1     2     USE_SWITCH     200         7        0			"RghtFlip"
+   Sol_Left_Slingshot         1     3     USE_SWITCH     100         0        1			"LftSling"
+   Sol_Right_Slingshot        1     4     USE_SWITCH     100         0        1			"RghtSling"
+   Sol_Ball_In_Play           1     5     AUTO_CLR       200         0        0			"BallInPlay"
+   Sol_Left_Pop_Bumper        1     6     USE_SWITCH     100         0        1			"LftPop"
+   Sol_Right_Pop_Bumper       1     7     USE_SWITCH     100         0        1			"RghtPop"
+   Sol_Kickout_Hole           1     8     AUTO_CLR       200         0        0			"KickoutHole"
 }
 
 INPUT_CARDS          1

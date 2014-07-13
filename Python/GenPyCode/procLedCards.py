@@ -48,3 +48,29 @@
 
 import os
 
+## Proc LED Cards class.
+#
+#  Contains functions for LED_CARDS section.
+class ProcLedCards():
+
+    ## Initialize the ProcLedCards class
+    #
+    #  Initialize LED cards to zero
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def init(self):
+        ProcLedCards.numLedCards = 0
+
+    ## Process section
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def procSection(self, parent):
+        if (parent.tokens[parent.currToken] != "LED_CARDS"):
+            parent.consoleObj.updateConsole("!!! SW Error !!! Expected LED_CARDS, read %s, at line num %d." %
+               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+            return (400)
+        return (0)
+
+
