@@ -52,6 +52,10 @@ from helpFuncs import HelpFuncs
 from procSolCards import ProcSolCards
 from procInpCards import ProcInpCards
 from procLedCards import ProcLedCards
+from procVars import ProcVars
+from procIndVars import ProcIndVars
+from procSound import ProcSound
+from procVideo import ProcVideo
 
 ## Parse rules class.
 #
@@ -173,6 +177,7 @@ class ParseRules:
                 self.tokens = self.tokens + tmpTokens
                 for index in xrange(len(tmpTokens)):
                     self.lineNumList.append(lineNum)
+            lineNum += 1
 
     ## Find next group command
     #
@@ -184,17 +189,31 @@ class ParseRules:
         self.procSolCards = ProcSolCards()
         self.procInpCards = ProcInpCards()
         self.procLedCards = ProcLedCards()
+        self.procVars = ProcVars()
+        self.procIndVars = ProcIndVars()
+        self.procSound = ProcSound()
+        self.procVideo = ProcVideo()
         self.procSolCards.init()
         self.procInpCards.init()
         self.procLedCards.init()
+        self.procVars.init()
+        self.procIndVars.init()
+        self.procSound.init()
+        self.procVideo.init()
         groupCmdDict = dict({'SOLENOID_CARDS': self.procSolCards.procSection,
             'INPUT_CARDS': self.procInpCards.procSection,
-            'LED_CARDS': self.procLedCards.procSection})
+            'LED_CARDS': self.procLedCards.procSection,
+            'INDEXED_VARIABLES': self.procIndVars.procSection,
+            'SOUND_CLIPS': self.procSound.procSection,
+            'BGND_CLIPS': self.procSound.procSection,
+            'VIDEO_CLIPS': self.procVideo.procSection,
+            'VARIABLES': self.procVars.procSection})
         
-        func = groupCmdDict.get(self.tokens[self.currToken], None)
-        if (func == None):
-            self.consoleObj.updateConsole("!!! Error !!! Don't understand %s token at line %d." %
-               (self.tokens[self.currToken], self.lineNumList[self.currToken]))
-            return 110
-        else:
-            func(self)
+        while (self.currToken != len(self.tokens)):
+            func = groupCmdDict.get(self.tokens[self.currToken], None)
+            if (func == None):
+                self.consoleObj.updateConsole("!!! Error !!! Don't understand %s token at line %d." %
+                   (self.tokens[self.currToken], self.lineNumList[self.currToken]))
+                return 110
+            else:
+                func(self)

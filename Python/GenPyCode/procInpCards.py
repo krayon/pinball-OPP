@@ -47,6 +47,7 @@
 #===============================================================================
 
 import os
+import time
 
 ## Proc Input Cards class.
 #
@@ -60,16 +61,182 @@ class ProcInpCards():
     #  @param  self          [in]   Object reference
     #  @return None
     def init(self):
+        ProcInpCards.hasData = False
         ProcInpCards.numInpCards = 0
+        ProcInpCards.inpCfgBits = []
+        ProcInpCards.name = []
+        ProcInpCards.cardNum = []
+        ProcInpCards.pinNum = []
+        ProcInpCards.flagStr = []
+        ProcInpCards.desc = []
 
+        # Constants
+        ProcInpCards.NUM_INP_BITS = 16
+        
     ## Process section
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def procSection(self, parent):
+        if (ProcInpCards.hasData):
+            parent.consoleObj.updateConsole("!!! Error !!! Found multiple INPUT_CARDS sections, at line num %d." %
+               (parent.lineNumList[parent.currToken]))
+            return (300)
+        ProcInpCards.hasData = True
+        parent.consoleObj.updateConsole("Processing INPUT_CARDS section")
         if (parent.tokens[parent.currToken] != "INPUT_CARDS"):
             parent.consoleObj.updateConsole("!!! SW Error !!! Expected INPUT_CARDS, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (300)
+            return (301)
+        parent.currToken += 1
+        if not parent.helpFuncs.isInt(parent.tokens[parent.currToken]):
+            parent.consoleObj.updateConsole("!!! Error !!! Expected number of input cards, read %s, at line num %d." %
+               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+            return (302)
+        ProcInpCards.numInpCards = parent.helpFuncs.out
+        for index in xrange(ProcInpCards.numInpCards):
+            ProcInpCards.inpCfgBits.append(0)
+        parent.currToken += 1
+        if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
+            parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
+               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+            return (303)
+        closeSymb = parent.helpFuncs.findMatch(parent)
+        parent.currToken += 1
+        while parent.currToken < closeSymb:
+            errVal = self.procLine(parent)
+            if errVal:
+                parent.currToken = closeSymb
+        self.createInpBitNames(parent)
+        parent.currToken += 1
         return (0)
 
+    ## Process line
+    #
+    # Line consists of name, cardNum, pinNum, flags,
+    # and description string.  
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  parent        [in]   Parent object for logging and tokens
+    #  @return Error number if an error, or zero if no error
+    def procLine(self, parent):
+        VALID_FLAGS = ["STATE_INPUT", "FALL_EDGE", "RISE_EDGE"]
+        GEN_FLAGS = ["rs232Intf.CFG_INP_STATE", "rs232Intf.CFG_INP_FALL_EDGE", "rs232Intf.CFG_INP_RISE_EDGE"]
+
+        name = parent.tokens[parent.currToken]
+        ProcInpCards.name.append(name)
+        
+        # Verify card num
+        if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
+            parent.consoleObj.updateConsole("!!! Error !!! Input card num, read %s, at line num %d." %
+               (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
+            return (310)
+        # Convert from 1 base to 0 based card num
+        cardNum = parent.helpFuncs.out - 1
+        # Card number is base 1
+        if (cardNum < 0) or (cardNum >= ProcInpCards.numInpCards):
+            parent.consoleObj.updateConsole("!!! Error !!! Illegal input card num, read %s, at line num %d." %
+               (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
+            return (311)
+        ProcInpCards.cardNum.append(cardNum)
+        
+        # Verify pin num
+        if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 2]):
+            parent.consoleObj.updateConsole("!!! Error !!! Input pin num, read %s, at line num %d." %
+               (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
+            return (312)
+        # Convert from 1 base to 0 based pin num
+        pinNum = parent.helpFuncs.out - 1
+        # Pin number is base 1
+        if (pinNum < 0) or (pinNum >= ProcInpCards.NUM_INP_BITS):
+            parent.consoleObj.updateConsole("!!! Error !!! Illegal input pin num, read %s, at line num %d." %
+               (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
+            return (313)
+        if (ProcInpCards.inpCfgBits[cardNum] & (1 << pinNum)) != 0: 
+            parent.consoleObj.updateConsole("!!! Error !!! Input pin configured multiple times, at line num %d." %
+               (parent.lineNumList[parent.currToken + 2]))
+            return (314)
+        ProcInpCards.inpCfgBits[cardNum] |= (1 << pinNum)
+        ProcInpCards.pinNum.append(pinNum)
+        
+        # Verify flagStr
+        if not parent.helpFuncs.isValidString(parent.tokens[parent.currToken + 3], VALID_FLAGS):
+            parent.consoleObj.updateConsole("!!! Error !!! Input illegal flags, read %s, at line num %d." %
+               (parent.tokens[parent.currToken + 3], parent.lineNumList[parent.currToken + 3]))
+            return (315)
+        flagStr = GEN_FLAGS[parent.helpFuncs.out]
+        ProcInpCards.flagStr.append(flagStr)
+        
+        # Grab description
+        desc = parent.tokens[parent.currToken + 4]
+        ProcInpCards.desc.append(desc)
+        
+        # increment currToken
+        parent.currToken += 5
+        return (0)
+
+    ## Create inpBitNames.py file
+    #
+    # Create the input bit names file.  
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  parent        [in]   Parent object for logging and tokens
+    #  @return Error number if an error, or zero if no error
+    def createInpBitNames(self, parent):
+        HDR_COMMENTS = [
+            "# @file    inpBitNames.py",
+            "# @author  AutoGenerated",
+            "# @date    ",
+            "#",
+            "# @note    Open Pinball Project",
+            "# @note    Copyright 2014, Hugh Spahr",
+            "#",
+            "# @brief These are the input bit names.  It has a bitmask for each input.",
+            "",
+            "#===============================================================================",
+            "",
+            "## Input bit name enumeration.",
+            "#  Contains a bit mask for each input.  Can also contain bitfield masks.",
+            "#  Top most nibble contains the index of the input card base 0.",
+            "",
+            "class InpBitNames:"]
+
+        # Open the file or create if necessary
+        outHndl = open(parent.consoleObj.outDir + os.sep + "inpBitNames.py", 'w+')
+        stdHdrHndl = open("stdHdr.txt", 'r')
+        for line in stdHdrHndl:
+            outHndl.write(line)
+        stdHdrHndl.close()
+        for line in HDR_COMMENTS:
+            if line.startswith("# @date"):
+                outHndl.write(line + time.strftime("%d/%m/%Y") + "\n")
+            else:
+                outHndl.write(line + "\n")
+        for cardIndex in xrange(ProcInpCards.numInpCards):
+            for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcInpCards.name[self.out].upper(),
+                        ((cardIndex << 16) | (1 << bitIndex))))
+        outHndl.write("\n")
+        outHndl.close()
+        parent.consoleObj.updateConsole("Completed: inpBitNames.py file.")
+        return (0)
+
+    ## Find bit index
+    #
+    # Find index of the bit.  If no bit is found (i.e. it is not
+    # configured, it returns false.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  cardNum       [in]   Card number
+    #  @param  bitNum        [in]   Bit number
+    #  @return True if found, False if not found.  Passes index
+    #   in out 
+    def findBitIndex(self, cardNum, bitNum):
+        for index in xrange(len(ProcInpCards.pinNum)):
+            if (ProcInpCards.cardNum[index] == cardNum) and (ProcInpCards.pinNum[index] == bitNum):
+                self.out = index
+                return True
+        return False
+        

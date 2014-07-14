@@ -61,6 +61,7 @@ class ProcSolCards():
     #  @param  self          [in]   Object reference
     #  @return None
     def init(self):
+        ProcSolCards.hasData = False
         ProcSolCards.numSolCards = 0
         ProcSolCards.solCfgBits = []
         ProcSolCards.name = []
@@ -81,16 +82,21 @@ class ProcSolCards():
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
     def procSection(self, parent):
+        if (ProcSolCards.hasData):
+            parent.consoleObj.updateConsole("!!! Error !!! Found multiple SOLENOID_CARDS sections, at line num %d." %
+               (parent.lineNumList[parent.currToken]))
+            return (200)
+        ProcSolCards.hasData = True
         parent.consoleObj.updateConsole("Processing SOLENOID_CARDS section")
         if (parent.tokens[parent.currToken] != "SOLENOID_CARDS"):
             parent.consoleObj.updateConsole("!!! SW Error !!! Expected SOLENOID_CARDS, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (200)
+            return (201)
         parent.currToken += 1
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected number of solenoid cards, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (201)
+            return (202)
         ProcSolCards.numSolCards = parent.helpFuncs.out
         for index in xrange(ProcSolCards.numSolCards):
             ProcSolCards.solCfgBits.append(0)
@@ -98,7 +104,7 @@ class ProcSolCards():
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (202)
+            return (203)
         closeSymb = parent.helpFuncs.findMatch(parent)
         parent.currToken += 1
         while parent.currToken < closeSymb:
@@ -106,6 +112,7 @@ class ProcSolCards():
             if errVal:
                 parent.currToken = closeSymb
         self.createSolBitNames(parent)
+        parent.currToken += 1
         return (0)
 
     ## Process line
@@ -255,8 +262,8 @@ class ProcSolCards():
             for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
-                    outHndl.write("    {0:20} = 0x{1:05x}\n".format(ProcSolCards.name[self.out].upper(),
-                        ((cardIndex << 16) | bitIndex)))
+                    outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcSolCards.name[self.out].upper(),
+                        ((cardIndex << 16) | (1 << bitIndex))))
         outHndl.write("\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: solBitNames.py file.")

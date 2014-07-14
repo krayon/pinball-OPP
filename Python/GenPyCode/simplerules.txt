@@ -59,36 +59,36 @@ SOLENOID_CARDS       1
 
 INPUT_CARDS          1
 {
-   #Name                      Card  I/O   Type
-   Inp_Coin_Drop              1     1     FALL_EDGE
-   Inp_Start_Button           1     2     FALL_EDGE
-   Inp_Tilt_Switch            1     3     FALL_EDGE
-   Inp_Spinner                1     4     FALL_EDGE
-   Inp_Left_Outlane           1     5     FALL_EDGE
-   Inp_Right_Outlane          1     6     FALL_EDGE
-   Inp_Left_Flipper_Lane      1     7     FALL_EDGE
-   Inp_Right_Flipper_Lane     1     8     FALL_EDGE
-   Inp_Ball_At_Plunger        1     9     STATE_INPUT
-   Inp_Inlane_Left            1     10    FALL_EDGE
-   Inp_Inlane_Center          1     11    FALL_EDGE
-   Inp_Inlane_Right           1     12    FALL_EDGE
-   Inp_Left_Target1           1     13    FALL_EDGE
-   Inp_Left_Target2           1     14    FALL_EDGE
-   Inp_Right_Target1          1     15    FALL_EDGE
-   Inp_Right_Target2          1     16    FALL_EDGE
+   #Name                      Card  I/O   Type				Desc
+   Inp_Coin_Drop              1     1     FALL_EDGE			"CoinDrop"			
+   Inp_Start_Button           1     2     FALL_EDGE			"StartBtn"
+   Inp_Tilt_Switch            1     3     FALL_EDGE			"TiltSwitch"
+   Inp_Spinner                1     4     FALL_EDGE			"Spinner"
+   Inp_Left_Outlane           1     5     FALL_EDGE			"LftOutln"
+   Inp_Right_Outlane          1     6     FALL_EDGE			"RghtOutln"
+   Inp_Left_Flipper_Lane      1     7     FALL_EDGE			"LftFlipLn"
+   Inp_Right_Flipper_Lane     1     8     FALL_EDGE			"RghtFlipLn"
+   Inp_Ball_At_Plunger        1     9     STATE_INPUT		"BallAtPlunger"
+   Inp_Inlane_Left            1     10    FALL_EDGE			"InlaneRght"
+   Inp_Inlane_Center          1     11    FALL_EDGE			"InlaneCtr"
+   Inp_Inlane_Right           1     12    FALL_EDGE			"InlaneLft"
+   Inp_Left_Target1           1     13    FALL_EDGE			"LftTrgt1"
+   Inp_Left_Target2           1     14    FALL_EDGE			"LftTrgt2"
+   Inp_Right_Target1          1     15    FALL_EDGE			"RghtTrgt1"
+   Inp_Right_Target2          1     16    FALL_EDGE			"RghtTrgt2"
 }
 
 LED_CARDS            1
 {
-   #Name                      Card  I/O
-   Led_Inlane_Left            1     1
-   Led_Inlane_Center          1     2
-   Led_Inlane_Right           1     3
-   Led_Left_Target1           1     4
-   Led_Left_Target2           1     5
-   Led_Right_Target1          1     6
-   Led_Right_Target2          1     7
-   Led_Special                1     8
+   #Name                      Card  I/O		Desc
+   Led_Inlane_Left            1     1		"InlaneRght"
+   Led_Inlane_Center          1     2		"InlaneCtr"
+   Led_Inlane_Right           1     3		"InlaneLft"
+   Led_Left_Target1           1     4		"LftTrgt1"
+   Led_Left_Target2           1     5		"LftTrgt2"
+   Led_Right_Target1          1     6		"RghtTrgt1"
+   Led_Right_Target2          1     7		"RghtTrgt2"
+   Led_Special                1     8		"Special"
 }
 
 VARIABLES
@@ -123,9 +123,19 @@ INDEXED_VARIABLES
 SOUND_CLIPS
 {
    #Name                   Location
-   Sound_OpenDoor          "images/opendoor.mp3"
-   Sound_Wah_Wuh           "images/wah_wuh.mp3"
-   Sound_Ding_Ding_Ding    "images/ding_ding.mp3"
+   Sound_Wah_Wuh           "sounds/wah_wuh.wav"
+   Sound_Ding_Ding         "sounds/ding_ding.wav"
+   Sound_Open_Door         "sounds/opendoor.wav"
+   Sound_Jump              "sounds/jump.wav"
+   Sound_Waterfall1        "sounds/wfall1.wav"
+   Sound_Waterfall2        "sounds/wfall2.wav"
+   Sound_Waterfall3        "sounds/wfall3.wav"
+}
+
+BGND_CLIPS
+{
+   #Name                   Location
+   Sound_BgndTrack         "sounds/bgndtrack.mp3"
 }
 
 VIDEO_CLIPS
@@ -258,7 +268,7 @@ PROCESS_CHAINS
    Proc_Ball_In_Play_Start {if (Inp_Inlane_Left || Inp_Inlane_Right)
                               (MODE = Mode_Normal_Play)
                            if (Inp_Inlane_Center)
-                              {(SOUND Sound_Ding_Ding_Ding) (TEXT = "Skill Shot")
+                              {(SOUND Sound_Ding_Ding) (TEXT = "Skill Shot")
                               (IndVar_score[Var_currPlayer] += 1000) (MODE = Mode_Normal_Play)}}
    
    Proc_Normal_Play_Init   {(LED_SET, (Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right), IndVar_InlaneLights[Var_currPlayer])}
@@ -328,7 +338,7 @@ MODES
    Mode_Attract            {()                        (Proc_Init, Proc_Add_Coin)                         (Video_Defcon17, REPEAT)
                                           ()                                          (LedCh_Attract)                                ()}
    Mode_Press_Start        {()                        (Proc_Start_and_Coin)                              ()
-                                          (Sound_OpenDoor, WAIT 5000, REPEAT)         (LedCh_Attract)                                ()}
+                                          (Sound_Open_Door, WAIT 5000, REPEAT)        (LedCh_Attract)                                ()}
    Mode_Start_Game         {(Proc_Init_Game)          (Proc_Start_Game, Proc_Start_and_Coin)             ()                        
                                           ()                                          ()                                             ()}
    Mode_Start_Ball         {(Proc_Start_Ball_Init)    (Proc_Start_Ball_Start, Proc_Start_and_Coin)       ()
