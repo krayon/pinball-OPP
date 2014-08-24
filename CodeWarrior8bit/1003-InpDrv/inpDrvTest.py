@@ -72,15 +72,30 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
+# Config for reading the state, all flippers
 solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
              rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
-             rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00' ] ]
+             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04' ] ]
 
-solCfg1 = [ [ '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
-              '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
-              '\x01', '\x30', '\x04', '\x01', '\x30', '\x04', \
-              '\x01', '\x30', '\x04', '\x01', '\x30', '\x04' ] ]
+# SS2, Board 1 config
+##solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+##             rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', \
+##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00' ] ]
+
+# SS2, Board 2 config
+##solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+##             rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', \
+##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', \
+##             rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00' ] ]
+
+# Joe's config
+solCfg1 = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x64', '\x00' ] ]
+
 
 #grab data from serial port
 def getSerialData():
@@ -277,16 +292,18 @@ for arg in sys.argv:
     print "python inpDrvTest.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
-    print "    -test=testNum      test number, defaults to 0\n"
-    print "    -boot              force a single board into bootloader\n"
-    print "    -saveCfg           save a cfg on a single board\n"
-    print "    -eraseCfg          erase a cfg on a single board\n"
+    print "    -test=testNum      test number, defaults to 0"
+    print "    -boot              force a single board into bootloader"
+    print "    -saveCfg           save a cfg on a single board."
+    print "        Only 1 board can be attached.  Uses solCfg, or inpCfg"
+    print "    -eraseCfg          erase a cfg on a single board."
+    print "        Only 1 board can be attached.\n"
     print "-test=0: Send inventory and verify response 10000 times."
     print "-test=1: Read first input board continuously.  ('x' exits)"
     print "-test=2: Read first solenoid board continuously.  ('x' exits)"
-    print "   uses solCfg"
+    print "   Uses solCfg.  Read inputs are edges, not state."
     print "-test=3: Read first solenoid board continuously.  ('x' exits)"
-    print "   uses solCfg1"
+    print "   uses solCfg1.  Read inputs are edges, not state."
     end = True
   elif arg.startswith('-boot'):
     boot = True

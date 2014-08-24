@@ -1,4 +1,4 @@
-EESchema-DOCLIB  Version 2.0  Date: 1/1/2014 4:47:28 PM
+EESchema-DOCLIB  Version 2.0  Date: 8/19/2014 6:40:17 PM
 #
 $CMP 39SF0X0
 D Flash, 128Kx8, 256Kx8, 512Kx8
@@ -24,6 +24,11 @@ K CONN
 $ENDCMP
 #
 $CMP CONN2X7
+K CONN
+$ENDCMP
+#
+$CMP CONN_28
+D Symbole general de connexion
 K CONN
 $ENDCMP
 #
