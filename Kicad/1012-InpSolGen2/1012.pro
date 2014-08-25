@@ -1,6 +1,6 @@
-update=4/25/2012 8:51:11 AM
+update=8/25/2014 9:22:50 AM
 version=1
-last_client=eeschema
+last_client=kicad
 [pcbnew]
 version=1
 PadDrlX=320
@@ -68,8 +68,6 @@ LibName9=valves
 LibName10=led
 LibName11=dip_sockets
 LibDir=../Libraries
-[general]
-version=1
 [cvpcb]
 version=1
 NetIExt=net
@@ -138,3 +136,5 @@ LibName28=opto
 LibName29=atmel
 LibName30=contrib
 LibName31=valves
+[general]
+version=1
