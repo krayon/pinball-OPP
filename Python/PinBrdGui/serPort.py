@@ -116,7 +116,8 @@ class SerPort():
             self._ser.write(sendCmd)
             
             #add two extra bytes for command and EOM
-            data = self.getSerialData(self, rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
+            data = self.getSerialData(rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
+            print repr(data)
         
             #Response must have at least inv command and eom or return error
             if (len(data) < 2):
@@ -184,7 +185,7 @@ class SerPort():
         if not self.debug:
             sendCmd = ''.join(self._brdCfg)
             self._ser.write(sendCmd)
-            data = self.getSerialData(self, 5)
+            data = self.getSerialData(5)
             if (len(data) != 1) or (data[0] != rs232Intf.EOM_CMD):
                 return (104)
         
@@ -216,7 +217,7 @@ class SerPort():
             if not self.debug:
                 sendCmd = ''.join(self._brdCfg)
                 self._ser.write(sendCmd)
-                data = self.getSerialData(self, 5)
+                data = self.getSerialData(5)
                 if (len(data) != 1) or (data[0] != rs232Intf.EOM_CMD):
                     return (200)
                 
@@ -224,7 +225,7 @@ class SerPort():
         if not self.debug:
             sendCmd = ''.join(self._readCmd)
             self._ser.write(sendCmd)
-            data = self.getSerialData(self, len(self._readCmd))
+            data = self.getSerialData(len(self._readCmd))
             if (len(data) != len(self._readCmd)):
                 return (201)
             dataIndex = 0

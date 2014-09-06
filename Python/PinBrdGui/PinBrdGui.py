@@ -164,7 +164,7 @@ class GuiFrame(Frame):
         self.strVar.append(tmpStrVar)
         self.prevState.append(data)
         self.comboBox.append(None)
-        self.optBoxStr.append(None)
+        #self.optBoxStr.append(None)
         tmpLbl = Label(tmpFrm, textvariable=tmpStrVar, relief=SUNKEN, width=10, anchor=CENTER)
         tmpLbl.grid(column = 3, row = 0, padx=8, pady=8)
         tmpLbl = Label(tmpFrm, text="", width = 12)
