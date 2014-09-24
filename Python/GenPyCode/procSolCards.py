@@ -48,6 +48,7 @@
 
 import os
 import time
+from procChains import ProcChains
 
 ## Proc Solenoid Cards class.
 #
@@ -132,6 +133,7 @@ class ProcSolCards():
 
         name = parent.tokens[parent.currToken]
         ProcSolCards.name.append(name)
+        ProcChains.addName(parent.procChains, name, ProcChains.SOLENOID_BIT)
         
         # Verify card num
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
@@ -255,7 +257,7 @@ class ProcSolCards():
         stdHdrHndl.close()
         for line in HDR_COMMENTS:
             if line.startswith("# @date"):
-                outHndl.write(line + time.strftime("%d/%m/%Y") + "\n")
+                outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 outHndl.write(line + "\n")
         for cardIndex in xrange(ProcSolCards.numSolCards):

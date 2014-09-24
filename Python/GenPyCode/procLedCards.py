@@ -48,6 +48,7 @@
 
 import os
 import time
+from procChains import ProcChains
 
 ## Proc LED Cards class.
 #
@@ -120,6 +121,7 @@ class ProcLedCards():
     def procLine(self, parent):
         name = parent.tokens[parent.currToken]
         ProcLedCards.name.append(name)
+        ProcChains.addName(parent.procChains, name, ProcChains.LED_BIT)
         
         # Verify card num
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
@@ -196,7 +198,7 @@ class ProcLedCards():
         stdHdrHndl.close()
         for line in HDR_COMMENTS:
             if line.startswith("# @date"):
-                outHndl.write(line + time.strftime("%d/%m/%Y") + "\n")
+                outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 outHndl.write(line + "\n")
         for cardIndex in xrange(ProcLedCards.numLedCards):

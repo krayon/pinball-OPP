@@ -56,6 +56,9 @@ from procVars import ProcVars
 from procIndVars import ProcIndVars
 from procSound import ProcSound
 from procVideo import ProcVideo
+from procSimple import ProcSimple
+from procTimers import ProcTimers
+from procChains import ProcChains
 
 ## Parse rules class.
 #
@@ -193,6 +196,9 @@ class ParseRules:
         self.procIndVars = ProcIndVars()
         self.procSound = ProcSound()
         self.procVideo = ProcVideo()
+        self.procSimple = ProcSimple()
+        self.procTimers = ProcTimers()
+        self.procChains = ProcChains()
         self.procSolCards.init()
         self.procInpCards.init()
         self.procLedCards.init()
@@ -200,6 +206,9 @@ class ParseRules:
         self.procIndVars.init()
         self.procSound.init()
         self.procVideo.init()
+        self.procSimple.init()
+        self.procTimers.init()
+        self.procChains.init()
         groupCmdDict = dict({'SOLENOID_CARDS': self.procSolCards.procSection,
             'INPUT_CARDS': self.procInpCards.procSection,
             'LED_CARDS': self.procLedCards.procSection,
@@ -207,7 +216,10 @@ class ParseRules:
             'SOUND_CLIPS': self.procSound.procSection,
             'BGND_CLIPS': self.procSound.procSection,
             'VIDEO_CLIPS': self.procVideo.procSection,
-            'VARIABLES': self.procVars.procSection})
+            'VARIABLES': self.procVars.procSection,
+            'TICK_TIME': self.procSimple.procSection,
+            'FIRST_MODE': self.procSimple.procSection,
+            'TIMERS': self.procTimers.procSection})
         
         while (self.currToken != len(self.tokens)):
             func = groupCmdDict.get(self.tokens[self.currToken], None)
