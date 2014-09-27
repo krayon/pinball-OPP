@@ -59,13 +59,14 @@ numCards = 1
 
 #Note: driver card reverses signal level, so a 1 is a 0 on the line
 CLK = 0x01
-DATA = 0x02
-LATCH = 0x04
+DATA = 0x04
+LATCH = 0x02
 
 def updateLights(byteList):
     for data in byteList:
         sendByte(data);
     endWrite();
+    time.sleep(.1)
 
 #Send byte
 def sendByte(data):
@@ -81,15 +82,16 @@ def sendByte(data):
         pport.setData(dataOut | CLK | LATCH)
         #Latch the clock
         pport.setData(dataOut | LATCH)
+        pport.setData(dataOut | CLK | LATCH)
 
 def endWrite():
     global pport
     #Bring the clock low, data doesn't matter, latch remains low
-    pport.setData(CLK | LATCH)
+    pport.setData(DATA | CLK | LATCH)
     #Bring the latch high
-    pport.setData(CLK)
+    pport.setData(DATA | CLK)
     #Bring the latch low to end the cycle
-    pport.setData(CLK | LATCH)
+    pport.setData(DATA | CLK | LATCH)
 
 def endTest(error):
     global pport
@@ -122,6 +124,7 @@ pport = parallel.Parallel()
 if (testNum == 0):
     exitReq = False
     currVal = 0
+    count = 0
     outData = [0] * numCards
     while (not exitReq):
         byteIndex = currVal / 8
@@ -130,8 +133,9 @@ if (testNum == 0):
         updateLights(outData)
         outData[byteIndex] = 0
         currVal += 1
-        if (currVal > numCards * 8):
+        if (currVal >= numCards * 8):
             currVal = 0
+            count += 1
         
         #Check if exit is requested
         while msvcrt.kbhit():
