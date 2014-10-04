@@ -71,7 +71,21 @@ class ParseRules:
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Used to log information and get configuration
     def __init__(self, parent):
+        self.tokens = []
+        self.lineNumList = []
         self.consoleObj = parent
+        self.currToken = 0
+        self.helpFuncs = HelpFuncs()
+        self.procSolCards = ProcSolCards()
+        self.procInpCards = ProcInpCards()
+        self.procLedCards = ProcLedCards()
+        self.procVars = ProcVars()
+        self.procIndVars = ProcIndVars()
+        self.procSound = ProcSound()
+        self.procVideo = ProcVideo()
+        self.procSimple = ProcSimple()
+        self.procTimers = ProcTimers()
+        self.procChains = ProcChains()
         
     ## Verify parameters
     #
@@ -178,7 +192,7 @@ class ParseRules:
             tmpTokens = line.split()
             if (len(tmpTokens) != 0):
                 self.tokens = self.tokens + tmpTokens
-                for index in xrange(len(tmpTokens)):
+                for _ in xrange(len(tmpTokens)):
                     self.lineNumList.append(lineNum)
             lineNum += 1
 
@@ -187,28 +201,6 @@ class ParseRules:
     #  @param  self          [in]   Object reference
     #  @return None 
     def findNextGroupCmd(self):
-        self.currToken = 0
-        self.helpFuncs = HelpFuncs()
-        self.procSolCards = ProcSolCards()
-        self.procInpCards = ProcInpCards()
-        self.procLedCards = ProcLedCards()
-        self.procVars = ProcVars()
-        self.procIndVars = ProcIndVars()
-        self.procSound = ProcSound()
-        self.procVideo = ProcVideo()
-        self.procSimple = ProcSimple()
-        self.procTimers = ProcTimers()
-        self.procChains = ProcChains()
-        self.procSolCards.init()
-        self.procInpCards.init()
-        self.procLedCards.init()
-        self.procVars.init()
-        self.procIndVars.init()
-        self.procSound.init()
-        self.procVideo.init()
-        self.procSimple.init()
-        self.procTimers.init()
-        self.procChains.init()
         groupCmdDict = dict({'SOLENOID_CARDS': self.procSolCards.procSection,
             'INPUT_CARDS': self.procInpCards.procSection,
             'LED_CARDS': self.procLedCards.procSection,

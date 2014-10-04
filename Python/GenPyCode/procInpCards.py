@@ -61,7 +61,8 @@ class ProcInpCards():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
+        self.out = 0
         ProcInpCards.hasData = False
         ProcInpCards.numInpCards = 0
         ProcInpCards.inpCfgBits = []
@@ -95,7 +96,7 @@ class ProcInpCards():
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (302)
         ProcInpCards.numInpCards = parent.helpFuncs.out
-        for index in xrange(ProcInpCards.numInpCards):
+        for _ in xrange(ProcInpCards.numInpCards):
             ProcInpCards.inpCfgBits.append(0)
         parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):

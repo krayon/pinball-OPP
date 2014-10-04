@@ -46,14 +46,14 @@
 
 #===============================================================================
 
-from Tkinter import *
-from ttk import *
+from Tkinter import Tk
+from ttk import Frame
 
 from threading import Thread
-from tkCmdFrm import TkCmdFrm
-from tkInpBrd import TkInpBrd
-from tkSolBrd import TkSolBrd
-from tkLedBrd import TkLedBrd
+from tk.tkCmdFrm import TkCmdFrm
+from tk.tkInpBrd import TkInpBrd
+from tk.tkSolBrd import TkSolBrd
+from tk.tkLedBrd import TkLedBrd
 from hwobjs.ledBrd import LedBrd
 from hwobjs.solBrd import SolBrd
 from hwobjs.inpBrd import InpBrd
@@ -108,7 +108,7 @@ class TkinterThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def run(self):
-        count = 0
+        dummy_count = 0
         root = Tk()
         root.wm_title("Debug Window")
         root.columnconfigure(0, weight=1)
@@ -129,7 +129,7 @@ class TkinterThread(Thread):
             GameData.tkLedBrd.append(TkLedBrd(i, numSolBrds + numInpBrds + i + 1, bgndFrm))
         root.update()
         TkinterThread.doneInit = True
-      
+        
         while TkinterThread._runTkinterThread:
             root.update()
             cmdFrm.Update_Cmd_Frm()
@@ -139,5 +139,5 @@ class TkinterThread(Thread):
                 GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
             for i in xrange(numInpBrds):
                 GameData.tkInpBrd[i].update_status_field(InpBrd.currInpData[i])
-            count += 1
+            dummy_count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)

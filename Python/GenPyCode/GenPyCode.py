@@ -48,11 +48,11 @@
 
 #===============================================================================
 
-from sys import argv, exit
-from Tkinter import *
-from ttk import *
+from Tkinter import Frame, RAISED, RIGHT, Text, Y, WORD, END, Tk
+from ttk import Button, Scrollbar
 from parseRules import ParseRules
 import time
+import sys
 
 ## GUI Frame
 #
@@ -60,7 +60,7 @@ import time
 #
 #  @param  argv          [in]   Passed in arguments
 #  @return None 
-class GuiFrame(Frame):
+class GuiFrame():
   
     ## The constructor
     #
@@ -74,6 +74,9 @@ class GuiFrame(Frame):
         self.parent = parent
         self.rulesFile = rulesFile
         self.outDir = outDir
+        self.bgndFrm = None
+        self.scrollbar = None
+        self.log = None
         
         self.initUI()
         self.parseRules = ParseRules(self)

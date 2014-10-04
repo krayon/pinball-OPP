@@ -48,8 +48,8 @@
 #===============================================================================
 
 from Tkinter import Button as Btn
-from Tkinter import *
-from ttk import *
+from Tkinter import Frame, StringVar, Canvas, SUNKEN, RAISED, CENTER
+from ttk import Combobox, Label, Button
 from rules.rulesData import RulesData
 from gameData import GameData
 from comms.commIntf import CommsState

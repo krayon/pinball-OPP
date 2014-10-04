@@ -61,7 +61,8 @@ class ProcLedCards():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
+        self.out = 0
         ProcLedCards.hasData = False
         ProcLedCards.numLedCards = 0
         ProcLedCards.ledCfgBits = []
@@ -94,7 +95,7 @@ class ProcLedCards():
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (402)
         ProcLedCards.numLedCards = parent.helpFuncs.out
-        for index in xrange(ProcLedCards.numLedCards):
+        for _ in xrange(ProcLedCards.numLedCards):
             ProcLedCards.ledCfgBits.append(0)
         parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):

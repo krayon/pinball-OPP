@@ -61,7 +61,8 @@ class ProcSolCards():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
+        self.out = 0
         ProcSolCards.hasData = False
         ProcSolCards.numSolCards = 0
         ProcSolCards.solCfgBits = []
@@ -99,7 +100,7 @@ class ProcSolCards():
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (202)
         ProcSolCards.numSolCards = parent.helpFuncs.out
-        for index in xrange(ProcSolCards.numSolCards):
+        for _ in xrange(ProcSolCards.numSolCards):
             ProcSolCards.solCfgBits.append(0)
         parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):

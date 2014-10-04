@@ -57,7 +57,7 @@ class ProcIndVars():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
         ProcIndVars.hasData = False
         ProcIndVars.name = []
         ProcIndVars.numEntries = []
@@ -128,7 +128,7 @@ class ProcIndVars():
             return (613)
         initVals = []
         parent.currToken += 1
-        for index in xrange(numEntries):
+        for _ in xrange(numEntries):
             # Verify initValues
             if not parent.helpFuncs.isInt(parent.tokens[parent.currToken]):
                 parent.consoleObj.updateConsole("!!! Error !!! Indexed variable initVal, read %s, at line num %d." %

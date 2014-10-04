@@ -57,7 +57,7 @@ class ProcVideo():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
         ProcVideo.hasVideo = False
         ProcVideo.name = []
         ProcVideo.flagStr = []

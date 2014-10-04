@@ -49,8 +49,8 @@
 
 import rs232Intf
 from Tkinter import Button as Btn
-from Tkinter import *
-from ttk import *
+from Tkinter import Frame, StringVar, Canvas, SUNKEN, RAISED
+from ttk import Combobox, Label, Button
 from rules.rulesData import RulesData
 
 ## Tk input board class.

@@ -60,7 +60,7 @@ class ProcTimers():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
         ProcTimers.hasData = False
         ProcTimers.name = []
         ProcTimers.timeoutTicks = []
@@ -169,9 +169,9 @@ class ProcTimers():
             outHndl.write("        [{0}, {1:d}]".format(ProcTimers.name[tmrIndex].upper(),
                 ProcTimers.timeoutTicks[tmrIndex]))
             if (tmrIndex < (len(ProcTimers.name) - 1)):
-                outHndl.write(",\n");
+                outHndl.write(",\n")
             else:
-                outHndl.write(" ]\n");
+                outHndl.write(" ]\n")
         outHndl.write("\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: timers.py file.")

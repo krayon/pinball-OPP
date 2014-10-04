@@ -57,7 +57,7 @@ class ProcVars():
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def init(self):
+    def __init__(self):
         ProcVars.hasData = False
         ProcVars.name = []
         ProcVars.initVal = []
