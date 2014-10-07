@@ -42,7 +42,7 @@
 #
 #===============================================================================
 #
-# Input driver board tests.
+# Incandescent driver board tests.
 #
 #===============================================================================
 
@@ -56,8 +56,9 @@ import msvcrt
 
 testNum = 0
 numCards = 1
+invert = False
 
-#Note: driver card reverses signal level, so a 1 is a 0 on the line
+#Note: Original level shifter reverses signal level, so a 1 is a 0 on the line
 CLK = 0x01
 DATA = 0x04
 LATCH = 0x02
@@ -72,26 +73,47 @@ def updateLights(byteList):
 def sendByte(data):
     global pport
     for i in xrange(8):
-        if (data & (1 << i) != 0):
-            #Data bit is set, so clear it
-            dataOut = 0
+        if invert:
+            if (data & (1 << i) != 0):
+                #Data bit is set, so clear it
+                dataOut = 0
+            else:
+                #Data bit is clear, so set it
+                dataOut = DATA
+            #Set the data up, clock is low, and latch is low
+            pport.setData(dataOut | CLK | LATCH)
+            #Clock the data bit in
+            pport.setData(dataOut | LATCH)
+            pport.setData(dataOut | CLK | LATCH)
         else:
-            #Data bit is clear, so set it
-            dataOut = DATA
-        #Set the data up, clock is low, and latch is low
-        pport.setData(dataOut | CLK | LATCH)
-        #Latch the clock
-        pport.setData(dataOut | LATCH)
-        pport.setData(dataOut | CLK | LATCH)
+            if (data & (1 << i) != 0):
+                #Data bit is set, so clear it
+                dataOut = DATA
+            else:
+                #Data bit is clear, so set it
+                dataOut = 0
+            #Set the data up, clock is low, and latch is low
+            pport.setData(dataOut)
+            #Clock the data bit in
+            pport.setData(dataOut | CLK)
+            pport.setData(dataOut)
 
 def endWrite():
     global pport
-    #Bring the clock low, data doesn't matter, latch remains low
-    pport.setData(DATA | CLK | LATCH)
-    #Bring the latch high
-    pport.setData(DATA | CLK)
-    #Bring the latch low to end the cycle
-    pport.setData(DATA | CLK | LATCH)
+    if invert:
+        #Bring the clock low, data doesn't matter, latch remains low
+        pport.setData(DATA | CLK | LATCH)
+        #Bring the latch high
+        pport.setData(DATA | CLK)
+        #Bring the latch low to end the cycle
+        pport.setData(DATA | CLK | LATCH)
+    else:
+        #Bring the clock low, data doesn't matter, latch remains low
+        pport.setData(0)
+        #Bring the latch high
+        pport.setData(LATCH)
+        #Bring the latch low to end the cycle
+        pport.setData(0)
 
 def endTest(error):
     global pport
@@ -109,11 +131,14 @@ for arg in sys.argv:
     testNum = int(arg.replace('-test=','',1))
   elif arg.startswith('-cards='):
     numCards = int(arg.replace('-cards=','',1))
+  elif arg.startswith('-invert'):
+    invert = True
   elif arg.startswith('-?'):
     print "python inpDrvTest.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -cards=numCards    Number of cards in the SPI chain"
     print "    -test=testNum      test number, defaults to 0"
+    print "    -invert            invert SPI signals (original volt converter)"
     print "-test=0: Walking 1 on lights."
     end = True
 if end:
