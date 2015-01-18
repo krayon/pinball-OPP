@@ -42,7 +42,7 @@
 # @note    Open Pinball Project
 # @note    Copyright 2014, Hugh Spahr
 #
-# @brief Process PROCESS_CHAINS section.
+# @brief Process PROCESS_CHAINS section and create rulesFunc.py.
 
 #===============================================================================
 
@@ -66,6 +66,12 @@ class ProcChains:
     INDEXED_VAR = 10
     VARIABLE = 11
     CHAIN_NAME = 12
+    LED_CHAIN_NAME = 13
+    SOUND_CHAIN_NAME = 14
+    VIDEO_CHAIN_NAME = 15
+    SOUND_NAME = 16
+    VIDEO_NAME = 17
+    BGND_SOUND_NAME = 18
     
     PROC_STATEMENT = 100
     PROC_STD_FUNC = 101
@@ -119,6 +125,25 @@ class ProcChains:
     def addName(self, name, nameType):
         ProcChains.tokenLookup[name] = nameType
         
+    ## Check name exists
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  name          [in]   Name
+    #  @return True if name exists in dictionary
+    def checkNameExists(self, name):
+        if name in ProcChains.tokenLookup:
+            return (True)
+        else:
+            return (False)
+
+    ## Get name type
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  name          [in]   Name
+    #  @return True if name exists in dictionary
+    def getNameType(self, name):
+        return(ProcChains.tokenLookup[name])
+        
     ## Process section
     #
     #  @param  self          [in]   Object reference
@@ -148,7 +173,8 @@ class ProcChains:
 
     ## Process all functions
     #
-    # Chain consists of name and group of statements.
+    # Chain consists of name and group of statements.  This processing
+    # is currently not implemented.
     #
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Parent object for logging and tokens
@@ -166,6 +192,7 @@ class ProcChains:
         ProcChains.outHndl.write("    #  @param  self          [in]   Object reference\n")
         ProcChains.outHndl.write("    #  @return None\n")
         ProcChains.outHndl.write("    def {0}(self):\n".format(name))
+        ProcChains.outHndl.write("        pass\n\n")
         
         #Verify opening symbol
         parent.currToken += 1
@@ -176,6 +203,8 @@ class ProcChains:
         closeSymb = parent.helpFuncs.findMatch(parent)
         ProcChains.currDepth = 2
         parent.currToken += 1
+        # Note:  This processing isn't done.  Just move to the end of the chain.
+        parent.currToken = closeSymb
         while parent.currToken < closeSymb:
             tokenType = ProcChains.tokenLookup[parent.currToken]
             if tokenType == ProcChains.OPEN_PAREN:
@@ -196,17 +225,24 @@ class ProcChains:
                         return (1112)
                 elif (nextTokenType == ProcChains.COMMAND):
                     print "Unknown"  
-                    
-#     OPEN_PAREN = 1
-#     OPEN_CURLY = 2
-#     COMMAND = 3
-#     IF_STATEMENT = 4
-#     ELSE_STATEMENT = 5
-#     INPUT_BIT = 6
-#     SOLENOID_BIT = 7
-#     LED_BIT = 8
-#     INDEXED_VAR = 9
-#     VARIABLE = 10
+            elif tokenType == ProcChains.OPEN_CURLY:
+                print "Not programmed"  
+            elif tokenType == ProcChains.COMMAND:
+                print "Not programmed"  
+            elif tokenType == ProcChains.IF_STATEMENT:
+                print "Not programmed"  
+            elif tokenType == ProcChains.ELSE_STATEMENT:
+                print "Not programmed"  
+            elif tokenType == ProcChains.INPUT_BIT:
+                print "Not programmed"  
+            elif tokenType == ProcChains.SOLENOID_BIT:
+                print "Not programmed"  
+            elif tokenType == ProcChains.LED_BIT:
+                print "Not programmed"  
+            elif tokenType == ProcChains.INDEXED_VAR:
+                print "Not programmed"  
+            elif tokenType == ProcChains.VARIABLE:
+                print "Not programmed"  
             else:
                 #Can't understand symbol
                 parent.consoleObj.updateConsole("!!! Error !!! Can't understand symbol, read %s, at line num %d." %
@@ -217,7 +253,7 @@ class ProcChains:
                 parent.currToken = closeSymb
         
         # increment currToken
-        parent.currToken += 3
+        parent.currToken += 1
         return (0)
 
     ## Create rulesFunc.py file
@@ -262,7 +298,7 @@ class ProcChains:
             ""]
 
         # Open the file or create if necessary
-        ProcChains.outHndl = open(parent.consoleObj.outDir + os.sep + "timers.py", 'w+')
+        ProcChains.outHndl = open(parent.consoleObj.outDir + os.sep + "rulesFunc.py", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')
         for line in stdHdrHndl:
             ProcChains.outHndl.write(line)

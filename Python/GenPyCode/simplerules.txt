@@ -76,7 +76,7 @@ INPUT_CARDS          2
    Inp_Upper_Lft_Btm_Trgt     1     12    FALL_EDGE			"UpLftBtmTrgt"
    Inp_Ctr_Rght_Rollover      1     14    FALL_EDGE			"CtrRghtRoll"
    Inp_Ctr_Ctr_Rollover       1     15    FALL_EDGE			"CtrCtrRoll"
-   Inp_Ctr_Rght_Rollover      1     16    FALL_EDGE			"CtrLftRoll"
+   Inp_Ctr_Lft_Rollover       1     16    FALL_EDGE			"CtrLftRoll"
    
    Inp_Btm_Lft_InLn_Rollover  2     1     FALL_EDGE			"BtmLftInLnRoll"
    Inp_Btm_Lft_OutLn_Rollover 2     2     FALL_EDGE			"BtmLftOutLnRoll"
@@ -333,7 +333,7 @@ PROCESS_CHAINS
 
 LED_CHAINS
 {
-   #Name                   Processing (Mask, bits, wait, bits, wait, FLAGS)
+   #Name                   Processing (Mask, bits, cmd, bits, cmd, ...)
    LedCh_Attract           {(Led_Inlane_Left | Led_Inlane_Center | Led_Inlane_Right |
                               Led_Left_Target1 | Led_Left_Target2 | Led_Right_Target1 | Led_Right_Target2 |
                               Led_Special), 0, WAIT 100, Led_Special, WAIT 100, (Led_Left_Target1 | Led_Right_Target1),
@@ -345,16 +345,28 @@ LED_CHAINS
                               Led_Special), 0, END_CHAIN}
 }
 
+SOUND_CHAINS
+{
+   #Name                   Processing (sound, cmd, sound, cmd, ...)
+   SndCh_Start             { Sound_Open_Door, WAIT 5000, REPEAT}
+}
+
+VIDEO_CHAINS
+{
+   #Name                   Processing (video, cmd, video, cmd, ...)
+   VidCh_Attract           { Video_Defcon17, REPEAT}
+}
+
 MODES
 {
    #Name                   InitChain                  ProcessChain                                       VideoChain
    #                                      AudioChain                                  LedChain                                       InitScoringNum
    Mode_Init               {(Proc_Init)               ()                                                 ()
                                           ()                                          ()                                             ()}
-   Mode_Attract            {()                        (Proc_Init, Proc_Add_Coin)                         (Video_Defcon17, REPEAT)
+   Mode_Attract            {()                        (Proc_Init, Proc_Add_Coin)                         (VidCh_Attract)
                                           ()                                          (LedCh_Attract)                                ()}
    Mode_Press_Start        {()                        (Proc_Start_and_Coin)                              ()
-                                          (Sound_Open_Door, WAIT 5000, REPEAT)        (LedCh_Attract)                                ()}
+                                          (SndCh_Start)                               (LedCh_Attract)                                ()}
    Mode_Start_Game         {(Proc_Init_Game)          (Proc_Start_Game, Proc_Start_and_Coin)             ()                        
                                           ()                                          ()                                             ()}
    Mode_Start_Ball         {(Proc_Start_Ball_Init)    (Proc_Start_Ball_Start, Proc_Start_and_Coin)       ()

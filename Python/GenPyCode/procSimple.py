@@ -48,7 +48,7 @@
 
 ## Proc Simple class.
 #
-#  Contains functions for FIST_MODE and TICK_TIME.
+#  Contains functions for FIRST_MODE and TICK_TIME.
 class ProcSimple():
 
     ## Initialize the ProcVideo class

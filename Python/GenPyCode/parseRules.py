@@ -59,6 +59,9 @@ from procVideo import ProcVideo
 from procSimple import ProcSimple
 from procTimers import ProcTimers
 from procChains import ProcChains
+from procLedChains import ProcLedChains
+from procSndChains import ProcSndChains
+from procVidChains import ProcVidChains
 
 ## Parse rules class.
 #
@@ -86,6 +89,9 @@ class ParseRules:
         self.procSimple = ProcSimple()
         self.procTimers = ProcTimers()
         self.procChains = ProcChains()
+        self.procLedChains = ProcLedChains()
+        self.procSndChains = ProcSndChains()
+        self.procVidChains = ProcVidChains()
         
     ## Verify parameters
     #
@@ -211,7 +217,11 @@ class ParseRules:
             'VARIABLES': self.procVars.procSection,
             'TICK_TIME': self.procSimple.procSection,
             'FIRST_MODE': self.procSimple.procSection,
-            'TIMERS': self.procTimers.procSection})
+            'TIMERS': self.procTimers.procSection,
+            'PROCESS_CHAINS': self.procChains.procSection,
+            'SOUND_CHAINS': self.procSndChains.procSection,
+            'VIDEO_CHAINS': self.procVidChains.procSection,
+            'LED_CHAINS': self.procLedChains.procSection})
         
         while (self.currToken != len(self.tokens)):
             func = groupCmdDict.get(self.tokens[self.currToken], None)

@@ -50,6 +50,8 @@ import os
 import time
 from procChains import ProcChains
 
+# HRS:  Unimplemented - Support for ALL_BITS_MSK for each LED card
+
 ## Proc Input Cards class.
 #
 #  Contains functions for INPUT_CARDS section.
@@ -126,6 +128,10 @@ class ProcInpCards():
         GEN_FLAGS = ["rs232Intf.CFG_INP_STATE", "rs232Intf.CFG_INP_FALL_EDGE", "rs232Intf.CFG_INP_RISE_EDGE"]
 
         name = parent.tokens[parent.currToken]
+        if name in ProcInpCards.name:
+            parent.consoleObj.updateConsole("!!! Error !!! Found %s name twice at line num %d." %
+               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+            return (310)
         ProcInpCards.name.append(name)
         ProcChains.addName(parent.procChains, name, ProcChains.INPUT_BIT)
         
@@ -133,32 +139,32 @@ class ProcInpCards():
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
             parent.consoleObj.updateConsole("!!! Error !!! Input card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
-            return (310)
+            return (311)
         # Convert from 1 base to 0 based card num
         cardNum = parent.helpFuncs.out - 1
         # Card number is base 1
         if (cardNum < 0) or (cardNum >= ProcInpCards.numInpCards):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal input card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
-            return (311)
+            return (312)
         ProcInpCards.cardNum.append(cardNum)
         
         # Verify pin num
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 2]):
             parent.consoleObj.updateConsole("!!! Error !!! Input pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
-            return (312)
+            return (313)
         # Convert from 1 base to 0 based pin num
         pinNum = parent.helpFuncs.out - 1
         # Pin number is base 1
         if (pinNum < 0) or (pinNum >= ProcInpCards.NUM_INP_BITS):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal input pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
-            return (313)
+            return (314)
         if (ProcInpCards.inpCfgBits[cardNum] & (1 << pinNum)) != 0: 
             parent.consoleObj.updateConsole("!!! Error !!! Input pin configured multiple times, at line num %d." %
                (parent.lineNumList[parent.currToken + 2]))
-            return (314)
+            return (315)
         ProcInpCards.inpCfgBits[cardNum] |= (1 << pinNum)
         ProcInpCards.pinNum.append(pinNum)
         
@@ -166,7 +172,7 @@ class ProcInpCards():
         if not parent.helpFuncs.isValidString(parent.tokens[parent.currToken + 3], VALID_FLAGS):
             parent.consoleObj.updateConsole("!!! Error !!! Input illegal flags, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 3], parent.lineNumList[parent.currToken + 3]))
-            return (315)
+            return (316)
         flagStr = GEN_FLAGS[parent.helpFuncs.out]
         ProcInpCards.flagStr.append(flagStr)
         
