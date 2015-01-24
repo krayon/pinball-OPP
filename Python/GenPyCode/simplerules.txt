@@ -156,9 +156,18 @@ BGND_CLIPS
 
 VIDEO_CLIPS
 {
-   #Name                   Location                      Screen
-   Video_Defcon17          "images/Defcon17Loop.mp4"     MAIN_SCR
-   Video_Defcon19          "images/DefconTest.mp4"       MAIN_SCR
+   #Name                   Location                      	Screen
+   Video_Defcon17          "images/Defcon17Loop.mp4"     	MAIN_SCR
+   Video_Defcon19          "images/DefconTest.mp4"       	MAIN_SCR
+}
+
+IMAGES
+{
+   #Name                   Location
+   Image_Full_Band         "graphics/full_bgnd_image.jpg"   MAIN_SCR
+   Image_Left_Guy          "graphics/left_guy.jpg"   		MAIN_SCR
+   Image_LeftCtr_Guy       "graphics/lftctr_guy.jpg"   		MAIN_SCR
+   Image_Right_Guy         "graphics/right_guy.jpg"   		MAIN_SCR
 }
 
 TICK_TIME                  20                            # 20 ms tick timer
@@ -357,15 +366,22 @@ VIDEO_CHAINS
    VidCh_Attract           { Video_Defcon17, REPEAT}
 }
 
+IMAGE_CHAINS
+{
+   #Name                   Processing (image, cmd, image, cmd, ...)
+   ImageCh_Attract         { Image_Left_Guy, WAIT 1000, Image_Right_Guy, WAIT 1000,
+                             Image_LeftCtr_Guy, WAIT 1000, Image_Full_Band, WAIT 1000, REPEAT}
+}
+
 MODES
 {
    #Name                   InitChain                  ProcessChain                                       VideoChain
    #                                      AudioChain                                  LedChain                                       InitScoringNum
    Mode_Init               {(Proc_Init)               ()                                                 ()
                                           ()                                          ()                                             ()}
-   Mode_Attract            {()                        (Proc_Init, Proc_Add_Coin)                         (VidCh_Attract)
+   Mode_Attract            {()                        (Proc_Init, Proc_Add_Coin)                         (ImageCh_Attract)
                                           ()                                          (LedCh_Attract)                                ()}
-   Mode_Press_Start        {()                        (Proc_Start_and_Coin)                              ()
+   Mode_Press_Start        {()                        (Proc_Start_and_Coin)                              (Image_Full_Band)
                                           (SndCh_Start)                               (LedCh_Attract)                                ()}
    Mode_Start_Game         {(Proc_Init_Game)          (Proc_Start_Game, Proc_Start_and_Coin)             ()                        
                                           ()                                          ()                                             ()}

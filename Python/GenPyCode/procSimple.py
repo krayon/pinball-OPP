@@ -46,6 +46,8 @@
 
 #===============================================================================
 
+from procChains import ProcChains
+
 ## Proc Simple class.
 #
 #  Contains functions for FIRST_MODE and TICK_TIME.
@@ -60,6 +62,7 @@ class ProcSimple():
     def __init__(self):
         ProcSimple.foundInit = False
         ProcSimple.tickTime = 20
+        ProcSimple.initMode = ""
         
     ## Process section
     #
@@ -75,8 +78,19 @@ class ProcSimple():
                 return (900)
             ProcSimple.foundInit = True
             #Verify parent.tokens[parent.currToken + 1] is a valid mode
-            parent.consoleObj.updateConsole("FIRST_MODE not implemented")
-            return (901)
+            if (ProcChains.checkNameExists(parent.procChains, parent.tokens[parent.currToken + 1])):
+                nameType = ProcChains.getNameType(parent.procChains, parent.tokens[parent.currToken + 1])
+                if (nameType != ProcChains.MODE_NAME):
+                    parent.consoleObj.updateConsole("!!! Error !!! FIRST_MODE symbole should be a mode, read %s, at line num %d." %
+                       (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
+                    return (901)
+                else:
+                    ProcSimple.initMode = parent.tokens[parent.currToken + 1]
+            else:
+                parent.consoleObj.updateConsole("!!! Error !!! Can't understand symbol, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
+                return (902)
+            parent.consoleObj.updateConsole("Done processing FIRST_MODE")
         elif (parent.tokens[parent.currToken] == "TICK_TIME"):
             if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
                 parent.consoleObj.updateConsole("!!! Error !!! Indexed variable numEntries, read %s, at line num %d." %

@@ -80,8 +80,7 @@ class GuiFrame():
         
         self.initUI()
         self.parseRules = ParseRules(self)
-        self.parseRules.verifyParameters()
-            
+        self.parseRules.verifyParameters()            
     
     ## Close button press
     #

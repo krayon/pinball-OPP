@@ -56,12 +56,16 @@ from procVars import ProcVars
 from procIndVars import ProcIndVars
 from procSound import ProcSound
 from procVideo import ProcVideo
+from procImage import ProcImage
 from procSimple import ProcSimple
 from procTimers import ProcTimers
 from procChains import ProcChains
 from procLedChains import ProcLedChains
 from procSndChains import ProcSndChains
 from procVidChains import ProcVidChains
+from procImageChains import ProcImageChains
+from procModes import ProcModes
+from createRulesData import CreateRulesData
 
 ## Parse rules class.
 #
@@ -86,12 +90,16 @@ class ParseRules:
         self.procIndVars = ProcIndVars()
         self.procSound = ProcSound()
         self.procVideo = ProcVideo()
+        self.procImage = ProcImage()
         self.procSimple = ProcSimple()
         self.procTimers = ProcTimers()
         self.procChains = ProcChains()
         self.procLedChains = ProcLedChains()
         self.procSndChains = ProcSndChains()
         self.procVidChains = ProcVidChains()
+        self.procImageChains = ProcImageChains()
+        self.procModes = ProcModes()
+        self.createRulesData = CreateRulesData()
         
     ## Verify parameters
     #
@@ -125,6 +133,7 @@ class ParseRules:
         self.splitIntoTokens(hndl.read())
         hndl.close()
         self.findNextGroupCmd()
+        self.createRulesData.procRulesData(self)
         return 0
     
     ## Verify matching brackets
@@ -221,6 +230,9 @@ class ParseRules:
             'PROCESS_CHAINS': self.procChains.procSection,
             'SOUND_CHAINS': self.procSndChains.procSection,
             'VIDEO_CHAINS': self.procVidChains.procSection,
+            'IMAGE_CHAINS': self.procImageChains.procSection,
+            'IMAGES': self.procImage.procSection,
+            'MODES': self.procModes.procSection,
             'LED_CHAINS': self.procLedChains.procSection})
         
         while (self.currToken != len(self.tokens)):
@@ -231,3 +243,4 @@ class ParseRules:
                 return 110
             else:
                 func(self)
+        self.consoleObj.updateConsole("!!! Success !!! Done processing rules text file.")

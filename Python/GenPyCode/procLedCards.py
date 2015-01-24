@@ -188,7 +188,6 @@ class ProcLedCards():
             "## LED bit name enumeration.",
             "#  Contains a bit mask for each LED.  Can also contain bitfield masks.",
             "#  Top most nibble contains the index of the LED card base 0.",
-            "",
             "class LedBitNames:"]
 
         # Open the file or create if necessary
@@ -208,7 +207,28 @@ class ProcLedCards():
                 if found:
                     outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcLedCards.name[self.out].upper(),
                         ((cardIndex << 16) | (1 << bitIndex))))
-        outHndl.write("\n")
+                    
+        # Write out the bit name strings
+        outHndl.write("\n    ## LED board bit names\n")
+        outHndl.write("    # Indexed into using the [LedBitNames](@ref rules.ledBitNames.LedBitNames) class\n")
+        outHndl.write("    LED_BRD_BIT_NAMES = [ ")
+        for cardIndex in xrange(ProcLedCards.numLedCards):
+            if (cardIndex != 0):
+                outHndl.write(",\n        ")
+            outHndl.write("[")
+            for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
+                if (bitIndex != 0):
+                    if ((bitIndex % 4) == 0):
+                        outHndl.write(",\n        ")
+                    else:
+                        outHndl.write(", ")
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    outHndl.write(ProcLedCards.desc[self.out])
+                else:
+                    outHndl.write("\"Unused\"")
+            outHndl.write("]")
+        outHndl.write(" ]\n\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: ledBitNames.py file.")
         return (0)

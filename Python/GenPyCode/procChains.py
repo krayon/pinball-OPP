@@ -72,6 +72,9 @@ class ProcChains:
     SOUND_NAME = 16
     VIDEO_NAME = 17
     BGND_SOUND_NAME = 18
+    MODE_NAME = 19
+    IMAGE_NAME = 20
+    IMAGE_CHAIN_NAME = 21
     
     PROC_STATEMENT = 100
     PROC_STD_FUNC = 101
@@ -187,6 +190,7 @@ class ProcChains:
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (1110)
         ProcChains.nameSet.add(name)
+        ProcChains.addName(parent.procChains, name, ProcChains.CHAIN_NAME)
         ProcChains.outHndl.write("    ## Function {0}\n".format(name))
         ProcChains.outHndl.write("    #\n")
         ProcChains.outHndl.write("    #  @param  self          [in]   Object reference\n")
@@ -273,7 +277,10 @@ class ProcChains:
             "# @note    Copyright 2014, Hugh Spahr",
             "#",
             "# @brief These are the rules function names.  The rules functions can call",
-            "#    other rules functions, or be called in chains.",
+            "#    other rules functions, or be called in chains.  The generator saves",
+            "#    the file as rulesFunc.py.gen.  The pinball framework uses rulesFunc.py.",
+            "#    This insures a newly generated file won't accidentally overwrite a",
+            "#    user modified rules file.",
             "",
             "#===============================================================================",
             "",
@@ -298,7 +305,7 @@ class ProcChains:
             ""]
 
         # Open the file or create if necessary
-        ProcChains.outHndl = open(parent.consoleObj.outDir + os.sep + "rulesFunc.py", 'w+')
+        ProcChains.outHndl = open(parent.consoleObj.outDir + os.sep + "rulesFunc.py.gen", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')
         for line in stdHdrHndl:
             ProcChains.outHndl.write(line)

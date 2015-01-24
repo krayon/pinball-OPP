@@ -52,22 +52,25 @@ from procChains import ProcChains
 
 ## Proc Modes class.
 #
-#  Contains functions for PROCESS_CHAINS section.
+#  Contains functions for MODES section.
 class ProcModes:
     UNKNOWN = 0
     OPEN_PAREN = 1
     CLOSE_PAREN = 2
-    WAIT_COMMAND = 3
-    END_CHAIN_COMMAND = 4
-    REPEAT_COMMAND = 5
-    COMMA = 6
-    LOGIC_OR = 7
-    ZERO = 8
+    COMMA = 3
     
-    PROC_MASK = 100
-    PROC_LED_BIT = 101
-    PROC_COMMAND = 102
-    PROC_DONE_CHAIN = 103
+    PROC_INIT_CHAIN = 100
+    PROC_PROCESS_CHAIN = 101
+    PROC_VIDEO_CHAIN = 102
+    PROC_AUDIO_CHAIN = 103
+    PROC_LED_CHAIN = 104
+    PROC_SCORING = 105
+    PROC_END_MODE = 106
+    
+    FIND_OPEN_PAREN = 200
+    FIND_CHAIN = 201
+    FIND_COMMA = 202
+    FIND_END = 203
 
     ## Initialize the ProcModes class
     #
@@ -78,16 +81,11 @@ class ProcModes:
     def __init__(self):
         ProcModes.hasModes = False
         ProcModes.nameSet = set()
-        ProcLedChains.tokenLookup = {
-            '(' : ProcLedChains.OPEN_PAREN,
-            ')' : ProcLedChains.CLOSE_PAREN,
-            ',' : ProcLedChains.COMMA,
-            '|' : ProcLedChains.LOGIC_OR,
-            '0' : ProcLedChains.ZERO,
-            'WAIT' : ProcLedChains.WAIT_COMMAND,
-            'END_CHAIN' : ProcLedChains.END_CHAIN_COMMAND,
-            'REPEAT' : ProcLedChains.REPEAT_COMMAND }
-        ProcLedChains.possLedChainDict = dict() 
+        ProcModes.tokenLookup = {
+            '(' : ProcModes.OPEN_PAREN,
+            ')' : ProcModes.CLOSE_PAREN,
+            ',' : ProcModes.COMMA }
+        ProcModes.possLedChainDict = dict() 
         
     ## Add name
     #
@@ -96,232 +94,248 @@ class ProcModes:
     #  @param  nameType      [in]   Type of the name
     #  @return None
     def addName(self, name, nameType):
-        ProcLedChains.tokenLookup[name] = nameType
+        ProcModes.tokenLookup[name] = nameType
         
     ## Process section
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def procSection(self, parent):
-        parent.consoleObj.updateConsole("Processing LED_CHAINS section")
-        if (parent.tokens[parent.currToken] != "LED_CHAINS"):
-            parent.consoleObj.updateConsole("!!! SW Error !!! Expected LED_CHAINS, read %s, at line num %d." %
+        parent.consoleObj.updateConsole("Processing MODES section")
+        if (parent.tokens[parent.currToken] != "MODES"):
+            parent.consoleObj.updateConsole("!!! SW Error !!! Expected MODES, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (1200)
+            return (1500)
         parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (1201)
+            return (1501)
         closeSymb = parent.helpFuncs.findMatch(parent)
         parent.currToken += 1
-        self.createLedChainsClass(parent)
+        self.createProcChainsClass(parent)
         while parent.currToken < closeSymb:
-            errVal = self.procAllChains(parent)
+            errVal = self.procAllModes(parent)
             if errVal:
                 parent.currToken = closeSymb
         parent.currToken += 1
-        parent.consoleObj.updateConsole("Done processing LED_CHAINS.")
-        ProcLedChains.outHndl.close()
+        ProcModes.outHndl.write("    ]\n")
+        parent.consoleObj.updateConsole("Done processing MODES.")
+        ProcModes.outHndl.close()
         return (0)
 
-    ## Process all chains
+    ## Process all modes
     #
-    # Chain consists of mask, then set value and command repeated until a END_CHAIN or REPEAT command is read.
+    # Mode consists of name, init chain, process chain, video chain, audio chain,
+    # LED chain, and scoring.
     #
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
-    def procAllChains(self, parent):
+    def procAllModes(self, parent):
         # Copy name
         name = parent.tokens[parent.currToken]
-        if (name in ProcLedChains.nameSet):
-            parent.consoleObj.updateConsole("!!! Error !!! Name found twice, read %s, at line num %d." %
+        if (name in ProcModes.nameSet):
+            parent.consoleObj.updateConsole("!!! Error !!! Mode name found twice, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (1210)
-        ProcLedChains.nameSet.add(name)
-        ProcChains.addName(parent.procChains, name, ProcChains.LED_CHAIN_NAME)
-        ProcLedChains.outHndl.write("    ## LED Chain {0}\n".format(name))
-        ProcLedChains.outHndl.write("    #    - First entry is LED mask\n")
-        ProcLedChains.outHndl.write("    #    - Next groups have a bitfield of LEDs to change and command\n")
-        ProcLedChains.outHndl.write("    {0} = [ ".format(name))
+            return (1510)
+        ProcModes.nameSet.add(name)
+        ProcChains.addName(parent.procChains, name, ProcChains.MODE_NAME)
+        ProcModes.outHndl.write("        [State.{0}, ".format(name.upper()))
 
         # Verify opening symbol
         parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (1211)
+            return (1511)
         closeSymb = parent.helpFuncs.findMatch(parent)
-        ProcLedChains.currDepth = 3
         parent.currToken += 1
-        typeProc = ProcLedChains.PROC_MASK
-        firstBit = True
+        typeProc = ProcModes.PROC_INIT_CHAIN
+        subState = ProcModes.FIND_OPEN_PAREN
         while parent.currToken < closeSymb:
-            if parent.tokens[parent.currToken] in ProcLedChains.tokenLookup:
-                tokenType = ProcLedChains.tokenLookup[parent.tokens[parent.currToken]]
+            if parent.tokens[parent.currToken] in ProcModes.tokenLookup:
+                tokenType = ProcModes.tokenLookup[parent.tokens[parent.currToken]]
             else:
-                tokenType = ProcLedChains.UNKNOWN
-            if (tokenType == ProcLedChains.OPEN_PAREN) or (tokenType == ProcLedChains.CLOSE_PAREN):
-                # Opening and closing parenthesis are dropped since they aren't necessary
-                # Move to next symbol
-                parent.currToken += 1
-            elif tokenType == ProcLedChains.WAIT_COMMAND:
-                if typeProc != ProcLedChains.PROC_COMMAND: 
-                    parent.consoleObj.updateConsole("!!! Error !!! WAIT command in LED chain in incorrect location at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1212)
-                # Next token should be wait timeout (ms) 
-                if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
-                    parent.consoleObj.updateConsole("!!! Error !!! WAIT parameter should be integer, read %s, at line num %d." %
-                       (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
-                    return (1213)
-                ProcLedChains.outHndl.write(" WAIT, " + parent.tokens[parent.currToken + 1] + "],\n            [")
-                # If any close parenthesis exist eat them
-                parent.currToken += 2
-                while (ProcLedChains.tokenLookup[parent.tokens[parent.currToken]] == ProcLedChains.CLOSE_PAREN):
-                    parent.currToken += 1
-                # Next token must be a comma
-                if (ProcLedChains.tokenLookup[parent.tokens[parent.currToken]] != ProcLedChains.COMMA):
-                    parent.consoleObj.updateConsole("!!! Error !!! Comma missing after wait command, found %s, at line num %d." %
+                tokenType = ProcModes.UNKNOWN
+            if (tokenType == ProcModes.OPEN_PAREN):
+                # Opening is the beginning of a chain group
+                if (subState != ProcModes.FIND_OPEN_PAREN):
+                    parent.consoleObj.updateConsole("!!! Error !!! Expected opening paren, read %s, at line num %d." %
                        (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                    return (1214)
+                    return (1512)
+                # Find the matching close parenthesis
+                ProcModes.outHndl.write("[")
+                closeChainList = parent.helpFuncs.findMatch(parent)
                 parent.currToken += 1
-                typeProc = ProcLedChains.PROC_LED_BIT
-                firstBit = True
-            elif tokenType == ProcLedChains.END_CHAIN_COMMAND:
-                if typeProc != ProcLedChains.PROC_COMMAND: 
-                    parent.consoleObj.updateConsole("!!! Error !!! END_CHAIN command in LED chain in incorrect location at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1215)
-                ProcLedChains.outHndl.write("END_CHAIN, 0] ] ]\n\n")
-                parent.currToken += 1
-                typeProc = ProcLedChains.PROC_DONE_CHAIN
-            elif tokenType == ProcLedChains.REPEAT_COMMAND:
-                if typeProc != ProcLedChains.PROC_COMMAND: 
-                    parent.consoleObj.updateConsole("!!! Error !!! REPEAT command in LED chain in incorrect location at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1216)
-                ProcLedChains.outHndl.write("REPEAT, 0] ] ]\n\n")
-                parent.currToken += 1
-                typeProc = ProcLedChains.PROC_DONE_CHAIN
-                print parent.currToken
-                print closeSymb
-            elif tokenType == ProcLedChains.COMMA:
-                # HRS:  This has some problems.  Right now we OR all the bits together.  This will not work with multiple
-                #   cards, but should be a list of all LED cards with a bit mask for each card.
-                if typeProc == ProcLedChains.PROC_MASK:
-                    ProcLedChains.outHndl.write(",\n          [ [")
-                    parent.currToken += 1
-                    typeProc = ProcLedChains.PROC_LED_BIT
-                    firstBit = True
-                elif  typeProc == ProcLedChains.PROC_LED_BIT:
-                    ProcLedChains.outHndl.write(", ")
-                    typeProc = ProcLedChains.PROC_COMMAND
-                    parent.currToken += 1
+                subState = ProcModes.FIND_CHAIN
+                hasEntries = False
+            elif (tokenType == ProcModes.CLOSE_PAREN):
+                if not hasEntries:
+                    # If there are no entries, a close parenthesis is valid
+                    ProcModes.outHndl.write("]")
                 else:
-                    parent.consoleObj.updateConsole("!!! Error !!! Unexpected comma at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1217)
-            elif tokenType == ProcLedChains.LOGIC_OR:
-                if ((typeProc != ProcLedChains.PROC_LED_BIT) and (typeProc != ProcLedChains.PROC_MASK)) or firstBit: 
-                    parent.consoleObj.updateConsole("!!! Error !!! Unexpected | at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1218)
-                ProcLedChains.outHndl.write(" | ")
-                parent.currToken += 1
-            elif tokenType == ProcLedChains.ZERO:
-                if not firstBit:
-                    parent.consoleObj.updateConsole("!!! Error !!! 0 not first bit in mask at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1219)
-                if (typeProc == ProcLedChains.PROC_MASK):
-                    ProcLedChains.outHndl.write(",\n        [ [ ")
-                    parent.currToken += 1
-                    typeProc = ProcLedChains.PROC_LED_BIT
-                    firstBit = True
-                elif (typeProc == ProcLedChains.PROC_LED_BIT):
-                    ProcLedChains.outHndl.write("0")
-                    parent.currToken += 1
-                    typeProc = ProcLedChains.PROC_LED_BIT
-                    firstBit = True
-                else:
-                    parent.consoleObj.updateConsole("!!! Error !!! Unexpected 0 at line num %d." %
-                       (parent.lineNumList[parent.currToken]))
-                    return (1220)
-            else:
-                #This must be a bit name symbol
-                if (ProcChains.checkNameExists(parent.procChains, parent.tokens[parent.currToken])):
-                    if (ProcChains.getNameType(parent.procChains, parent.tokens[parent.currToken]) != ProcChains.LED_BIT):
-                        parent.consoleObj.updateConsole("!!! Error !!! Symbol %s should only be an LED bit, at line num %d." %
-                           (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                        return (1221)
+                    if (subState != ProcModes.FIND_COMMA) and (subState != ProcModes.FIND_END): 
+                        parent.consoleObj.updateConsole("!!! Error !!! Found close parenthesis at incorrect location at line num %d." %
+                           (parent.lineNumList[parent.currToken]))
+                        return (1513)
                     else:
-                        ProcLedChains.outHndl.write("LedBitNames.{0}".format(parent.tokens[parent.currToken]))
-                        firstBit = False
+                        ProcModes.outHndl.write("]")
+                subState = ProcModes.FIND_OPEN_PAREN
+                if (typeProc == ProcModes.PROC_SCORING):
+                    ProcModes.outHndl.write(" ],\n")
+                    typeProc = ProcModes.PROC_END_MODE
+                else:
+                    ProcModes.outHndl.write(", ")
+                    typeProc += 1
+                parent.currToken += 1
+            elif (tokenType == ProcModes.COMMA):
+                if subState != ProcModes.FIND_COMMA: 
+                    parent.consoleObj.updateConsole("!!! Error !!! Comma in incorrect location at line num %d." %
+                       (parent.lineNumList[parent.currToken]))
+                    return (1514)
+                ProcModes.outHndl.write(", ")
+                parent.currToken += 1
+                subState = ProcModes.FIND_CHAIN
+            else:
+                #This must be a name symbol
+                if (ProcChains.checkNameExists(parent.procChains, parent.tokens[parent.currToken])):
+                    nameType = ProcChains.getNameType(parent.procChains, parent.tokens[parent.currToken])
+                    if (typeProc == ProcModes.PROC_INIT_CHAIN):
+                        if (nameType != ProcChains.CHAIN_NAME):
+                            parent.consoleObj.updateConsole("!!! Error !!! Expected a chain name in init chain, read %s, at line num %d." %
+                               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                            return (1515)
+                        ProcModes.outHndl.write("RulesFunc." + parent.tokens[parent.currToken])
+                        subState = ProcModes.FIND_COMMA
+                        hasEntries = True
                         parent.currToken += 1
+                    elif (typeProc == ProcModes.PROC_PROCESS_CHAIN):
+                        if (nameType != ProcChains.CHAIN_NAME):
+                            parent.consoleObj.updateConsole("!!! Error !!! Expected a chain name in process chain, read %s, at line num %d." %
+                               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                            return (1516)
+                        ProcModes.outHndl.write("RulesFunc." + parent.tokens[parent.currToken])
+                        subState = ProcModes.FIND_COMMA 
+                        hasEntries = True
+                        parent.currToken += 1
+                    elif (typeProc == ProcModes.PROC_VIDEO_CHAIN):
+                        if (nameType == ProcChains.VIDEO_NAME):
+                            ProcModes.outHndl.write("Videos." + parent.tokens[parent.currToken].upper())
+                        elif (nameType == ProcChains.VIDEO_CHAIN_NAME):
+                            # HRS:  Warning, in the original code, chains were not contained within another list,
+                            #   but were simply part of the procChains table.  This will need to be fixed by removing
+                            #   the extra list (which would make multiple chains not work), or combining the chains
+                            #   into one.
+                            ProcModes.outHndl.write("VideoChains." + parent.tokens[parent.currToken])
+                        elif (nameType == ProcChains.IMAGE_NAME):
+                            ProcModes.outHndl.write("Images." + parent.tokens[parent.currToken].upper())
+                        elif (nameType == ProcChains.IMAGE_CHAIN_NAME):
+                            # HRS:  Warning, in the original code, chains were not contained within another list,
+                            #   but were simply part of the procChains table.  This will need to be fixed by removing
+                            #   the extra list (which would make multiple chains not work), or combining the chains
+                            #   into one.
+                            ProcModes.outHndl.write("ImageChains." + parent.tokens[parent.currToken])
+                        else:
+                            parent.consoleObj.updateConsole("!!! Error !!! Expected a video/image or video/image chain, read %s, at line num %d." %
+                               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                            return (1517)
+                        subState = ProcModes.FIND_COMMA 
+                        hasEntries = True
+                        parent.currToken += 1
+                    elif (typeProc == ProcModes.PROC_AUDIO_CHAIN):
+                        if (nameType == ProcChains.SOUND_NAME):
+                            ProcModes.outHndl.write("Sounds." + parent.tokens[parent.currToken].upper())
+                        elif (nameType == ProcChains.SOUND_CHAIN_NAME):
+                            ProcModes.outHndl.write("SoundChains." + parent.tokens[parent.currToken])
+                        else:
+                            parent.consoleObj.updateConsole("!!! Error !!! Expected a sound or sound chain name, read %s, at line num %d." %
+                               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                            return (1518)
+                        subState = ProcModes.FIND_COMMA 
+                        hasEntries = True
+                        parent.currToken += 1
+                    elif (typeProc == ProcModes.PROC_LED_CHAIN):
+                        if (nameType == ProcChains.LED_CHAIN_NAME):
+                            ProcModes.outHndl.write("LedChains." + parent.tokens[parent.currToken])
+                        else:
+                            parent.consoleObj.updateConsole("!!! Error !!! Expected an LED chain name, read %s, at line num %d." %
+                               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                            return (1519)
+                        subState = ProcModes.FIND_COMMA 
+                        hasEntries = True
+                        parent.currToken += 1
+                    elif (typeProc == ProcModes.PROC_SCORING):
+                        print "Not implemented"
+                        parent.currToken += 1
+                    else:
+                        parent.consoleObj.updateConsole("!!! Error !!! Parsing error, invalid typeProc = %d, at line num %d." %
+                           (typeProc, parent.lineNumList[parent.currToken]))
+                        return (1520)
                 else:
                     parent.consoleObj.updateConsole("!!! Error !!! Can't understand symbol, read %s, at line num %d." %
                        (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                    return (1222)
-        if (typeProc != ProcLedChains.PROC_DONE_CHAIN):
-            parent.consoleObj.updateConsole("!!! Error !!! LED chain did not end properly, at line num %d." %
+                    return (1521)
+        if (typeProc != ProcModes.PROC_END_MODE):
+            parent.consoleObj.updateConsole("!!! Error !!! Mode did not end properly, at line num %d." %
                (parent.lineNumList[parent.currToken]))
-            return (1223)
+            return (1523)
         parent.currToken += 1
         return (0)
 
-    ## Create ledChains.py file
+    ## Create procChains.py file
     #
-    # Create the LED chains function file.  
+    # Create the processing chains function file.  
     #
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
-    def createLedChainsClass(self, parent):
+    def createProcChainsClass(self, parent):
         HDR_COMMENTS = [
-            "# @file    ledChains.py",
+            "# @file    procChains.py",
             "# @author  AutoGenerated",
             "# @date    ",
             "#",
             "# @note    Open Pinball Project",
             "# @note    Copyright 2015, Hugh Spahr",
             "#",
-            "# @brief These are the LED chains.  It includes chains to automatically change",
-            "#    LEDs depending on the state.",
+            "# @brief These are the processing chains.  It includes initial chains and normal",
+            "# processing chains that are run each time the rules thread runs.",
             "",
             "#===============================================================================",
             "",
+            "from rulesFunc import RulesFunc",
             "from rules.states import State",
-            "from rules.ledBitNames import LedBitNames",
+            "from rules.ledChains import LedChains",
+            "from rules.soundChains import SoundChains",
+            "from rules.imageChains import ImageChains",
             "",
-            "## LED chains class.",
+            "## Process chain lists.",
             "#",
-            "#  Contains all the LED chains that are specific this this set of pinball rules.",
-            "class LedChains():"
-            "    # LED chain commands",
-            "    WAIT = 0",
-            "    REPEAT = 1",
-            "    END_CHAIN = 2",
+            "#  Contains all the chains that are specific this this set of pinball rules.",
+            "class LedChains():",
+            "    INIT_CHAIN_OFFSET = 1",
+            "    NORM_CHAIN_OFFSET = 2",
+            "    LED_CHAIN_OFFSET = 3",
+            "    SOUND_CHAIN_OFFSET = 4",
+            "    IMAGE_CHAIN_OFFSET = 5",
             "",
-            "    MASK_OFFSET = 0",
-            "    CHAIN_OFFSET = 1",
-            "",
-            "    # Offsets into sublist",
-            "    CH_LED_BITS_OFFSET = 0",
-            "    CH_CMD_OFFSET = 1",
-            "    PARAM_OFFSET = 2",
-            ""]
-    
+            "    ## Create process chain lists.",
+            "    #    - First entry is State number, only used to ease debugging",
+            "    #    - Second entry is initial processing functions, called only when first entering a state",
+            "    #    - Third entry are processing functions, called each time the rules thread runs",
+            "    #    - Fourth entry is the LED chain",
+            "    #    - Fifth entry is the sound chain",
+            "    PROC_CHAIN = ["]
         # Open the file or create if necessary
-        ProcLedChains.outHndl = open(parent.consoleObj.outDir + os.sep + "ledChains.py", 'w+')
+        ProcModes.outHndl = open(parent.consoleObj.outDir + os.sep + "procChains.py", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')
         for line in stdHdrHndl:
-            ProcLedChains.outHndl.write(line)
+            ProcModes.outHndl.write(line)
         stdHdrHndl.close()
         for line in HDR_COMMENTS:
             if line.startswith("# @date"):
-                ProcLedChains.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
+                ProcModes.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
-                ProcLedChains.outHndl.write(line + "\n")
+                ProcModes.outHndl.write(line + "\n")
         return (0)

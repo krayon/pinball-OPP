@@ -35,14 +35,14 @@
 #
 #===============================================================================
 ##
-# @file    procVideo.py
+# @file    procImage.py
 # @author  Hugh Spahr
-# @date    7/13/2014
+# @date    1/18/2015
 #
 # @note    Open Pinball Project
-# @note    Copyright 2014, Hugh Spahr
+# @note    Copyright 2015, Hugh Spahr
 #
-# @brief Process VIDEO_CLIPS section.
+# @brief Process IMAGES section.
 
 #===============================================================================
 
@@ -50,22 +50,23 @@ import os
 import time
 from procChains import ProcChains
 
-## Proc Video class.
+## Proc Image class.
 #
-#  Contains functions for VIDEO_CLIPS section.
-class ProcVideo():
+#  Contains functions for IMAGES section.
+class ProcImage():
+    loc = []
 
-    ## Initialize the ProcVideo class
+    ## Initialize the ProcImage class
     #
-    #  Initialize process video class
+    #  Initialize process image class
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def __init__(self):
-        ProcVideo.hasVideo = False
-        ProcVideo.name = []
-        ProcVideo.flagStr = []
-        ProcVideo.loc = []
+        ProcImage.hasImage = False
+        ProcImage.name = []
+        ProcImage.flagStr = []
+        ProcImage.loc = []
         self.currEnum = 0
         
     ## Process section
@@ -73,26 +74,41 @@ class ProcVideo():
     #  @param  self          [in]   Object reference
     #  @return None
     def procSection(self, parent):
-        parent.consoleObj.updateConsole("Processing VIDEO_CLIPS section")
-        if (parent.tokens[parent.currToken] != "VIDEO_CLIPS"):
-            parent.consoleObj.updateConsole("!!! SW Error !!! Expected VIDEO_CLIPS, read %s, at line num %d." %
+        parent.consoleObj.updateConsole("Processing IMAGES section")
+        if (parent.tokens[parent.currToken] != "IMAGES"):
+            parent.consoleObj.updateConsole("!!! SW Error !!! Expected IMAGES, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (800)
+            return (1600)
         parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (801)
+            return (1601)
         closeSymb = parent.helpFuncs.findMatch(parent)
         parent.currToken += 1
-        self.createVideosClass(parent)
+        self.createImagesClass(parent)
         self.currEnum = 0
         while parent.currToken < closeSymb:
             errVal = self.procLine(parent)
             if errVal:
                 parent.currToken = closeSymb
         parent.currToken += 1
-        parent.consoleObj.updateConsole("Done processing VIDEO_CLIPS.")
+        
+        # Write image locations
+        ProcImage.outHndl.write("\n    ## Background images\n")
+        ProcImage.outHndl.write("    # Indexed into using the [Images](@ref rules.images.Images) class\n")
+        ProcImage.outHndl.write("    BGND_GRAPHIC_FILES = [")
+        index = 0
+        for current in ProcImage.loc:
+            if (index != 0):
+                ProcImage.outHndl.write(", ")
+                if ((index % 5) == 0):
+                    ProcImage.outHndl.write("\n        ")
+            ProcImage.outHndl.write(current)
+            index += 1
+        ProcImage.outHndl.write("]\n\n")
+        parent.consoleObj.updateConsole("Done processing IMAGES.")
+        ProcImage.outHndl.close()
         return (0)
 
     ## Process line
@@ -107,65 +123,65 @@ class ProcVideo():
 
         # Copy name
         name = parent.tokens[parent.currToken]
-        if (name in ProcVideo.name):
-            parent.consoleObj.updateConsole("!!! Error !!! Video name found twice, read %s, at line num %d." %
+        if (name in ProcImage.name):
+            parent.consoleObj.updateConsole("!!! Error !!! Image name found twice, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (810)
-        ProcVideo.name.append(name)
-        ProcChains.addName(parent.procChains, name, ProcChains.VIDEO_NAME)
-        ProcVideo.outHndl.write("    {0: <20} = {1}\n".format(name.upper(), self.currEnum))
+            return (1610)
+        ProcImage.name.append(name)
+        ProcChains.addName(parent.procChains, name, ProcChains.IMAGE_NAME)
+        ProcImage.outHndl.write("    {0: <20} = {1}\n".format(name.upper(), self.currEnum))
         self.currEnum += 1
         
         # Copy location
         loc = parent.tokens[parent.currToken + 1]
-        ProcVideo.loc.append(loc)
+        ProcImage.loc.append(loc)
         
         # Verify flagStr
         if not parent.helpFuncs.isValidString(parent.tokens[parent.currToken + 2], VALID_FLAGS):
-            parent.consoleObj.updateConsole("!!! Error !!! Video illegal flags, read %s, at line num %d." %
+            parent.consoleObj.updateConsole("!!! Error !!! Image illegal flags, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
-            return (811)
-        ProcVideo.flagStr.append(parent.tokens[parent.currToken + 2])
+            return (1611)
+        ProcImage.flagStr.append(parent.tokens[parent.currToken + 2])
         
         # increment currToken
         parent.currToken += 3
         return (0)
 
-    ## Create videos.py file
+    ## Create images.py file
     #
-    # Create the videos enumeration file.  
+    # Create the images enumeration file.  
     #
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return None
-    def createVideosClass(self, parent):
+    def createImagesClass(self, parent):
         HDR_COMMENTS = [
-            "# @file    videos.py",
+            "# @file    images.py",
             "# @author  AutoGenerated",
             "# @date    ",
             "#",
             "# @note    Open Pinball Project",
             "# @note    Copyright 2015, Hugh Spahr",
             "#",
-            "# @brief This is an enumeration of all the videos.",
+            "# @brief This is an enumeration of all the images.",
             "",
             "#===============================================================================",
             "",
-            "## Videos enumeration.",
-            "#  Contains an entry for each video",
+            "## Images enumeration.",
+            "#  Contains an entry for each image",
             "",
-            "class Videos():"]
+            "class Images():"]
     
         # Open the file or create if necessary
-        ProcVideo.outHndl = open(parent.consoleObj.outDir + os.sep + "videos.py", 'w+')
+        ProcImage.outHndl = open(parent.consoleObj.outDir + os.sep + "images.py", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')
         for line in stdHdrHndl:
-            ProcVideo.outHndl.write(line)
+            ProcImage.outHndl.write(line)
         stdHdrHndl.close()
         for line in HDR_COMMENTS:
             if line.startswith("# @date"):
-                ProcVideo.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
+                ProcImage.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
-                ProcVideo.outHndl.write(line + "\n")
+                ProcImage.outHndl.write(line + "\n")
         return (0)
         

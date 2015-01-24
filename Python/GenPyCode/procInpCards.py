@@ -204,10 +204,11 @@ class ProcInpCards():
             "",
             "#===============================================================================",
             "",
+            "import rs232Intf",
+            "",
             "## Input bit name enumeration.",
             "#  Contains a bit mask for each input.  Can also contain bitfield masks.",
             "#  Top most nibble contains the index of the input card base 0.",
-            "",
             "class InpBitNames:"]
 
         # Open the file or create if necessary
@@ -227,7 +228,49 @@ class ProcInpCards():
                 if found:
                     outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcInpCards.name[self.out].upper(),
                         ((cardIndex << 16) | (1 << bitIndex))))
-        outHndl.write("\n")
+                    
+        # Write out the bit name strings
+        outHndl.write("\n    ## Input board bit names\n")
+        outHndl.write("    # Indexed into using the [InpBitNames](@ref rules.inpBitNames.InpBitNames) class\n")
+        outHndl.write("    INP_BRD_BIT_NAMES = [ ")
+        for cardIndex in xrange(ProcInpCards.numInpCards):
+            if (cardIndex != 0):
+                outHndl.write(",\n        ")
+            outHndl.write("[")
+            for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
+                if (bitIndex != 0):
+                    if ((bitIndex % 4) == 0):
+                        outHndl.write(",\n        ")
+                    else:
+                        outHndl.write(", ")
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    outHndl.write(ProcInpCards.desc[self.out])
+                else:
+                    outHndl.write("\"Unused\"")
+            outHndl.write("]")
+        outHndl.write(" ]\n\n")
+
+        # Write input board configuration
+        outHndl.write("    ## Input board configuration\n")
+        outHndl.write("    INP_BRD_CFG = [ ")
+        for cardIndex in xrange(ProcInpCards.numInpCards):
+            if (cardIndex != 0):
+                outHndl.write(",\n        ")
+            outHndl.write("[")
+            for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
+                if (bitIndex != 0):
+                    if ((bitIndex % 4) == 0):
+                        outHndl.write(",\n        ")
+                    else:
+                        outHndl.write(", ")
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    outHndl.write(ProcInpCards.flagStr[self.out])
+                else:
+                    outHndl.write("rs232Intf.CFG_INP_STATE")
+            outHndl.write("]")
+        outHndl.write(" ]\n\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: inpBitNames.py file.")
         return (0)

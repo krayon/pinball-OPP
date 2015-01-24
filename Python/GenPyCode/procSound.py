@@ -96,6 +96,20 @@ class ProcSound():
                 if errVal:
                     parent.currToken = closeSymb
             parent.currToken += 1
+            
+            # Write the file locations to the file
+            ProcSound.outHndl.write("\n    ## Sound file list\n")
+            ProcSound.outHndl.write("    # Indexed into using the [Sounds](@ref rules.sounds.Sounds) class\n")
+            ProcSound.outHndl.write("    SND_FILES = [")
+            index = 0
+            for current in ProcSound.sndLoc:
+                if (index != 0):
+                    ProcSound.outHndl.write(", ")
+                    if ((index % 5) == 0):
+                        ProcSound.outHndl.write("\n        ")
+                ProcSound.outHndl.write(current)
+                index += 1
+            ProcSound.outHndl.write("]\n\n")
             parent.consoleObj.updateConsole("Done processing SOUND_CLIPS.")
         elif (parent.tokens[parent.currToken] == "BGND_CLIPS"):
             if (ProcSound.hasBgndClip):
@@ -118,11 +132,26 @@ class ProcSound():
                 if errVal:
                     parent.currToken = closeSymb
             parent.currToken += 1
+            
+            # Write the file locations to the file
+            ProcSound.outHndl.write("\n    ## Background sound file list\n")
+            ProcSound.outHndl.write("    # Indexed into using the [BgndMusic](@ref rules.bgndSounds.BgndMusic) class\n")
+            ProcSound.outHndl.write("    BGND_MUSIC_FILES = [")
+            index = 0
+            for current in ProcSound.bgndLoc:
+                if (index != 0):
+                    ProcSound.outHndl.write(", ")
+                    if ((index % 5) == 0):
+                        ProcSound.outHndl.write("\n        ")
+                ProcSound.outHndl.write(current)
+                index += 1
+            ProcSound.outHndl.write("]\n\n")
             parent.consoleObj.updateConsole("Done processing BGND_CLIPS.")
         else:
             parent.consoleObj.updateConsole("!!! SW Error !!! Expected SOUND_CLIPS or BGND_CLIPS, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (704)
+        ProcSound.outHndl.close()
         return (0)
 
     ## Process line
@@ -187,7 +216,6 @@ class ProcSound():
             "",
             "## Sounds enumeration.",
             "#  Contains an entry for each sound",
-            "",
             "class Sounds():"]
     
         # Open the file or create if necessary
@@ -225,7 +253,6 @@ class ProcSound():
             "",
             "## Background sounds enumeration.",
             "#  Contains an entry for each background sound",
-            "",
             "class BgndMusic():"]
     
         # Open the file or create if necessary
