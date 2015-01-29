@@ -201,6 +201,12 @@ class ProcLedCards():
                 outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 outHndl.write(line + "\n")
+                
+        # Write out NUM_LED_CARDS
+        outHndl.write("    ## Number of LED boards in the system\n")
+        outHndl.write("    NUM_LED_BRDS = {0}\n\n".format(ProcLedCards.numLedCards))
+        
+        # Write out LED bit enumeration
         for cardIndex in xrange(ProcLedCards.numLedCards):
             for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)

@@ -152,7 +152,7 @@ class RulesData:
                     "Start_Ball", "Ball_in_Play", "Normal_Play", "Error",
                     "Tilt", "End_of_Ball", "Mode_Targets_Complete"]
     
-    ## Initial State
+    ## Initial Background Image
     INIT_BGND_IMAGE = Images.FULL_BGND
     
     ## Initial State

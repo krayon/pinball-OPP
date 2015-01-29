@@ -81,6 +81,8 @@ class ProcModes:
     def __init__(self):
         ProcModes.hasModes = False
         ProcModes.nameSet = set()
+        ProcModes.name = []
+        ProcModes.desc = []
         ProcModes.tokenLookup = {
             '(' : ProcModes.OPEN_PAREN,
             ')' : ProcModes.CLOSE_PAREN,
@@ -120,8 +122,12 @@ class ProcModes:
                 parent.currToken = closeSymb
         parent.currToken += 1
         ProcModes.outHndl.write("    ]\n")
-        parent.consoleObj.updateConsole("Done processing MODES.")
         ProcModes.outHndl.close()
+        
+        # Create state file writing out state enumeration and strings.
+        self.createStateClass(parent)
+        
+        parent.consoleObj.updateConsole("Done processing MODES.")
         return (0)
 
     ## Process all modes
@@ -140,15 +146,27 @@ class ProcModes:
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (1510)
         ProcModes.nameSet.add(name)
+        ProcModes.name.append(name)
         ProcChains.addName(parent.procChains, name, ProcChains.MODE_NAME)
         ProcModes.outHndl.write("        [State.{0}, ".format(name.upper()))
+        parent.currToken += 1
+        
+        # Next symbol should be the description in quotes.
+        # HRS:  This should probably support spaces inside the quotes but that will break the current
+        #  tokenizer function.
+        desc = parent.tokens[parent.currToken]
+        if (not desc.startswith('"')) or (not desc.endswith('"')):
+            parent.consoleObj.updateConsole("!!! Error !!! Descriptions strings should start and end with quotes, read %s, at line num %d." %
+               (desc, parent.lineNumList[parent.currToken]))
+            return (1511)
+        ProcModes.desc.append(desc)
+        parent.currToken += 1
 
         # Verify opening symbol
-        parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (1511)
+            return (1512)
         closeSymb = parent.helpFuncs.findMatch(parent)
         parent.currToken += 1
         typeProc = ProcModes.PROC_INIT_CHAIN
@@ -163,7 +181,7 @@ class ProcModes:
                 if (subState != ProcModes.FIND_OPEN_PAREN):
                     parent.consoleObj.updateConsole("!!! Error !!! Expected opening paren, read %s, at line num %d." %
                        (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                    return (1512)
+                    return (1513)
                 # Find the matching close parenthesis
                 ProcModes.outHndl.write("[")
                 closeChainList = parent.helpFuncs.findMatch(parent)
@@ -178,7 +196,7 @@ class ProcModes:
                     if (subState != ProcModes.FIND_COMMA) and (subState != ProcModes.FIND_END): 
                         parent.consoleObj.updateConsole("!!! Error !!! Found close parenthesis at incorrect location at line num %d." %
                            (parent.lineNumList[parent.currToken]))
-                        return (1513)
+                        return (1514)
                     else:
                         ProcModes.outHndl.write("]")
                 subState = ProcModes.FIND_OPEN_PAREN
@@ -193,7 +211,7 @@ class ProcModes:
                 if subState != ProcModes.FIND_COMMA: 
                     parent.consoleObj.updateConsole("!!! Error !!! Comma in incorrect location at line num %d." %
                        (parent.lineNumList[parent.currToken]))
-                    return (1514)
+                    return (1515)
                 ProcModes.outHndl.write(", ")
                 parent.currToken += 1
                 subState = ProcModes.FIND_CHAIN
@@ -205,7 +223,7 @@ class ProcModes:
                         if (nameType != ProcChains.CHAIN_NAME):
                             parent.consoleObj.updateConsole("!!! Error !!! Expected a chain name in init chain, read %s, at line num %d." %
                                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                            return (1515)
+                            return (1516)
                         ProcModes.outHndl.write("RulesFunc." + parent.tokens[parent.currToken])
                         subState = ProcModes.FIND_COMMA
                         hasEntries = True
@@ -214,7 +232,7 @@ class ProcModes:
                         if (nameType != ProcChains.CHAIN_NAME):
                             parent.consoleObj.updateConsole("!!! Error !!! Expected a chain name in process chain, read %s, at line num %d." %
                                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                            return (1516)
+                            return (1517)
                         ProcModes.outHndl.write("RulesFunc." + parent.tokens[parent.currToken])
                         subState = ProcModes.FIND_COMMA 
                         hasEntries = True
@@ -239,7 +257,7 @@ class ProcModes:
                         else:
                             parent.consoleObj.updateConsole("!!! Error !!! Expected a video/image or video/image chain, read %s, at line num %d." %
                                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                            return (1517)
+                            return (1518)
                         subState = ProcModes.FIND_COMMA 
                         hasEntries = True
                         parent.currToken += 1
@@ -251,7 +269,7 @@ class ProcModes:
                         else:
                             parent.consoleObj.updateConsole("!!! Error !!! Expected a sound or sound chain name, read %s, at line num %d." %
                                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                            return (1518)
+                            return (1519)
                         subState = ProcModes.FIND_COMMA 
                         hasEntries = True
                         parent.currToken += 1
@@ -261,7 +279,7 @@ class ProcModes:
                         else:
                             parent.consoleObj.updateConsole("!!! Error !!! Expected an LED chain name, read %s, at line num %d." %
                                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                            return (1519)
+                            return (1520)
                         subState = ProcModes.FIND_COMMA 
                         hasEntries = True
                         parent.currToken += 1
@@ -271,11 +289,11 @@ class ProcModes:
                     else:
                         parent.consoleObj.updateConsole("!!! Error !!! Parsing error, invalid typeProc = %d, at line num %d." %
                            (typeProc, parent.lineNumList[parent.currToken]))
-                        return (1520)
+                        return (1521)
                 else:
                     parent.consoleObj.updateConsole("!!! Error !!! Can't understand symbol, read %s, at line num %d." %
                        (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                    return (1521)
+                    return (1522)
         if (typeProc != ProcModes.PROC_END_MODE):
             parent.consoleObj.updateConsole("!!! Error !!! Mode did not end properly, at line num %d." %
                (parent.lineNumList[parent.currToken]))
@@ -313,7 +331,7 @@ class ProcModes:
             "## Process chain lists.",
             "#",
             "#  Contains all the chains that are specific this this set of pinball rules.",
-            "class LedChains():",
+            "class ProcChain():",
             "    INIT_CHAIN_OFFSET = 1",
             "    NORM_CHAIN_OFFSET = 2",
             "    LED_CHAIN_OFFSET = 3",
@@ -338,4 +356,58 @@ class ProcModes:
                 ProcModes.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 ProcModes.outHndl.write(line + "\n")
+        return (0)
+
+    ## Create states.py file
+    #
+    # Create the states file.  
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  parent        [in]   Parent object for logging and tokens
+    #  @return Error number if an error, or zero if no error
+    def createStateClass(self, parent):
+        HDR_COMMENTS = [
+            "# @file    states.py",
+            "# @author  AutoGenerated",
+            "# @date    ",
+            "#",
+            "# @note    Open Pinball Project",
+            "# @note    Copyright 2015, Hugh Spahr",
+            "#",
+            "# @brief This is an enumeration of all the states.",
+            "",
+            "#===============================================================================",
+            "",
+            "## State enumeration.",
+            "#  Contains an entry for each state",
+            "class State():"]
+        # Open the file or create if necessary
+        ProcModes.outHndl = open(parent.consoleObj.outDir + os.sep + "states.py", 'w+')
+        stdHdrHndl = open("stdHdr.txt", 'r')
+        for line in stdHdrHndl:
+            ProcModes.outHndl.write(line)
+        stdHdrHndl.close()
+        for line in HDR_COMMENTS:
+            if line.startswith("# @date"):
+                ProcModes.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
+            else:
+                ProcModes.outHndl.write(line + "\n")
+
+        # Write the state name enumeration
+        for index in xrange(len(ProcModes.name)):
+            ProcModes.outHndl.write("    {0:32} = {1}\n".format(ProcModes.name[index].upper(), index))
+
+        # Write out the state name strings
+        ProcModes.outHndl.write("\n\n    ## State name strings.\n")
+        ProcModes.outHndl.write("    # Indexed into using [State](@ref rules.states.State) enumeration\n")
+        ProcModes.outHndl.write("    STATE_STR = [ ")
+        for index in xrange(len(ProcModes.desc)):
+            if (index != 0):
+                if ((index % 4) == 0):
+                    ProcModes.outHndl.write(",\n        ")
+                else:
+                    ProcModes.outHndl.write(", ")
+            ProcModes.outHndl.write(ProcModes.desc[index])
+        ProcModes.outHndl.write(" ]\n\n")
+        ProcModes.outHndl.close()
         return (0)

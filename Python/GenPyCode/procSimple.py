@@ -52,6 +52,8 @@ from procChains import ProcChains
 #
 #  Contains functions for FIRST_MODE and TICK_TIME.
 class ProcSimple():
+    foundInit = False
+    initMode = ""
 
     ## Initialize the ProcVideo class
     #
