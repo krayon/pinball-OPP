@@ -49,7 +49,6 @@
 
 from gameData import GameData
 from threading import Thread
-from rules.timers import Timers
 from globConst import GlobConst
 import time
 
@@ -66,7 +65,7 @@ class TimerThread(Thread):
         super(TimerThread, self).__init__()
         
         # Create the timer variables
-        for i in xrange(len(Timers.timeouts)):
+        for i in xrange(len(GameData.Timers.timeouts)):
             # Every 32 timers requires another bitfield
             if (i & 0x1f) == 0:
                 GameData.expiredTimers.append(0) 
@@ -106,18 +105,18 @@ class TimerThread(Thread):
     def proc_timers(self):
         for tmrGrp in xrange(len(GameData.runningTimers)):
             if (GameData.runningTimers[tmrGrp] != 0):
-                numTmr = len(GameData.timerCnt) - (tmrGrp * Timers.TIMERS_PER_GROUP)
-                if numTmr >= Timers.TIMERS_PER_GROUP:
-                    numTmr = Timers.TIMERS_PER_GROUP
+                numTmr = len(GameData.timerCnt) - (tmrGrp * GameData.Timers.TIMERS_PER_GROUP)
+                if numTmr >= GameData.Timers.TIMERS_PER_GROUP:
+                    numTmr = GameData.Timers.TIMERS_PER_GROUP
                 for timer in xrange(numTmr):
                     if GameData.runningTimers[tmrGrp] & (1 << timer) != 0:
                         # Calculate the timer index, increment time
-                        currTmr = (tmrGrp * Timers.TIMERS_PER_GROUP) + timer
+                        currTmr = (tmrGrp * GameData.Timers.TIMERS_PER_GROUP) + timer
                         GameData.timerCnt[currTmr] += GlobConst.TIMER_SLEEP
                         
                         # Check if timer has expired
                         if GameData.timerCnt[currTmr] >= \
-                                Timers.timeouts[currTmr][Timers.TIMEOUT_OFFSET]:
+                                GameData.Timers.timeouts[currTmr][GameData.Timers.TIMEOUT_OFFSET]:
                             GameData.expiredTimers[tmrGrp] |= (1 << timer)
                             GameData.runningTimers[tmrGrp] &= ~(1 << timer)
             

@@ -47,7 +47,6 @@
 #===============================================================================
 
 import rs232Intf
-from rules.rulesData import RulesData
 
 ## Solenoid board class.
 #  Keep information about the solenoid board including configuration and current
@@ -68,16 +67,17 @@ class SolBrd():
     #  Called to add an input card
     #
     #  @param  self          [in]   Object reference
+    #  @param  GameData      [in]   Game Data Object reference
     #  @return None
-    def add_card(self):
+    def add_card(self, GameData):
         brdNum = SolBrd.numSolBrds
         SolBrd.numSolBrds += 1
         bitField = 0
         for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
             holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
-            if (RulesData.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
-                   (ord(RulesData.SOL_BRD_CFG[brdNum][holdOffset]) != 0):
+            if (GameData.SolBitNames.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
+                   (ord(GameData.SolBitNames.SOL_BRD_CFG[brdNum][holdOffset]) != 0):
                 bitField |= (1 << bit)
         SolBrd.solCfgBitfield.append(0)
         SolBrd.currSolData.append(0)

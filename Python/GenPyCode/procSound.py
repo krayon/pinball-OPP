@@ -99,7 +99,7 @@ class ProcSound():
             
             # Write the file locations to the file
             ProcSound.outHndl.write("\n    ## Sound file list\n")
-            ProcSound.outHndl.write("    # Indexed into using the [Sounds](@ref rules.sounds.Sounds) class\n")
+            ProcSound.outHndl.write("    # Indexed into using the [Sounds](@ref sounds.Sounds) class\n")
             ProcSound.outHndl.write("    SND_FILES = [")
             index = 0
             for current in ProcSound.sndLoc:
@@ -135,7 +135,7 @@ class ProcSound():
             
             # Write the file locations to the file
             ProcSound.outHndl.write("\n    ## Background sound file list\n")
-            ProcSound.outHndl.write("    # Indexed into using the [BgndMusic](@ref rules.bgndSounds.BgndMusic) class\n")
+            ProcSound.outHndl.write("    # Indexed into using the [BgndMusic](@ref bgndSounds.BgndMusic) class\n")
             ProcSound.outHndl.write("    BGND_MUSIC_FILES = [")
             index = 0
             for current in ProcSound.bgndLoc:

@@ -50,19 +50,12 @@
 from threading import Thread
 import time
 import rs232Intf
-from gameData import GameData
 from tk.tkCmdFrm import TkCmdFrm
-from rulesFunc import RulesFunc
-from rules.procChains import ProcChain
 from hwobjs.solBrd import SolBrd
 from hwobjs.inpBrd import InpBrd
 from tk.tkSolBrd import TkSolBrd
 from tk.tkInpBrd import TkInpBrd
-from rules.rulesData import RulesData
 from globConst import GlobConst
-from rules.soundChains import SoundChains
-from rules.imageChains import ImageChains
-from stdFuncs import StdFuncs
 
 ## Rules thread class.
 #
@@ -76,12 +69,7 @@ class RulesThread(Thread):
     _imageChainIndex = 0
     _imageChTime = 0
     _imageCmdWaitTime = 0
-    
-    #Create stdFunc instance
-    _stdFuncs = StdFuncs()
-    
-    #Create rulesFunc instance
-    rulesFunc = RulesFunc()
+    GameData = None
 
     ## The constructor.
     def __init__(self):
@@ -90,8 +78,8 @@ class RulesThread(Thread):
     ## Initialize rule thead
     #
     #  @param  self          [in]   Object reference
-    def init(self):
-        pass
+    def init(self, gameData):
+        RulesThread.GameData = gameData
         
     ## Start the rules thread
     #
@@ -99,6 +87,7 @@ class RulesThread(Thread):
     #  @return None 
     def start(self):
         super(RulesThread, self).start()
+        
     
     ## Process the rules thread
     #
@@ -111,30 +100,30 @@ class RulesThread(Thread):
     def proc_rules(self):
         #Update the inputs from solenoid and input cards
         for index in xrange(SolBrd.numSolBrds):
-            GameData.currSolStatus[index] = SolBrd.get_status(GameData.solBrd, index)
-            if GameData.debug:
-                GameData.currSolStatus[index] |= TkSolBrd.get_status(GameData.tkSolBrd[index])
+            RulesThread.GameData.currSolStatus[index] = SolBrd.get_status(RulesThread.GameData.solBrd, index)
+            if RulesThread.GameData.debug:
+                RulesThread.GameData.currSolStatus[index] |= TkSolBrd.get_status(RulesThread.GameData.tkSolBrd[index])
         for index in xrange(InpBrd.numInpBrds):
-            GameData.currInpStatus[index] = InpBrd.get_status(GameData.inpBrd, index)
-            if GameData.debug:
-                GameData.currInpStatus[index] |= TkInpBrd.get_status(GameData.tkInpBrd[index])
+            RulesThread.GameData.currInpStatus[index] = InpBrd.get_status(RulesThread.GameData.inpBrd, index)
+            if RulesThread.GameData.debug:
+                RulesThread.GameData.currInpStatus[index] |= TkInpBrd.get_status(RulesThread.GameData.tkInpBrd[index])
         
         #Figure out the correct processing chain
-        if (GameData.gameMode != GameData.prevGameMode):
-            GameData.prevGameMode = GameData.gameMode
-            chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.INIT_CHAIN_OFFSET]
-            GameData.ledChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.LED_CHAIN_OFFSET]
-            GameData.newLedChain = True
-            GameData.soundChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.SOUND_CHAIN_OFFSET]
-            GameData.newSoundChain = True
-            GameData.imageChain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.IMAGE_CHAIN_OFFSET]
-            GameData.newImageChain = True
+        if (RulesThread.GameData.gameMode != RulesThread.GameData.prevGameMode):
+            RulesThread.GameData.prevGameMode = RulesThread.GameData.gameMode
+            chain = RulesThread.GameData.ProcChain.PROC_CHAIN[RulesThread.GameData.gameMode][RulesThread.GameData.ProcChain.INIT_CHAIN_OFFSET]
+            RulesThread.GameData.ledChain = RulesThread.GameData.ProcChain.PROC_CHAIN[RulesThread.GameData.gameMode][RulesThread.GameData.ProcChain.LED_CHAIN_OFFSET]
+            RulesThread.GameData.newLedChain = True
+            RulesThread.GameData.soundChain = RulesThread.GameData.ProcChain.PROC_CHAIN[RulesThread.GameData.gameMode][RulesThread.GameData.ProcChain.SOUND_CHAIN_OFFSET]
+            RulesThread.GameData.newSoundChain = True
+            RulesThread.GameData.imageChain = RulesThread.GameData.ProcChain.PROC_CHAIN[RulesThread.GameData.gameMode][RulesThread.GameData.ProcChain.IMAGE_CHAIN_OFFSET]
+            RulesThread.GameData.newImageChain = True
         else:
-            chain = ProcChain.PROC_CHAIN[GameData.gameMode][ProcChain.NORM_CHAIN_OFFSET]
+            chain = RulesThread.GameData.ProcChain.PROC_CHAIN[RulesThread.GameData.gameMode][RulesThread.GameData.ProcChain.NORM_CHAIN_OFFSET]
             
         #Iterate over the chain processing
         for proc in chain:
-            proc(RulesThread.rulesFunc)
+            proc(RulesThread.GameData.RulesFunc)
         
     ## Exit the rules thread
     #
@@ -156,14 +145,14 @@ class RulesThread(Thread):
     #  @return None 
     def proc_sound_chain(self):
         # Check if the sound chain is not empty
-        if GameData.soundChain:
+        if RulesThread.GameData.soundChain:
             updateSound = False
             updateCmd = False
             clearChain = False
             
             # New LED chain is being started
-            if GameData.newSoundChain:
-                GameData.newSoundChain = False
+            if RulesThread.GameData.newSoundChain:
+                RulesThread.GameData.newSoundChain = False
                 RulesThread._chainIndex = 0
                 updateCmd = True
             else:
@@ -173,22 +162,22 @@ class RulesThread(Thread):
                     updateCmd = True
             if updateCmd:
                 RulesThread._soundChTime = 0
-                soundCmd = GameData.soundChain[RulesThread._chainIndex][SoundChains.CH_CMD_OFFSET]
+                soundCmd = RulesThread.GameData.soundChain[RulesThread._chainIndex][RulesThread.GameData.SoundChains.CH_CMD_OFFSET]
                 
                 # If this is repeat command, move index back to beginning
-                if (soundCmd == SoundChains.REPEAT):
+                if (soundCmd == RulesThread.GameData.SoundChains.REPEAT):
                     RulesThread._chainIndex = 0
-                    soundCmd = GameData.soundChain[RulesThread._chainIndex][SoundChains.CH_CMD_OFFSET]
-                if (soundCmd == SoundChains.WAIT):
-                    RulesThread._soundCmdWaitTime = GameData.soundChain[RulesThread._chainIndex][SoundChains.PARAM_OFFSET]
+                    soundCmd = RulesThread.GameData.soundChain[RulesThread._chainIndex][RulesThread.GameData.SoundChains.CH_CMD_OFFSET]
+                if (soundCmd == RulesThread.GameData.SoundChains.WAIT):
+                    RulesThread._soundCmdWaitTime = RulesThread.GameData.soundChain[RulesThread._chainIndex][RulesThread.GameData.SoundChains.PARAM_OFFSET]
                     updateSound = True
-                elif (soundCmd == SoundChains.END_CHAIN):
+                elif (soundCmd == RulesThread.GameData.SoundChains.END_CHAIN):
                     updateSound = True
                     clearChain = True
             if updateSound:
-                StdFuncs.Sounds(RulesThread._stdFuncs, GameData.soundChain[RulesThread._chainIndex][SoundChains.SOUND_OFFSET])
+                RulesThread.GameData.StdFuncs.Sounds(RulesThread.GameData.soundChain[RulesThread._chainIndex][RulesThread.GameData.SoundChains.SOUND_OFFSET])
             if clearChain:
-                GameData.soundChain = []
+                RulesThread.GameData.soundChain = []
                 
     ## Process the image chains
     #
@@ -203,14 +192,14 @@ class RulesThread(Thread):
     #  @return None 
     def proc_image_chain(self):
         # Check if the image chain is not empty
-        if GameData.imageChain:
+        if RulesThread.GameData.imageChain:
             updateImage = False
             updateCmd = False
             clearChain = False
             
             # New image chain is being started
-            if GameData.newImageChain:
-                GameData.newImageChain = False
+            if RulesThread.GameData.newImageChain:
+                RulesThread.GameData.newImageChain = False
                 RulesThread._imageChainIndex = 0
                 updateCmd = True
             else:
@@ -220,22 +209,22 @@ class RulesThread(Thread):
                     updateCmd = True
             if updateCmd:
                 RulesThread._imageChTime = 0
-                imageCmd = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.CH_CMD_OFFSET]
+                imageCmd = RulesThread.GameData.imageChain[RulesThread._imageChainIndex][RulesThread.GameData.ImageChains.CH_CMD_OFFSET]
                 
                 # If this is repeat command, move index back to beginning
-                if (imageCmd == ImageChains.REPEAT):
+                if (imageCmd == RulesThread.GameData.ImageChains.REPEAT):
                     RulesThread._imageChainIndex = 0
-                    imageCmd = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.CH_CMD_OFFSET]
-                if (imageCmd == ImageChains.WAIT):
-                    RulesThread._imageCmdWaitTime = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.PARAM_OFFSET]
+                    imageCmd = RulesThread.GameData.imageChain[RulesThread._imageChainIndex][RulesThread.GameData.ImageChains.CH_CMD_OFFSET]
+                if (imageCmd == RulesThread.GameData.ImageChains.WAIT):
+                    RulesThread._imageCmdWaitTime = RulesThread.GameData.imageChain[RulesThread._imageChainIndex][RulesThread.GameData.ImageChains.PARAM_OFFSET]
                     updateImage = True
-                elif (imageCmd == ImageChains.END_CHAIN):
+                elif (imageCmd == RulesThread.GameData.ImageChains.END_CHAIN):
                     updateImage = True
                     clearChain = True
             if updateImage:
-                GameData.bgndImage = GameData.imageChain[RulesThread._imageChainIndex][ImageChains.IMAGE_OFFSET]
+                RulesThread.GameData.bgndImage = RulesThread.GameData.imageChain[RulesThread._imageChainIndex][RulesThread.GameData.ImageChains.IMAGE_OFFSET]
             if clearChain:
-                GameData.imageChain = []
+                RulesThread.GameData.imageChain = []
                 
     ## Process scoring
     #
@@ -249,17 +238,17 @@ class RulesThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_scoring(self):
-        if GameData.scoring:
+        if RulesThread.GameData.scoring:
             for cardNum in xrange(SolBrd.numSolBrds):
-                if GameData.currSolStatus[cardNum] != 0:
+                if RulesThread.GameData.currSolStatus[cardNum] != 0:
                     for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
-                        if (GameData.currSolStatus[cardNum] & (1 << bit)) != 0:
-                            GameData.score[GameData.currPlayer] += RulesData.SOL_SCORE[GameData.scoreLvl][cardNum][bit]
+                        if (RulesThread.GameData.currSolStatus[cardNum] & (1 << bit)) != 0:
+                            RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.SOL_SCORE[RulesThread.GameData.scoreLvl][cardNum][bit]
             for cardNum in xrange(InpBrd.numInpBrds):
-                if GameData.currInpStatus[cardNum] != 0:
+                if RulesThread.GameData.currInpStatus[cardNum] != 0:
                     for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
-                        if (GameData.currInpStatus[cardNum] & (1 << bit)) != 0:
-                            GameData.score[GameData.currPlayer] += RulesData.INP_SCORE[GameData.scoreLvl][cardNum][bit]
+                        if (RulesThread.GameData.currInpStatus[cardNum] & (1 << bit)) != 0:
+                            RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.INP_SCORE[RulesThread.GameData.scoreLvl][cardNum][bit]
         
     ## The rules thread
     #
@@ -279,14 +268,14 @@ class RulesThread(Thread):
             self.proc_image_chain()
             
             #Process rules if not running in debug mode
-            if not GameData.debug: 
+            if not RulesThread.GameData.debug: 
                 self.proc_rules()
             #Process rules if run button is active
-            elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
+            elif RulesThread.GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
                 self.proc_rules()
             #Process rules if send step was pressed
-            elif GameData.debug and (not TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX]) and \
+            elif RulesThread.GameData.debug and (not TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX]) and \
                     TkCmdFrm.threadSendStep[TkCmdFrm.RULES_THREAD_IDX]:
                 TkCmdFrm.threadSendStep[TkCmdFrm.RULES_THREAD_IDX] = False
                 self.proc_rules()

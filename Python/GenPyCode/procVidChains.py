@@ -234,7 +234,7 @@ class ProcVidChains:
             "",
             "#===============================================================================",
             "",
-            "from rules.videos import Videos",
+            "from videos import Videos",
             "",
             "## Video chains class.",
             "#",

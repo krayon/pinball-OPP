@@ -231,7 +231,7 @@ class ProcInpCards():
                     
         # Write out the bit name strings
         outHndl.write("\n    ## Input board bit names\n")
-        outHndl.write("    # Indexed into using the [InpBitNames](@ref rules.inpBitNames.InpBitNames) class\n")
+        outHndl.write("    # Indexed into using the [InpBitNames](@ref inpBitNames.InpBitNames) class\n")
         outHndl.write("    INP_BRD_BIT_NAMES = [ ")
         for cardIndex in xrange(ProcInpCards.numInpCards):
             if (cardIndex != 0):

@@ -53,6 +53,7 @@ from ttk import Button, Scrollbar
 from parseRules import ParseRules
 import time
 import sys
+import os
 
 ## GUI Frame
 #
@@ -67,7 +68,7 @@ class GuiFrame():
     #  @param  self          [in]   Object reference
     #  @param  parent        [in]   Root object reference
     #  @param  rulesFile     [in]   Rules file name
-    #  @param  outDIr        [in]   Location of output directory
+    #  @param  outDir        [in]   Location of output directory
     #  @return None
     def __init__(self, parent, rulesFile, outDir):
         self.exit = False
@@ -77,6 +78,10 @@ class GuiFrame():
         self.bgndFrm = None
         self.scrollbar = None
         self.log = None
+        
+        # Create the outdir if it doesn't exist
+        if not os.path.exists(outDir):
+            os.makedirs(outDir)
         
         self.initUI()
         self.parseRules = ParseRules(self)
@@ -170,7 +175,7 @@ def main(argv=None):
 
     end = False
     rulesFile = None
-    outDir = None
+    outDir = "GenCode"
 
     if argv is None:
         argv = sys.argv

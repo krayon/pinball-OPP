@@ -46,9 +46,7 @@
 
 #===============================================================================
 
-from gameData import GameData
 from hwobjs.ledBrd import LedBrd
-from rules.rulesData import RulesData
 from dispConstIntf import DispConst
 import dispIntf
 import time
@@ -58,6 +56,15 @@ import comms.commIntf
 #
 #  Class that holds all the standard functions.
 class StdFuncs():
+    ## Initialize StdFuncs class
+    #
+    #  Initialize standard functions class
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  gameData      [in]   Object reference
+    #  @return None
+    def __init__(self, gameData):
+        StdFuncs.GameData = gameData
     
     ## Check input bit
     #
@@ -69,7 +76,7 @@ class StdFuncs():
     def CheckInpBit(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xffff
-        if ((GameData.currInpStatus[cardNum] & bitPos) != 0):
+        if ((StdFuncs.GameData.currInpStatus[cardNum] & bitPos) != 0):
             return True
         else:
             return False
@@ -84,7 +91,7 @@ class StdFuncs():
     def CheckSolBit(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xffff
-        if ((GameData.currSolStatus[cardNum] & bitPos) != 0):
+        if ((StdFuncs.GameData.currSolStatus[cardNum] & bitPos) != 0):
             return True
         else:
             return False
@@ -134,7 +141,7 @@ class StdFuncs():
     def Kick(self, cardBitPos):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xffff
-        comms.commIntf.sendSolKick(GameData.commThread, cardNum, bitPos)
+        comms.commIntf.sendSolKick(StdFuncs.GameData.commThread, cardNum, bitPos)
 
     ## Start a timer
     #
@@ -146,9 +153,9 @@ class StdFuncs():
     def Start(self, timeout):
         index = timeout >> 6
         bitPos = timeout & 0x1f
-        GameData.expiredTimers[index] &= ~(1 << bitPos)
-        GameData.timerCnt[timeout] = 0
-        GameData.runningTimers[index] |= (1 << bitPos)
+        StdFuncs.GameData.expiredTimers[index] &= ~(1 << bitPos)
+        StdFuncs.GameData.timerCnt[timeout] = 0
+        StdFuncs.GameData.runningTimers[index] |= (1 << bitPos)
     
     ## Check for expired timeout
     #
@@ -160,7 +167,7 @@ class StdFuncs():
     def Expired(self, timeout):
         index = timeout >> 6
         bitPos = timeout & 0x1f
-        if ((GameData.expiredTimers[index] & (1 << bitPos)) != 0):
+        if ((StdFuncs.GameData.expiredTimers[index] & (1 << bitPos)) != 0):
             return True
         else:
             return False
@@ -370,7 +377,7 @@ class StdFuncs():
     #  @param  imageIdx      [in]   Image index
     #  @return None
     def BgndImage(self, imageIdx):
-        GameData.bgndImage = imageIdx
+        StdFuncs.GameData.bgndImage = imageIdx
 
     ## Play background music
     #
@@ -380,7 +387,7 @@ class StdFuncs():
     #  @param  soundIdx      [in]   Sound index
     #  @return None
     def PlayBgnd(self, soundIdx):
-        GameData.bgndSound = soundIdx
+        StdFuncs.GameData.bgndSound = soundIdx
 
     ## Stop background music
     #
@@ -389,7 +396,7 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None
     def StopBgnd(self):
-        GameData.bgndSound = 0xffffffff
+        StdFuncs.GameData.bgndSound = 0xffffffff
 
     ## Wait
     #
@@ -406,12 +413,12 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None
     def BlankScoreDisps(self):
-        for index in xrange(RulesData.MAX_NUM_PLYRS):
-            GameData.currDisp[index + DispConst.DISP_PLAYER1] = DispConst.DISP_BLANK
+        for index in xrange(StdFuncs.GameData.GameConst.MAX_NUM_PLYRS):
+            StdFuncs.GameData.currDisp[index + DispConst.DISP_PLAYER1] = DispConst.DISP_BLANK
 
     ## Blank player num display
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def BlankPlyrNumDisp(self):
-        GameData.currDisp[DispConst.DISP_PLAYER_NUM] = DispConst.DISP_BLANK
+        StdFuncs.GameData.currDisp[DispConst.DISP_PLAYER_NUM] = DispConst.DISP_BLANK

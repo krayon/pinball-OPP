@@ -51,7 +51,7 @@ import rs232Intf
 from Tkinter import Button as Btn
 from Tkinter import Frame, StringVar, Canvas, SUNKEN, RAISED
 from ttk import Combobox, Label, Button
-from rules.rulesData import RulesData
+from gameData import GameData
 
 ## Tk input board class.
 #  The input board frame contains the controls observe the current state of the
@@ -192,11 +192,11 @@ class TkInpBrd():
             inpCardBitFrm.grid(column = TkInpBrd.BITS_IN_ROW - bit - 1, row = 0)
         else:
             inpCardBitFrm.grid(column = rs232Intf.NUM_INP_PER_BRD - bit - 1, row = 1)
-        tmpLbl = Label(inpCardBitFrm, text="%s" % RulesData.INP_BRD_BIT_NAMES[self.brdNum][bit])
+        tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg
-        if (RulesData.INP_BRD_CFG[self.brdNum][bit] == rs232Intf.CFG_INP_STATE):
+        if (GameData.InpBitNames.INP_BRD_CFG[self.brdNum][bit] == rs232Intf.CFG_INP_STATE):
             self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses

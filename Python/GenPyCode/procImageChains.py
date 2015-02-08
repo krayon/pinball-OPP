@@ -234,7 +234,7 @@ class ProcImageChains:
             "",
             "#===============================================================================",
             "",
-            "from rules.images import Images",
+            "from images import Images",
             "",
             "## Image chains class.",
             "#",

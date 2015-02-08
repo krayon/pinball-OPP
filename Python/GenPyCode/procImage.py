@@ -96,7 +96,7 @@ class ProcImage():
         
         # Write image locations
         ProcImage.outHndl.write("\n    ## Background images\n")
-        ProcImage.outHndl.write("    # Indexed into using the [Images](@ref rules.images.Images) class\n")
+        ProcImage.outHndl.write("    # Indexed into using the [Images](@ref images.Images) class\n")
         ProcImage.outHndl.write("    BGND_GRAPHIC_FILES = [")
         index = 0
         for current in ProcImage.loc:

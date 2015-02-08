@@ -47,6 +47,7 @@
 #===============================================================================
 
 from procChains import ProcChains
+import rs232Intf
 
 ## Proc Simple class.
 #
@@ -54,6 +55,7 @@ from procChains import ProcChains
 class ProcSimple():
     foundInit = False
     initMode = ""
+    cardInv = []
 
     ## Initialize the ProcVideo class
     #
@@ -65,6 +67,9 @@ class ProcSimple():
         ProcSimple.foundInit = False
         ProcSimple.tickTime = 20
         ProcSimple.initMode = ""
+        ProcSimple.cardInv = []
+        ProcSimple.currSol = 0
+        ProcSimple.currInp = 0
         
     ## Process section
     #
@@ -93,17 +98,42 @@ class ProcSimple():
                    (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
                 return (902)
             parent.consoleObj.updateConsole("Done processing FIRST_MODE")
+            parent.currToken += 2
         elif (parent.tokens[parent.currToken] == "TICK_TIME"):
             if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
                 parent.consoleObj.updateConsole("!!! Error !!! Indexed variable numEntries, read %s, at line num %d." %
                    (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
                 return (910)
             ProcSimple.tickTime = parent.helpFuncs.out
+            parent.currToken += 2
+        elif (parent.tokens[parent.currToken] == "CARD_ORDER"):
+            parent.currToken += 1
+            if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
+                parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                return (920)
+            closeSymb = parent.helpFuncs.findMatch(parent)
+            parent.currToken += 1
+            while parent.currToken < closeSymb:
+                # Ignore all commas
+                if (parent.tokens[parent.currToken] == ","):
+                    pass
+                elif (parent.tokens[parent.currToken] == "INPUT_CARD"):
+                    ProcSimple.cardInv.append((ord)(rs232Intf.CARD_ID_INP_CARD) + ProcSimple.currInp)
+                    ProcSimple.currInp += 1
+                elif (parent.tokens[parent.currToken] == "SOLENOID_CARD"):
+                    ProcSimple.cardInv.append((ord)(rs232Intf.CARD_ID_SOL_CARD) + ProcSimple.currSol)
+                    ProcSimple.currSol += 1
+                else:
+                    parent.consoleObj.updateConsole("!!! Error !!! Expected INPUT_CARD or SOLENOID_CARD, read %s, at line num %d." %
+                       (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+                    return (921)
+                parent.currToken += 1
+            parent.currToken += 1
         else:
             print parent.tokens[parent.currToken]
             parent.consoleObj.updateConsole("!!! SW Error !!! Expected FIRST_MODE or TICK_TIME, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (920)
-        parent.currToken += 2
         return (0)
         

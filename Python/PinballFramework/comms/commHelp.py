@@ -48,7 +48,6 @@
 
 import rs232Intf
 import errIntf
-from rules.rulesData import RulesData
 from gameData import GameData
 from hwobjs.solBrd import SolBrd
 from hwobjs.inpBrd import InpBrd
@@ -123,7 +122,7 @@ def getInventory(commThread):
 
             #add to the config/read cmd if necessary
             if (len(commThread.solBrdCfg) < commThread.numSolBrd):
-                commThread.solBrdCfg.append(RulesData.SOL_BRD_CFG[commThread.numSolBrd - 1])
+                commThread.solBrdCfg.append(GameData.SolBitNames.SOL_BRD_CFG[commThread.numSolBrd - 1])
                 commThread.updateSolBrdCfg |= (1 << (commThread.numSolBrd - 1))
                 commThread.readInpCmd.append(data[index])
                 commThread.readInpCmd.append(rs232Intf.READ_SOL_INP_CMD)
@@ -136,7 +135,7 @@ def getInventory(commThread):
 
             #add to the config/read cmd if necessary
             if (len(commThread.inpBrdCfg) < commThread.numInpBrd):
-                commThread.inpBrdCfg.append(RulesData.INP_BRD_CFG[commThread.numInpBrd - 1])
+                commThread.inpBrdCfg.append(GameData.InpBitNames.INP_BRD_CFG[commThread.numInpBrd - 1])
                 commThread.updateInpBrdCfg |= (1 << (commThread.numInpBrd - 1))
                 commThread.readInpCmd.append(data[index])
                 commThread.readInpCmd.append(rs232Intf.READ_INP_BRD_CMD)
@@ -154,14 +153,14 @@ def getInventory(commThread):
     commThread.invResp = list(data[1:-1])
     
     #Verify the number of cards is correct
-    if len(commThread.invResp) != len(RulesData.INV_ADDR_LIST):
+    if len(commThread.invResp) != len(GameData.GameConst.INV_ADDR_LIST):
         print "Bad Num Cards.  Expected = %d, Found = %d" % \
-            (len(RulesData.INV_ADDR_LIST), len(commThread.invResp))
+            (len(GameData.GameConst.INV_ADDR_LIST), len(commThread.invResp))
         return (errIntf.BAD_NUM_CARDS)
     for i in xrange(len(commThread.invResp)):
-        if (ord(commThread.invResp[i]) != RulesData.INV_ADDR_LIST[i]):
+        if (ord(commThread.invResp[i]) != GameData.GameConst.INV_ADDR_LIST[i]):
             print "Inv match fail.  Expected = 0x%02x, Rcvd = 0x%02x, index = %d" % \
-                (RulesData.INV_ADDR_LIST[i], ord(commThread.invResp[i]), i)
+                (GameData.GameConst.INV_ADDR_LIST[i], ord(commThread.invResp[i]), i)
             return (errIntf.INV_MATCH_FAIL)
         
     return (errIntf.CMD_OK)

@@ -47,7 +47,6 @@
 #===============================================================================
 
 import rs232Intf
-from rules.rulesData import RulesData
 
 ## Input board class.
 #  Keep information about the input board including configuration and current
@@ -68,13 +67,14 @@ class InpBrd():
     #  Called to add an input card
     #
     #  @param  self          [in]   Object reference
+    #  @param  GameData      [in]   Game Data Object reference
     #  @return None
-    def add_card(self):
+    def add_card(self, GameData):
         brdNum = InpBrd.numInpBrds
         InpBrd.numInpBrds += 1
         bitField = 0
         for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
-            if (RulesData.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
+            if (GameData.InpBitNames.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
                 bitField |= (1 << bit)
         InpBrd.inpCfgBitfield.append(0)
         InpBrd.currInpData.append(0)

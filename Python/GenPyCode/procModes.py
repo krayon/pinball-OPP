@@ -183,13 +183,19 @@ class ProcModes:
                        (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
                     return (1513)
                 # Find the matching close parenthesis
-                ProcModes.outHndl.write("[")
+                if (typeProc == ProcModes.PROC_INIT_CHAIN) or (typeProc == ProcModes.PROC_PROCESS_CHAIN):
+                    ProcModes.outHndl.write("[")
                 closeChainList = parent.helpFuncs.findMatch(parent)
                 parent.currToken += 1
                 subState = ProcModes.FIND_CHAIN
                 hasEntries = False
             elif (tokenType == ProcModes.CLOSE_PAREN):
                 if not hasEntries:
+                    # If this is an audio, LED, scoring, or video chain, need to add starting bracket
+                    # to create an empty list
+                    if (typeProc == ProcModes.PROC_AUDIO_CHAIN) or (typeProc == ProcModes.PROC_LED_CHAIN) or \
+                        (typeProc == ProcModes.PROC_SCORING) or (typeProc == ProcModes.PROC_VIDEO_CHAIN):
+                        ProcModes.outHndl.write("[")
                     # If there are no entries, a close parenthesis is valid
                     ProcModes.outHndl.write("]")
                 else:
@@ -198,7 +204,8 @@ class ProcModes:
                            (parent.lineNumList[parent.currToken]))
                         return (1514)
                     else:
-                        ProcModes.outHndl.write("]")
+                        if (typeProc == ProcModes.PROC_INIT_CHAIN) or (typeProc == ProcModes.PROC_PROCESS_CHAIN):
+                            ProcModes.outHndl.write("]")
                 subState = ProcModes.FIND_OPEN_PAREN
                 if (typeProc == ProcModes.PROC_SCORING):
                     ProcModes.outHndl.write(" ],\n")
@@ -291,9 +298,12 @@ class ProcModes:
                            (typeProc, parent.lineNumList[parent.currToken]))
                         return (1521)
                 else:
-                    parent.consoleObj.updateConsole("!!! Error !!! Can't understand symbol, read %s, at line num %d." %
-                       (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                    return (1522)
+                    # Assume this is the name of a chain
+                    ProcChains.possChainDict[parent.tokens[parent.currToken]] = parent.lineNumList[parent.currToken]
+                    ProcModes.outHndl.write("RulesFunc." + parent.tokens[parent.currToken])
+                    subState = ProcModes.FIND_COMMA
+                    hasEntries = True
+                    parent.currToken += 1
         if (typeProc != ProcModes.PROC_END_MODE):
             parent.consoleObj.updateConsole("!!! Error !!! Mode did not end properly, at line num %d." %
                (parent.lineNumList[parent.currToken]))
@@ -323,10 +333,11 @@ class ProcModes:
             "#===============================================================================",
             "",
             "from rulesFunc import RulesFunc",
-            "from rules.states import State",
-            "from rules.ledChains import LedChains",
-            "from rules.soundChains import SoundChains",
-            "from rules.imageChains import ImageChains",
+            "from states import State",
+            "from ledChains import LedChains",
+            "from soundChains import SoundChains",
+            "from imageChains import ImageChains",
+            "from sounds import Sounds",
             "",
             "## Process chain lists.",
             "#",
@@ -334,16 +345,19 @@ class ProcModes:
             "class ProcChain():",
             "    INIT_CHAIN_OFFSET = 1",
             "    NORM_CHAIN_OFFSET = 2",
-            "    LED_CHAIN_OFFSET = 3",
+            "    IMAGE_CHAIN_OFFSET = 3",
             "    SOUND_CHAIN_OFFSET = 4",
-            "    IMAGE_CHAIN_OFFSET = 5",
+            "    LED_CHAIN_OFFSET = 5",
+            "    VIDEO_CHAIN_OFFSET = 6",
             "",
             "    ## Create process chain lists.",
             "    #    - First entry is State number, only used to ease debugging",
             "    #    - Second entry is initial processing functions, called only when first entering a state",
             "    #    - Third entry are processing functions, called each time the rules thread runs",
-            "    #    - Fourth entry is the LED chain",
+            "    #    - Fourth entry is the image chain",
             "    #    - Fifth entry is the sound chain",
+            "    #    - Sixth entry is the LED chain",
+            "    #    - Seventh entry is the video chain",
             "    PROC_CHAIN = ["]
         # Open the file or create if necessary
         ProcModes.outHndl = open(parent.consoleObj.outDir + os.sep + "procChains.py", 'w+')
@@ -399,7 +413,7 @@ class ProcModes:
 
         # Write out the state name strings
         ProcModes.outHndl.write("\n\n    ## State name strings.\n")
-        ProcModes.outHndl.write("    # Indexed into using [State](@ref rules.states.State) enumeration\n")
+        ProcModes.outHndl.write("    # Indexed into using [State](@ref states.State) enumeration\n")
         ProcModes.outHndl.write("    STATE_STR = [ ")
         for index in xrange(len(ProcModes.desc)):
             if (index != 0):

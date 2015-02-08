@@ -50,7 +50,6 @@
 from Tkinter import Button as Btn
 from Tkinter import Frame, StringVar, Canvas, SUNKEN, RAISED, CENTER
 from ttk import Combobox, Label, Button
-from rules.rulesData import RulesData
 from gameData import GameData
 from comms.commIntf import CommsState
 
@@ -195,7 +194,7 @@ class TkCmdFrm():
     #  @return None
     def Update_Cmd_Frm(self):
         if TkCmdFrm._prevState != GameData.gameMode:
-            TkCmdFrm.rulesStateVar.set(RulesData.STATE_STR[GameData.gameMode])
+            TkCmdFrm.rulesStateVar.set(GameData.States.STATE_STR[GameData.gameMode])
             TkCmdFrm._prevState = GameData.gameMode
         if TkCmdFrm._prevCommState != GameData.commState: 
             TkCmdFrm.commsStateVar.set(CommsState.STATE_STR[GameData.commState])

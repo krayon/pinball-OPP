@@ -208,6 +208,8 @@ class ProcLedCards():
         
         # Write out LED bit enumeration
         for cardIndex in xrange(ProcLedCards.numLedCards):
+            outHndl.write("    {0:32} = 0x{1:05x}\n".format( "LED{0}_ALL_BITS_MSK".format(cardIndex + 1),
+                (cardIndex * 0x100) + 0xff))
             for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
@@ -216,7 +218,7 @@ class ProcLedCards():
                     
         # Write out the bit name strings
         outHndl.write("\n    ## LED board bit names\n")
-        outHndl.write("    # Indexed into using the [LedBitNames](@ref rules.ledBitNames.LedBitNames) class\n")
+        outHndl.write("    # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class\n")
         outHndl.write("    LED_BRD_BIT_NAMES = [ ")
         for cardIndex in xrange(ProcLedCards.numLedCards):
             if (cardIndex != 0):

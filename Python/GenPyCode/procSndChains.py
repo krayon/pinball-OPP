@@ -234,7 +234,7 @@ class ProcSndChains:
             "",
             "#===============================================================================",
             "",
-            "from rules.sounds import Sounds",
+            "from sounds import Sounds",
             "",
             "## Sound chains class.",
             "#",

@@ -48,13 +48,9 @@
 #===============================================================================
 
 import errIntf
-from gameData import GameData
 from tk.tkCmdFrm import TkCmdFrm
 from threading import Thread
-from rules.rulesData import RulesData
 from hwobjs.ledBrd import LedBrd
-from stdFuncs import StdFuncs
-from rules.ledChains import LedChains
 from globConst import GlobConst
 import time
 
@@ -69,11 +65,10 @@ class LedThread(Thread):
     _ledChTime = 0
     _ledCmdWaitTime = 0
         
-    #Create stdFunc instance
-    _stdFuncs = StdFuncs()
-    
     ## Holds previous LED state to see if there are changes
     _prevLedState = []
+
+    GameData = None
     
     ## The constructor.
     def __init__(self):
@@ -83,12 +78,13 @@ class LedThread(Thread):
     #
     #  Initialize the SPI interface to the LED hardware.  Create
     #  previous LED state for each LED board using
-    #  [NUM_LED_BRDS](@ref rules.rulesData.RulesData.NUM_LED_BRDS).
+    #  [NUM_LED_BRDS](@ref rules.rulesData.LedBitNames.NUM_LED_BRDS).
     #
     #  @param  self          [in]   Object reference
     #  @return CMD_OK
-    def init(self):
-        for index in xrange(RulesData.NUM_LED_BRDS):
+    def init(self, gameData):
+        LedThread.GameData = gameData
+        for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
             index = index
             LedThread._prevLedState.append(0)
         return(errIntf.CMD_OK)
@@ -120,14 +116,14 @@ class LedThread(Thread):
     #  @return None 
     def proc_led_chain(self):
         # Check if the LED chain is not empty
-        if GameData.ledChain:
+        if LedThread.GameData.ledChain:
             updateLeds = False
             updateCmd = False
             clearChain = False
             
             # New LED chain is being started
-            if GameData.newLedChain:
-                GameData.newLedChain = False
+            if LedThread.GameData.newLedChain:
+                LedThread.GameData.newLedChain = False
                 LedThread._chainIndex = 0
                 updateCmd = True
             else:
@@ -137,23 +133,23 @@ class LedThread(Thread):
                     updateCmd = True
             if updateCmd:
                 LedThread._ledChTime = 0
-                ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.CH_CMD_OFFSET]
+                ledCmd = LedThread.GameData.ledChain[LedThread.GameData.LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedThread.GameData.LedChains.CH_CMD_OFFSET]
                 
                 # If this is repeat command, move index back to beginning
-                if (ledCmd == LedChains.REPEAT):
+                if (ledCmd == LedThread.GameData.LedChains.REPEAT):
                     LedThread._chainIndex = 0
-                    ledCmd = GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.CH_CMD_OFFSET]
-                if (ledCmd == LedChains.WAIT):
-                    LedThread._ledCmdWaitTime = GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.PARAM_OFFSET]
+                    ledCmd = LedThread.GameData.ledChain[LedThread.GameData.LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedThread.GameData.LedChains.CH_CMD_OFFSET]
+                if (ledCmd == LedThread.GameData.LedChains.WAIT):
+                    LedThread._ledCmdWaitTime = LedThread.GameData.ledChain[LedThread.GameData.LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedThread.GameData.LedChains.PARAM_OFFSET]
                     updateLeds = True
-                elif (ledCmd == LedChains.END_CHAIN):
+                elif (ledCmd == LedThread.GameData.LedChains.END_CHAIN):
                     updateLeds = True
                     clearChain = True
             if updateLeds:
-                StdFuncs.Led_Set(LedThread._stdFuncs, GameData.ledChain[LedChains.MASK_OFFSET], \
-                    GameData.ledChain[LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedChains.CH_LED_BITS_OFFSET])
+                LedThread.GameData.StdFuncs.Led_Set(LedThread.GameData.ledChain[LedThread.GameData.LedChains.MASK_OFFSET], \
+                    LedThread.GameData.ledChain[LedThread.GameData.LedChains.CHAIN_OFFSET][LedThread._chainIndex][LedThread.GameData.LedChains.CH_LED_BITS_OFFSET])
             if clearChain:
-                GameData.ledChain = []
+                LedThread.GameData.ledChain = []
             
     ## Process the LEDs
     #
@@ -163,7 +159,7 @@ class LedThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_leds(self):
-        for index in xrange(RulesData.NUM_LED_BRDS):
+        for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
             if (LedBrd.currBlinkLeds[index] != 0):
                 LedBrd.currLedData[index] ^= LedBrd.currBlinkLeds[index]
             
@@ -182,11 +178,11 @@ class LedThread(Thread):
             self.proc_led_chain()
             
             #Process LEDs if not running in debug mode
-            if not GameData.debug: 
+            if not LedThread.GameData.debug: 
                 self.proc_leds()
             
             #Process LEDs if run button is active
-            elif GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
+            elif LedThread.GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
                 self.proc_leds()
                     

@@ -54,6 +54,8 @@ import re
 #
 #  Contains functions for PROCESS_CHAINS section.
 class ProcChains:
+    possChainDict = dict()
+    
     OPEN_PAREN = 1
     OPEN_CURLY = 2
     COMMAND = 3
@@ -284,24 +286,29 @@ class ProcChains:
             "",
             "#===============================================================================",
             "",
-            "from rules.inpBitNames import InpBitNames",
-            "from rules.solBitNames import SolBitNames",
-            "from rules.ledBitNames import LedBitNames",
-            "from rules.timers import Timers",
-            "from rules.rulesData import RulesData",
-            "from rules.sounds import Sounds",
-            "from rules.sounds import BgndMusic",
-            "from rules.states import State",
-            "from rules.images import Images",
-            "from gameData import GameData",
-            "from stdFuncs import StdFuncs",
+            "from inpBitNames import InpBitNames",
+            "from solBitNames import SolBitNames",
+            "from ledBitNames import LedBitNames",
+            "from timers import Timers",
+            "from rulesData import RulesData",
+            "from sounds import Sounds",
+            "from bgndSounds import BgndMusic",
+            "from states import State",
+            "from images import Images",
             "",
             "## Rules functions class.",
             "#  Contains all the rules that are specific this this set of pinball rules.",
             "",
-            "class RulesFuncs:"
-            "    #Create stdFunc instance",
-            "    stdFuncs = StdFuncs()",
+            "class RulesFunc:",
+            "    ## Initialize rulesFuncs class",
+            "    #",
+            "    #  Initialize rules functions class",
+            "    #",
+            "    #  @param  self          [in]   Object reference",
+            "    #  @param  gameData      [in]   Object reference",
+            "    #  @return None",
+            "    def __init__(self, gameData):",
+            "        RulesFuncs.GameData = gameData",
             ""]
 
         # Open the file or create if necessary

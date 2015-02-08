@@ -272,7 +272,7 @@ class ProcSolCards():
 
         # Write out the bit name strings
         outHndl.write("\n    ## Solenoid board bit names\n")
-        outHndl.write("    # Indexed into using the [SolBitNames](@ref rules.solBitNames.SolBitNames) class\n")
+        outHndl.write("    # Indexed into using the [SolBitNames](@ref solBitNames.SolBitNames) class\n")
         outHndl.write("    SOL_BRD_BIT_NAMES = [ ")
         for cardIndex in xrange(ProcSolCards.numSolCards):
             if (cardIndex != 0):

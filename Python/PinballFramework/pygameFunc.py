@@ -50,8 +50,6 @@ import pygame
 from gameData import GameData
 from dispConstIntf import DispConst
 import dispIntf
-from rules.rulesData import RulesData
-from rules.rulesData import State
 
 ## Pygame data class.
 #
@@ -108,14 +106,14 @@ class Pygame_Data():
                     print "Light mode"
                 elif event.key == pygame.K_c:
                     GameData.credits += 1
-                    if (GameData.gameMode == State.ATTRACT):
+                    if (GameData.gameMode == GameData.States.ATTRACT):
                         GameData.currDisp[DispConst.DISP_CREDIT_BALL_NUM] = GameData.credits
                         GameData.updDisp |= (1 << DispConst.DISP_CREDIT_BALL_NUM)
                 elif event.key == pygame.K_g:
                     #Check if starting a game
-                    if (GameData.gameMode == State.ATTRACT) and (GameData.credits > 0):
+                    if (GameData.gameMode == GameData.States.ATTRACT) and (GameData.credits > 0):
                         GameData.credits -= 1
-                        GameData.gameMode = State.NORMAL_PLAY
+                        GameData.gameMode = GameData.States.NORMAL_PLAY
                         GameData.numPlayers = 1
                         GameData.currBall = 0
                         GameData.currPlayer = 0
@@ -138,7 +136,7 @@ class Pygame_Data():
                         pygame.mixer.music.load("sounds/bgndtrack.mp3")
                         pygame.mixer.music.play(-1)
                     #Check if another player is being added  
-                    elif (GameData.gameMode == State.NORMAL_PLAY) and (GameData.credits > 0):
+                    elif (GameData.gameMode == GameData.States.NORMAL_PLAY) and (GameData.credits > 0):
                         #Only allow adding players if during first ball
                         if (GameData.ballNum < 1) and (GameData.numPlayers < 4):
                             GameData.credits -= 1
@@ -148,13 +146,13 @@ class Pygame_Data():
                             GameData.numPlayers += 1
                 elif event.key == pygame.K_d:
                     #Drain the current ball
-                    if (GameData.gameMode == State.NORMAL_PLAY):
+                    if (GameData.gameMode == GameData.States.NORMAL_PLAY):
                         #If more players, increment currPlayers
                         if (GameData.currPlayer + 1 < GameData.numPlayers):
                             GameData.currPlayer += 1
                             GameData.currDisp[DispConst.DISP_PLAYER_NUM] = GameData.currPlayer + 1
                             GameData.updDisp |= (1 << DispConst.DISP_PLAYER_NUM)
-                        elif (GameData.ballNum + 1 < RulesData.BALLS_PER_GAME):
+                        elif (GameData.ballNum + 1 < GameData.GameConst.BALLS_PER_GAME):
                             GameData.currPlayer = 0
                             GameData.currDisp[DispConst.DISP_PLAYER_NUM] = GameData.currPlayer + 1
                             GameData.updDisp |= (1 << DispConst.DISP_PLAYER_NUM)
@@ -168,7 +166,7 @@ class Pygame_Data():
                             GameData.currDisp[DispConst.DISP_CREDIT_BALL_NUM] = GameData.credits
                             GameData.updDisp |= (1 << DispConst.DISP_CREDIT_BALL_NUM)
                             pygame.mixer.music.stop()
-                            GameData.gameMode = State.ATTRACT
+                            GameData.gameMode = GameData.States.ATTRACT
                 elif (event.key >= pygame.K_0) and (event.key <= pygame.K_9):
                     keyPress = event.key - pygame.K_0
         if keyPress != Pygame_Data.NO_KEY_PRESS:
@@ -177,8 +175,8 @@ class Pygame_Data():
                 dispIntf.playSound(keyPress)
             elif Pygame_Data.inpMode == Pygame_Data.INPMODE_LIGHTS:
                 dispIntf.updateFeatureLight(keyPress, DispConst.LGHT_TOGGLE)
-            if GameData.gameMode == State.NORMAL_PLAY:
-                GameData.score[GameData.currPlayer] += RulesData.SCORE_INC[keyPress]
+            if GameData.gameMode == GameData.States.NORMAL_PLAY:
+                GameData.score[GameData.currPlayer] += GameData.GameConst.SCORE_INC[keyPress]
                 GameData.currDisp[GameData.currPlayer + DispConst.DISP_PLAYER1] = GameData.score[GameData.currPlayer]
                 GameData.updDisp |= (1 << (GameData.currPlayer + DispConst.DISP_PLAYER1))
             keyPress = Pygame_Data.NO_KEY_PRESS
@@ -210,7 +208,7 @@ class Pygame_Data():
                 GameData.currDisp[DispConst.DISP_CREDIT_BALL_NUM] = DispConst.DISP_BLANK
             GameData.updDisp |= (1 << DispConst.DISP_CREDIT_BALL_NUM)
             Pygame_Data.prevCreditBallNum = GameData.creditBallNum
-        for index in xrange(RulesData.MAX_NUM_PLYRS):
+        for index in xrange(GameData.GameConst.MAX_NUM_PLYRS):
             if (Pygame_Data.prevScore[index] != GameData.score[index]):
                 if (GameData.score[index] != DispConst.DISP_BLANK):
                     GameData.currDisp[DispConst.DISP_PLAYER1 + index] = GameData.score[index]
@@ -231,7 +229,7 @@ class Pygame_Data():
             if GameData.bgndSound == 0xffffffff:
                 pygame.mixer.music.stop()
             else:
-                pygame.mixer.music.load(RulesData.BGND_MUSIC_FILES[GameData.bgndSound])
+                pygame.mixer.music.load(GameData.rulesDir + "/" + GameData.BgndMusic.BGND_MUSIC_FILES[GameData.bgndSound])
                 pygame.mixer.music.play(-1)
             GameData.prevBgndSound = GameData.bgndSound
             

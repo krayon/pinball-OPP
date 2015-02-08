@@ -50,15 +50,14 @@
 import thread
 import pygame
 from pygame.locals import *
-from rules.rulesData import RulesData
 from dispConstIntf import DispConst
-from gameData import GameData
 import errIntf
 
 # HRS:  This should be moved into a class.
 updFeatList = []
 updGiState = DispConst.LGHT_ON
 sndPlyr = []
+GameData = None
 
 #Positions for score
 xPos = []
@@ -118,8 +117,8 @@ def updateDisp(disp):
 def createSndPlyr():
     global sndPlyr
     
-    for fileName in RulesData.SND_FILES:
-        sndPlyr.append(pygame.mixer.Sound(fileName))
+    for fileName in GameData.Sounds.SND_FILES:
+        sndPlyr.append(pygame.mixer.Sound(GameData.rulesDir + "/" + fileName))
 
 ## Update a feature light to on/off or blink
 #
@@ -221,13 +220,13 @@ def initScoreDisps():
 
     #Convert score height and positions to simulation size
     if simRatio != 1.0:
-        RulesData.SCORE_HEIGHT = int((RulesData.SCORE_HEIGHT * simRatio) + .5)
-        for index in xrange(len(RulesData.SCORE_DISP_POS)):
-            RulesData.SCORE_DISP_POS[index][0] = int((RulesData.SCORE_DISP_POS[index][0] * simRatio) + .5)
-            RulesData.SCORE_DISP_POS[index][1] = int((RulesData.SCORE_DISP_POS[index][1] * simRatio) + .5)
+        GameData.GameConst.SCORE_HEIGHT = int((GameData.GameConst.SCORE_HEIGHT * simRatio) + .5)
+        for index in xrange(len(GameData.GameConst.SCORE_DISP_POS)):
+            GameData.GameConst.SCORE_DISP_POS[index][0] = int((GameData.GameConst.SCORE_DISP_POS[index][0] * simRatio) + .5)
+            GameData.GameConst.SCORE_DISP_POS[index][1] = int((GameData.GameConst.SCORE_DISP_POS[index][1] * simRatio) + .5)
         
     #Figure out size of score boxes
-    plyrScoreHeight = RulesData.SCORE_HEIGHT
+    plyrScoreHeight = GameData.GameConst.SCORE_HEIGHT
 
     #Optimize font size to height to plyrScoreHeight
     fontHeightGoal = int((plyrScoreHeight * .8) + .5)
@@ -241,13 +240,13 @@ def initScoreDisps():
       
     #Active Player, single digit
     text = digiFont.render("8", 1, orangeColor)
-    yPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER_NUM][1])
-    xPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER_NUM][0] + int((text.get_width()/2.0) + .5))
+    yPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER_NUM][1])
+    xPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER_NUM][0] + int((text.get_width()/2.0) + .5))
 
     #Credits/Ball Num, two digits
     text = digiFont.render("88", 1, orangeColor)
-    yPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_CREDIT_BALL_NUM][1])
-    xPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_CREDIT_BALL_NUM][0] + int((text.get_width()/2.0) + .5))
+    yPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_CREDIT_BALL_NUM][1])
+    xPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_CREDIT_BALL_NUM][0] + int((text.get_width()/2.0) + .5))
     creditWidth = text.get_width()
     creditHeight = text.get_height()
 
@@ -265,9 +264,9 @@ def initScoreDisps():
     scoreHeight = text.get_height()
 
     #Create clear rect for player displays
-    for index in xrange(RulesData.MAX_NUM_PLYRS):
-        yPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][1])
-        xPos.append(RulesData.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][0] + int((text.get_width()/2.0) + .5))
+    for index in xrange(GameData.GameConst.MAX_NUM_PLYRS):
+        yPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][1])
+        xPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][0] + int((text.get_width()/2.0) + .5))
         tmpRect = pygame.Rect(0, 0, scoreWidth, scoreHeight)
         tmpRect.midright = xPos[index], yPos[index]
         clearRect.append(tmpRect)
@@ -284,8 +283,8 @@ def initFeatureLights():
     global simLghtRadius
     global simRatio
     
-    simLghtRadius = int((float(RulesData.LGHT_RADIUS) * simRatio) + .5)
-    for tmpLghtPos in RulesData.FEATURE_LGHT_POS:
+    simLghtRadius = int((float(GameData.GameConst.LGHT_RADIUS) * simRatio) + .5)
+    for tmpLghtPos in GameData.GameConst.FEATURE_LGHT_POS:
         tmpLghtXPos = int((float(tmpLghtPos[0]) * simRatio) + .5)
         tmpLghtYPos = int((float(tmpLghtPos[1]) * simRatio) + .5)
         featureSimLghtPos.append((tmpLghtXPos, tmpLghtYPos))
@@ -302,8 +301,8 @@ def initGenIllumLights():
     global simLghtRadius
     global simRatio
     
-    simLghtRadius = int((float(RulesData.LGHT_RADIUS) * simRatio) + .5)
-    for tmpLghtPos in RulesData.GI_LGHT_POS:
+    simLghtRadius = int((float(GameData.GameConst.LGHT_RADIUS) * simRatio) + .5)
+    for tmpLghtPos in GameData.GameConst.GI_LGHT_POS:
         tmpLghtXPos = int((float(tmpLghtPos[0]) * simRatio) + .5)
         tmpLghtYPos = int((float(tmpLghtPos[1]) * simRatio) + .5)
         giSimLghtPos.append((tmpLghtXPos, tmpLghtYPos))
@@ -335,19 +334,19 @@ def createScreen(mode):
     background.fill((0, 0, 0))
     background.convert()
     screen.blit(background, (0, 0))
-    if len(RulesData.BGND_GRAPHIC_FILES) != 0:
-        for index in xrange(len(RulesData.BGND_GRAPHIC_FILES)):
-            image = pygame.image.load(RulesData.BGND_GRAPHIC_FILES[index])
+    if len(GameData.Images.BGND_GRAPHIC_FILES) != 0:
+        for index in xrange(len(GameData.Images.BGND_GRAPHIC_FILES)):
+            image = pygame.image.load(GameData.rulesDir + "/" + GameData.Images.BGND_GRAPHIC_FILES[index])
             if (mode & pygame.FULLSCREEN) == 0:
                 image = pygame.transform.scale(image, (simWidth, simHeight))
             image.convert()
             imageArr.append(image)
-        if (RulesData.INIT_BGND_IMAGE != DispConst.DISP_BLANK):
-            screen.blit(imageArr[RulesData.INIT_BGND_IMAGE], (0, 0))
+        if (GameData.GameConst.INIT_BGND_IMAGE != DispConst.DISP_BLANK):
+            screen.blit(imageArr[GameData.GameConst.INIT_BGND_IMAGE], (0, 0))
 
     # Show score positions
     text = digiFont.render("8888888888", 1, orangeColor)
-    for index in xrange(RulesData.MAX_NUM_PLYRS):
+    for index in xrange(GameData.GameConst.MAX_NUM_PLYRS):
         textpos = text.get_rect()
         textpos.midright = xPos[index + DispConst.DISP_PLAYER1], yPos[index + DispConst.DISP_PLAYER1]
         screen.blit(text, textpos)
@@ -376,25 +375,26 @@ def createScreen(mode):
 #  all the player displays, feature lights, general illumination lights,
 #  and creates the screens.
 #
+#  @param  gameData       [in]   GameData object
 #  @param  passedSimWidth [in]   Simulated screen width
-#  @param  actWidth       [in]   Width of full sized screen
-#  @param  actHeight      [in]   Height of full sized screen
 #  @param  fullScr        [in]   True if full screen mode.
 #  @return CMD_OK
-def init(passedSimWidth, actWidth, actHeight, fullScr):
+def init(gameData, passedSimWidth, fullScr):
+    global GameData
     global simWidth
     global simHeight
     global simRatio
 
+    GameData = gameData
     simWidth = passedSimWidth
     if fullScr:
         mode = pygame.FULLSCREEN | pygame.NOFRAME
     else:
         mode = 0
-    simRatio = float(simWidth)/float(actWidth)
-    if (simWidth != actWidth):
+    simRatio = float(simWidth)/float(GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.WIDTH_OFFSET])
+    if (simWidth != GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.WIDTH_OFFSET]):
         print "Sim Ratio = %f" % simRatio
-    simHeight = int((simRatio * actHeight) + .5)
+    simHeight = int((simRatio * float(GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.HEIGHT_OFFSET])) + .5)
     pygame.mixer.pre_init(44100, -16, 2, 2048) # setup mixer to avoid sound lag
 
     initScoreDisps()

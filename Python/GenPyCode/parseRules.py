@@ -226,6 +226,7 @@ class ParseRules:
             'VARIABLES': self.procVars.procSection,
             'TICK_TIME': self.procSimple.procSection,
             'FIRST_MODE': self.procSimple.procSection,
+            'CARD_ORDER': self.procSimple.procSection,
             'TIMERS': self.procTimers.procSection,
             'PROCESS_CHAINS': self.procChains.procSection,
             'SOUND_CHAINS': self.procSndChains.procSection,

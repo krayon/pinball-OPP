@@ -49,19 +49,19 @@
 
 import errIntf
 import dispThread
-from gameData import GameData
 
 ## Initialize display function
 #
 #  Call display thread init.  Return any errors from the init call.
 #
+#  @param  gameData      [in]   GameData object
 #  @param  simWidth      [in]   Simulated screen width
 #  @param  actWidth      [in]   Width of full sized screen
 #  @param  actHeight     [in]   Height of full sized screen
 #  @param  fullScr       [in]   True if full screen mode.
 #  @return Errors from display thread initialization.
-def initDisp(simWidth, actWidth, actHeight, fullScr):
-    retVal = dispThread.init(simWidth, actWidth, actHeight, fullScr)
+def initDisp(gameData, simWidth, fullScr):
+    retVal = dispThread.init(gameData, simWidth, fullScr)
     return (retVal)
 
 ## Start display function

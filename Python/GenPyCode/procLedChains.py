@@ -252,7 +252,7 @@ class ProcLedChains:
                            (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
                         return (1221)
                     else:
-                        ProcLedChains.outHndl.write("LedBitNames.{0}".format(parent.tokens[parent.currToken]))
+                        ProcLedChains.outHndl.write("LedBitNames.{0}".format(parent.tokens[parent.currToken].upper()))
                         firstBit = False
                         parent.currToken += 1
                 else:
@@ -287,8 +287,8 @@ class ProcLedChains:
             "",
             "#===============================================================================",
             "",
-            "from rules.states import State",
-            "from rules.ledBitNames import LedBitNames",
+            "from states import State",
+            "from ledBitNames import LedBitNames",
             "",
             "## LED chains class.",
             "#",

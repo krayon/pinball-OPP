@@ -52,7 +52,7 @@ import rs232Intf
 from Tkinter import Button as Btn
 from Tkinter import Frame, StringVar, Canvas, SUNKEN, RAISED
 from ttk import Combobox, Label, Button
-from rules.rulesData import RulesData
+from gameData import GameData
 
 ## Tk solenoid board class.
 #  The solenoid board frame contains the controls observe the current state of the
@@ -198,14 +198,14 @@ class TkSolBrd():
         solCardBitFrm = Frame(self.solCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(solCardBitFrm)
         solCardBitFrm.grid(column = rs232Intf.NUM_SOL_PER_BRD - bit - 1, row = 0)
-        tmpLbl = Label(solCardBitFrm, text="%s" % RulesData.SOL_BRD_BIT_NAMES[self.brdNum][bit])
+        tmpLbl = Label(solCardBitFrm, text="%s" % GameData.SolBitNames.SOL_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg
         cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
         holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
-        if (RulesData.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
-               (ord(RulesData.SOL_BRD_CFG[self.brdNum][holdOffset]) != 0):
+        if (GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
+               (ord(GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][holdOffset]) != 0):
             self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses

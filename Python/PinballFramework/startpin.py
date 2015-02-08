@@ -78,42 +78,47 @@ def main(argv=None):
     actHeight = 1080
     simWidth = 0
     comPort = ""
-    GameData.debug = False
-    GameData.init_brd_objs(GameData())
+    rulesDir = "rules"
 
     fullScreen = False
+    debug = False
     if argv is None:
         argv = sys.argv
     for arg in argv:
         if arg.startswith('-simWidth='):
             simWidth = int(arg[10:])
-        elif arg.startswith('-screen='):
-            temp = arg[8:].split('x')
-            actWidth = int(temp[0])
-            actHeight = int(temp[1])
         elif arg.startswith('-fullscr'):
             fullScreen = True
         elif arg.startswith('-port='):
             comPort = arg[6:]
         elif arg.startswith('-debug'):
-            GameData.debug = True
+            debug = True
+        elif arg.startswith('-rulesDir='):
+            rulesDir = arg[10:]
         elif arg.startswith('-?'):
             print "python startPin.py [OPTIONS]"
             print "    -?                 Options Help"
             print "    -simWidth=         Width of simulation screen in pixels (assumes HD format)"
-            print "    -screen=           Resolution of screen.  -screen=1920x1080 specifies HD format screen"
             print "    -fullscr           Full screen mode"
             print "    -port=             COM port number (ex. COM1)"
+            print "    -debug             Create debug window"
+            print "    -rulesDir=         Directory that contains the rules"
             end = True
     if end:
         return 0
     
+    GameData.debug = debug
+    GameData.init_brd_objs(GameData(rulesDir))
+    
+    actWidth = GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.WIDTH_OFFSET]
+    actHeight = GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.HEIGHT_OFFSET]
+    
     #Set actual width if not entered
     if simWidth == 0:
-        simWidth = actWidth
+        simWidth = GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.WIDTH_OFFSET]
     if (actWidth < simWidth):
-        actWidth = simWidth
-    error = dispIntf.initDisp(simWidth, actWidth, actHeight, fullScreen)
+        GameData.GameConst.DISPLAY_RESOLUTION[GameData.GameConst.WIDTH_OFFSET] = simWidth
+    error = dispIntf.initDisp(GameData, simWidth, fullScreen)
     if error: exit()
     dispIntf.startDisp()
     
@@ -123,7 +128,7 @@ def main(argv=None):
     #If Debugging created debug window
     if GameData.debug:
         tkinterThread = TkinterThread()
-        tkinterThread.init()
+        tkinterThread.init(GameData)
         tkinterThread.start()
         while not TkinterThread.doneInit:
             time.sleep(.1)
@@ -141,12 +146,12 @@ def main(argv=None):
     
     #Initialize the rules thread
     rulesThread = RulesThread()
-    rulesThread.init()
+    rulesThread.init(GameData)
     rulesThread.start()
     
     #Initialize the LED thread
     ledThread = LedThread()
-    ledThread.init()
+    ledThread.init(GameData)
     ledThread.start()
     
     done = False
