@@ -204,9 +204,6 @@ class GameData():
                 if (not failImport):
                     GameData.Timers = importedMode.timers.Timers
             
-        
-        impRulesData = __import__(rulesDir + ".rulesData")
-        GameData.RulesData = impRulesData.rulesData.RulesData
         GameData.gameMode = GameData.RulesData.INIT_MODE
 
     ## Initialize board objects

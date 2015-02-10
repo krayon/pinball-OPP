@@ -96,28 +96,29 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Tilt(self):
-        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.TILT_SWITCH)):
-            RulesFunc.GameData.StdFuncs.Disable_Solenoids()
-            RulesFunc.GameData.gameMode = State.MODE_TILT
+        pass
+#        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.TILT_SWITCH)):
+#            RulesFunc.GameData.StdFuncs.Disable_Solenoids()
+#            RulesFunc.GameData.gameMode = State.MODE_TILT
 
     ## Function Proc_Flipper
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Flipper(self):
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.LFT_FLIP)):
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_LFT_FLIPPER)):
             if ((RulesFunc.prev_flipper & self.LEFT_FLIPPER) == 0):
-                RulesFunc.GameData.StdFuncs.Led_Rot_Left(LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT)
+                RulesFunc.GameData.StdFuncs.Led_Rot_Left(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
                 RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] = RulesFunc.GameData.StdFuncs.Var_Rot_Left(  \
-                    LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
+                    LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
                 RulesFunc.prev_flipper |= self.LEFT_FLIPPER
         else:
             RulesFunc.prev_flipper &= ~self.LEFT_FLIPPER
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.RGHT_FLIP)):
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_RGHT_FLIPPER)):
             if ((RulesFunc.prev_flipper & self.RIGHT_FLIPPER) == 0):
-                RulesFunc.GameData.StdFuncs.Led_Rot_Right(LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT)
+                RulesFunc.GameData.StdFuncs.Led_Rot_Right(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
                 RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] = RulesFunc.GameData.StdFuncs.Var_Rot_Right(  \
-                    LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
+                    LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
                 RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
         else:
             RulesFunc.prev_flipper &= ~self.RIGHT_FLIPPER
@@ -127,40 +128,41 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Inlane(self):
-        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INLANE_LFT) and \
-                not RulesFunc.GameData.StdFuncs.CheckLedBit(LedBitNames.LED_INLANE_LEFT)):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLANE_LEFT)
-            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLANE_LEFT
-        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INLANE_CTR) and \
-                not RulesFunc.GameData.StdFuncs.CheckLedBit(LedBitNames.LED_INLANE_CENTER)):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLANE_CENTER)
-            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLANE_CENTER
-        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INLANE_RGHT) and \
-                not RulesFunc.GameData.StdFuncs.CheckLedBit(LedBitNames.LED_INLANE_RIGHT)):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLANE_RIGHT)
-            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLANE_RIGHT
-        if (RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] & (LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT)) == LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT:
+        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_ROLLOVER) and \
+                not RulesFunc.GameData.StdFuncs.CheckLedBit(LedBitNames.LED_INLN_LFT)):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_LFT)
+            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_LFT
+        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_CTR_ROLLOVER) and \
+                not RulesFunc.GameData.StdFuncs.CheckLedBit(LedBitNames.LED_INLN_CTR)):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_CTR)
+            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_CTR
+        if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_RGHT_ROLLOVER) and \
+                not RulesFunc.GameData.StdFuncs.CheckLedBit(LedBitNames.LED_INLN_RGHT)):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_RGHT)
+            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_RGHT
+        if (RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] & (LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)) == LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT:
             print "Inlanes Complete!!"
             RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += 10
             RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] = 0
-            RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT)
+            RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
 
     ## Function Proc_Targets
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Targets(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.LFT_TRGT_1):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_LEFT_TARGET1)
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_TOP_TRGT):
             self.curr_targets |= self.LFT_TRGT_1 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.LFT_TRGT_2):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_LEFT_TARGET2)
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_BTM_TRGT):
             self.curr_targets |= self.LFT_TRGT_2 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.RGHT_TRGT_1):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_RIGHT_TARGET1)
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_RGHT_ROLLOVER):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_RGHT)
             self.curr_targets |= self.RGHT_TRGT_1 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.RGHT_TRGT_2):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_RIGHT_TARGET2)
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_CTR_ROLLOVER):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_CTR)
+            self.curr_targets |= self.RGHT_TRGT_2 
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_LFT_ROLLOVER):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_LFT)
             self.curr_targets |= self.RGHT_TRGT_2 
         if (self.curr_targets & (self.TRGT_MSK)) == self.TRGT_MSK:
             RulesFunc.GameData.gameMode = State.MODE_TARGETS_COMPLETE
@@ -173,7 +175,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Spinner(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.SPINNER):
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
             RulesFunc.GameData.numSpinners += 1
             
     ## Function Proc_Kickout_Hole
@@ -181,15 +183,15 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Kickout_Hole(self):
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.KICKOUT_HOLE)):
-            RulesFunc.GameData.StdFuncs.Kick(SolBitNames.KICKOUT_HOLE)
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE)):
+            RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
 
     ## Function Proc_Ball_Drain
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Ball_Drain(self):
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.BALL_IN_PLAY)):
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
             RulesFunc.GameData.gameMode = State.MODE_END_OF_BALL
 
     ## Function Proc_Tilt_Init
@@ -198,8 +200,8 @@ class RulesFunc:
     #  @return None
     def Proc_Tilt_Init(self):
         self.tilted = True
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.KICKOUT_HOLE)):
-            RulesFunc.GameData.StdFuncs.Kick(SolBitNames.KICKOUT_HOLE)
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE)):
+            RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
             self.kick_retries = 0
             RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_KICKOUT_TIMER)
         RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_BALL_LOCATE)
@@ -209,17 +211,17 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Tilt_State(self):
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.BALL_IN_PLAY)):
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
             RulesFunc.GameData.StdFuncs.Enable_Solenoids()
             RulesFunc.GameData.gameMode = State.MODE_END_OF_BALL
         if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_KICKOUT_TIMER)):
-            if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.KICKOUT_HOLE)):
+            if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE)):
                 self.kick_retries += 1
                 if (self.kick_retries > 5):
                     RulesFunc.GameData.gameMode = State.MODE_ERROR
                     print "Can't clear kickout hole"
                 RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_KICKOUT_TIMER)
-                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.KICKOUT_HOLE)
+                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
         if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_BALL_LOCATE)):
             RulesFunc.GameData.gameMode = State.MODE_ERROR
             print "Lost Ball"
@@ -241,7 +243,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Add_Coin(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.COIN_DROP):
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_COIN_DROP):
             RulesFunc.GameData.creditsInRow += 1
             RulesFunc.GameData.partCreditsNum += 1
             if (RulesFunc.GameData.creditsInRow == RulesFunc.GameData.extraCredit):
@@ -255,7 +257,7 @@ class RulesFunc:
                 if RulesFunc.GameData.gameMode == State.MODE_PRESS_START:
                     RulesFunc.GameData.creditBallNum = RulesFunc.GameData.credits
                 RulesFunc.GameData.partCreditsNum = 0
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.START_BTN):
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_START):
             RulesFunc.GameData.creditsInRow = 0
 
     ## Function Proc_Press_Start
@@ -263,7 +265,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Press_Start(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.START_BTN) and (RulesFunc.GameData.credits != 0) and \
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_START) and (RulesFunc.GameData.credits != 0) and \
                 (RulesFunc.GameData.ballNum == 0):
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.currPlayer = 0
@@ -281,8 +283,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Press_Start_Init(self):
-        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED1_ALL_BITS_MSK)
-        RulesFunc.GameData.StdFuncs.BgndImage(Images.IMAGE_FULL_BAND)
+        RulesFunc.GameData.StdFuncs.BgndImage(Images.IMAGE_SALOON)
 
     ## Function Proc_Start_and_Coin
     #
@@ -307,15 +308,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_Game(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.BALL_AT_PLUNGER) or \
-                RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.KICKOUT_HOLE):
-            RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
-        elif RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.BALL_IN_PLAY) and \
-                (RulesFunc.GameData.gameMode == State.MODE_START_GAME):
-            RulesFunc.GameData.gameMode = State.MODE_START_BALL
-        else:
-            RulesFunc.GameData.gameMode = State.MODE_ERROR
-            print "Can't find ball"
+        RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
 
     ## Function Proc_Start_Ball_Init
     #
@@ -323,7 +316,7 @@ class RulesFunc:
     #  @return None
     def Proc_Start_Ball_Init(self):
         RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_KICKOUT_TIMER)
-        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.BALL_IN_PLAY)
+        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
         RulesFunc.GameData.kick_retries = 0
 
     ## Function Proc_Start_Ball_Start
@@ -331,25 +324,16 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_Ball_Start(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.BALL_AT_PLUNGER):
-            RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
-        if RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_KICKOUT_TIMER):
-            RulesFunc.GameData.kick_retries += 1
-            if (RulesFunc.GameData.kick_retries > 5):
-                RulesFunc.GameData.gameMode = State.MODE_ERROR
-                print "Ball kick failed!"
-            else:
-                RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_KICKOUT_TIMER)
-                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.BALL_IN_PLAY)
+        # unused since no switch in the plunger lane
+        pass
 
     ## Function Proc_Ball_In_Play_Init
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Ball_In_Play_Init(self):
-        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT | \
-            LedBitNames.LED_LEFT_TARGET1 | LedBitNames.LED_LEFT_TARGET2 | LedBitNames.LED_RIGHT_TARGET1 | LedBitNames.LED_RIGHT_TARGET2 | LedBitNames.LED_SPECIAL)
-        RulesFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLANE_CENTER)
+        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED6_ALL_BITS_MSK)
+        RulesFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_CTR)
         RulesFunc.prev_flipper = 0
         RulesFunc.GameData.targets = 0
         RulesFunc.GameData.tilted = 0
@@ -361,17 +345,17 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Ball_In_Play_Start(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INLANE_LFT):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLANE_LEFT)
-            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLANE_LEFT
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_ROLLOVER):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_LFT)
+            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_LFT
             RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INLANE_RGHT):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLANE_RIGHT)
-            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLANE_RIGHT
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_RGHT_ROLLOVER):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_RGHT)
+            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_RGHT
             RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INLANE_CTR):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLANE_CENTER)
-            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLANE_CENTER
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_CTR_ROLLOVER):
+            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_CTR)
+            RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_CTR
             RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_DING_DING)
             print "Skill Shot"
             RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += 10
@@ -385,7 +369,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Normal_Play_Init(self):
-        RulesFunc.GameData.StdFuncs.Led_Set(LedBitNames.LED_INLANE_LEFT | LedBitNames.LED_INLANE_CENTER | LedBitNames.LED_INLANE_RIGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
+        RulesFunc.GameData.StdFuncs.Led_Set(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
 
     ## Function Proc_Normal_Play
     #
@@ -447,11 +431,13 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Targets_Comp_Init(self):
-        RulesFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SPECIAL)
+        RulesFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
         RulesFunc.GameData.scoreLvl = 1
         self.curr_targets = 0
         RulesFunc.GameData.StdFuncs.Led_Off( \
-            LedBitNames.LED_LEFT_TARGET1 | LedBitNames.LED_LEFT_TARGET2 | LedBitNames.LED_RIGHT_TARGET1 | LedBitNames.LED_RIGHT_TARGET2)
+            LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | \
+            LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7)
+            
         RulesFunc.GameData.bonusMult += 1
         print "Bonus mult = %d" % RulesFunc.GameData.bonusMult
         RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += 10
@@ -463,11 +449,11 @@ class RulesFunc:
     #  @return None
     def Proc_Targets_Comp_State(self):
         self.Proc_Normal_Play()
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.KICKOUT_HOLE)):
+        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE)):
             print "Collect Bonus"
             RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += (RulesFunc.GameData.bonusMult * RulesFunc.GameData.numSpinners)
         if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SPECIAL_TIMER)):
-            RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_SPECIAL)
+            RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_SHOOT_AGAIN)
             RulesFunc.GameData.scoreLvl = 0
             RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
 
