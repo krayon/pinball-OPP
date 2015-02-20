@@ -298,6 +298,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Init_Game(self):
+        RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_HOWDYFOLKS)
         RulesFunc.GameData.ballNum = 0
         RulesFunc.GameData.bonusMult = 1
         for i in xrange(RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
@@ -356,7 +357,7 @@ class RulesFunc:
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_CTR_ROLLOVER):
             RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_CTR)
             RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_CTR
-            RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_DING_DING)
+            RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_NICE_SHOOTIN_TEX)
             print "Skill Shot"
             RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += 10
             RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY

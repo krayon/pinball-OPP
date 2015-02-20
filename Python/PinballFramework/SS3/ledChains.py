@@ -80,7 +80,8 @@ class LedChains():    # LED chain commands
             [LedBitNames.LED_DT_4,  WAIT, 100],
             [LedBitNames.LED_DT_5,  WAIT, 100],
             [LedBitNames.LED_DT_6,  WAIT, 100],
-            [LedBitNames.LED_DT_7, REPEAT, 0] ] ]
+            [LedBitNames.LED_DT_7,  WAIT, 100],
+            [0, REPEAT, 0] ] ]
 
     ## LED Chain LedCh_Tilt
     #    - First entry is LED mask

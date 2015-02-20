@@ -47,6 +47,8 @@
 
 #===============================================================================
 
+from images import Images
+
 ## Game constant class.
 #  Contains the configuration of the pinball rules such as balls/game, num players,
 #  feature light/GI light locations if the display is used to backlight a translight.
@@ -88,6 +90,9 @@ class GameConst:
     
     ## Switch input point values
     SCORE_INC = [10, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    ## Initial background image
+    INIT_BGND_IMAGE = Images.IMAGE_FULL_BAND
 
     ## Input board scoring
     INP_SCORE = [ [ [ 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1 ] ],   # Normal scoring

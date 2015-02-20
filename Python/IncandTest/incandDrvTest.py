@@ -140,6 +140,7 @@ for arg in sys.argv:
     print "    -test=testNum      test number, defaults to 0"
     print "    -invert            invert SPI signals (original volt converter)"
     print "-test=0: Walking 1 on lights."
+    print "-test=1: Walking 1 on each card, 'n' moves to next bit."
     end = True
 if end:
     print "\nPress any key to close window"
@@ -168,6 +169,26 @@ if (testNum == 0):
             if ((char == 'x') or (char == 'X')):
                 print "\nCount = %d" % count
                 exitReq = True
+elif (testNum == 1):
+    exitReq = False
+    count = 0
+    outData = [0xfe] * numCards
+    updateLights(outData)
+    while (not exitReq):
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if ((char == 'x') or (char == 'X')):
+                print "\nCount = %d" % count
+                exitReq = True
+            if ((char == 'n') or (char == 'N')):
+                count += 1
+                if (count >= 8):
+                    count = 0
+                for index in range(numCards):
+                    outData[index] = ~(1 << count)
+                updateLights(outData)
+                print "\nCount = 0x%02x" % (1 << cout)
 print "\nSuccessful completion."
 print "\nPress any key to close window"
 ch = msvcrt.getch()

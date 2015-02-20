@@ -178,6 +178,9 @@ SOUND_CLIPS
 {
    #Name                   Location
    Sound_HowdyFolks        "sounds/howdyFolks.wav"
+   Sound_Yall_Come_Back    "sounds/yallComeBack.wav"
+   Sound_Hell_Of_A_Shot    "sounds/hellOfaShotMister.wav"
+   Sound_Nice_Shootin_Tex  "sounds/niceShootinTex.wav"
    Sound_Ding_Ding         "sounds/ding_ding.wav"
    Sound_Wah_Wuh           "sounds/wah_wuh.wav"
 }
@@ -373,7 +376,7 @@ LED_CHAINS
    #Name                   Processing (Mask, bits, cmd, bits, cmd, ...)
    LedCh_Attract           {(Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7),
                               Led_DT_1, WAIT 100, Led_DT_2, WAIT 100, Led_DT_3, WAIT 100, Led_DT_4, WAIT 100,
-                              Led_DT_5, WAIT 100, Led_DT_6, WAIT 100, Led_DT_7, REPEAT}
+                              Led_DT_5, WAIT 100, Led_DT_6, WAIT 100, Led_DT_7, WAIT 100, 0, REPEAT}
    
    LedCh_Tilt              {(Led_Shoot_Again), 0, END_CHAIN}
 }
@@ -381,7 +384,7 @@ LED_CHAINS
 SOUND_CHAINS
 {
    #Name                   Processing (sound, cmd, sound, cmd, ...)
-   SndCh_Start             { Sound_HowdyFolks, WAIT 5000, REPEAT}
+   SndCh_Attract           { Sound_Yall_Come_Back, WAIT 30000, REPEAT}
 }
 
 IMAGE_CHAINS
@@ -400,9 +403,9 @@ MODES
    Mode_Init               "Init"		{(Proc_Init)               ()                                                 ()
                                           		()                                          ()                                             ()}
    Mode_Attract            "Attract"	{()                        (Proc_Init, Proc_Add_Coin)                         (ImageCh_Attract)
-                                          		()                                          (LedCh_Attract)                                ()}
+                                          		(SndCh_Attract)                             (LedCh_Attract)                                ()}
    Mode_Press_Start        "PrssStrt"	{(Proc_Press_Start_Init)   (Proc_Start_and_Coin)                              ()
-                                          		(SndCh_Start)                               (LedCh_Attract)                                ()}
+                                          		()                                          (LedCh_Attract)                                ()}
    Mode_Start_Game         "StrtGame"	{(Proc_Init_Game)          (Proc_Start_Game, Proc_Start_and_Coin)             ()                        
                                           		()                                          ()                                             ()}
    Mode_Start_Ball         "StrtBall"	{(Proc_Start_Ball_Init)    (Proc_Start_Ball_Start, Proc_Start_and_Coin)       ()

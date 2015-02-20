@@ -90,5 +90,19 @@ class GameConst:
     ## Height of score displays
     SCORE_HEIGHT = 100
     
+    ## Initial background image
     INIT_BGND_IMAGE = Images.IMAGE_SALOON
+
+    ## Input board scoring
+    INP_SCORE = [ [ [ 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1 ],     # Normal scoring
+                    [ 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1 ] ],
+                  [ [ 2, 2, 2, 2, 2, 2, 2, 2, 0, 0, 2, 2, 0, 2, 2, 2 ],     # Special scoring
+                    [ 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2 ] ] ]
+
+    ## Input board scoring
+    SOL_SCORE = [ [ [ 1, 1, 0, 1, 1, 0, 0, 1 ],     # Normal scoring
+                    [ 0, 0, 0, 0, 0, 0, 1, 1 ] ],
+                  [ [ 2, 2, 0, 2, 2, 0, 0, 2 ],     # Special scoring
+                    [ 0, 0, 0, 0, 0, 0, 2, 2 ] ] ]
     
+       

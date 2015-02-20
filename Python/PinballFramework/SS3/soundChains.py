@@ -69,10 +69,9 @@ class SoundChains():    # Sound chain commands
     CH_CMD_OFFSET = 1
     PARAM_OFFSET = 2
 
-    ## Sound Chain SndCh_Start
+    ## Sound Chain SndCh_Attract
     #    - Groups have sound name then WAIT command
     #    - Chain ends with REPEAT if desired
-    SndCh_Start = [
-        [Sounds.SOUND_HOWDYFOLKS,  WAIT, 5000],
+    SndCh_Attract = [
+        [Sounds.SOUND_YALL_COME_BACK,  WAIT, 30000],
         [0, REPEAT, 0] ]
-

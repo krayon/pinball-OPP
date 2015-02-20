@@ -54,10 +54,13 @@
 #  Contains an entry for each sound
 class Sounds():
     SOUND_HOWDYFOLKS     = 0
-    SOUND_DING_DING      = 1
-    SOUND_WAH_WUH        = 2
+    SOUND_YALL_COME_BACK = 1
+    SOUND_HELL_OF_A_SHOT = 2
+    SOUND_NICE_SHOOTIN_TEX = 3
+    SOUND_DING_DING      = 4
+    SOUND_WAH_WUH        = 5
 
     ## Sound file list
     # Indexed into using the [Sounds](@ref sounds.Sounds) class
-    SND_FILES = ["sounds/howdyFolks.wav", "sounds/ding_ding.wav", "sounds/wah_wuh.wav"]
-
+    SND_FILES = ["sounds/howdyFolks.wav", "sounds/yallComeBack.wav", "sounds/hellOfaShotMister.wav", "sounds/niceShootinTex.wav", "sounds/ding_ding.wav", 
+        "sounds/wah_wuh.wav"]
