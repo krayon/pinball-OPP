@@ -123,7 +123,7 @@ def main(argv=None):
     dispIntf.startDisp()
     
     #Initialize Pygame class
-    pygame = Pygame_Data()
+    pygame = Pygame_Data(GameData)
     
     #If Debugging created debug window
     if GameData.debug:

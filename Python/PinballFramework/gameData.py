@@ -63,12 +63,15 @@ class GameData():
     partCreditsNum = 0
     extraCredit = 5
     partCreditsDenom = 2
-    creditBallNum = 0
+    
+    # Used to change displayed values
+    creditBallNumDisp = 0
+    currPlyrDisp = 0
+    score = [0, 0, 0, 0]
     
     prevGameMode = 0xffffffff
     gameMode = 0
     commState = CommsState.COMM_INIT
-    score = [0, 0, 0, 0]
     ballNum = 0
     currPlayer = 0
     numPlayers = 0
@@ -81,8 +84,8 @@ class GameData():
     scoring = False
     
     # Current display values
-    currDisp = [DispConst.DISP_BLANK, DispConst.DISP_BLANK, DispConst.DISP_BLANK, DispConst.DISP_BLANK,
-                DispConst.DISP_BLANK, DispConst.DISP_BLANK]
+    currDisp = [0, 0, 0, 0, 0, 0]
+    blankDisp = [True, True, True, True, True, True]
     updDisp = 0
     
     debug = False

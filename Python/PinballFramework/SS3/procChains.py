@@ -79,10 +79,10 @@ class ProcChain():
     #    - Seventh entry is the video chain
     PROC_CHAIN = [
         [State.MODE_INIT, [RulesFunc.Proc_Init], [], [], [], [], [] ],
-        [State.MODE_ATTRACT, [], [RulesFunc.Proc_Init, RulesFunc.Proc_Add_Coin], ImageChains.ImageCh_Attract, SoundChains.SndCh_Attract, LedChains.LedCh_Attract, [] ],
-        [State.MODE_PRESS_START, [RulesFunc.Proc_Press_Start_Init], [RulesFunc.Proc_Start_and_Coin], [], [], LedChains.LedCh_Attract, [] ],
-        [State.MODE_START_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game, RulesFunc.Proc_Start_and_Coin], [], [], [], [] ],
-        [State.MODE_START_BALL, [RulesFunc.Proc_Start_Ball_Init], [RulesFunc.Proc_Start_Ball_Start, RulesFunc.Proc_Start_and_Coin], [], [], [], [] ],
+        [State.MODE_ATTRACT, [], [RulesFunc.Proc_Start_and_Coin], ImageChains.ImageCh_Attract, SoundChains.SndCh_Attract, LedChains.LedCh_Attract, [] ],
+        [State.MODE_PRESS_START, [], [], [], [], [], [] ],
+        [State.MODE_START_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game], [], [], [], [] ],
+        [State.MODE_START_BALL, [], [], [], [], [], [] ],
         [State.MODE_BALL_IN_PLAY, [RulesFunc.Proc_Ball_In_Play_Init], [RulesFunc.Proc_Ball_In_Play_Start, RulesFunc.Proc_Start_and_Coin], [], [], [], [] ],
         [State.MODE_NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play], [], [], [], [] ],
         [State.MODE_ERROR, [], [], [], [], [], [] ],

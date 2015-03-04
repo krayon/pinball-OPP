@@ -100,9 +100,10 @@ def updateDisp(disp):
     global screen
     global background
     global clearRect
+    global GameData
 
     screen.blit(background, clearRect[disp], clearRect[disp])
-    if (GameData.currDisp[disp] != DispConst.DISP_BLANK):
+    if not GameData.blankDisp[disp]:
         text = digiFont.render(str(GameData.currDisp[disp]), 1, orangeColor)
         textpos = text.get_rect()
         textpos.midright = xPos[disp], yPos[disp]
@@ -266,9 +267,9 @@ def initScoreDisps():
     #Create clear rect for player displays
     for index in xrange(GameData.GameConst.MAX_NUM_PLYRS):
         yPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][1])
-        xPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][0] + int((text.get_width()/2.0) + .5))
+        xPos.append(GameData.GameConst.SCORE_DISP_POS[DispConst.DISP_PLAYER1 + index][0] + int((scoreWidth/2.0) + .5))
         tmpRect = pygame.Rect(0, 0, scoreWidth, scoreHeight)
-        tmpRect.midright = xPos[index], yPos[index]
+        tmpRect.midright = xPos[DispConst.DISP_PLAYER1 + index], yPos[DispConst.DISP_PLAYER1 + index]
         clearRect.append(tmpRect)
 
     #Create background rectangle for updating bgnd image

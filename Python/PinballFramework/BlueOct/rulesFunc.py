@@ -230,7 +230,7 @@ class RulesFunc:
     #  @return None
     def Proc_Init(self):
         RulesFunc.GameData.StdFuncs.Disable_Solenoids()
-        RulesFunc.GameData.creditBallNum = RulesFunc.GameData.credits
+        RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
         if (RulesFunc.GameData.credits == 0):
             RulesFunc.GameData.gameMode = State.MODE_ATTRACT
         else:
@@ -247,13 +247,13 @@ class RulesFunc:
             if (RulesFunc.GameData.creditsInRow == RulesFunc.GameData.extraCredit):
                 RulesFunc.GameData.credits += 1
                 if RulesFunc.GameData.gameMode == State.MODE_PRESS_START:
-                    RulesFunc.GameData.creditBallNum = RulesFunc.GameData.credits
+                    RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.creditsInRow = 0
                 RulesFunc.GameData.partCreditsNum = 0
             if (RulesFunc.GameData.partCreditsNum == RulesFunc.GameData.partCreditsDenom):
                 RulesFunc.GameData.credits += 1
                 if RulesFunc.GameData.gameMode == State.MODE_PRESS_START:
-                    RulesFunc.GameData.creditBallNum = RulesFunc.GameData.credits
+                    RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.partCreditsNum = 0
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.START_BTN):
             RulesFunc.GameData.creditsInRow = 0
@@ -266,11 +266,11 @@ class RulesFunc:
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.START_BTN) and (RulesFunc.GameData.credits != 0) and \
                 (RulesFunc.GameData.ballNum == 0):
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
-                RulesFunc.GameData.currPlayer = 0
+                RulesFunc.GameData.currPlyrDisp = 1
                 RulesFunc.GameData.credits -= 1
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
                 RulesFunc.GameData.numPlayers += 1
-                RulesFunc.GameData.creditBallNum = RulesFunc.GameData.ballNum + 1
+                RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.ballNum + 1
             RulesFunc.GameData.gameMode = State.MODE_START_GAME
         if (RulesFunc.GameData.gameMode == State.MODE_PRESS_START):
             RulesFunc.GameData.StdFuncs.BlankScoreDisps()
@@ -415,12 +415,14 @@ class RulesFunc:
         RulesFunc.GameData.numSpinners = 0
         RulesFunc.GameData.scoring = False
         RulesFunc.GameData.currPlayer += 1
+        RulesFunc.GameData.currPlyrDisp += 1
         if (RulesFunc.GameData.currPlayer >= RulesFunc.GameData.numPlayers):
             RulesFunc.GameData.currPlayer = 0
+            RulesFunc.GameData.currPlyrDisp = 1
             RulesFunc.GameData.ballNum += 1
             if (RulesFunc.GameData.ballNum >= RulesFunc.GameData.GameConst.BALLS_PER_GAME):
                 print "Game over"
-                RulesFunc.GameData.creditBallNum = RulesFunc.GameData.credits
+                RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.StdFuncs.StopBgnd();
                 RulesFunc.GameData.StdFuncs.Wait(3000)
                 if (RulesFunc.GameData.credits == 0):
@@ -430,7 +432,7 @@ class RulesFunc:
             else:
                 print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
                 RulesFunc.GameData.gameMode = State.MODE_START_BALL
-                RulesFunc.GameData.creditBallNum = RulesFunc.GameData.ballNum + 1
+                RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.ballNum + 1
         else:
             print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
             RulesFunc.GameData.gameMode = State.MODE_START_BALL
