@@ -55,6 +55,7 @@ import re
 #  Contains functions for PROCESS_CHAINS section.
 class ProcChains:
     possChainDict = dict()
+    ledDict = dict()
     
     OPEN_PAREN = 1
     OPEN_CURLY = 2
@@ -384,3 +385,14 @@ class ProcChains:
                    (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
                 return (1120)
         return (0)
+
+
+    ## Find bit
+    #
+    # Find the bit using a name
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  name          [in]   Bit name
+    #  @return cardNum
+    def findBit(self, name):
+        return (self.ledDict[name])

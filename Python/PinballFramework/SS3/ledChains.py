@@ -73,19 +73,21 @@ class LedChains():    # LED chain commands
     ## LED Chain LedCh_Attract
     #    - First entry is LED mask
     #    - Next groups have a bitfield of LEDs to change and command
-    LedCh_Attract = [ LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7,
-          [ [LedBitNames.LED_DT_1,  WAIT, 100],
-            [LedBitNames.LED_DT_2,  WAIT, 100],
-            [LedBitNames.LED_DT_3,  WAIT, 100],
-            [LedBitNames.LED_DT_4,  WAIT, 100],
-            [LedBitNames.LED_DT_5,  WAIT, 100],
-            [LedBitNames.LED_DT_6,  WAIT, 100],
-            [LedBitNames.LED_DT_7,  WAIT, 100],
-            [0, REPEAT, 0] ] ]
+    LedCh_Attract = [
+        [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7 ],
+        [ [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_1 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_2 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_3 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_4 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_5 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_6 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, LedBitNames.LED_DT_7 ],  WAIT, 100],
+          [ [ 0, 0, 0, 0, 0, 0 ], REPEAT, 0] ] ]
 
     ## LED Chain LedCh_Tilt
     #    - First entry is LED mask
     #    - Next groups have a bitfield of LEDs to change and command
-    LedCh_Tilt = [ LedBitNames.LED_SHOOT_AGAIN,
-          [ [0, END_CHAIN, 0] ] ]
+    LedCh_Tilt = [
+        [ 0, 0, 0, LedBitNames.LED_SHOOT_AGAIN, 0, 0 ],
+        [ [ [ 0, 0, 0, 0, 0, 0 ], END_CHAIN, 0] ] ]
 

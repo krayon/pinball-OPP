@@ -54,6 +54,7 @@ from procChains import ProcChains
 #
 #  Contains functions for LED_CARDS section.
 class ProcLedCards():
+    numLedCards = 0
 
     ## Initialize the ProcLedCards class
     #
@@ -64,7 +65,6 @@ class ProcLedCards():
     def __init__(self):
         self.out = 0
         ProcLedCards.hasData = False
-        ProcLedCards.numLedCards = 0
         ProcLedCards.ledCfgBits = []
         ProcLedCards.name = []
         ProcLedCards.cardNum = []
@@ -122,38 +122,42 @@ class ProcLedCards():
     def procLine(self, parent):
         name = parent.tokens[parent.currToken]
         ProcLedCards.name.append(name)
+        if ProcChains.checkNameExists(parent.procChains, name):
+            parent.consoleObj.updateConsole("!!! Error !!! LED bit name already exists, read %s, at line num %d." %
+               (name, parent.lineNumList[parent.currToken]))
+            return (410)           
         ProcChains.addName(parent.procChains, name, ProcChains.LED_BIT)
         
         # Verify card num
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
             parent.consoleObj.updateConsole("!!! Error !!! LED card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
-            return (410)
+            return (411)
         # Convert from 1 base to 0 based card num
         cardNum = parent.helpFuncs.out - 1
         # Card number is base 1
         if (cardNum < 0) or (cardNum >= ProcLedCards.numLedCards):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal LED card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
-            return (411)
+            return (412)
         ProcLedCards.cardNum.append(cardNum)
         
         # Verify pin num
         if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 2]):
             parent.consoleObj.updateConsole("!!! Error !!! LED pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
-            return (412)
+            return (413)
         # Convert from 1 base to 0 based pin num
         pinNum = parent.helpFuncs.out - 1
         # Pin number is base 1
         if (pinNum < 0) or (pinNum >= ProcLedCards.NUM_LED_BITS):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal LED pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
-            return (413)
+            return (414)
         if (ProcLedCards.ledCfgBits[cardNum] & (1 << pinNum)) != 0: 
             parent.consoleObj.updateConsole("!!! Error !!! LED pin configured multiple times, at line num %d." %
                (parent.lineNumList[parent.currToken + 2]))
-            return (414)
+            return (415)
         ProcLedCards.ledCfgBits[cardNum] |= (1 << pinNum)
         ProcLedCards.pinNum.append(pinNum)
         
@@ -215,6 +219,9 @@ class ProcLedCards():
                 if found:
                     outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcLedCards.name[self.out].upper(),
                         ((cardIndex << 16) | (1 << bitIndex))))
+                    # Create the LED name dictionary
+                    parent.procChains.ledDict[ProcLedCards.name[self.out].upper()] = ((cardIndex << 16) | (1 << bitIndex))
+        
                     
         # Write out the bit name strings
         outHndl.write("\n    ## LED board bit names\n")
@@ -257,5 +264,4 @@ class ProcLedCards():
                 self.out = index
                 return True
         return False
-
 

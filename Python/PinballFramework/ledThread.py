@@ -64,7 +64,14 @@ class LedThread(Thread):
     _chainIndex = 0
     _ledChTime = 0
     _ledCmdWaitTime = 0
-        
+    _commsActive = False
+    _pport = 0
+    
+    # Parallel port hardware control lines
+    _CLK = 0x04
+    _DATA = 0x01
+    _LATCH = 0x02
+    
     ## Holds previous LED state to see if there are changes
     _prevLedState = []
 
@@ -162,6 +169,8 @@ class LedThread(Thread):
         for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
             if (LedBrd.currBlinkLeds[index] != 0):
                 LedBrd.currLedData[index] ^= LedBrd.currBlinkLeds[index]
+        if (LedThread._pport != 0):
+            self.updateLights(LedBrd.currLedData)
             
     ## The LED thread
     #
@@ -184,7 +193,57 @@ class LedThread(Thread):
             #Process LEDs if run button is active
             elif LedThread.GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
+                if LedThread._pport == 0 and TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX] and \
+                    TkCmdFrm.toggleState[TkCmdFrm.COMMS_THREAD_IDX]:
+                    import parallel
+                    LedThread._pport = parallel.Parallel()
                 self.proc_leds()
                     
             #Sleep until next LED processing time
             time.sleep(float(GlobConst.LED_SLEEP)/1000.0)
+            
+    ## Update lights
+    #
+    #  Update all lights using byte list
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  byteList      [in]   List of bytes to send
+    #  @return None 
+    def updateLights(self, byteList):
+        for data in byteList:
+            self.sendByte(data)
+        self.endWrite()
+
+    ## Send byte
+    #
+    #  Bit banging the parallel port control/data lines to send a byte
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  data          [in]   Byte to send
+    #  @return None 
+    def sendByte(self, data):
+        for i in xrange(8):
+            if (data & (1 << i) != 0):
+                #Data bit is set, so clear it
+                dataOut = LedThread._DATA
+            else:
+                #Data bit is clear, so set it
+                dataOut = 0
+            #Set the data up, clock is low, and latch is low
+            LedThread._pport.setData(dataOut)
+            #Clock the data bit in
+            LedThread._pport.setData(dataOut | LedThread._CLK)
+
+    ## End write
+    #
+    #  End the write and latch the data
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
+    def endWrite(self):
+        #Bring the clock low, data doesn't matter, latch remains low
+        LedThread._pport.setData(0)
+        #Bring the latch high
+        LedThread._pport.setData(LedThread._LATCH)
+        #Bring the latch low to end the cycle
+        LedThread._pport.setData(0)

@@ -57,15 +57,14 @@ import msvcrt
 testNum = 0
 numCards = 1
 
-#Note: Original level shifter reverses signal level, so a 1 is a 0 on the line
 CLK = 0x04
 DATA = 0x01
 LATCH = 0x02
 
 def updateLights(byteList):
     for data in byteList:
-        sendByte(data);
-    endWrite();
+        sendByte(data)
+    endWrite()
     time.sleep(.1)
 
 #Send byte

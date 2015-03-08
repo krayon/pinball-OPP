@@ -49,6 +49,7 @@
 import os
 import time
 from procChains import ProcChains
+from procLedCards import ProcLedCards
 
 ## Proc LED Chains class.
 #
@@ -131,6 +132,9 @@ class ProcLedChains:
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
     def procAllChains(self, parent):
+        # Create the lists to support multiple LED cards
+        ledCard = [[] for _ in range(ProcLedCards.numLedCards)]
+        
         # Copy name
         name = parent.tokens[parent.currToken]
         if (name in ProcLedChains.nameSet):
@@ -142,7 +146,7 @@ class ProcLedChains:
         ProcLedChains.outHndl.write("    ## LED Chain {0}\n".format(name))
         ProcLedChains.outHndl.write("    #    - First entry is LED mask\n")
         ProcLedChains.outHndl.write("    #    - Next groups have a bitfield of LEDs to change and command\n")
-        ProcLedChains.outHndl.write("    {0} = [ ".format(name))
+        ProcLedChains.outHndl.write("    {0} = [".format(name))
 
         # Verify opening symbol
         parent.currToken += 1
@@ -173,7 +177,7 @@ class ProcLedChains:
                     parent.consoleObj.updateConsole("!!! Error !!! WAIT parameter should be integer, read %s, at line num %d." %
                        (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
                     return (1213)
-                ProcLedChains.outHndl.write(" WAIT, " + parent.tokens[parent.currToken + 1] + "],\n            [")
+                ProcLedChains.outHndl.write(" WAIT, " + parent.tokens[parent.currToken + 1] + "],\n          [ ")
                 # If any close parenthesis exist eat them
                 parent.currToken += 2
                 while (ProcLedChains.tokenLookup[parent.tokens[parent.currToken]] == ProcLedChains.CLOSE_PAREN):
@@ -203,17 +207,39 @@ class ProcLedChains:
                 parent.currToken += 1
                 typeProc = ProcLedChains.PROC_DONE_CHAIN
             elif tokenType == ProcLedChains.COMMA:
-                # HRS:  This has some problems.  Right now we OR all the bits together.  This will not work with multiple
-                #   cards, but should be a list of all LED cards with a bit mask for each card.
                 if typeProc == ProcLedChains.PROC_MASK:
-                    ProcLedChains.outHndl.write(",\n          [ [")
+                    ProcLedChains.outHndl.write("\n        [ ")
+                    for card in xrange(ProcLedCards.numLedCards):
+                        if (card != 0):
+                            ProcLedChains.outHndl.write(", ")
+                        if len(ledCard[card]) == 0:
+                            ProcLedChains.outHndl.write("0")
+                        else:
+                            for bit in xrange(len(ledCard[card])):
+                                if (bit != 0):
+                                    ProcLedChains.outHndl.write(" | ")
+                                ProcLedChains.outHndl.write(ledCard[card][bit])
+                    ProcLedChains.outHndl.write(" ],\n        [ [ ")
                     parent.currToken += 1
                     typeProc = ProcLedChains.PROC_LED_BIT
                     firstBit = True
+                    ledCard = [[] for _ in range(ProcLedCards.numLedCards)]
                 elif  typeProc == ProcLedChains.PROC_LED_BIT:
-                    ProcLedChains.outHndl.write(", ")
-                    typeProc = ProcLedChains.PROC_COMMAND
+                    ProcLedChains.outHndl.write("[ ")
+                    for card in xrange(ProcLedCards.numLedCards):
+                        if (card != 0):
+                            ProcLedChains.outHndl.write(", ")
+                        if len(ledCard[card]) == 0:
+                            ProcLedChains.outHndl.write("0")
+                        else:
+                            for bit in xrange(len(ledCard[card])):
+                                if (bit != 0):
+                                    ProcLedChains.outHndl.write(" | ")
+                                ProcLedChains.outHndl.write(ledCard[card][bit])
+                    ProcLedChains.outHndl.write(" ], ")
                     parent.currToken += 1
+                    typeProc = ProcLedChains.PROC_COMMAND
+                    ledCard = [[] for _ in range(ProcLedCards.numLedCards)]
                 else:
                     parent.consoleObj.updateConsole("!!! Error !!! Unexpected comma at line num %d." %
                        (parent.lineNumList[parent.currToken]))
@@ -223,7 +249,6 @@ class ProcLedChains:
                     parent.consoleObj.updateConsole("!!! Error !!! Unexpected | at line num %d." %
                        (parent.lineNumList[parent.currToken]))
                     return (1218)
-                ProcLedChains.outHndl.write(" | ")
                 parent.currToken += 1
             elif tokenType == ProcLedChains.ZERO:
                 if not firstBit:
@@ -236,7 +261,6 @@ class ProcLedChains:
                     typeProc = ProcLedChains.PROC_LED_BIT
                     firstBit = True
                 elif (typeProc == ProcLedChains.PROC_LED_BIT):
-                    ProcLedChains.outHndl.write("0")
                     parent.currToken += 1
                     typeProc = ProcLedChains.PROC_LED_BIT
                     firstBit = True
@@ -252,7 +276,9 @@ class ProcLedChains:
                            (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
                         return (1221)
                     else:
-                        ProcLedChains.outHndl.write("LedBitNames.{0}".format(parent.tokens[parent.currToken].upper()))
+                        # HRS:  This could be improved to verify any set bits are in the mask
+                        card = parent.procChains.findBit(parent.tokens[parent.currToken].upper()) >> 16
+                        ledCard[card].append("LedBitNames.{0}".format(parent.tokens[parent.currToken].upper()))
                         firstBit = False
                         parent.currToken += 1
                 else:

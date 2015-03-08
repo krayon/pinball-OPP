@@ -61,20 +61,6 @@ from gameData import GameData
 #  button is a toggle button.  If the bit is configured as an edge triggered
 #  input, the button is a pushbutton.  It allows solenoids to be test fired.
 class TkSolBrd():
-    brdAddr = 0
-    brdNum = 0
-    brdPos = 0
-    dispInpValue = 0
-    statLbl = 0
-    indBitStatLbl = []
-    indBitOptMenu = []
-    toggleBtn = []
-    toggleState = []
-    solCardFrm = 0
-    bitFrms = []
-    btnCfgBitfield = 0              #Set bits to 1 to default to toggle buttons
-    simSwitchBits = 0
-    pulseSolBits = 0
     
     ## The constructor
     #
@@ -92,6 +78,15 @@ class TkSolBrd():
         self.brdPos = brdPos
         self.brdAddr = addr
         self.statLbl = StringVar()
+        self.dispInpValue = 0
+        self.indBitStatLbl = []
+        self.indBitOptMenu = []
+        self.toggleBtn = []
+        self.toggleState = []
+        self.bitFrms = []
+        self.btnCfgBitfield = 0              #Set bits to 1 to default to toggle buttons
+        self.simSwitchBits = 0
+        self.pulseSolBits = 0
         
         #Create main frame
         self.solCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)

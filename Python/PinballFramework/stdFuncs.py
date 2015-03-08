@@ -341,11 +341,21 @@ class StdFuncs():
     #  @param  data          [in]   Data with new state of LEDs
     #  @return None
     def Led_Set(self, cardBitPos, data):
-        cardNum = (cardBitPos >> 16) & 0xf
-        mask = cardBitPos & 0xff
-        LedBrd.currLedData[cardNum] &= ~mask
-        LedBrd.currLedData[cardNum] |= data
-        LedBrd.currBlinkLeds[cardNum] &= ~mask
+        # LED set can now accept a mask for a single card, or a list of cards
+        if (isinstance( cardBitPos, int )):
+            cardNum = (cardBitPos >> 16) & 0xf
+            mask = cardBitPos & 0xff
+            LedBrd.currLedData[cardNum] &= ~mask
+            LedBrd.currLedData[cardNum] |= data
+            LedBrd.currBlinkLeds[cardNum] &= ~mask
+        else:
+            for curr in xrange(len(cardBitPos)):
+                if cardBitPos[curr] != 0:
+                    cardNum = (cardBitPos[curr] >> 16) & 0xf
+                    mask = cardBitPos[curr] & 0xff
+                    LedBrd.currLedData[cardNum] &= ~mask
+                    LedBrd.currLedData[cardNum] |= data[curr]
+                    LedBrd.currBlinkLeds[cardNum] &= ~mask
 
     ## Set a group of LEDs to blink
     #
