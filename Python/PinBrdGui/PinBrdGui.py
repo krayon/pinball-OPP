@@ -90,8 +90,8 @@ class GuiFrame(Frame):
     def btnPress(self, cardNum):
         #Get the value of the combobox
         data = int(self.comboBox[cardNum].get())
-        self.serObj.kickSol |= (1 << cardNum)
         self.serObj.solKickVal[cardNum] = (1 << (data - 1))
+        self.serObj.kickSol |= (1 << cardNum)
         
     ## Init UI
     #

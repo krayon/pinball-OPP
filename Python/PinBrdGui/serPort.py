@@ -151,7 +151,7 @@ class SerPort():
                 self._brdCfg.append(rs232Intf.CFG_SOL_CMD)
                 for _ in xrange(rs232Intf.NUM_SOL_PER_BRD):
                     self._brdCfg.append(rs232Intf.CFG_SOL_USE_SWITCH)
-                    self._brdCfg.append('\x30')
+                    self._brdCfg.append('\x20')
                     self._brdCfg.append('\x04')
                     
                 self._readCmd.append(data[index])
@@ -204,22 +204,40 @@ class SerPort():
             currSolKick = self.kickSol
             self.kickSol &= ~currSolKick
             kickCmd = []
+            clearCmd = []
             
             #Find out who needs to be kicked
             for index in xrange(self.numBrds):
                 if (currSolKick & (1 << index)) != 0:
+                    kickCmd.append(chr(self.addrArr[index]))
                     kickCmd.append(rs232Intf.KICK_SOL_CMD)
-                    kickCmd.append(self.solKickVal[index])
+                    # Value
+                    kickCmd.append(chr(self.solKickVal[index]))
+                    # Mask
+                    kickCmd.append(chr(self.solKickVal[index]))
+                    clearCmd.append(chr(self.addrArr[index]))
+                    clearCmd.append(rs232Intf.KICK_SOL_CMD)
+                    # Value
+                    clearCmd.append('\x00')
+                    # Mask
+                    clearCmd.append(chr(self.solKickVal[index]))
                     self.solKickVal[index] = 0
             kickCmd.append(rs232Intf.EOM_CMD)
             
             #Send the command, response should only EOM
             if not self.debug:
-                sendCmd = ''.join(self._brdCfg)
+                # Send the kick command
+                sendCmd = ''.join(kickCmd)
                 self._ser.write(sendCmd)
                 data = self.getSerialData(5)
                 if (len(data) != 1) or (data[0] != rs232Intf.EOM_CMD):
                     return (200)
+                # Send clear the kick command
+                sendCmd = ''.join(clearCmd)
+                self._ser.write(sendCmd)
+                data = self.getSerialData(5)
+                if (len(data) != 1) or (data[0] != rs232Intf.EOM_CMD):
+                    return (201)
                 
         #Update the status inputs
         if not self.debug:
@@ -227,7 +245,7 @@ class SerPort():
             self._ser.write(sendCmd)
             data = self.getSerialData(len(self._readCmd))
             if (len(data) != len(self._readCmd)):
-                return (201)
+                return (202)
             dataIndex = 0
             for cardNum in xrange(len(self.cardTypeArr)):
                 if (self.cardTypeArr[cardNum] == CardType.SOL_CARD):
