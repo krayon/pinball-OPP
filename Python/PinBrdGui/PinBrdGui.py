@@ -52,6 +52,7 @@ from sys import argv, exit
 from Tkinter import *
 from ttk import *
 from serPort import SerPort, CardType
+import time
 
 
 ## GUI Frame
@@ -73,10 +74,11 @@ class GuiFrame(Frame):
         self.parent = parent
         self.serObj = serObj
         self.strVar = []
-        self.prevState = []
         self.comboBox = []
         self.optBoxStr = []
         self.status = None
+        self.persistValue = []
+        self.persistTime = []
         
         self.initUI()
     
@@ -162,9 +164,9 @@ class GuiFrame(Frame):
         data = 0
         tmpStrVar.set("0x%04x" % data)
         self.strVar.append(tmpStrVar)
-        self.prevState.append(data)
+        self.persistValue.append([])
+        self.persistTime.append([])
         self.comboBox.append(None)
-        #self.optBoxStr.append(None)
         tmpLbl = Label(tmpFrm, textvariable=tmpStrVar, relief=SUNKEN, width=10, anchor=CENTER)
         tmpLbl.grid(column = 3, row = 0, padx=8, pady=8)
         tmpLbl = Label(tmpFrm, text="", width = 12)
@@ -194,7 +196,8 @@ class GuiFrame(Frame):
         data = 0
         tmpStrVar.set("0x%02x" % data)
         self.strVar.append(tmpStrVar)
-        self.prevState.append(data)
+        self.persistValue.append([])
+        self.persistTime.append([])
         tmpLbl = Label(tmpFrm, textvariable=tmpStrVar, relief=SUNKEN, width=10, anchor=CENTER)
         tmpLbl.grid(column = 3, row = 0, padx=8, pady=8)
         tmpBtn = Button(tmpFrm, width = 12, text="Kick Sol", command=lambda tmp=panelNum: self.btnPress(tmp))
@@ -216,12 +219,25 @@ class GuiFrame(Frame):
     #  @return None
     def updateState(self):
         for cardNum in xrange(len(self.serObj.cardTypeArr)):
-            if (self.prevState[cardNum] != self.serObj.currData[cardNum]):
-                if (self.serObj.cardTypeArr[cardNum] == CardType.INP_CARD):
-                    self.strVar[cardNum].set("0x%04x" % self.serObj.currData[cardNum])
-                elif (self.serObj.cardTypeArr[cardNum] == CardType.SOL_CARD):
-                    self.strVar[cardNum].set("0x%02x" % self.serObj.currData[cardNum])
-                self.prevState[cardNum] = self.serObj.currData[cardNum]
+            if (self.serObj.cardTypeArr[cardNum] == CardType.INP_CARD):
+                self.strVar[cardNum].set("0x%04x" % self.serObj.currData[cardNum])
+            elif (self.serObj.cardTypeArr[cardNum] == CardType.SOL_CARD):
+                # Solenoid's data doesn't persist, so an edge is only presented once.
+                # Add persistence so it is easier to see for the user
+                data = self.serObj.currData[cardNum]
+                currTime = time.time()
+                if (data != 0):
+                    self.persistTime.append(currTime)
+                    self.persistValue.append(data)
+                # OR in previous non-zero values that are persisting
+                # Walk backwards through the list so items can be removed
+                for index in xrange(len(self.persistValue) - 1, -1, -1):
+                    data |= self.persistValue[index]
+                    # Time is in seconds, so this will persist for more than 1 sec
+                    if (currTime - self.persistTime[index] > 1):
+                        del self.persistValue[index]
+                        del self.persistTime[index]
+                self.strVar[cardNum].set("0x%02x" % data)
 
     ## GUI exit
     #

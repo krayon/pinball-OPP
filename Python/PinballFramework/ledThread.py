@@ -188,6 +188,9 @@ class LedThread(Thread):
             
             #Process LEDs if not running in debug mode
             if not LedThread.GameData.debug: 
+                if LedThread._pport == 0:
+                    import parallel
+                    LedThread._pport = parallel.Parallel()
                 self.proc_leds()
             
             #Process LEDs if run button is active

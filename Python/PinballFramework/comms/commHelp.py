@@ -240,16 +240,36 @@ def sendKick(commThread, solBrd):
     addr = commThread.solAddrArr[solBrd]
     cmdArr.append(addr)
     cmdArr.append(rs232Intf.KICK_SOL_CMD)
-    cmdArr.append(commThread.solKickVal[solBrd])
+    value = commThread.solKickVal[solBrd]
     commThread.solKickVal[solBrd] = 0
+    # Value
+    cmdArr.append(value)
+    # Mask
+    cmdArr.append(value)
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     commThread.ser.write(sendCmd)
     
-    #Kick command, just return EOM.
+    # Kick command, just return EOM.
+    error = rcvEomResp(commThread)
+    if error:
+        print "Kick error, Addr = 0x%02x" % addr
+        return (errIntf.KICK_BAD_RESP)
+
+    # Now clear the set bit
+    cmdArr = []
+    cmdArr.append(addr)
+    cmdArr.append(rs232Intf.KICK_SOL_CMD)
+    # Value
+    cmdArr.append(0)
+    # Mask
+    cmdArr.append(value)
+    sendCmd = ''.join(cmdArr)
+    commThread.ser.write(sendCmd)
+    
+    # Kick command, just return EOM.
     error = rcvEomResp(commThread)
     if error:
         print "Kick error, Addr = 0x%02x" % addr
         return (errIntf.KICK_BAD_RESP)
     return (errIntf.CMD_OK)
-
