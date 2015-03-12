@@ -235,7 +235,7 @@ def initScoreDisps():
     fontHeight = 0
     while (fontHeight < fontHeightGoal):
         fontSize += 1
-        digiFont = pygame.font.Font("font/digitalFont.ttf", fontSize)
+        digiFont = pygame.font.Font("font/LCDM2N__.TTF", fontSize)
         text = digiFont.render("0", 1, (10, 10, 10))
         fontHeight = text.get_height()
       
