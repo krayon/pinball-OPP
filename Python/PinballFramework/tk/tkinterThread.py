@@ -75,6 +75,7 @@ class TkinterThread(Thread):
     ## The constructor.
     def __init__(self):
         super(TkinterThread, self).__init__()
+        self.blinkOn = True
         
     ## Init the tkinter thread
     #
@@ -131,8 +132,16 @@ class TkinterThread(Thread):
         while TkinterThread._runTkinterThread:
             root.update()
             cmdFrm.Update_Cmd_Frm()
+            
+            # Copy the current LED state
+            self.blinkOn = not self.blinkOn
+            ledData = list(LedBrd.currLedData)
+            if self.blinkOn:
+                ledBlink = list(LedBrd.currBlinkLeds)
+                for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
+                    ledData[i] |= ledBlink[i]
             for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
-                GameData.tkLedBrd[i].updateLeds(LedBrd.currLedData[i])
+                GameData.tkLedBrd[i].updateLeds(ledData[i])
             for i in xrange(numSolBrds):
                 GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
             for i in xrange(numInpBrds):

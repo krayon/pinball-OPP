@@ -80,6 +80,7 @@ class LedThread(Thread):
     ## The constructor.
     def __init__(self):
         super(LedThread, self).__init__()
+        self.blinkOn = False
 
     ## Initialize LED hardware
     #
@@ -164,13 +165,20 @@ class LedThread(Thread):
     #  updates.
     #
     #  @param  self          [in]   Object reference
-    #  @return None 
+    #  @return None
+    #
+    #  @Note:  List must be reversed since the contents of the last card in
+    #  the chain must be written first.
     def proc_leds(self):
-        for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
-            if (LedBrd.currBlinkLeds[index] != 0):
-                LedBrd.currLedData[index] ^= LedBrd.currBlinkLeds[index]
+        # Copy the list and reverse the direction
+        ledData = LedBrd.currLedData[::-1]
+        self.blinkOn = not self.blinkOn
+        if (self.blinkOn):
+            blinkData = LedBrd.currBlinkLeds[::-1]
+            for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
+                ledData[index] |= blinkData[index] 
         if (LedThread._pport != 0):
-            self.updateLights(LedBrd.currLedData)
+            self.updateLights(ledData)
             
     ## The LED thread
     #

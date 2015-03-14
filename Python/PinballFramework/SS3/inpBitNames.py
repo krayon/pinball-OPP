@@ -59,7 +59,7 @@ class InpBitNames:
     INP_SPINNER                      = 0x00001
     INP_CTR_RGHT_RUBBER              = 0x00002
     INP_HORSHOE_ROLLOVER             = 0x00004
-    INP_BELOW_KICKOUT_ROLLOVER       = 0x00008
+    INP_BELOW_KICKOUT_RUBBER         = 0x00008
     INP_UPPER_RUBBER                 = 0x00010
     INP_UPPER_RGHT_ROLLOVER          = 0x00020
     INP_UPPER_CTR_ROLLOVER           = 0x00040
@@ -88,7 +88,7 @@ class InpBitNames:
 
     ## Input board bit names
     # Indexed into using the [InpBitNames](@ref inpBitNames.InpBitNames) class
-    INP_BRD_BIT_NAMES = [ ["Spinner", "CtrRghtRbr", "HorseRoll", "BlwKickRoll",
+    INP_BRD_BIT_NAMES = [ ["Spinner", "CtrRghtRbr", "HorseRoll", "BlwKickRbr",
         "UpRbr", "UpRghtRoll", "UpCtrRoll", "UpLftRoll",
         "Unused", "Unused", "UpLftTopTrgt", "UpLftBtmTrgt",
         "Unused", "CtrRghtRoll", "CtrCtrRoll", "CtrLftRoll"],

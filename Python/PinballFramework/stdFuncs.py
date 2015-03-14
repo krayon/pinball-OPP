@@ -317,7 +317,6 @@ class StdFuncs():
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
         LedBrd.currLedData[cardNum] |= bitPos
-        LedBrd.currBlinkLeds[cardNum] &= ~bitPos
 
     ## Turn LEDs off
     #
@@ -330,7 +329,6 @@ class StdFuncs():
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
         LedBrd.currLedData[cardNum] &= ~bitPos
-        LedBrd.currBlinkLeds[cardNum] &= ~bitPos
 
     ## Set a group of LEDs to a certain state
     #
@@ -347,7 +345,6 @@ class StdFuncs():
             mask = cardBitPos & 0xff
             LedBrd.currLedData[cardNum] &= ~mask
             LedBrd.currLedData[cardNum] |= data
-            LedBrd.currBlinkLeds[cardNum] &= ~mask
         else:
             for curr in xrange(len(cardBitPos)):
                 if cardBitPos[curr] != 0:
@@ -355,7 +352,6 @@ class StdFuncs():
                     mask = cardBitPos[curr] & 0xff
                     LedBrd.currLedData[cardNum] &= ~mask
                     LedBrd.currLedData[cardNum] |= data[curr]
-                    LedBrd.currBlinkLeds[cardNum] &= ~mask
 
     ## Set a group of LEDs to blink
     #
@@ -368,6 +364,18 @@ class StdFuncs():
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xff
         LedBrd.currBlinkLeds[cardNum] |= bitPos 
+        
+    ## Turn off blink on a group of LEDs
+    #
+    #  Set a group of LEDs to blink rapidly
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  cardBitPos    [in]   Card number and mask of LEDs to change
+    #  @return None
+    def Led_Blink_Off(self, cardBitPos):
+        cardNum = (cardBitPos >> 16) & 0xf
+        bitPos = cardBitPos & 0xff
+        LedBrd.currBlinkLeds[cardNum] &= ~bitPos 
         
     ## Play a sound
     #
