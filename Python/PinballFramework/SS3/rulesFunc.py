@@ -109,7 +109,8 @@ class RulesFunc:
     def Proc_Flipper(self):
         if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_LFT_FLIPPER)):
             if ((RulesFunc.prev_flipper & self.LEFT_FLIPPER) == 0):
-                RulesFunc.GameData.StdFuncs.Led_Rot_Left(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
+                # Ordered LED bits incorrectly when wiring, so left flipper rotates right 
+                RulesFunc.GameData.StdFuncs.Led_Rot_Right(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
                 RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] = RulesFunc.GameData.StdFuncs.Var_Rot_Left(  \
                     LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
                 RulesFunc.prev_flipper |= self.LEFT_FLIPPER
@@ -117,7 +118,8 @@ class RulesFunc:
             RulesFunc.prev_flipper &= ~self.LEFT_FLIPPER
         if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_RGHT_FLIPPER)):
             if ((RulesFunc.prev_flipper & self.RIGHT_FLIPPER) == 0):
-                RulesFunc.GameData.StdFuncs.Led_Rot_Right(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
+                # Ordered LED bits incorrectly when wiring, so right flipper rotates left 
+                RulesFunc.GameData.StdFuncs.Led_Rot_Left(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT)
                 RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] = RulesFunc.GameData.StdFuncs.Var_Rot_Right(  \
                     LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT, RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer])
                 RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
@@ -346,14 +348,17 @@ class RulesFunc:
     def Proc_Ball_In_Play_Start(self):
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_ROLLOVER):
             RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_LFT)
+            RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_INLN_CTR)
             RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_LFT
             RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_RGHT_ROLLOVER):
             RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_RGHT)
+            RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_INLN_CTR)
             RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_RGHT
             RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_CTR_ROLLOVER):
             RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_CTR)
+            RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_INLN_CTR)
             RulesFunc.GameData.inlaneLights[RulesFunc.GameData.currPlayer] |= LedBitNames.LED_INLN_CTR
             RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_NICE_SHOOTIN_TEX)
             print "Skill Shot"

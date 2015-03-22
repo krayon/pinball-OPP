@@ -405,9 +405,17 @@ class CustomFunc:
             self.saveModeState[plyr] = CustomFunc.MODETRGT_POP_BUMPER
         if self.saveModeState[plyr] == CustomFunc.MODETRGT_POP_BUMPER:
             # Pick the pop bumper that must be hit
-            self.saveModeValue = random.randint(0, 3)
-            # HRS:  I don't have these in the LED bit names yet.  Blink the pop bumper
-            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_RGHT)
+            randomNum = random.randint(0, 3)
+            # Blink the pop bumper
+            lowBit = randomNum & 0x01
+            if ((self.saveModeValue & 0x02) != 0):
+                # Randomly pick an upper pop bumper
+                self.saveModeValue = SolBitNames.SOL_UPPER_LFT_POP + lowBit
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(0x10000 | (0x08 << lowBit))
+            else:
+                # Randomly pick an lower pop bumper
+                self.saveModeValue = SolBitNames.SOL_BTM_LOW_POP + lowBit
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(0x20000 | (0x01 << lowBit))
         elif self.saveModeState[plyr] == CustomFunc.MODETRGT_DROP_TRGT:
             # Pick the drop that must be hit.  Blink the drop target
             self.saveModeValue = random.randint(0, 6)

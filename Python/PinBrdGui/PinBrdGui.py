@@ -227,16 +227,16 @@ class GuiFrame(Frame):
                 data = self.serObj.currData[cardNum]
                 currTime = time.time()
                 if (data != 0):
-                    self.persistTime.append(currTime)
-                    self.persistValue.append(data)
+                    self.persistTime[cardNum].append(currTime)
+                    self.persistValue[cardNum].append(data)
                 # OR in previous non-zero values that are persisting
                 # Walk backwards through the list so items can be removed
-                for index in xrange(len(self.persistValue) - 1, -1, -1):
-                    data |= self.persistValue[index]
+                for index in xrange(len(self.persistValue[cardNum]) - 1, -1, -1):
+                    data |= self.persistValue[cardNum][index]
                     # Time is in seconds, so this will persist for more than 1 sec
-                    if (currTime - self.persistTime[index] > 1):
-                        del self.persistValue[index]
-                        del self.persistTime[index]
+                    if (currTime - self.persistTime[cardNum][index] > 1):
+                        del self.persistValue[cardNum][index]
+                        del self.persistTime[cardNum][index]
                 self.strVar[cardNum].set("0x%02x" % data)
 
     ## GUI exit

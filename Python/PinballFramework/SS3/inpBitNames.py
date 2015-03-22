@@ -76,8 +76,8 @@ class InpBitNames:
     INP_BTM_RGHT_RUBBER              = 0x10010
     INP_BTM_RGHT_LOW_RUBBER          = 0x10020
     INP_SLAM_TILT                    = 0x10040
-    INP_START                        = 0x10080
-    INP_COIN_DROP                    = 0x10100
+    INP_COIN_DROP                    = 0x10080
+    INP_START                        = 0x10100
     INP_DROP_TRGT_1S                 = 0x10200
     INP_DROP_TRGT_2H                 = 0x10400
     INP_DROP_TRGT_3O                 = 0x10800
@@ -93,8 +93,8 @@ class InpBitNames:
         "Unused", "Unused", "UpLftTopTrgt", "UpLftBtmTrgt",
         "Unused", "CtrRghtRoll", "CtrCtrRoll", "CtrLftRoll"],
         ["BtmLftInLnRoll", "BtmLftOutLnRoll", "CtrLowRoll", "DropBnkMiss",
-        "BtmRghtRbr", "BtmRghtLowRbr", "SlamTilt", "Start",
-        "CoinDrp", "DrpTrgt1S", "DrpTrgt2H", "DrpTrgt3O",
+        "BtmRghtRbr", "BtmRghtLowRbr", "SlamTilt", "CoinDrp",
+        "Start", "DrpTrgt1S", "DrpTrgt2H", "DrpTrgt3O",
         "DrpTrgt4O", "DrpTrgt5T", "DrpTrgt6E", "DrpTrgt7R"] ]
 
     ## Input board configuration

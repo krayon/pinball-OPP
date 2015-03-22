@@ -58,63 +58,67 @@ class LedBitNames:
     NUM_LED_BRDS = 6
 
     LED1_ALL_BITS_MSK                = 0x000ff
-    LED_SPINNER                      = 0x00001
-    LED_HORSESHOE                    = 0x00002
-    LED_KO_TOP_LFT                   = 0x00004
-    LED_KO_TOP_RGHT                  = 0x00008
-    LED_KO_CTR_LFT                   = 0x00010
-    LED_KO_CTR_RGHT                  = 0x00020
-    LED_KO_CTR_CTR                   = 0x00040
-    LED_KO_CTR_BTM                   = 0x00080
+    LED_KO_CTR_BTM                   = 0x00001
+    LED_KO_CTR_CTR                   = 0x00002
+    LED_KO_CTR_RGHT                  = 0x00004
+    LED_KO_CTR_LFT                   = 0x00008
+    LED_KO_TOP_RGHT                  = 0x00010
+    LED_KO_TOP_LFT                   = 0x00020
+    LED_HORSESHOE                    = 0x00040
+    LED_SPINNER                      = 0x00080
     LED2_ALL_BITS_MSK                = 0x100ff
-    LED_INLN_RGHT                    = 0x10001
-    LED_INLN_CTR                     = 0x10002
-    LED_INLN_LFT                     = 0x10004
-    LED_ROLL_RGHT                    = 0x10020
-    LED_ROLL_CTR                     = 0x10040
-    LED_ROLL_LFT                     = 0x10080
+    LED_ROLL_LFT                     = 0x10001
+    LED_ROLL_CTR                     = 0x10002
+    LED_ROLL_RGHT                    = 0x10004
+    LED_POP_UPCTR                    = 0x10008
+    LED_POP_UPLFT                    = 0x10010
+    LED_INLN_LFT                     = 0x10020
+    LED_INLN_CTR                     = 0x10040
+    LED_INLN_RGHT                    = 0x10080
     LED3_ALL_BITS_MSK                = 0x200ff
-    LED_MODE_11                      = 0x20008
-    LED_MODE_10                      = 0x20010
-    LED_MODE_9                       = 0x20020
-    LED_MODE_8                       = 0x20040
-    LED_MODE_7                       = 0x20080
+    LED_MODE_7                       = 0x20001
+    LED_MODE_8                       = 0x20002
+    LED_MODE_9                       = 0x20004
+    LED_MODE_10                      = 0x20008
+    LED_MODE_11                      = 0x20010
+    LED_POP_BTMUP                    = 0x20040
+    LED_POP_BTMLOW                   = 0x20080
     LED4_ALL_BITS_MSK                = 0x300ff
-    LED_SHOOT_AGAIN                  = 0x30001
-    LED_MULT_5                       = 0x30010
-    LED_MULT_4                       = 0x30020
-    LED_MULT_3                       = 0x30040
-    LED_MULT_2                       = 0x30080
+    LED_MULT_2                       = 0x30001
+    LED_MULT_3                       = 0x30002
+    LED_MULT_4                       = 0x30004
+    LED_MULT_5                       = 0x30008
+    LED_SHOOT_AGAIN                  = 0x30080
     LED5_ALL_BITS_MSK                = 0x400ff
-    LED_LFT_OUTLN                    = 0x40001
-    LED_LFT_INLN                     = 0x40002
-    LED_MODE_1                       = 0x40004
-    LED_MODE_2                       = 0x40008
-    LED_MODE_3                       = 0x40010
-    LED_MODE_4                       = 0x40020
-    LED_MODE_5                       = 0x40040
-    LED_MODE_6                       = 0x40080
+    LED_MODE_6                       = 0x40001
+    LED_MODE_5                       = 0x40002
+    LED_MODE_4                       = 0x40004
+    LED_MODE_3                       = 0x40008
+    LED_MODE_2                       = 0x40010
+    LED_MODE_1                       = 0x40020
+    LED_LFT_INLN                     = 0x40040
+    LED_LFT_OUTLN                    = 0x40080
     LED6_ALL_BITS_MSK                = 0x500ff
-    LED_DT_7                         = 0x50002
-    LED_DT_6                         = 0x50004
-    LED_DT_5                         = 0x50008
-    LED_DT_4                         = 0x50010
-    LED_DT_3                         = 0x50020
-    LED_DT_2                         = 0x50040
-    LED_DT_1                         = 0x50080
+    LED_DT_1                         = 0x50001
+    LED_DT_2                         = 0x50002
+    LED_DT_3                         = 0x50004
+    LED_DT_4                         = 0x50008
+    LED_DT_5                         = 0x50010
+    LED_DT_6                         = 0x50020
+    LED_DT_7                         = 0x50040
 
     ## LED board bit names
     # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class
-    LED_BRD_BIT_NAMES = [ ["Spinner", "Horseshoe", "KOTopLft", "KOTopRght",
-        "KOCtrLft", "KOCtrRght", "KOCtrCtr", "KOCtrBtm"],
-        ["InlnRght", "InlnCtr", "InlnLft", "Unused",
-        "Unused", "RollRght", "RollCtr", "RollLft"],
-        ["Unused", "Unused", "Unused", "Mode11",
-        "Mode10", "Mode9", "Mode8", "Mode7"],
-        ["ShootAgain", "Unused", "Unused", "Unused",
-        "Mult4", "Mult3", "Mult2", "Mult1"],
-        ["LftOutln", "LftInln", "Mode1", "Mode2",
-        "Mode3", "Mode4", "Mode5", "Mode6"],
-        ["Unused", "DT7", "DT6", "DT5",
-        "DT4", "DT3", "DT2", "DT1"] ]
+    LED_BRD_BIT_NAMES = [ ["KOCtrBtm", "KOCtrCtr", "KOCtrRght", "KOCtrLft",
+        "KOTopRght", "KOTopLft", "Horseshoe", "Spinner"],
+        ["RollLft", "RollCtr", "RollRght", "PopUpCtr",
+        "PopUpLft", "InlnLft", "InlnCtr", "InlnRght"],
+        ["Mode7", "Mode8", "Mode9", "Mode10",
+        "Mode11", "Unused", "PopBtmUp", "PopBtmLow"],
+        ["Mult2", "Mult3", "Mult4", "Mult5",
+        "Unused", "Unused", "Unused", "ShootAgain"],
+        ["Mode6", "Mode5", "Mode4", "Mode3",
+        "Mode2", "Mode1", "LftInln", "LftOutln"],
+        ["DT1", "DT2", "DT3", "DT4",
+        "DT5", "DT6", "DT7", "Unused"] ]
 

@@ -153,14 +153,14 @@ def getInventory(commThread):
     commThread.invResp = list(data[1:-1])
     
     #Verify the number of cards is correct
-    if len(commThread.invResp) != len(GameData.GameConst.INV_ADDR_LIST):
+    if len(commThread.invResp) != len(GameData.RulesData.INV_ADDR_LIST):
         print "Bad Num Cards.  Expected = %d, Found = %d" % \
-            (len(GameData.GameConst.INV_ADDR_LIST), len(commThread.invResp))
+            (len(GameData.RulesData.INV_ADDR_LIST), len(commThread.invResp))
         return (errIntf.BAD_NUM_CARDS)
     for i in xrange(len(commThread.invResp)):
-        if (ord(commThread.invResp[i]) != GameData.GameConst.INV_ADDR_LIST[i]):
+        if (ord(commThread.invResp[i]) != GameData.RulesData.INV_ADDR_LIST[i]):
             print "Inv match fail.  Expected = 0x%02x, Rcvd = 0x%02x, index = %d" % \
-                (GameData.GameConst.INV_ADDR_LIST[i], ord(commThread.invResp[i]), i)
+                (GameData.RulesData.INV_ADDR_LIST[i], ord(commThread.invResp[i]), i)
             return (errIntf.INV_MATCH_FAIL)
         
     return (errIntf.CMD_OK)

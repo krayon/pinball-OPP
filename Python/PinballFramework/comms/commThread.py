@@ -216,5 +216,5 @@ class CommThread(Thread):
                     self.proc_comms()
             
             #Sleep until next rules processing time
-            time.sleep(1)
+            time.sleep(.1)
             count += 1

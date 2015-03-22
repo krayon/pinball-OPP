@@ -90,7 +90,7 @@ class InpBrd():
     #  @return None
     def update_status(self, card, data):
         InpBrd.currInpData[card] &= ~InpBrd.inpCfgBitfield[card]
-        InpBrd.currInpData[card] |= data
+        InpBrd.currInpData[card] |= ~data
         
     ## Get input status
     #

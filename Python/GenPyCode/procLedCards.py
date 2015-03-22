@@ -147,8 +147,8 @@ class ProcLedCards():
             parent.consoleObj.updateConsole("!!! Error !!! LED pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
             return (413)
-        # Convert from 1 base to 0 based pin num
-        pinNum = parent.helpFuncs.out - 1
+        # Convert from 1 base to 0 based pin num, bit 0 = 0x80, bit 7 = 0x01
+        pinNum = 7 - (parent.helpFuncs.out - 1)
         # Pin number is base 1
         if (pinNum < 0) or (pinNum >= ProcLedCards.NUM_LED_BITS):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal LED pin num, read %s, at line num %d." %

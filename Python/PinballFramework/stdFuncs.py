@@ -198,11 +198,14 @@ class StdFuncs():
                     lastBit = index
                     foundLastBit = True
             index += 1
+        if (foundFirstBit and not foundLastBit):
+            foundLastBit = True
+            lastBit = 7
         if (foundFirstBit and foundLastBit):
-            tmpLed = LedBrd.currLedData[cardNum] << 1
-            if ((tmpLed & (1 << lastBit)) != 0):
+            rotBitSet = LedBrd.currLedData[cardNum] & (1 << lastBit)
+            tmpLed = (LedBrd.currLedData[cardNum] << 1) & rotMask 
+            if (rotBitSet != 0):
                 tmpLed |= (1 << firstBit)
-            tmpLed &= rotMask
             LedBrd.currLedData[cardNum] = (LedBrd.currLedData[cardNum] & ~rotMask) | tmpLed
 
     ## Rotate variable left
@@ -265,11 +268,20 @@ class StdFuncs():
                     lastBit = index
                     foundLastBit = True
             index += 1
+        if (foundFirstBit and not foundLastBit):
+            foundLastBit = True
+            lastBit = 7
         if (foundFirstBit and foundLastBit):
-            tmpLed = LedBrd.currLedData[cardNum] & rotMask
-            if ((LedBrd.currLedData[cardNum] & (1 << firstBit)) != 0):
+            rotBitSet = LedBrd.currLedData[cardNum] & (1 << lastBit)
+            tmpLed = LedBrd.currLedData[cardNum] << 1
+            if (rotBitSet != 0):
+                tmpLed |= (1 << firstBit)
+            tmpLed &= ~rotMask
+        if (foundFirstBit and foundLastBit):
+            rotBitSet = LedBrd.currLedData[cardNum] & (1 << firstBit)
+            tmpLed = (LedBrd.currLedData[cardNum] >> 1) & rotMask 
+            if (rotBitSet != 0):
                 tmpLed |= (1 << lastBit)
-            tmpLed = (tmpLed >> 1) & rotMask
             LedBrd.currLedData[cardNum] = (LedBrd.currLedData[cardNum] & ~rotMask) | tmpLed
 
     ## Rotate variable right

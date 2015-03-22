@@ -53,6 +53,9 @@ from threading import Thread
 from hwobjs.ledBrd import LedBrd
 from globConst import GlobConst
 import time
+import platform
+if platform.release() == "XP":
+    import parallel
 
 ## LED thread class.
 #
@@ -65,7 +68,6 @@ class LedThread(Thread):
     _ledChTime = 0
     _ledCmdWaitTime = 0
     _commsActive = False
-    _pport = 0
     
     # Parallel port hardware control lines
     _CLK = 0x04
@@ -81,6 +83,15 @@ class LedThread(Thread):
     def __init__(self):
         super(LedThread, self).__init__()
         self.blinkOn = False
+        if platform.release() == "XP":
+            self._pport = parallel.Parallel()
+        else:
+            self._pport = None        
+        # HRS: Debug
+        self.currVal = 0
+        self.count = 0
+        self.outData = [0] * 6
+        self.sleep = 0
 
     ## Initialize LED hardware
     #
@@ -176,8 +187,11 @@ class LedThread(Thread):
         if (self.blinkOn):
             blinkData = LedBrd.currBlinkLeds[::-1]
             for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
-                ledData[index] |= blinkData[index] 
-        if (LedThread._pport != 0):
+                ledData[index] |= blinkData[index]
+        if (self._pport != None):
+            for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
+                ledData[index] &= 0xff
+                ledData[index] ^= 0xff
             self.updateLights(ledData)
             
     ## The LED thread
@@ -196,18 +210,11 @@ class LedThread(Thread):
             
             #Process LEDs if not running in debug mode
             if not LedThread.GameData.debug: 
-                if LedThread._pport == 0:
-                    import parallel
-                    LedThread._pport = parallel.Parallel()
                 self.proc_leds()
             
             #Process LEDs if run button is active
             elif LedThread.GameData.debug and TkCmdFrm.threadRun[TkCmdFrm.RULES_THREAD_IDX] and \
                     TkCmdFrm.toggleState[TkCmdFrm.RULES_THREAD_IDX]:
-                if LedThread._pport == 0 and TkCmdFrm.threadRun[TkCmdFrm.COMMS_THREAD_IDX] and \
-                    TkCmdFrm.toggleState[TkCmdFrm.COMMS_THREAD_IDX]:
-                    import parallel
-                    LedThread._pport = parallel.Parallel()
                 self.proc_leds()
                     
             #Sleep until next LED processing time
@@ -224,6 +231,7 @@ class LedThread(Thread):
         for data in byteList:
             self.sendByte(data)
         self.endWrite()
+        print "Data = 0x%02x" % byteList[0]
 
     ## Send byte
     #
@@ -241,9 +249,13 @@ class LedThread(Thread):
                 #Data bit is clear, so set it
                 dataOut = 0
             #Set the data up, clock is low, and latch is low
-            LedThread._pport.setData(dataOut)
+            self._pport.setData(dataOut)
+            if (self.sleep != 0):
+                time.sleep(self.sleep)
             #Clock the data bit in
-            LedThread._pport.setData(dataOut | LedThread._CLK)
+            self._pport.setData(dataOut | LedThread._CLK)
+            if (self.sleep != 0):
+                time.sleep(self.sleep)
 
     ## End write
     #
@@ -253,8 +265,14 @@ class LedThread(Thread):
     #  @return None 
     def endWrite(self):
         #Bring the clock low, data doesn't matter, latch remains low
-        LedThread._pport.setData(0)
+        self._pport.setData(0)
+        if (self.sleep != 0):
+            time.sleep(self.sleep)
         #Bring the latch high
-        LedThread._pport.setData(LedThread._LATCH)
+        self._pport.setData(LedThread._LATCH)
+        if (self.sleep != 0):
+            time.sleep(self.sleep)
         #Bring the latch low to end the cycle
-        LedThread._pport.setData(0)
+        self._pport.setData(0)
+        if (self.sleep != 0):
+            time.sleep(self.sleep)
