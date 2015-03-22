@@ -231,7 +231,6 @@ class LedThread(Thread):
         for data in byteList:
             self.sendByte(data)
         self.endWrite()
-        print "Data = 0x%02x" % byteList[0]
 
     ## Send byte
     #

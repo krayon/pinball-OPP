@@ -272,70 +272,70 @@ LED_CHAINS
    #Name                   Processing (Mask, bits, cmd, bits, cmd, ...)
    LedCh_Attract           {(LED1_ALL_BITS_MSK | LED2_ALL_BITS_MSK | LED3_ALL_BITS_MSK | LED4_ALL_BITS_MSK | LED5_ALL_BITS_MSK | LED6_ALL_BITS_MSK),   # Grab all LEDs
 								# Walk mode LEDs from bottom to top
-                              	Led_Shoot_Again, WAIT 500,
-                              	Led_Shoot_Again | Led_Mode_6, WAIT 500,
-                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7, WAIT 500,
-                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8, WAIT 500,
-                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9, WAIT 500,
-                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10, WAIT 500,
-                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11, WAIT 500,
+                              	Led_Shoot_Again, WAIT 100,
+                              	Led_Shoot_Again | Led_Mode_6, WAIT 100,
+                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7, WAIT 100,
+                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8, WAIT 100,
+                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9, WAIT 100,
+                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10, WAIT 100,
+                              	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11, WAIT 100,
                               	# Walk up the times inserts in center
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
-                                 	Led_Mult_2, WAIT 500,
+                                 	Led_Mult_2, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
-                                 	Led_Mult_2 | Led_Mult_3, WAIT 500,
+                                 	Led_Mult_2 | Led_Mult_3, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
-                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4, WAIT 500,
+                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
-                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5, WAIT 500,
+                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5, WAIT 100,
                               	# Walk through shooter LEDs 
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_1, WAIT 500,
+                                 	Led_DT_1, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_2, WAIT 500,
+                                 	Led_DT_2, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_3, WAIT 500,
+                                 	Led_DT_3, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_4, WAIT 500,
+                                 	Led_DT_4, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_5, WAIT 500,
+                                 	Led_DT_5, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_6, WAIT 500,
+                                 	Led_DT_6, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_7, WAIT 500,
+                                 	Led_DT_7, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_6, WAIT 500,
+                                 	Led_DT_6, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_5, WAIT 500,
+                                 	Led_DT_5, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_4, WAIT 500,
+                                 	Led_DT_4, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_3, WAIT 500,
+                                 	Led_DT_3, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_2, WAIT 500,
+                                 	Led_DT_2, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_1, WAIT 500,
+                                 	Led_DT_1, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
-                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5, WAIT 500,
+                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5, WAIT 100,
                                 # Blink shooter
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
-                                 	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7, WAIT 500,
+                                 	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
-                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5, WAIT 500,
+                                 	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7, WAIT 500,
@@ -348,57 +348,57 @@ LED_CHAINS
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm, WAIT 500,
+                                 	Led_KO_Ctr_Btm, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 100,
                               	# Walk through sharp LEDs 
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                  	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght |
-                                 	Led_Inln_Lft, WAIT 500,
+                                 	Led_Inln_Lft, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                  	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght |
-                                 	Led_Inln_Lft | Led_Inln_Ctr, WAIT 500,
+                                 	Led_Inln_Lft | Led_Inln_Ctr, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                  	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght |
-                                 	Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght, WAIT 500,
+                                 	Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                  	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght |
-                                 	Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr, WAIT 500,
+                                 	Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                  	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght |
-                                 	Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                 	Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr | Led_Roll_Rght, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 100,
                                 # Blink sharp LEDs
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
@@ -408,7 +408,7 @@ LED_CHAINS
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
@@ -417,7 +417,7 @@ LED_CHAINS
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
-                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 500,
+                                 	Led_KO_Ctr_Btm | Led_KO_Ctr_Ctr | Led_KO_Ctr_Lft | Led_KO_Ctr_Rght | Led_KO_Top_Lft | Led_KO_Top_Rght, WAIT 100,
                               	Led_Shoot_Again | Led_Mode_6 | Led_Mode_5 | Led_Mode_7 | Led_Mode_4 | Led_Mode_8 | Led_Mode_3 | Led_Mode_9 | Led_Mode_2 | Led_Mode_10 | Led_Mode_1 | Led_Mode_11 |
                                  	Led_Mult_2 | Led_Mult_3 | Led_Mult_4 | Led_Mult_5 |
                                  	Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |

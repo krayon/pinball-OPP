@@ -100,9 +100,9 @@ class GameConst:
                     [ 2, 2, 2, 2, 2, 2, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2 ] ] ]
 
     ## Input board scoring
-    SOL_SCORE = [ [ [ 1, 1, 0, 1, 1, 0, 0, 1 ],     # Normal scoring
-                    [ 0, 0, 0, 0, 0, 0, 1, 1 ] ],
-                  [ [ 2, 2, 0, 2, 2, 0, 0, 2 ],     # Special scoring
-                    [ 0, 0, 0, 0, 0, 0, 2, 2 ] ] ]
+    SOL_SCORE = [ [ [ 1, 1, 0, 1, 1, 0, 0, 0 ],     # Normal scoring
+                    [ 1, 0, 0, 0, 0, 0, 1, 1 ] ],
+                  [ [ 2, 2, 0, 2, 2, 0, 0, 0 ],     # Special scoring
+                    [ 2, 0, 0, 0, 0, 0, 2, 2 ] ] ]
     
        

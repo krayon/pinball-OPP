@@ -77,9 +77,10 @@ class SolBrd():
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
             holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
             if (GameData.SolBitNames.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
-                   (ord(GameData.SolBitNames.SOL_BRD_CFG[brdNum][holdOffset]) != 0):
+                (GameData.SolBitNames.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_DISABLE) or \
+                (ord(GameData.SolBitNames.SOL_BRD_CFG[brdNum][holdOffset]) != 0):
                 bitField |= (1 << bit)
-        SolBrd.solCfgBitfield.append(0)
+        SolBrd.solCfgBitfield.append(bitField)
         SolBrd.currSolData.append(0)
     
     ## Update the input status.
@@ -92,8 +93,10 @@ class SolBrd():
     #  @param  data          [in]   Data read from hardware card
     #  @return None
     def update_status(self, card, data):
-        SolBrd.currSolData[card] &= ~SolBrd.solCfgBitfield[card]
-        SolBrd.currSolData[card] |= data
+        # Invert status bits
+        latchData = (SolBrd.currSolData[card] | data) & ~SolBrd.solCfgBitfield[card]
+        stateData = (data & SolBrd.solCfgBitfield[card]) ^ SolBrd.solCfgBitfield[card]
+        SolBrd.currSolData[card] = latchData | stateData
         
     ## Get input status
     #

@@ -76,7 +76,7 @@ class InpBrd():
         for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
             if (GameData.InpBitNames.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
                 bitField |= (1 << bit)
-        InpBrd.inpCfgBitfield.append(0)
+        InpBrd.inpCfgBitfield.append(bitField)
         InpBrd.currInpData.append(0)
     
     ## Update the input status.
@@ -89,8 +89,9 @@ class InpBrd():
     #  @param  data          [in]   Data read from hardware card
     #  @return None
     def update_status(self, card, data):
-        InpBrd.currInpData[card] &= ~InpBrd.inpCfgBitfield[card]
-        InpBrd.currInpData[card] |= ~data
+        latchData = (InpBrd.currInpData[card] | data) & ~InpBrd.inpCfgBitfield[card]
+        stateData = (data & InpBrd.inpCfgBitfield[card]) ^ InpBrd.inpCfgBitfield[card]
+        InpBrd.currInpData[card] = latchData | stateData
         
     ## Get input status
     #

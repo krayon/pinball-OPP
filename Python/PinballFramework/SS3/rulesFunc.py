@@ -273,6 +273,9 @@ class RulesFunc:
                 RulesFunc.GameData.gameMode = State.MODE_START_GAME
                 RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER_NUM] = False
                 RulesFunc.GameData.blankDisp[DispConst.DISP_CREDIT_BALL_NUM] = False
+                RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER2] = True
+                RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER3] = True
+                RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER4] = True
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
                 RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER1 + RulesFunc.GameData.numPlayers] = False
@@ -415,6 +418,8 @@ class RulesFunc:
                 RulesFunc.GameData.StdFuncs.Wait(3000)
                 RulesFunc.GameData.ballNum = 0
                 RulesFunc.GameData.numPlayers = 0
+                RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER_NUM] = True
+                RulesFunc.GameData.blankDisp[DispConst.DISP_CREDIT_BALL_NUM] = True
                 if (RulesFunc.GameData.credits == 0):
                     RulesFunc.GameData.gameMode = State.MODE_ATTRACT
                 else:
