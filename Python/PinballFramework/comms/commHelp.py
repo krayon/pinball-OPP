@@ -210,7 +210,6 @@ def sendConfig(commThread, solBrd, index):
 def readInputs(commThread):
     commThread.ser.write(commThread.readInpStr)
     data = getSerialData(commThread, len(commThread.readInpStr))
-    print repr(data)
     if (len(data) == len(commThread.readInpStr)):
         index = 0
         while index < len(data):
@@ -237,17 +236,24 @@ def readInputs(commThread):
 #  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
 def sendKick(commThread, solBrd):
     cmdArr = []
+    clearArr = []
     addr = commThread.solAddrArr[solBrd]
     cmdArr.append(addr)
+    clearArr.append(addr)
     cmdArr.append(rs232Intf.KICK_SOL_CMD)
+    clearArr.append(rs232Intf.KICK_SOL_CMD)
     value = commThread.solKickVal[solBrd]
     commThread.solKickVal[solBrd] = 0
     # Value
-    cmdArr.append(value)
+    cmdArr.append(chr(value))
+    clearArr.append(chr(0))
     # Mask
-    cmdArr.append(value)
+    cmdArr.append(chr(value))
+    clearArr.append(chr(value))
     cmdArr.append(rs232Intf.EOM_CMD)
+    clearArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
+    clearCmd = ''.join(clearArr)
     commThread.ser.write(sendCmd)
     
     # Kick command, just return EOM.
@@ -257,15 +263,7 @@ def sendKick(commThread, solBrd):
         return (errIntf.KICK_BAD_RESP)
 
     # Now clear the set bit
-    cmdArr = []
-    cmdArr.append(addr)
-    cmdArr.append(rs232Intf.KICK_SOL_CMD)
-    # Value
-    cmdArr.append(0)
-    # Mask
-    cmdArr.append(value)
-    sendCmd = ''.join(cmdArr)
-    commThread.ser.write(sendCmd)
+    commThread.ser.write(clearCmd)
     
     # Kick command, just return EOM.
     error = rcvEomResp(commThread)

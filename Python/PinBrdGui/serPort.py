@@ -215,6 +215,7 @@ class SerPort():
                     kickCmd.append(chr(self.solKickVal[index]))
                     # Mask
                     kickCmd.append(chr(self.solKickVal[index]))
+                    
                     clearCmd.append(chr(self.addrArr[index]))
                     clearCmd.append(rs232Intf.KICK_SOL_CMD)
                     # Value

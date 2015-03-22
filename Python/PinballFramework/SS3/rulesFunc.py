@@ -312,6 +312,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_Game(self):
+        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
         RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
 
     ## Function Proc_Start_Ball_Init
@@ -320,7 +321,6 @@ class RulesFunc:
     #  @return None
     def Proc_Start_Ball_Init(self):
         RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_KICKOUT_TIMER)
-        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
         RulesFunc.GameData.kick_retries = 0
 
     ## Function Proc_Start_Ball_Start
@@ -336,6 +336,11 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Ball_In_Play_Init(self):
+        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED1_ALL_BITS_MSK)
+        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED2_ALL_BITS_MSK)
+        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED3_ALL_BITS_MSK)
+        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED4_ALL_BITS_MSK)
+        RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED5_ALL_BITS_MSK)
         RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED6_ALL_BITS_MSK)
         RulesFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_CTR)
         RulesFunc.prev_flipper = 0
@@ -426,10 +431,12 @@ class RulesFunc:
                     RulesFunc.GameData.gameMode = State.MODE_PRESS_START
             else:
                 print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
+                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
                 RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
                 RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.ballNum + 1
         else:
             print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
+            RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
             RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
 
     ## Function Proc_Inlane_Comp
