@@ -131,6 +131,19 @@ class StdFuncs():
         #HRS:  Finish
         pass
     
+    ## Change solenoid config
+    #
+    #  Send a command to change the solenoid config
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  cardBitPos    [in]   solenoid card index and bit position
+    #  @return None 
+    def Change_Solenoid_Cfg(self, cardBitPos, cfg):
+        cardNum = (cardBitPos >> 16) & 0xf
+        bitPos = cardBitPos & 0xffff
+        comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, bitPos, cfg)
+        comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
+    
     ## Kick solenoid
     #
     #  Send a command to kick a solenoid

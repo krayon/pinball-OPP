@@ -52,6 +52,7 @@ from solBitNames import SolBitNames
 from sounds import Sounds
 from SS3.ledBitNames import LedBitNames
 import random
+import rs232Intf
 
 ## Custom functions class.
 #  Contains all the custom rules and functions that are specific this this set
@@ -87,11 +88,18 @@ class CustomFunc:
     
     _reverseLookup = [ 0x0, 0x8, 0x4, 0xc, 0x2, 0xa, 0x6, 0xe, 0x1, 0x9, 0x5, 0xd, 0x3, 0xb, 0x7, 0xf]
    
+    INLNSAVE_INLANE_MASK = 0xe7
+    INLNSAVE_HORSESHOE = 0x10
+    
     MODETRGT_POP_BUMPER = 0
     MODETRGT_DROP_TRGT = 1
     MODETRGT_INLANE = 2
     MODETRGT_SPINNER = 3 
     MODETRGT_KICKOUT_HOLE = 4 
+    
+    MODETRKBNDT_INLANES = 0
+    MODETRKBNDT_TARGETS = 0
+    
     
     ## Initialize CustomFunc class
     #
@@ -114,6 +122,7 @@ class CustomFunc:
         self.tiltActive = False
         self.disableRotate = False
         self.saveModeState = [0, 0, 0, 0]
+        self.saveModeData = [0, 0, 0, 0]
         self.saveModeValue = 0
         self._initFuncTbl = [self.init_call_posse, self.init_hustle_jive, self.init_target_practice, self.init_check_hideouts,
             self.init_sniper, self.init_sharpe_attack, self.init_track_bandits, self.init_kill_em_all,
@@ -320,11 +329,11 @@ class CustomFunc:
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, leds])
                 self.compInlanes[plyr] = leds
                 
-            # No rotation allowed
+            # No rotation allowed in hard level
             elif (self.level[plyr] == CustomFunc.LEVEL_HARD):
                 pass
             
-            # HRS:  No idea what to do in wizard mode
+            # No rotation allowed in wizard level
             elif (self.level[plyr] == CustomFunc.LEVEL_WIZARD):
                 pass
             
@@ -350,6 +359,7 @@ class CustomFunc:
     #  @return None
     #
     #  @note Spinner lane 10 spins, then kickout hole.  Future: gives two ball multiball
+    #
     #  State contains number of spins already counted
     def init_call_posse(self, plyr, restoreState):
         # Blink spinner lane
@@ -374,14 +384,19 @@ class CustomFunc:
     #
     #  @note Turn off tilt bob.  Disable rotate of inlanes using flippers.  Mode is
     #  successfully completed when all the lanes have been entered
+    #
+    #  State contains inlanes that have already been completed
     def init_hustle_jive(self, plyr, restoreState):
         # Blink non-lit inlanes
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | 
             LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_2)
         self.disableRotate = True
-        if not restoreState:
+        if restoreState:
+            self.compInlanes[plyr] = self.saveModeState[plyr]
+        else:
             self.compInlanes[plyr] = 0
+            self.saveModeState[plyr] = 0
     
     ## Init target practice
     #
@@ -394,6 +409,7 @@ class CustomFunc:
     #
     #  @note Blink random pop, random shooter target, random inlane,
     #  spinner orbit, then finish with kickout hole.
+    #
     #  State contains next thing to hit.
     def init_target_practice(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_3)
@@ -441,9 +457,28 @@ class CustomFunc:
     #  @param  restoreState  [in]   Restore the state of the mode
     #  @return None
     #
-    #  @note Must get two standup targets within 60s
+    #  @note Must get two standup targets 5 times each within 60s.  Top target is a cave, while
+    #  the lower target is an abandoned house.  Blink top left pop bumper to indicate where shots
+    #  should be aimed.  (Verbal callouts will happen to indicate which target is needs to be hit
+    #  the most.)
+    #
+    #  State contains number of times standups have been hit.  Upper 16 bits contains number of
+    #  times cave has been hit, lower 16 bits contains number of times abandoned house has been
+    #  hit.
     def init_check_hideouts(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_4)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPLFT)
+        if restoreState:
+            if (self.saveModeState[plyr] >> 16) >= (self.saveModeState[plyr] & 0xffff):
+                # Play sound "Look in the abandoned house"
+                pass
+            else:
+                # Play sound "Go check out the abandoned mine"
+                pass
+        else:
+            self.saveModeState[plyr] = 0
+            # Play sound "Look in the bandit hideouts"
+        # HRS:  Start timeout to play sound every 10s to indicate what target needs hit most
     
     ## Init sniper
     #
@@ -455,9 +490,19 @@ class CustomFunc:
     #  @return None
     #
     #  @note Disable pop bumpers.  Can only hit blinking shooter target,
-    #  then next one, etc.  Hit 5 individual targets completes the mode
+    #  then next one, etc.  Hit 5 individual targets completes the mode.  In
+    #  easy and medium mode, the target next to the blinking target can be
+    #  hit without failing the mode.
+    #
+    #  State contains number of standups that have successfully been hit
     def init_sniper(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_5)
+        
+        # Pick the drop that must be hit.  Blink the drop target
+        if not restoreState:
+            self.saveModeState[plyr] = 0
+        self.saveModeValue = random.randint(0, 6)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
     
     ## Init Sharpe attack
     #
@@ -468,9 +513,22 @@ class CustomFunc:
     #  @param  restoreState  [in]   Restore the state of the mode
     #  @return None
     #
-    #  @note Five shooter individual targets, no cradling allowed.
+    #  @note Disable pop bumpers.  Can only hit blinking shooter target,
+    #  then next one, etc.  Hit 5 individual targets completes the mode.  In
+    #  easy and medium mode, the target next to the blinking target can be
+    #  hit without failing the mode.  No cradling is allowed.
+    #
+    #  State contains number of standups that have successfully been hit
     def init_sharpe_attack(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_6)
+        # HRS:  Disable cradling
+        # Reset drop targets
+        
+        # Pick the drop that must be hit.  Blink the drop target
+        if not restoreState:
+            self.saveModeState[plyr] = 0
+        self.saveModeValue = random.randint(0, 6)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
 
     ## Init track bandits
     #
@@ -481,11 +539,32 @@ class CustomFunc:
     #  @param  restoreState  [in]   Restore the state of the mode
     #  @return None
     #
-    #  @note Collect all lanes (can use flippers to rotate).  Jackpot lane must
-    #  also be collected, then knock down all the shooter targets.
+    #  @note Collect all lanes (may use flippers to rotate depending on level).
+    #  Jackpot lane must also be collected, then knock down all the shooter targets.
+    #
+    #  State contains if shooting for inlanes or drop targets.  Data contains
+    #  inlanes that have already been completed.
     def init_track_bandits(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_7)
     
+        if restoreState:
+            self.compInlanes[plyr] = self.saveModeData[plyr] & CustomFunc.INLNSAVE_INLANE_MASK
+        else:
+            self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_INLANES
+            self.saveModeData[plyr] = 0
+            
+        if self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_INLANES:
+            # Blink inlanes
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | 
+                LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT)
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_HORSESHOE)
+            if ((self.saveModeData[plyr] & CustomFunc.INLNSAVE_HORSESHOE) != 0):
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_HORSESHOE)
+        else:
+            # Blink drop targets
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | 
+                LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7)
+            
     ## Init kill em all
     #
     #  Initialize kill em all mode
@@ -497,8 +576,17 @@ class CustomFunc:
     #
     #  @note Drop all shooter targets 3 times.  60 sec to drop bank.
     #  Resets timer when bank is finished.
+    #
+    #  State contains number of drop targets banks that have successfully been completed
     def init_kill_em_all(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_8)
+        
+        # Blink drop targets
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | 
+            LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7)
+    
+        if not restoreState:
+            self.saveModeData[plyr] = 0
     
     ## Init bar fight
     #
@@ -510,9 +598,33 @@ class CustomFunc:
     #  @return None
     #
     #  @note Hit each pop bumper 10 times.  Each time bumper is hit,
-    #  light in bumper is lit 10% ore time.  10 hits are full on.
+    #  light in bumper is lit 10% more time.  10 hits are full on.
+    #
+    #  State contains number of pop bumper hits.  Each pop bumper is in a
+    #  single byte.
     def init_bar_fight(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_9)
+        
+        # Blink pop bumpers
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPCTR | LedBitNames.LED_POP_UPLFT)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_BTMUP | LedBitNames.LED_POP_BTMLOW)
+
+        if restoreState:
+            # Disable pop bumpers if completed
+            if ((self.saveModeData[plyr] & 0xff) > 9):
+                CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_BTMLOW)
+            if (((self.saveModeData[plyr] >> 8) & 0xff) > 9):
+                CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_BTMUP)
+            if (((self.saveModeData[plyr] >> 16) & 0xff) > 9):
+                CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_UPPER_CTR_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPCTR)
+            if (((self.saveModeData[plyr] >> 24) & 0xff) > 9):
+                CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_UPPER_LFT_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPLFT)
+        else:
+            self.saveModeData[plyr] = 0
     
     ## Init duel
     #
@@ -525,7 +637,13 @@ class CustomFunc:
     #
     #  @note Hit flashing shooter target within certain amount of time.
     def init_duel(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_10)
+
+        # Pick the drop that must be hit.  Blink the drop target
+        self.saveModeValue = random.randint(0, 6)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
+        
+        # HRS:  Start duel timer
     
     ## Init ride for help
     #
@@ -538,7 +656,11 @@ class CustomFunc:
     #
     #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
     def init_ride_for_help(self, plyr, restoreState):
-        pass
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_11)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_HORSESHOE)
+        
+        if not restoreState:
+            self.saveModeData[plyr] = 0
 
     ## Process skillshot
     #
@@ -596,9 +718,14 @@ class CustomFunc:
                 CustomFunc.GameData.score[plyr] += 1
             self.compInlanes[plyr] |= 0x01
             moveNextMode = True
+            
+        # If it is light plunged, the spinner switch will occur
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
+            CustomFunc.GameData.score[plyr] += 1
+            moveNextMode = True
         
         # If any other switches get hit, it probably means the inlane switch didn't register, move to normal mode
-        if ((CustomFunc.GameData.currInpStatus[0] & (InpBitNames.INP_SPINNER | InpBitNames.INP_HORSHOE_ROLLOVER |
+        if ((CustomFunc.GameData.currInpStatus[0] & (InpBitNames.INP_HORSHOE_ROLLOVER |
                 InpBitNames.INP_BELOW_KICKOUT_RUBBER | InpBitNames.INP_UPPER_LFT_TOP_TRGT | InpBitNames.INP_UPPER_LFT_BTM_TRGT )) != 0) or \
            ((CustomFunc.GameData.currInpStatus[1] & (InpBitNames.INP_BTM_LFT_INLN_ROLLOVER | InpBitNames.INP_BTM_LFT_OUTLN_ROLLOVER |
             InpBitNames.INP_CTR_LOW_ROLLOVER | InpBitNames.INP_DROP_BANK_MISS | InpBitNames.INP_BTM_RGHT_RUBBER | InpBitNames.INP_BTM_RGHT_LOW_RUBBER  |

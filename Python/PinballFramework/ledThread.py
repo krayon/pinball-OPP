@@ -83,15 +83,11 @@ class LedThread(Thread):
     def __init__(self):
         super(LedThread, self).__init__()
         self.blinkOn = False
+        self.sleep = 0
         if platform.release() == "XP":
             self._pport = parallel.Parallel()
         else:
             self._pport = None        
-        # HRS: Debug
-        self.currVal = 0
-        self.count = 0
-        self.outData = [0] * 6
-        self.sleep = 0
 
     ## Initialize LED hardware
     #

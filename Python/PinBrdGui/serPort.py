@@ -84,7 +84,6 @@ class SerPort():
             if self.error == 0:
                 self.error = self.getInventory()
         else:
-            #HRS: For debug
             self.debug = True
             self.error = self.getInventory()
             

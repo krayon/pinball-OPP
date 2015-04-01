@@ -50,8 +50,6 @@ import os
 import time
 from procChains import ProcChains
 
-# HRS:  Unimplemented - Support for ALL_BITS_MSK for each LED card
-
 ## Proc Input Cards class.
 #
 #  Contains functions for INPUT_CARDS section.
