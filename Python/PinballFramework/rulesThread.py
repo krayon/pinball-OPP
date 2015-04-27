@@ -99,11 +99,11 @@ class RulesThread(Thread):
     #  @return None 
     def proc_rules(self):
         #Update the inputs from solenoid and input cards
-        for index in xrange(SolBrd.numSolBrds):
+        for index in xrange(SolBrd.numSolBrd):
             RulesThread.GameData.currSolStatus[index] = SolBrd.get_status(RulesThread.GameData.solBrd, index)
             if RulesThread.GameData.debug:
                 RulesThread.GameData.currSolStatus[index] |= TkSolBrd.get_status(RulesThread.GameData.tkSolBrd[index])
-        for index in xrange(InpBrd.numInpBrds):
+        for index in xrange(InpBrd.numInpBrd):
             RulesThread.GameData.currInpStatus[index] = InpBrd.get_status(RulesThread.GameData.inpBrd, index)
             if RulesThread.GameData.debug:
                 RulesThread.GameData.currInpStatus[index] |= TkInpBrd.get_status(RulesThread.GameData.tkInpBrd[index])
@@ -239,12 +239,12 @@ class RulesThread(Thread):
     #  @return None 
     def proc_scoring(self):
         if RulesThread.GameData.scoring:
-            for cardNum in xrange(SolBrd.numSolBrds):
+            for cardNum in xrange(SolBrd.numSolBrd):
                 if RulesThread.GameData.currSolStatus[cardNum] != 0:
                     for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
                         if (RulesThread.GameData.currSolStatus[cardNum] & (1 << bit)) != 0:
                             RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.SOL_SCORE[RulesThread.GameData.scoreLvl][cardNum][bit]
-            for cardNum in xrange(InpBrd.numInpBrds):
+            for cardNum in xrange(InpBrd.numInpBrd):
                 if RulesThread.GameData.currInpStatus[cardNum] != 0:
                     for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
                         if (RulesThread.GameData.currInpStatus[cardNum] & (1 << bit)) != 0:

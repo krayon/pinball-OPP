@@ -146,6 +146,7 @@ class CommThread(Thread):
             GameData.commState = CommsState.COMM_INV_DONE
         else:
             GameData.commState = CommsState.COMM_NO_COMM_PORT
+            commHelp.createCfgArr(self)
         return(errIntf.CMD_OK)
     
     ## Start the comms thread
@@ -172,17 +173,17 @@ class CommThread(Thread):
     #  @return None 
     def proc_comms(self):
         if (self.kickSolBrd != 0):
-            for board in xrange(SolBrd.numSolBrds):
+            for board in xrange(SolBrd.numSolBrd):
                 if ((self.kickSolBrd & (1 << board)) != 0):
                     self.kickSolBrd &= ~(1 << board)
                     commHelp.sendKick(self, board)
         if (self.updateSolBrdCfg != 0):
-            for board in xrange(SolBrd.numSolBrds):
+            for board in xrange(SolBrd.numSolBrd):
                 if ((self.updateSolBrdCfg & (1 << board)) != 0):
                     self.updateSolBrdCfg &= ~(1 << board)
                     commHelp.sendConfig(self, True, board)
         if (self.updateInpBrdCfg != 0):
-            for board in xrange(InpBrd.numInpBrds):
+            for board in xrange(InpBrd.numInpBrd):
                 if ((self.updateInpBrdCfg & (1 << board)) != 0):
                     self.updateInpBrdCfg &= ~(1 << board)
                     commHelp.sendConfig(self, False, board)

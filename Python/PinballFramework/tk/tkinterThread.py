@@ -115,17 +115,17 @@ class TkinterThread(Thread):
         bgndFrm = VerticalScrolledFrame(root)
         cmdFrm = TkCmdFrm(bgndFrm.interior)  # Changed to bgndFrm.interior
         bgndFrm.pack()
-        numInpBrds = 0
-        numSolBrds = 0
+        numInpBrd = 0
+        numSolBrd = 0
         for i in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
             if ((TkinterThread.GameData.RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                GameData.tkInpBrd.append(TkInpBrd(numInpBrds, i, TkinterThread.GameData.RulesData.INV_ADDR_LIST[i], bgndFrm.interior))  # Changed to bgndFrm.interior
-                numInpBrds += 1
+                GameData.tkInpBrd.append(TkInpBrd(numInpBrd, i, TkinterThread.GameData.RulesData.INV_ADDR_LIST[i], bgndFrm.interior))  # Changed to bgndFrm.interior
+                numInpBrd += 1
             elif ((TkinterThread.GameData.RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                GameData.tkSolBrd.append(TkSolBrd(numSolBrds, i, TkinterThread.GameData.RulesData.INV_ADDR_LIST[i], bgndFrm.interior))   # Changed to bgndFrm.interior
-                numSolBrds += 1
+                GameData.tkSolBrd.append(TkSolBrd(numSolBrd, i, TkinterThread.GameData.RulesData.INV_ADDR_LIST[i], bgndFrm.interior))   # Changed to bgndFrm.interior
+                numSolBrd += 1
         for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
-            GameData.tkLedBrd.append(TkLedBrd(i, numSolBrds + numInpBrds + i + 1, bgndFrm.interior))   # Changed to bgndFrm.interior
+            GameData.tkLedBrd.append(TkLedBrd(i, numSolBrd + numInpBrd + i + 1, bgndFrm.interior))   # Changed to bgndFrm.interior
         root.update()
         TkinterThread.doneInit = True
         
@@ -142,9 +142,9 @@ class TkinterThread(Thread):
                     ledData[i] |= ledBlink[i]
             for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
                 GameData.tkLedBrd[i].updateLeds(ledData[i])
-            for i in xrange(numSolBrds):
+            for i in xrange(numSolBrd):
                 GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
-            for i in xrange(numInpBrds):
+            for i in xrange(numInpBrd):
                 GameData.tkInpBrd[i].update_status_field(InpBrd.currInpData[i])
             dummy_count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)

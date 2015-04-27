@@ -46,13 +46,14 @@
 # live in the rules directory for the individual machine.
 
 #===============================================================================
-from ledBitNames import LedBitNames
-from inpBitNames import InpBitNames
-from solBitNames import SolBitNames
-from sounds import Sounds
+from SS3.inpBitNames import InpBitNames
+from SS3.solBitNames import SolBitNames
+from SS3.sounds import Sounds
 from SS3.ledBitNames import LedBitNames
 import random
 import rs232Intf
+from SS3.states import State
+from dispConstIntf import DispConst
 
 ## Custom functions class.
 #  Contains all the custom rules and functions that are specific this this set
@@ -100,6 +101,12 @@ class CustomFunc:
     MODETRKBNDT_INLANES = 0
     MODETRKBNDT_TARGETS = 0
     
+    # Used to note big events that happen during a poll cycle (bitfield)
+    POLLSTAT_INLANE_COMP = 0x01
+    POLLSTAT_COMP_DROPS = 0x02
+    POLLSTAT_HIT_SKILLSHOT = 0x04
+    POLLSTAT_HIT_DROP = 0x08
+    
     
     ## Initialize CustomFunc class
     #
@@ -115,21 +122,27 @@ class CustomFunc:
         self.level = [CustomFunc.LEVEL_EASY, CustomFunc.LEVEL_EASY, CustomFunc.LEVEL_EASY, CustomFunc.LEVEL_EASY]
         self.compModes = [0, 0, 0, 0]
         self.compInlanes = [0, 0, 0, 0]
+        self.dropTrgtGoal = [0, 0, 0, 0]
         self.numSkillShots = [0, 0, 0, 0]
         self.selectMode = 0
         self.mode = [CustomFunc.MODE_CALL_POSSE, CustomFunc.MODE_CALL_POSSE, CustomFunc.MODE_CALL_POSSE, CustomFunc.MODE_CALL_POSSE]
-        self.spinMult = 0
+        self.spinMult = 1
+        self.numSpin = 0
         self.tiltActive = False
         self.disableRotate = False
         self.saveModeState = [0, 0, 0, 0]
         self.saveModeData = [0, 0, 0, 0]
         self.saveModeValue = 0
+        self.pollStatus = 0
         self._initFuncTbl = [self.init_call_posse, self.init_hustle_jive, self.init_target_practice, self.init_check_hideouts,
             self.init_sniper, self.init_sharpe_attack, self.init_track_bandits, self.init_kill_em_all,
             self.init_bar_fight, self.init_duel, self.init_ride_for_help]
         self._procFuncTbl = [self.proc_call_posse, self.proc_hustle_jive, self.proc_target_practice, self.proc_check_hideouts,
             self.proc_sniper, self.proc_sharpe_attack, self.proc_track_bandits, self.proc_kill_em_all,
             self.proc_bar_fight, self.proc_duel, self.proc_ride_for_help]
+        self._compInlaneScore = [50, 75, 100, 150]
+        self.dropHit = 0
+        self.totDrops = 0
         
     ## Initialize game
     #
@@ -146,10 +159,20 @@ class CustomFunc:
         self.numSkillShots = [0, 0, 0, 0]
         self.selectMode = 0
         self.mode = [CustomFunc.MODE_CALL_POSSE, CustomFunc.MODE_CALL_POSSE, CustomFunc.MODE_CALL_POSSE, CustomFunc.MODE_CALL_POSSE]
-        self.spinMult = 0
+        self.spinMult = 1
+        self.numSpin = 0
         self.tiltActive = False
         self.disableRotate = False
         self.saveModeState = [0, 0, 0, 0]
+        self.GameData.currPlayer = 0
+        self.GameData.currPlyrDisp = 1
+        self.GameData.creditBallNumDisp = 1
+        CustomFunc.GameData.gameMode = State.MODE_START_GAME
+        CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER_NUM] = False
+        CustomFunc.GameData.blankDisp[DispConst.DISP_CREDIT_BALL_NUM] = False
+        CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER2] = True
+        CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER3] = True
+        CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER4] = True
 
     ## Start next ball
     #
@@ -161,37 +184,65 @@ class CustomFunc:
     def start_next_ball(self, plyr):
         # First fill in level
         leds = 0
-        mask = [0, 0, 0, LedBitNames.LED_MULT_2 | LedBitNames.LED_MULT_3 | LedBitNames.LED_MULT_4 | LedBitNames.LED_MULT_5]
+        mask = [0, 0, 0, LedBitNames.LED_ROOKIE | LedBitNames.LED_DEPUTY | LedBitNames.LED_SHERIFF | LedBitNames.LED_MARSHAL | LedBitNames.LED_SHOOT_AGAIN]
         if (self.level[plyr] == CustomFunc.LEVEL_EASY):
-            leds = LedBitNames.LED_MULT_2
+            leds = LedBitNames.LED_ROOKIE
         elif (self.level[plyr] == CustomFunc.LEVEL_MED):
-            leds = LedBitNames.LED_MULT_2 | LedBitNames.LED_MULT_3
+            leds = LedBitNames.LED_ROOKIE | LedBitNames.LED_DEPUTY
         elif (self.level[plyr] == CustomFunc.LEVEL_HARD):
-            leds = LedBitNames.LED_MULT_2 | LedBitNames.LED_MULT_3 | LedBitNames.LED_MULT_4
+            leds = LedBitNames.LED_ROOKIE | LedBitNames.LED_DEPUTY | LedBitNames.LED_SHERIFF
         elif (self.level[plyr] == CustomFunc.LEVEL_WIZARD):
-            leds = LedBitNames.LED_MULT_2 | LedBitNames.LED_MULT_3 | LedBitNames.LED_MULT_4 | LedBitNames.LED_MULT_5
+            leds = LedBitNames.LED_ROOKIE | LedBitNames.LED_DEPUTY | LedBitNames.LED_SHERIFF | LedBitNames.LED_MARSHAL
         CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, 0, 0, leds])
         
         # Set the completed modes
-        mask = [0, 0, LedBitNames.LED_MODE_11 | LedBitNames.LED_MODE_10 | LedBitNames.LED_MODE_9 | LedBitNames.LED_MODE_8 | LedBitNames.LED_MODE_7,
-            0, LedBitNames.LED_MODE_1 | LedBitNames.LED_MODE_2 | LedBitNames.LED_MODE_3 | LedBitNames.LED_MODE_4 | LedBitNames.LED_MODE_5 | LedBitNames.LED_MODE_6]
+        mask = [0, 0, LedBitNames.LED_MODE_RIDEHELP | LedBitNames.LED_MODE_DUEL | LedBitNames.LED_MODE_BARFGHT | LedBitNames.LED_MODE_KILLALL | LedBitNames.LED_MODE_TRKBNDT,
+            0, LedBitNames.LED_MODE_POSSE | LedBitNames.LED_MODE_HUSTLEJIVE | LedBitNames.LED_MODE_TRGTPRAC | LedBitNames.LED_MODE_CHKHIDE | LedBitNames.LED_MODE_SNIPER | LedBitNames.LED_MODE_SHARPE]
         # Bits are oriented so reversed bits are in proper position
         leds = self.reverseByte((self.compModes[plyr] & 0x7c0) >> 6)
         ledList = [0, 0, 0x20000 | leds, 0, 0x40000 | ((self.compModes[plyr] & 0x3f) << 2)] 
         CustomFunc.GameData.StdFuncs.Led_Set(mask, ledList)
     
-        # Set the inlanes if easy or medum
+        # Set the inlanes if easy or medium
         if (self.level[plyr] == CustomFunc.LEVEL_EASY) or (self.level[plyr] == CustomFunc.LEVEL_MED):
+            if ((self.compInlanes[plyr] & LedBitNames.LED_INLN_CTR) == LedBitNames.LED_INLN_CTR):
+                # The center inlane is already complete.  Move that bit to another position if possible
+                if ((self.compInlanes[plyr] & LedBitNames.LED_INLN_RGHT) == 0):
+                    self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
+                    self.compInlanes[plyr] |= LedBitNames.LED_INLN_RGHT
+                elif ((self.compInlanes[plyr] & LedBitNames.LED_INLN_LFT) == 0):
+                    self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
+                    self.compInlanes[plyr] |= LedBitNames.LED_INLN_LFT
+                elif (self.level[plyr] == CustomFunc.LEVEL_EASY):
+                    # On easy, can rotate between both levels so find clear one on the lower rollovers.
+                    if ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_RGHT) == 0):
+                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
+                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_RGHT
+                    elif ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_CTR) == 0):
+                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
+                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_CTR
+                    elif ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_LFT) == 0):
+                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
+                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_LFT
+                     
             mask = [0, LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT]
             CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, self.compInlanes[plyr]])
         else:
             self.compInlanes[plyr] = 0
             CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT)
+
+        # Turn off all the drop target LEDs
+        CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED6_ALL_BITS_MSK)
+
+        # Blink the skill shot
+        # HRS:  This should blink regardless of if the center target has been hit or not            
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_CTR)
         
         # Reset the spinner kickout hole LEDs, 
-        self.spinMult = 0
+        self.spinMult = 1
+        self.numSpin = 0
         CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED1_ALL_BITS_MSK)
-        CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_SHOOT_AGAIN)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
         CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_LFT_OUTLN | LedBitNames.LED_LFT_INLN)
         self.state[plyr] = CustomFunc.STATE_SKILL_SHOT
 
@@ -206,12 +257,14 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def end_ball(self, plyr):
-        # In easy mode inlanes are retained for next ball, mode completes on ball end
+        # In easy mode inlanes are retained for next ball, mode completes on ball end.
+        # self.compInlanes[plyr] are kept up to date during play, so don't need to store here
         if (self.level[plyr] == CustomFunc.LEVEL_EASY):
             if (self.state[plyr] == CustomFunc.STATE_MODE_ACTIVE):
                 self.compModes[plyr] |= (1 << self.mode[plyr])
-                self.stateProg[plyr] = CustomFunc.STATEPROG_NONE
-        # In medium mode, inlanes are retained, and mode is continued if currently in a mode 
+                self.stateProg[plyr] = 0
+        # In medium mode, inlanes are retained, and mode is continued if currently in a mode
+        # Kickout hole must be sunk again to restart mode 
         elif (self.level[plyr] == CustomFunc.LEVEL_MED):
             pass
         # In hard mode, progress and inlanes are reset
@@ -349,6 +402,171 @@ class CustomFunc:
         elif (self.state[plyr] == CustomFunc.STATE_MODE_ACTIVE):
             pass
 
+    ## Process inlanes
+    #
+    #  Process inlanes and see if complete
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def proc_inlanes(self, plyr):
+        unlit = 0
+        lit = 0
+        comp = 0 
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_ROLLOVER):
+            if (self.compInlanes[plyr] & LedBitNames.LED_INLN_LFT & 0xffff) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_LFT)
+                self.compInlanes[plyr] |= (LedBitNames.LED_INLN_LFT & 0xffff)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_CTR_ROLLOVER):
+            if (self.compInlanes[plyr] & LedBitNames.LED_INLN_CTR & 0xffff) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_CTR)
+                self.compInlanes[plyr] |= (LedBitNames.LED_INLN_CTR & 0xffff)
+                unlit += 1
+                self.pollStatus |= CustomFunc.POLLSTAT_HIT_SKILLSHOT
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_RGHT_ROLLOVER):
+            if (self.compInlanes[plyr] & LedBitNames.LED_INLN_RGHT & 0xffff) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_RGHT)
+                self.compInlanes[plyr] |= (LedBitNames.LED_INLN_RGHT & 0xffff)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_LFT_ROLLOVER):
+            if (self.compInlanes[plyr] & LedBitNames.LED_ROLL_LFT & 0xffff) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_LFT)
+                self.compInlanes[plyr] |= (LedBitNames.LED_ROLL_LFT & 0xffff)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_CTR_ROLLOVER):
+            if (self.compInlanes[plyr] & LedBitNames.LED_ROLL_CTR & 0xffff) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_CTR)
+                self.compInlanes[plyr] |= (LedBitNames.LED_ROLL_CTR & 0xffff)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_RGHT_ROLLOVER):
+            if (self.compInlanes[plyr] & LedBitNames.LED_ROLL_RGHT & 0xffff) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_RGHT)
+                self.compInlanes[plyr] |= (LedBitNames.LED_ROLL_RGHT & 0xffff)
+                unlit += 1
+            else:
+                lit += 1
+        if (self.compInlanes[plyr] & (LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT | LedBitNames.LED_ROLL_LFT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_RGHT)) == \
+                (LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT | LedBitNames.LED_ROLL_LFT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_RGHT) & 0xffff:
+            print "Inlanes Complete!!"
+            comp += 1
+            self.compInlanes[plyr] = 0
+            CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT | LedBitNames.LED_ROLL_LFT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_RGHT)
+            self.pollStatus |= CustomFunc.POLLSTAT_INLANE_COMP
+        CustomFunc.GameData.score[plyr] += ((unlit * 5) + (lit * 2) + (comp * self._compInlaneScore[self.level[plyr]]))
+        
+    ## Process drop targets
+    #
+    #  Process drop targets and see if complete
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def proc_drop_targets(self, plyr):
+        unlit = 0
+        lit = 0
+        self.dropHit = 0
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_1S):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_1)
+            self.dropHit |= LedBitNames.LED_DT_1
+            self.totDrops |= LedBitNames.LED_DT_1
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_1) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_1)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_2H):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_2)
+            self.dropHit |= LedBitNames.LED_DT_2
+            self.totDrops |= LedBitNames.LED_DT_2
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_2) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_2)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_3O):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_3)
+            self.dropHit |= LedBitNames.LED_DT_3
+            self.totDrops |= LedBitNames.LED_DT_3
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_3) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_3)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_4O):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_4)
+            self.dropHit |= LedBitNames.LED_DT_4
+            self.totDrops |= LedBitNames.LED_DT_4
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_4) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_4)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_5T):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_5)
+            self.dropHit |= LedBitNames.LED_DT_5
+            self.totDrops |= LedBitNames.LED_DT_5
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_5) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_5)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_6E):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_6)
+            self.dropHit |= LedBitNames.LED_DT_6
+            self.totDrops |= LedBitNames.LED_DT_6
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_6) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_6)
+                unlit += 1
+            else:
+                lit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_DROP_TRGT_7R):
+            self.pollStatus |= CustomFunc.POLLSTAT_HIT_DROP
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_7)
+            self.dropHit |= LedBitNames.LED_DT_7
+            self.totDrops |= LedBitNames.LED_DT_7
+            if (self.dropTrgtGoal[plyr] & LedBitNames.LED_DT_7) == 0:
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DT_7)
+                unlit += 1
+            else:
+                lit += 1
+        if (self.totDrops == (LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | 
+                LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7)):
+            print "Drops Complete!!"
+            self.pollStatus |= CustomFunc.POLLSTAT_COMP_DROPS
+            self.totDrops = 0
+            CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_INLN_LFT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_RGHT | LedBitNames.LED_ROLL_LFT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_RGHT)
+            self.pollStatus |= CustomFunc.POLLSTAT_INLANE_COMP
+        CustomFunc.GameData.score[plyr] += ((unlit * 5) + (lit * 2))
+        
+    ## Process spinner
+    #
+    #  Process spinner
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def proc_spinner(self, plyr):
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
+            CustomFunc.GameData.score[plyr] += self.spinMult
+            self.numSpin += 1
+            
     ## Init call posse
     #
     #  Initialize call posse mode
@@ -364,7 +582,7 @@ class CustomFunc:
     def init_call_posse(self, plyr, restoreState):
         # Blink spinner lane
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SPINNER)
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_1)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_POSSE)
         
         # If restoring, 
         if restoreState:
@@ -390,7 +608,7 @@ class CustomFunc:
         # Blink non-lit inlanes
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | 
             LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT)
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_2)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_HUSTLEJIVE)
         self.disableRotate = True
         if restoreState:
             self.compInlanes[plyr] = self.saveModeState[plyr]
@@ -412,7 +630,7 @@ class CustomFunc:
     #
     #  State contains next thing to hit.
     def init_target_practice(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_3)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_TRGTPRAC)
         if restoreState:
             # If only had to hit the kickout hole, move back to hit spinner
             if (self.saveModeState[plyr] == CustomFunc.MODETRGT_KICKOUT_HOLE):
@@ -466,7 +684,7 @@ class CustomFunc:
     #  times cave has been hit, lower 16 bits contains number of times abandoned house has been
     #  hit.
     def init_check_hideouts(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_4)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_CHKHIDE)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPLFT)
         if restoreState:
             if (self.saveModeState[plyr] >> 16) >= (self.saveModeState[plyr] & 0xffff):
@@ -496,7 +714,7 @@ class CustomFunc:
     #
     #  State contains number of standups that have successfully been hit
     def init_sniper(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_5)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SNIPER)
         
         # Pick the drop that must be hit.  Blink the drop target
         if not restoreState:
@@ -520,7 +738,7 @@ class CustomFunc:
     #
     #  State contains number of standups that have successfully been hit
     def init_sharpe_attack(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_6)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SHARPE)
         # HRS:  Disable cradling
         # Reset drop targets
         
@@ -545,7 +763,7 @@ class CustomFunc:
     #  State contains if shooting for inlanes or drop targets.  Data contains
     #  inlanes that have already been completed.
     def init_track_bandits(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_7)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_TRKBNDT)
     
         if restoreState:
             self.compInlanes[plyr] = self.saveModeData[plyr] & CustomFunc.INLNSAVE_INLANE_MASK
@@ -579,7 +797,7 @@ class CustomFunc:
     #
     #  State contains number of drop targets banks that have successfully been completed
     def init_kill_em_all(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_8)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_KILLALL)
         
         # Blink drop targets
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | 
@@ -603,7 +821,7 @@ class CustomFunc:
     #  State contains number of pop bumper hits.  Each pop bumper is in a
     #  single byte.
     def init_bar_fight(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_9)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_BARFGHT)
         
         # Blink pop bumpers
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPCTR | LedBitNames.LED_POP_UPLFT)
@@ -637,7 +855,7 @@ class CustomFunc:
     #
     #  @note Hit flashing shooter target within certain amount of time.
     def init_duel(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_10)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_DUEL)
 
         # Pick the drop that must be hit.  Blink the drop target
         self.saveModeValue = random.randint(0, 6)
@@ -656,7 +874,7 @@ class CustomFunc:
     #
     #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
     def init_ride_for_help(self, plyr, restoreState):
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_11)
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_RIDEHELP)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_HORSESHOE)
         
         if not restoreState:
@@ -673,6 +891,7 @@ class CustomFunc:
     #  @note Skillshot gives next advance towards mode in easy and medium.  In hard
     #  and wizard, it only gives points
     def proc_skillshot(self, plyr):
+        self.proc_inlanes(plyr)
         moveNextMode = False
         
         # Check if skillshot made
@@ -683,18 +902,19 @@ class CustomFunc:
             else:
                 CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_HELL_OF_A_SHOT)
                 
-            # Mark the inlane as completed
-            self.compInlanes[plyr] |= 0x02
-            
             # If easy mode, inlanes and shooter can be collected in any order
             if (self.level[plyr] == CustomFunc.LEVEL_EASY):
                 if ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) == 0):
+                    # Skill shot completes collecting inlanes in easy
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_INLANES_COLLECTED
+                    self.compInlanes[plyr] = 0
                 elif ((self.stateProg[plyr] & CustomFunc.STATEPROG_SHOOTER_COLLECTED) == 0):
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_SHOOTER_COLLECTED
             # If medium mode, inlanes must be collected, then shooter is collected
             elif (self.level[plyr] == CustomFunc.LEVEL_MED):
                 if ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) == 0):
+                    # Skill shot completes collecting inlanes in medium
+                    self.compInlanes[plyr] = 0
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_INLANES_COLLECTED
                 elif ((self.stateProg[plyr] & CustomFunc.STATEPROG_SHOOTER_COLLECTED) == 0):
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_SHOOTER_COLLECTED
@@ -702,30 +922,8 @@ class CustomFunc:
             # Move to normal mode
             moveNextMode = True
             
-        # Check if another upper switch has happened
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_ROLLOVER):
-            if ((self.compInlanes[plyr] & 0x04) == 0):
-                CustomFunc.GameData.score[plyr] += 5
-            else:
-                CustomFunc.GameData.score[plyr] += 1
-            self.compInlanes[plyr] |= 0x04
-            moveNextMode = True
-            
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_RGHT_ROLLOVER):
-            if ((self.compInlanes[plyr] & 0x01) == 0):
-                CustomFunc.GameData.score[plyr] += 5
-            else:
-                CustomFunc.GameData.score[plyr] += 1
-            self.compInlanes[plyr] |= 0x01
-            moveNextMode = True
-            
-        # If it is light plunged, the spinner switch will occur
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
-            CustomFunc.GameData.score[plyr] += 1
-            moveNextMode = True
-        
-        # If any other switches get hit, it probably means the inlane switch didn't register, move to normal mode
-        if ((CustomFunc.GameData.currInpStatus[0] & (InpBitNames.INP_HORSHOE_ROLLOVER |
+        # If any other switches get hit, move to normal mode
+        if ((CustomFunc.GameData.currInpStatus[0] & (InpBitNames.INP_SPINNER | InpBitNames.INP_HORSHOE_ROLLOVER | InpBitNames.INP_UPPER_LFT_ROLLOVER | InpBitNames.INP_UPPER_RGHT_ROLLOVER |
                 InpBitNames.INP_BELOW_KICKOUT_RUBBER | InpBitNames.INP_UPPER_LFT_TOP_TRGT | InpBitNames.INP_UPPER_LFT_BTM_TRGT )) != 0) or \
            ((CustomFunc.GameData.currInpStatus[1] & (InpBitNames.INP_BTM_LFT_INLN_ROLLOVER | InpBitNames.INP_BTM_LFT_OUTLN_ROLLOVER |
             InpBitNames.INP_CTR_LOW_ROLLOVER | InpBitNames.INP_DROP_BANK_MISS | InpBitNames.INP_BTM_RGHT_RUBBER | InpBitNames.INP_BTM_RGHT_LOW_RUBBER  |
@@ -737,7 +935,6 @@ class CustomFunc:
         if moveNextMode:
             # Stop blinking the ctr inlane
             CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_INLN_CTR)
-            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_INLN_CTR)
             if (self.level[plyr] == CustomFunc.LEVEL_EASY):
                 # Even if in a mode at end of last ball, mode was marked as completed.  Move to normal state.
                 if ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) == 0):
@@ -758,7 +955,7 @@ class CustomFunc:
                     self.state[plyr] = CustomFunc.STATE_MODE_ACTIVE
                 elif ((self.stateProg[plyr] & CustomFunc.STATEPROG_SHOOTER_COLLECTED) != 0):
                     # Blink kickout hole to indicate mode is ready
-                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_CTR_CTR) 
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_PICK_JOB)
                     self.state[plyr] = CustomFunc.STATE_NONE
                 elif ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) != 0):
                     # Blink shooter targets
@@ -785,6 +982,8 @@ class CustomFunc:
                 
             # Tilt becomes active again
             self.tiltActive = True
+            CustomFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
+
                         
     ## Process normal play
     #
@@ -794,10 +993,66 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     #
-    #  @note Spinner lane 10 spins, then kickout hole.  Future: gives two ball multiball
+    #  @note None
     def proc_normal_play(self, plyr):
-        pass
+        if (self.level[plyr] == CustomFunc.LEVEL_EASY):
+            if ((self.pollStatus & CustomFunc.POLLSTAT_INLANE_COMP) != 0):
+                # Check if just collected inlane towards starting mode
+                if ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) == 0):
+                    # Turn off blinking inlanes, mark state bit, 
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_INLANES_COLLECTED
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | 
+                        LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT)
+                    # Check if drops have been collected.  If so, start blinking kickout hole
+                    if ((self.stateProg[plyr] & CustomFunc.STATEPROG_SHOOTER_COLLECTED) != 0):
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_PICK_JOB)
+                # Inlanes collected again, increase spinner multiplier
+                else:
+                    if (self.spinMult < 5):
+                        self.spinMult += 1
+                    if (self.spinMult == 2):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_2X)
+                    elif (self.spinMult == 3):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_3X)
+                    elif (self.spinMult == 4):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_4X)
+                    elif (self.spinMult == 5):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_5X)
+            if ((self.pollStatus & CustomFunc.POLLSTAT_COMP_DROPS) != 0):
+                # Check if just collected drops towards starting mode
+                if ((self.stateProg[plyr] & CustomFunc.STATEPROG_SHOOTER_COLLECTED) == 0):
+                    # Turn off blinking drops, mark state bit, 
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_SHOOTER_COLLECTED
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | 
+                        LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7) 
+                    # Check if inlanes have been collected.  If so, start blinking kickout hole
+                    if ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) != 0):
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_PICK_JOB)
+            # Check if kickout hole collected
+            if CustomFunc.GameData.StdFuncs.CheckInpBit(SolBitNames.SOL_KICKOUT_HOLE):
+                if ((self.stateProg[plyr] & (CustomFunc.STATEPROG_INLANES_COLLECTED | CustomFunc.STATEPROG_SHOOTER_COLLECTED)) == \
+                    (CustomFunc.STATEPROG_INLANES_COLLECTED | CustomFunc.STATEPROG_SHOOTER_COLLECTED)):
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_PICK_JOB)
+                    print "Choose mode started"
+                    self.state[plyr] = CustomFunc.STATE_CHOOSE_MODE
+                else:
+                    #Hitting kickout hole, collects the bonus
+                    print "Collect bonus"
+                    CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
+                    
     
+    ## Process choose mode
+    #
+    #  Process choose mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    #
+    #  @note None
+    def proc_choose_mode(self, plyr):
+        pass
+        
     ## Process call posse
     #
     #  Process call posse mode

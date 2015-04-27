@@ -52,7 +52,7 @@ import rs232Intf
 #  Keep information about the input board including configuration and current
 #  input status.
 class InpBrd():
-    numInpBrds = 0
+    numInpBrd = 0
     
     ## Used for switch input processing.  A '1' means it is a state input bit and
     #  the latest value is used.  A '0' means is an edge triggered input, and it
@@ -70,8 +70,8 @@ class InpBrd():
     #  @param  GameData      [in]   Game Data Object reference
     #  @return None
     def add_card(self, GameData):
-        brdNum = InpBrd.numInpBrds
-        InpBrd.numInpBrds += 1
+        brdNum = InpBrd.numInpBrd
+        InpBrd.numInpBrd += 1
         bitField = 0
         for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
             if (GameData.InpBitNames.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):

@@ -47,10 +47,12 @@
 #===============================================================================
 
 from hwobjs.ledBrd import LedBrd
+from hwobjs.solBrd import SolBrd
 from dispConstIntf import DispConst
 import dispIntf
 import time
 import comms.commIntf
+import rs232Intf
 
 ## Standard functions class.
 #
@@ -118,18 +120,28 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None 
     def Disable_Solenoids(self):
-        #HRS:  Finish
-        pass
+        cfg = [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00']
+        for cardNum in xrange(SolBrd.numSolBrd):
+            for solIndex in xrange(rs232Intf.NUM_SOL_PER_BRD):
+                comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, solIndex, cfg)
+            comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
     
     ## Enable solenoids
     #
-    #  Send a command to enable the solenoids
+    #  Send a command to enable the solenoids.  Copies the standard solenoid
+    #  configuration to the solenoids.
     #
     #  @param  self          [in]   Object reference
     #  @return None 
     def Enable_Solenoids(self):
-        #HRS:  Finish
-        pass
+        for cardNum in xrange(SolBrd.numSolBrd):
+            for solIndex in xrange(rs232Intf.NUM_SOL_PER_BRD):
+                cfgOffs = rs232Intf.CFG_BYTES_PER_SOL * solIndex
+                cfg = [StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs],
+                    StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs + 1],
+                    StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs + 2]]
+                comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, solIndex, cfg)
+            comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
     
     ## Change solenoid config
     #

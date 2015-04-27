@@ -52,7 +52,7 @@ import rs232Intf
 #  Keep information about the solenoid board including configuration and current
 #  input status.
 class SolBrd():
-    numSolBrds = 0
+    numSolBrd = 0
     
     ## Used for switch input processing.  A '1' means it is a state input bit and
     #  the latest value is used.  A '0' means is an edge triggered input, and it
@@ -70,8 +70,8 @@ class SolBrd():
     #  @param  GameData      [in]   Game Data Object reference
     #  @return None
     def add_card(self, GameData):
-        brdNum = SolBrd.numSolBrds
-        SolBrd.numSolBrds += 1
+        brdNum = SolBrd.numSolBrd
+        SolBrd.numSolBrd += 1
         bitField = 0
         for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit

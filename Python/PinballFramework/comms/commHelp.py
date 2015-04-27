@@ -165,6 +165,19 @@ def getInventory(commThread):
         
     return (errIntf.CMD_OK)
 
+## Create Cfg Arrays
+#
+#  Create configuration arrays for the cards.  Used in simulation mode so cfg updates do not
+#  fail.
+#
+#  @param  commThread    [in]   Comm thread object
+#  @return None
+def createCfgArr(commThread):
+    for index in xrange(len(GameData.SolBitNames.SOL_BRD_CFG)):
+        commThread.solBrdCfg.append(GameData.SolBitNames.SOL_BRD_CFG[index])
+    for index in xrange(len(GameData.InpBitNames.INP_BRD_CFG)):
+        commThread.inpBrdCfg.append(GameData.InpBitNames.INP_BRD_CFG[index])
+
 ## Send configuration
 #
 #  Send the current configuration to the card.
