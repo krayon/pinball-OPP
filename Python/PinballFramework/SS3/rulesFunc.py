@@ -78,7 +78,6 @@ class RulesFunc:
     RGHT_TRGT_2 = 0x08
     TRGT_MSK = 0x0f
     curr_targets = 0
-    tilted = False
     kick_retries = 0
     prev_flipper = 0
     
@@ -133,21 +132,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Targets(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_TOP_TRGT):
-            self.curr_targets |= self.LFT_TRGT_1 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_BTM_TRGT):
-            self.curr_targets |= self.LFT_TRGT_2 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_RGHT_ROLLOVER):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_RGHT)
-            self.curr_targets |= self.RGHT_TRGT_1 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_CTR_ROLLOVER):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_CTR)
-            self.curr_targets |= self.RGHT_TRGT_2 
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_CTR_LFT_ROLLOVER):
-            RulesFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROLL_LFT)
-            self.curr_targets |= self.RGHT_TRGT_2 
-        if (self.curr_targets & (self.TRGT_MSK)) == self.TRGT_MSK:
-            RulesFunc.GameData.gameMode = State.MODE_TARGETS_COMPLETE
+        RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
 
     ## Process spinner input
     #
@@ -176,12 +161,29 @@ class RulesFunc:
         if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
             RulesFunc.GameData.gameMode = State.MODE_END_OF_BALL
 
+    ## Function Proc_Timers
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Timers(self):
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RELOAD_TIMER)):
+            # Stop blinking the reload LED
+            RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_SHOOT_AGAIN)
+        
+        # If the retry timer times out, and the ball is in the drain, serve it again.
+        # If the reload timer is running, restart this timer
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RETRY_TIMER)):
+            if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
+                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
+                if (RulesFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
+                    RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
+
     ## Function Proc_Tilt_Init
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Tilt_Init(self):
-        self.tilted = True
+        RulesFunc.CustomFunc.tilted = True
         if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE)):
             RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
             self.kick_retries = 0
@@ -227,13 +229,13 @@ class RulesFunc:
             RulesFunc.GameData.partCreditsNum += 1
             if (RulesFunc.GameData.creditsInRow == RulesFunc.GameData.extraCredit):
                 RulesFunc.GameData.credits += 1
-                if RulesFunc.GameData.gameMode == State.MODE_PRESS_START:
+                if RulesFunc.GameData.gameMode == State.MODE_ATTRACT:
                     RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.creditsInRow = 0
                 RulesFunc.GameData.partCreditsNum = 0
             if (RulesFunc.GameData.partCreditsNum == RulesFunc.GameData.partCreditsDenom):
                 RulesFunc.GameData.credits += 1
-                if RulesFunc.GameData.gameMode == State.MODE_PRESS_START:
+                if RulesFunc.GameData.gameMode == State.MODE_ATTRACT:
                     RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.partCreditsNum = 0
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_START):
@@ -246,8 +248,7 @@ class RulesFunc:
     def Proc_Press_Start(self):
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_START) and (RulesFunc.GameData.ballNum == 0):
             if (RulesFunc.GameData.gameMode == State.MODE_ATTRACT):
-                RulesFunc.CustomFunc.init_game()
-                RulesFunc.CustomFunc.start_next_ball(0)
+                CustomFunc.GameData.gameMode = State.MODE_INIT_GAME
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
                 RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER1 + RulesFunc.GameData.numPlayers] = False
@@ -275,18 +276,17 @@ class RulesFunc:
     def Proc_Init_Game(self):
         RulesFunc.GameData.StdFuncs.Enable_Solenoids()
         RulesFunc.GameData.StdFuncs.BgndImage(Images.IMAGE_SALOON)
-        RulesFunc.GameData.ballNum = 0
-        RulesFunc.GameData.bonusMult = 1
-        for i in xrange(RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
-            RulesFunc.GameData.inlaneLights[i] = 0
+        RulesFunc.CustomFunc.init_game()
+        RulesFunc.CustomFunc.start_next_ball(0)
+        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
+        RulesFunc.GameData.gameMode = State.MODE_SKILLSHOT
 
     ## Function Proc_Start_Game
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_Game(self):
-        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
-        RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
+        pass
 
     ## Function Proc_Start_Ball_Init
     #
@@ -304,23 +304,11 @@ class RulesFunc:
         # unused since no switch in the plunger lane
         pass
 
-    ## Function Proc_Ball_In_Play_Init
+    ## Function Proc_Skillshot
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Ball_In_Play_Init(self):
-        pass
-        RulesFunc.prev_flipper = 0
-        RulesFunc.GameData.targets = 0
-        RulesFunc.GameData.tilted = 0
-        RulesFunc.GameData.scoreLvl = 0
-        RulesFunc.GameData.numSpinners = 0
-
-    ## Function Proc_Ball_In_Play_Start
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Ball_In_Play_Start(self):
+    def Proc_Skillshot(self):
         RulesFunc.CustomFunc.proc_skillshot(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Normal_Play_Init
@@ -343,17 +331,59 @@ class RulesFunc:
         self.Proc_Kickout_Hole()
         self.Proc_Start_and_Coin()
         self.Proc_Ball_Drain()
+        self.Proc_Timers()
+        RulesFunc.CustomFunc.proc_normal_play(RulesFunc.GameData.currPlayer)
 
+
+    ## Function Proc_Choose_Mode_Init
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Choose_Mode_Init(self):
+        RulesFunc.CustomFunc.init_choose_mode(RulesFunc.GameData.currPlayer)
+    
+    ## Function Proc_Choose_Mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Choose_Mode(self):
+        self.Proc_Flipper()
+
+    ## Function Proc_Mode_Active_Init
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Mode_Active_Init(self):
+        pass
+
+    ## Function Proc_Mode_Active
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Mode_Active(self):
+        pass
+   
+    ## Function Proc_Jpot_Avail_Init
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Jpot_Avail_Init(self):
+        pass
+
+    ## Function Proc_Jpot_Avail
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Jpot_Avail(self):
+        pass
+       
     ## Function Proc_End_Of_Ball
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_End_Of_Ball(self):
-        if not self.tilted:
-            print "Bonus %d x %d" % (RulesFunc.GameData.bonusMult, RulesFunc.GameData.numSpinners)
-            RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += (RulesFunc.GameData.bonusMult * RulesFunc.GameData.numSpinners)
+        if not RulesFunc.CustomFunc.tilted:
             RulesFunc.GameData.StdFuncs.Wait(3000)
-        RulesFunc.GameData.bonusMult = 1
         RulesFunc.GameData.scoreLvl = 0
         RulesFunc.GameData.numSpinners = 0
         RulesFunc.GameData.scoring = False
@@ -375,16 +405,16 @@ class RulesFunc:
                 if (RulesFunc.GameData.credits == 0):
                     RulesFunc.GameData.gameMode = State.MODE_ATTRACT
                 else:
-                    RulesFunc.GameData.gameMode = State.MODE_PRESS_START
+                    RulesFunc.GameData.gameMode = State.MODE_ATTRACT
             else:
                 print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
-                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
-                RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
                 RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.ballNum + 1
+                RulesFunc.GameData.gameMode = State.MODE_SKILLSHOT
+                RulesFunc.CustomFunc.start_next_ball(RulesFunc.GameData.currPlayer)
         else:
             print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
-            RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
-            RulesFunc.GameData.gameMode = State.MODE_BALL_IN_PLAY
+            RulesFunc.GameData.gameMode = State.MODE_SKILLSHOT
+            RulesFunc.CustomFunc.start_next_ball(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Inlane_Comp
     #
@@ -405,8 +435,6 @@ class RulesFunc:
             LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | \
             LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7)
             
-        RulesFunc.GameData.bonusMult += 1
-        print "Bonus mult = %d" % RulesFunc.GameData.bonusMult
         RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += 10
         RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_SPECIAL_TIMER)
 
@@ -416,9 +444,6 @@ class RulesFunc:
     #  @return None
     def Proc_Targets_Comp_State(self):
         self.Proc_Normal_Play()
-        if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE)):
-            print "Collect Bonus"
-            RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += (RulesFunc.GameData.bonusMult * RulesFunc.GameData.numSpinners)
         if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SPECIAL_TIMER)):
             RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_SHOOT_AGAIN)
             RulesFunc.GameData.scoreLvl = 0

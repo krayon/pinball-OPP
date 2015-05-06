@@ -175,6 +175,7 @@ def getInventory(commThread):
 def createCfgArr(commThread):
     for index in xrange(len(GameData.SolBitNames.SOL_BRD_CFG)):
         commThread.solBrdCfg.append(GameData.SolBitNames.SOL_BRD_CFG[index])
+        commThread.solKickVal.append(0)
     for index in xrange(len(GameData.InpBitNames.INP_BRD_CFG)):
         commThread.inpBrdCfg.append(GameData.InpBitNames.INP_BRD_CFG[index])
 

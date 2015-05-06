@@ -70,6 +70,7 @@ class TimerThread(Thread):
             if (i & 0x1f) == 0:
                 GameData.expiredTimers.append(0) 
                 GameData.runningTimers.append(0) 
+                GameData.reportExpOnce.append(0)
             GameData.timerCnt.append(0)
              
     ## Initialize timers

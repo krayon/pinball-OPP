@@ -64,9 +64,12 @@ class Timers:
     TIMEOUT_KICKOUT_TIMER            =  0
     TIMEOUT_BALL_LOCATE              =  1
     TIMEOUT_SPECIAL_TIMER            =  2
+    TIMEOUT_RELOAD_TIMER             =  3
+    TIMEOUT_RETRY_TIMER              =  4
 
     timeouts = [
         [TIMEOUT_KICKOUT_TIMER, 1000],
         [TIMEOUT_BALL_LOCATE, 5000],
-        [TIMEOUT_SPECIAL_TIMER, 30000] ]
-
+        [TIMEOUT_SPECIAL_TIMER, 30000],
+        [TIMEOUT_RELOAD_TIMER, 20000],
+        [TIMEOUT_RETRY_TIMER, 3000] ]

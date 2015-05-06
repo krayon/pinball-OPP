@@ -76,10 +76,8 @@ class GameData():
     currPlayer = 0
     numPlayers = 0
     bgndImage = 0
-    inlaneLights = [0, 0, 0, 0]
     scoreLvl = 0
     numSpinners = 0
-    bonusMult = 0
     kick_retries = 0
     scoring = False
     
@@ -110,6 +108,7 @@ class GameData():
     expiredTimers = []
     runningTimers = []
     timerCnt = []
+    reportExpOnce = []
 
     #LED Chain 
     ledChain = []

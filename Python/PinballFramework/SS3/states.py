@@ -55,21 +55,20 @@
 class State():
     MODE_INIT                        = 0
     MODE_ATTRACT                     = 1
-    MODE_PRESS_START                 = 2
-    MODE_START_GAME                  = 3
-    MODE_START_BALL                  = 4
-    MODE_BALL_IN_PLAY                = 5
-    MODE_NORMAL_PLAY                 = 6
-    MODE_ERROR                       = 7
-    MODE_TILT                        = 8
-    MODE_END_OF_BALL                 = 9
-    MODE_INLANE_COMPLETE             = 10
-    MODE_TARGETS_COMPLETE            = 11
+    MODE_INIT_GAME                   = 2
+    MODE_SKILLSHOT                   = 3
+    MODE_NORMAL_PLAY                 = 4
+    MODE_CHOOSE_MODE                 = 5
+    MODE_MODE_ACTIVE                 = 6
+    MODE_JPOT_AVAIL                  = 7
+    MODE_ERROR                       = 8
+    MODE_TILT                        = 9
+    MODE_END_OF_BALL                 = 10
 
 
     ## State name strings.
     # Indexed into using [State](@ref states.State) enumeration
-    STATE_STR = [ "Init", "Attract", "PrssStrt", "StrtGame",
-        "StrtBall", "BallInPlay", "NormalPlay", "Error",
-        "Tilt", "EndOfBall", "InlnComp", "TrgtComp" ]
+    STATE_STR = [ "Init", "Attract", "InitGame", "SkillShot",
+        "NormalPlay", "ChooseMode", "ModeActive", "JpotAvail",
+        "Error", "Tilt", "EndOfBall" ]
 

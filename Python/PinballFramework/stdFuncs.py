@@ -181,6 +181,7 @@ class StdFuncs():
         StdFuncs.GameData.expiredTimers[index] &= ~(1 << bitPos)
         StdFuncs.GameData.timerCnt[timeout] = 0
         StdFuncs.GameData.runningTimers[index] |= (1 << bitPos)
+        StdFuncs.GameData.reportExpOnce[index] &= ~(1 << bitPos)
     
     ## Check for expired timeout
     #
@@ -188,14 +189,43 @@ class StdFuncs():
     #
     #  @param  self          [in]   Object reference
     #  @param  timeout       [in]   bit position of the timer
-    #  @return True if expired 
+    #  @return True if expired
+    #
+    #  @note Only report expired timers one time
     def Expired(self, timeout):
         index = timeout >> 6
         bitPos = timeout & 0x1f
         if ((StdFuncs.GameData.expiredTimers[index] & (1 << bitPos)) != 0):
+            if ((StdFuncs.GameData.reportExpOnce[index] & (1 << bitPos)) == 0):
+                StdFuncs.GameData.reportExpOnce[index] |= (1 << bitPos)
+                return True
+        return False
+    
+    ## Check if timer is running
+    #
+    #  Look if timer is currently running
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  timeout       [in]   bit position of the timer
+    #  @return True if timer is running
+    def TimerRunning(self, timeout):
+        index = timeout >> 6
+        bitPos = timeout & 0x1f
+        if ((StdFuncs.GameData.runningTimers[index] & (1 << bitPos)) != 0):
             return True
-        else:
-            return False
+        return False
+    
+    ## Stop a timer
+    #
+    #  Stop a timer regardless of if it is running
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  timeout       [in]   bit position of the timer
+    #  @return None
+    def TimerStop(self, timeout):
+        index = timeout >> 6
+        bitPos = timeout & 0x1f
+        StdFuncs.GameData.runningTimers[index] &= ~(1 << bitPos)
     
     ## Rotate LED left
     #
