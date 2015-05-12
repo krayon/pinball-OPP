@@ -173,13 +173,13 @@ class StdFuncs():
     #  Start a timer
     #
     #  @param  self          [in]   Object reference
-    #  @param  timeout       [in]   bit position of the timer
+    #  @param  timer         [in]   index of the timer
     #  @return None 
-    def Start(self, timeout):
-        index = timeout >> 6
-        bitPos = timeout & 0x1f
+    def Start(self, timer):
+        index = timer >> 6
+        bitPos = timer & 0x1f
         StdFuncs.GameData.expiredTimers[index] &= ~(1 << bitPos)
-        StdFuncs.GameData.timerCnt[timeout] = 0
+        StdFuncs.GameData.timerCnt[timer] = 0
         StdFuncs.GameData.runningTimers[index] |= (1 << bitPos)
         StdFuncs.GameData.reportExpOnce[index] &= ~(1 << bitPos)
     
@@ -188,13 +188,13 @@ class StdFuncs():
     #  Look if expired timeout bit is set
     #
     #  @param  self          [in]   Object reference
-    #  @param  timeout       [in]   bit position of the timer
+    #  @param  timer         [in]   index of the timer
     #  @return True if expired
     #
     #  @note Only report expired timers one time
-    def Expired(self, timeout):
-        index = timeout >> 6
-        bitPos = timeout & 0x1f
+    def Expired(self, timer):
+        index = timer >> 6
+        bitPos = timer & 0x1f
         if ((StdFuncs.GameData.expiredTimers[index] & (1 << bitPos)) != 0):
             if ((StdFuncs.GameData.reportExpOnce[index] & (1 << bitPos)) == 0):
                 StdFuncs.GameData.reportExpOnce[index] |= (1 << bitPos)
@@ -206,11 +206,11 @@ class StdFuncs():
     #  Look if timer is currently running
     #
     #  @param  self          [in]   Object reference
-    #  @param  timeout       [in]   bit position of the timer
+    #  @param  timer         [in]   index of the timer
     #  @return True if timer is running
-    def TimerRunning(self, timeout):
-        index = timeout >> 6
-        bitPos = timeout & 0x1f
+    def TimerRunning(self, timer):
+        index = timer >> 6
+        bitPos = timer & 0x1f
         if ((StdFuncs.GameData.runningTimers[index] & (1 << bitPos)) != 0):
             return True
         return False
@@ -220,12 +220,23 @@ class StdFuncs():
     #  Stop a timer regardless of if it is running
     #
     #  @param  self          [in]   Object reference
-    #  @param  timeout       [in]   bit position of the timer
+    #  @param  timer         [in]   index of the timer
     #  @return None
-    def TimerStop(self, timeout):
-        index = timeout >> 6
-        bitPos = timeout & 0x1f
+    def TimerStop(self, timer):
+        index = timer >> 6
+        bitPos = timer & 0x1f
         StdFuncs.GameData.runningTimers[index] &= ~(1 << bitPos)
+    
+    ## Update a timer
+    #
+    #  Update date the timeout value of a timer
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  timer         [in]   index of the timer
+    #  @param  newTimeout    [in]   new timeout count
+    #  @return None
+    def TimerUpdate(self, timer, newTimeout):
+        StdFuncs.GameData.Timers.timeouts[timer][StdFuncs.GameData.Timers.TIMEOUT_OFFSET] = newTimeout
     
     ## Rotate LED left
     #
@@ -381,9 +392,17 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   Card number and mask of LEDs to turn on
     #  @return None
     def Led_On(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xff
-        LedBrd.currLedData[cardNum] |= bitPos
+        # Accepts a single card, or a list of cards
+        if (isinstance( cardBitPos, int )):
+            cardNum = (cardBitPos >> 16) & 0xf
+            bitPos = cardBitPos & 0xff
+            LedBrd.currLedData[cardNum] |= bitPos
+        else:
+            for curr in xrange(len(cardBitPos)):
+                if cardBitPos[curr] != 0:
+                    cardNum = (cardBitPos[curr] >> 16) & 0xf
+                    bitPos = cardBitPos[curr] & 0xff
+                    LedBrd.currLedData[cardNum] |= bitPos
 
     ## Turn LEDs off
     #
@@ -393,9 +412,17 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   Card number and mask of LEDs to turn off
     #  @return None
     def Led_Off(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xff
-        LedBrd.currLedData[cardNum] &= ~bitPos
+        # Accepts a single card, or a list of cards
+        if (isinstance( cardBitPos, int )):
+            cardNum = (cardBitPos >> 16) & 0xf
+            bitPos = cardBitPos & 0xff
+            LedBrd.currLedData[cardNum] &= ~bitPos
+        else:
+            for curr in xrange(len(cardBitPos)):
+                if cardBitPos[curr] != 0:
+                    cardNum = (cardBitPos[curr] >> 16) & 0xf
+                    bitPos = cardBitPos[curr] & 0xff
+                    LedBrd.currLedData[cardNum] &= ~bitPos
 
     ## Set a group of LEDs to a certain state
     #
@@ -406,7 +433,7 @@ class StdFuncs():
     #  @param  data          [in]   Data with new state of LEDs
     #  @return None
     def Led_Set(self, cardBitPos, data):
-        # LED set can now accept a mask for a single card, or a list of cards
+        # Accepts a single card, or a list of cards
         if (isinstance( cardBitPos, int )):
             cardNum = (cardBitPos >> 16) & 0xf
             mask = cardBitPos & 0xff
@@ -428,9 +455,17 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   Card number and mask of LEDs to change
     #  @return None
     def Led_Blink_100(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xff
-        LedBrd.currBlinkLeds[cardNum] |= bitPos 
+        # Accepts a single card, or a list of cards
+        if (isinstance( cardBitPos, int )):
+            cardNum = (cardBitPos >> 16) & 0xf
+            bitPos = cardBitPos & 0xff
+            LedBrd.currBlinkLeds[cardNum] |= bitPos
+        else:
+            for curr in xrange(len(cardBitPos)):
+                if cardBitPos[curr] != 0:
+                    cardNum = (cardBitPos[curr] >> 16) & 0xf
+                    bitPos = cardBitPos[curr] & 0xff
+                    LedBrd.currBlinkLeds[cardNum] |= bitPos
         
     ## Turn off blink on a group of LEDs
     #
@@ -440,9 +475,17 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   Card number and mask of LEDs to change
     #  @return None
     def Led_Blink_Off(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xff
-        LedBrd.currBlinkLeds[cardNum] &= ~bitPos 
+        # Accepts a single card, or a list of cards
+        if (isinstance( cardBitPos, int )):
+            cardNum = (cardBitPos >> 16) & 0xf
+            mask = cardBitPos & 0xff
+            LedBrd.currBlinkLeds[cardNum] &= ~mask
+        else:
+            for curr in xrange(len(cardBitPos)):
+                if cardBitPos[curr] != 0:
+                    cardNum = (cardBitPos[curr] >> 16) & 0xf
+                    mask = cardBitPos[curr] & 0xff
+                    LedBrd.currBlinkLeds[cardNum] &= ~mask
         
     ## Play a sound
     #

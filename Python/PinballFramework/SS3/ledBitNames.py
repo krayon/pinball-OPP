@@ -64,7 +64,7 @@ class LedBitNames:
     LED_2X                           = 0x00008
     LED_5X                           = 0x00010
     LED_4X                           = 0x00020
-    LED_HORSESHOE                    = 0x00040
+    LED_JKPOT                        = 0x00040
     LED_SPINNER                      = 0x00080
     LED2_ALL_BITS_MSK                = 0x100ff
     LED_ROLL_LFT                     = 0x10001
@@ -109,8 +109,8 @@ class LedBitNames:
 
     ## LED board bit names
     # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class
-    LED_BRD_BIT_NAMES = [ ["KOCtrBtm", "KOCtrCtr", "Spin3x", "Spin2x",
-        "Spin5x", "Spin4x", "Horseshoe", "Spinner"],
+    LED_BRD_BIT_NAMES = [ ["KODuel", "KOPickJob", "Spin3x", "Spin2x",
+        "Spin5x", "Spin4x", "Jkpot", "Spinner"],
         ["RollLft", "RollCtr", "RollRght", "PopUpCtr",
         "PopUpLft", "InlnLft", "InlnCtr", "InlnRght"],
         ["TrkBndt", "KillAll", "BarFght", "Duel",

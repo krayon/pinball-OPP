@@ -66,7 +66,7 @@ INPUT_CARDS          2
    #Name                      Card  I/O   Type				Desc
    Inp_Spinner                1     1     FALL_EDGE			"Spinner"			
    Inp_Ctr_Rght_Rubber        1     2     FALL_EDGE			"CtrRghtRbr"
-   Inp_Horshoe_Rollover       1     3     FALL_EDGE			"HorseRoll"
+   Inp_Jkpot_Rollover         1     3     FALL_EDGE			"JkpotRoll"
    Inp_Below_Kickout_Rubber   1     4     FALL_EDGE			"BlwKickRbr"
    Inp_Upper_Rubber           1     5     FALL_EDGE			"UpRbr"
    Inp_Upper_Rght_Rollover    1     6     FALL_EDGE			"UpRghtRoll"
@@ -100,7 +100,7 @@ LED_CARDS            6
 {
    #Name                      Card  I/O		Desc
    Led_Spinner                1     1		"Spinner"
-   Led_Horseshoe              1     2		"Horseshoe"
+   Led_Jkpot                  1     2		"Jkpot"
    Led_4x                     1     3		"Spin4x"
    Led_5x                     1     4		"Spin5x"
    Led_2x                     1     5		"Spin2x"
@@ -215,6 +215,10 @@ TIMERS
    Timeout_Special_Timer   30000                         # 30 seconds
    Timeout_Reload_Timer    20000                         # 20 second ball save timer
    Timeout_Retry_Timer     3000                          # Relaunch ball every 3 seconds
+   Timeout_Jackpot_Timer   30000                         # 30 second jackpot timer
+   Timeout_Duel_Timer      60000                         # 60 second duel timer
+   Timeout_Reload_Timer    5000                          # 5 second duel reload timer
+   Timeout_General_Timer   10000                         # General timer used during modes
 }
 
 PROCESS_CHAINS
@@ -272,12 +276,6 @@ PROCESS_CHAINS
    
    Proc_End_Of_Ball        {}
    
-   Proc_Inlane_Comp        {}
-   
-   Proc_Targets_Comp_Init  {}
-   
-   Proc_Targets_Comp_State {}
-
 }
 
 LED_CHAINS

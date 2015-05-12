@@ -66,10 +66,18 @@ class Timers:
     TIMEOUT_SPECIAL_TIMER            =  2
     TIMEOUT_RELOAD_TIMER             =  3
     TIMEOUT_RETRY_TIMER              =  4
+    TIMEOUT_JACKPOT_TIMER            =  5
+    TIMEOUT_DUEL_TIMER               =  6
+    TIMEOUT_RELOAD_TIMER             =  7
+    TIMEOUT_GENERAL_TIMER            =  8
 
     timeouts = [
         [TIMEOUT_KICKOUT_TIMER, 1000],
         [TIMEOUT_BALL_LOCATE, 5000],
         [TIMEOUT_SPECIAL_TIMER, 30000],
         [TIMEOUT_RELOAD_TIMER, 20000],
-        [TIMEOUT_RETRY_TIMER, 3000] ]
+        [TIMEOUT_RETRY_TIMER, 3000],
+        [TIMEOUT_JACKPOT_TIMER, 30000],
+        [TIMEOUT_DUEL_TIMER, 60000],
+        [TIMEOUT_RELOAD_TIMER, 5000],
+        [TIMEOUT_GENERAL_TIMER, 10000] ]

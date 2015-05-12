@@ -120,13 +120,6 @@ class RulesFunc:
         else:
             RulesFunc.prev_flipper &= ~self.RIGHT_FLIPPER
 
-    ## Function Proc_Inlane
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Inlane(self):
-        RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
-
     ## Function Proc_Targets
     #
     #  @param  self          [in]   Object reference
@@ -324,8 +317,8 @@ class RulesFunc:
     #  @return None
     def Proc_Normal_Play(self):
         self.Proc_Tilt()
-        self.Proc_Inlane()
-        self.Proc_Targets()
+        RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
+        RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
         self.Proc_Flipper()
         self.Proc_Spinner()
         self.Proc_Kickout_Hole()
@@ -361,7 +354,8 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Mode_Active(self):
-        pass
+        RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
+        RulesFunc.CustomFunc.proc_mode_active(RulesFunc.GameData.currPlayer)
    
     ## Function Proc_Jpot_Avail_Init
     #
@@ -375,7 +369,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Jpot_Avail(self):
-        pass
+        RulesFunc.CustomFunc.proc_jackpot_avail(RulesFunc.GameData.currPlayer)
        
     ## Function Proc_End_Of_Ball
     #
@@ -415,37 +409,4 @@ class RulesFunc:
             print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
             RulesFunc.GameData.gameMode = State.MODE_SKILLSHOT
             RulesFunc.CustomFunc.start_next_ball(RulesFunc.GameData.currPlayer)
-
-    ## Function Proc_Inlane_Comp
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Inlane_Comp(self):
-        pass
-
-    ## Function Proc_Targets_Comp_Init
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Targets_Comp_Init(self):
-        RulesFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
-        RulesFunc.GameData.scoreLvl = 1
-        self.curr_targets = 0
-        RulesFunc.GameData.StdFuncs.Led_Off( \
-            LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | \
-            LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7)
-            
-        RulesFunc.GameData.score[RulesFunc.GameData.currPlayer] += 10
-        RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_SPECIAL_TIMER)
-
-    ## Function Proc_Targets_Comp_State
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Targets_Comp_State(self):
-        self.Proc_Normal_Play()
-        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SPECIAL_TIMER)):
-            RulesFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_SHOOT_AGAIN)
-            RulesFunc.GameData.scoreLvl = 0
-            RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
 
