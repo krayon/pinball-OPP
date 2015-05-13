@@ -51,7 +51,7 @@
 
 #===============================================================================
 
-from sounds import Sounds
+from SS3.sounds import Sounds
 
 ## Sound chains class.
 #
@@ -61,6 +61,9 @@ from sounds import Sounds
 #  parameter to the command.
 
 class SoundChains():    # Sound chain commands
+    def __init__(self):
+        pass
+    
     WAIT = 0
     REPEAT = 1
     END_CHAIN = 2

@@ -244,6 +244,9 @@ class ProcSndChains:
             "#  parameter to the command.",
             "",
             "class SoundChains():"
+            "    def __init__(self):",
+            "        pass",
+            "",
             "    # Sound chain commands",
             "    WAIT = 0",
             "    REPEAT = 1",

@@ -51,17 +51,20 @@
 
 #===============================================================================
 
-from rulesFunc import RulesFunc
-from states import State
-from ledChains import LedChains
-from soundChains import SoundChains
-from imageChains import ImageChains
-from sounds import Sounds
+from SS3.rulesFunc import RulesFunc
+from SS3.states import State
+from SS3.ledChains import LedChains
+from SS3.soundChains import SoundChains
+from SS3.imageChains import ImageChains
+from SS3.sounds import Sounds
 
 ## Process chain lists.
 #
 #  Contains all the chains that are specific this this set of pinball rules.
 class ProcChain():
+    def __init__(self):
+        pass
+    
     INIT_CHAIN_OFFSET = 1
     NORM_CHAIN_OFFSET = 2
     IMAGE_CHAIN_OFFSET = 3

@@ -56,6 +56,9 @@ import rs232Intf
 #  Contains a bit mask for each input.  Can also contain bitfield masks.
 #  Top most nibble contains the index of the input card base 0.
 class InpBitNames:
+    def __init__(self):
+        pass
+    
     INP_SPINNER                      = 0x00001
     INP_CTR_RGHT_RUBBER              = 0x00002
     INP_JKPOT_ROLLOVER               = 0x00004

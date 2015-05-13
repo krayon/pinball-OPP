@@ -170,8 +170,11 @@ class ProcImage():
             "## Images enumeration.",
             "#  Contains an entry for each image",
             "",
-            "class Images():"]
-    
+            "class Images():",
+            "    def __init__(self):",
+            "        pass",
+            ""]
+
         # Open the file or create if necessary
         ProcImage.outHndl = open(parent.consoleObj.outDir + os.sep + "images.py", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')

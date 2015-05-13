@@ -54,6 +54,9 @@
 #  Contains a bit mask for each LED.  Can also contain bitfield masks.
 #  Top most nibble contains the index of the LED card base 0.
 class LedBitNames:
+    def __init__(self):
+        pass
+    
     ## Number of LED boards in the system
     NUM_LED_BRDS = 6
 

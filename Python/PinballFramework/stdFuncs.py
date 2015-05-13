@@ -153,7 +153,30 @@ class StdFuncs():
     def Change_Solenoid_Cfg(self, cardBitPos, cfg):
         cardNum = (cardBitPos >> 16) & 0xf
         bitPos = cardBitPos & 0xffff
-        comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, bitPos, cfg)
+        index = 0
+        while (((1 << index) & bitPos) == 0):
+            index += 1
+        comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, index, cfg)
+        comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
+    
+    ## Restore solenoid config
+    #
+    #  Send a command to restore the original solenoid config
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  cardBitPos    [in]   solenoid card index and bit position
+    #  @return None 
+    def Restore_Solenoid_Cfg(self, cardBitPos):
+        cardNum = (cardBitPos >> 16) & 0xf
+        bitPos = cardBitPos & 0xffff
+        index = 0
+        while (((1 << index) & bitPos) == 0):
+            index += 1
+        cfgOffs = rs232Intf.CFG_BYTES_PER_SOL * index
+        cfg = [StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs],
+            StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs + 1],
+            StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs + 2]]
+        comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, index, cfg)
         comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
     
     ## Kick solenoid

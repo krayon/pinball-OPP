@@ -216,7 +216,11 @@ class ProcSound():
             "",
             "## Sounds enumeration.",
             "#  Contains an entry for each sound",
-            "class Sounds():"]
+            "class Sounds():",
+            "    def __init__(self):",
+            "        pass",
+            ""]
+
     
         # Open the file or create if necessary
         ProcSound.outHndl = open(parent.consoleObj.outDir + os.sep + "sounds.py", 'w+')
@@ -253,8 +257,11 @@ class ProcSound():
             "",
             "## Background sounds enumeration.",
             "#  Contains an entry for each background sound",
-            "class BgndMusic():"]
-    
+            "class BgndMusic():",
+            "    def __init__(self):",
+            "        pass",
+            ""]
+
         # Open the file or create if necessary
         ProcSound.outHndl = open(parent.consoleObj.outDir + os.sep + "bgndSounds.py", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')

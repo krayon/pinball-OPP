@@ -47,13 +47,15 @@
 
 #===============================================================================
 
-from images import Images
+from SS3.images import Images
 
 ## Game constant class.
 #  Contains the configuration of the pinball rules such as balls/game, num players,
 #  feature light/GI light locations if the display is used to backlight a translight.
 #  It also gives score display positions.
 class GameConst:
+    def __init__(self):
+        pass
 
     ## Number of balls per game
     BALLS_PER_GAME = 3
@@ -105,4 +107,3 @@ class GameConst:
                   [ [ 2, 2, 0, 2, 2, 0, 0, 0 ],     # Special scoring
                     [ 2, 0, 0, 0, 0, 0, 2, 2 ] ] ]
     
-       

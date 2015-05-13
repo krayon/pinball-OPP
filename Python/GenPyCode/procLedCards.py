@@ -192,7 +192,10 @@ class ProcLedCards():
             "## LED bit name enumeration.",
             "#  Contains a bit mask for each LED.  Can also contain bitfield masks.",
             "#  Top most nibble contains the index of the LED card base 0.",
-            "class LedBitNames:"]
+            "class LedBitNames:",
+            "    def __init__(self):",
+            "        pass",
+            ""]
 
         # Open the file or create if necessary
         outHndl = open(parent.consoleObj.outDir + os.sep + "ledBitNames.py", 'w+')

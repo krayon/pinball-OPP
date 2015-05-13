@@ -54,6 +54,9 @@
 #  Contains an entry for each image
 
 class Images():
+    def __init__(self):
+        pass
+    
     IMAGE_SALOON         = 0
     IMAGE_SALOON_GIRL    = 1
     IMAGE_SALOON_GUY     = 2

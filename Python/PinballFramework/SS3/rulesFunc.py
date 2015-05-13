@@ -54,17 +54,17 @@
 
 #===============================================================================
 
-from inpBitNames import InpBitNames
-from solBitNames import SolBitNames
-from ledBitNames import LedBitNames
-from timers import Timers
-from rulesData import RulesData
-from sounds import Sounds
-from bgndSounds import BgndMusic
-from states import State
-from images import Images
+from SS3.inpBitNames import InpBitNames
+from SS3.solBitNames import SolBitNames
+from SS3.ledBitNames import LedBitNames
+from SS3.timers import Timers
+from SS3.rulesData import RulesData
+from SS3.sounds import Sounds
+from SS3.bgndSounds import BgndMusic
+from SS3.states import State
+from SS3.images import Images
 from dispConstIntf import DispConst
-from customFunc import CustomFunc
+from SS3.customFunc import CustomFunc
 
 ## Rules functions class.
 #  Contains all the rules that are specific this this set of pinball rules.
@@ -119,13 +119,6 @@ class RulesFunc:
                 RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
         else:
             RulesFunc.prev_flipper &= ~self.RIGHT_FLIPPER
-
-    ## Function Proc_Targets
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Targets(self):
-        RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
 
     ## Process spinner input
     #
@@ -355,6 +348,7 @@ class RulesFunc:
     #  @return None
     def Proc_Mode_Active(self):
         RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
+        RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
         RulesFunc.CustomFunc.proc_mode_active(RulesFunc.GameData.currPlayer)
    
     ## Function Proc_Jpot_Avail_Init

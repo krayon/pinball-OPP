@@ -207,7 +207,10 @@ class ProcInpCards():
             "## Input bit name enumeration.",
             "#  Contains a bit mask for each input.  Can also contain bitfield masks.",
             "#  Top most nibble contains the index of the input card base 0.",
-            "class InpBitNames:"]
+            "class InpBitNames:",
+            "    def __init__(self):",
+            "        pass",
+            ""]
 
         # Open the file or create if necessary
         outHndl = open(parent.consoleObj.outDir + os.sep + "inpBitNames.py", 'w+')

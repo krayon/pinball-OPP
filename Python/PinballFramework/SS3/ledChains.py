@@ -51,13 +51,15 @@
 
 #===============================================================================
 
-from states import State
-from ledBitNames import LedBitNames
+from SS3.ledBitNames import LedBitNames
 
 ## LED chains class.
 #
 #  Contains all the LED chains that are specific this this set of pinball rules.
 class LedChains():    # LED chain commands
+    def __init__(self):
+        pass
+    
     WAIT = 0
     REPEAT = 1
     END_CHAIN = 2

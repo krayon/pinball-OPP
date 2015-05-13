@@ -186,6 +186,7 @@ class ProcModes:
                 if (typeProc == ProcModes.PROC_INIT_CHAIN) or (typeProc == ProcModes.PROC_PROCESS_CHAIN):
                     ProcModes.outHndl.write("[")
                 closeChainList = parent.helpFuncs.findMatch(parent)
+                _ = closeChainList
                 parent.currToken += 1
                 subState = ProcModes.FIND_CHAIN
                 hasEntries = False
@@ -343,6 +344,9 @@ class ProcModes:
             "#",
             "#  Contains all the chains that are specific this this set of pinball rules.",
             "class ProcChain():",
+            "    def __init__(self):",
+            "        pass",
+            "",
             "    INIT_CHAIN_OFFSET = 1",
             "    NORM_CHAIN_OFFSET = 2",
             "    IMAGE_CHAIN_OFFSET = 3",
@@ -394,7 +398,10 @@ class ProcModes:
             "",
             "## State enumeration.",
             "#  Contains an entry for each state",
-            "class State():"]
+            "class State():",
+            "    def __init__(self):",
+            "        pass",
+            ""]
         # Open the file or create if necessary
         ProcModes.outHndl = open(parent.consoleObj.outDir + os.sep + "states.py", 'w+')
         stdHdrHndl = open("stdHdr.txt", 'r')

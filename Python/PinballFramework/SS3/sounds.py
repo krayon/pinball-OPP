@@ -53,6 +53,9 @@
 ## Sounds enumeration.
 #  Contains an entry for each sound
 class Sounds():
+    def __init__(self):
+        pass
+    
     SOUND_HOWDYFOLKS     = 0
     SOUND_YALL_COME_BACK = 1
     SOUND_HELL_OF_A_SHOT = 2

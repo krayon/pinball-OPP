@@ -55,6 +55,9 @@
 #  Contains an enumeration for each timer.
 
 class Timers:
+    def __init__(self):
+        pass
+    
     #Used to index into timeouts and grab timeout in ms
     TIMEOUT_OFFSET = 1
     TIMERS_PER_GROUP = 32

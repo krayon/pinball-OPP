@@ -53,6 +53,9 @@
 ## State enumeration.
 #  Contains an entry for each state
 class State():
+    def __init__(self):
+        pass
+    
     MODE_INIT                        = 0
     MODE_ATTRACT                     = 1
     MODE_INIT_GAME                   = 2

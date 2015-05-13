@@ -52,6 +52,8 @@
 #  feature light/GI light locations if the display is used to backlight a translight.
 #  It also gives score display positions.
 class GameConst:
+    def __init__(self):
+        pass
 
     ## Number of balls per game
     BALLS_PER_GAME = 3

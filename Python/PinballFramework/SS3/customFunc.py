@@ -66,6 +66,7 @@ class CustomFunc:
     STATEPROG_SHOOTER_COLLECTED = 0x02
     STATEPROG_KICKOUTHOLE_COLLECTED = 0x04
     STATEPROG_TRGTS_COLLECTED = 0x08
+    STATEPROG_KO_TO_END_MODE = 0x10
 
     MODE_CALL_POSSE = 0
     MODE_HUSTLE_JIVE = 1
@@ -97,7 +98,17 @@ class CustomFunc:
     MODETRGT_KICKOUT_HOLE = 4 
     
     MODETRKBNDT_INLANES = 0
-    MODETRKBNDT_TARGETS = 0
+    MODETRKBNDT_PASS = 1
+    MODETRKBNDT_TARGETS = 2
+    MODETRKBNDT_KO_HOLE = 3
+    
+    MODEBARFIGHT_BTM_LOW = 0x01
+    MODEBARFIGHT_BTM_UP = 0x02
+    MODEBARFIGHT_TOP_LFT = 0x04
+    MODEBARFIGHT_TOP_CTR = 0x08
+    MODEBARFIGHT_ALL_POPS = MODEBARFIGHT_BTM_LOW | MODEBARFIGHT_BTM_UP | MODEBARFIGHT_TOP_LFT | MODEBARFIGHT_TOP_CTR
+    
+    MODEDUEL_RELOAD = 0x100
     
     # Used to note big events that happen during a poll cycle (bitfield)
     POLLSTAT_INLANE_COMP = 0x01
@@ -401,6 +412,8 @@ class CustomFunc:
             
             # Initialize the mode function
             self._initFuncTbl[self.mode[plyr]](plyr, False)
+            CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+            self.totDrops = 0
             CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
             CustomFunc.GameData.gameMode = State.MODE_MODE_ACTIVE
                     
@@ -556,7 +569,7 @@ class CustomFunc:
             print "Drops Complete!!"
             self.pollStatus |= CustomFunc.POLLSTAT_COMP_DROPS
             self.totDrops = 0
-            CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_INLANES)
+            CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
         CustomFunc.GameData.score[plyr] += ((unlit * 5) + (lit * 2))
         
     ## Process spinner
@@ -657,7 +670,7 @@ class CustomFunc:
         elif self.saveModeState[plyr] == CustomFunc.MODETRGT_DROP_TRGT:
             # Pick the drop that must be hit.  Blink the drop target
             self.saveModeValue = random.randint(0, 6)
-            CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
         elif self.saveModeState[plyr] == CustomFunc.MODETRGT_INLANE:
             # Pick the inlane that must be hit.
             self.disableRotate = True
@@ -727,7 +740,12 @@ class CustomFunc:
         if not restoreState:
             self.saveModeState[plyr] = 0
         self.saveModeValue = random.randint(0, 6)
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+        
+        # Disable the pop bumpers and the sling
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
     
     ## Init Sharpe attack
     #
@@ -746,14 +764,21 @@ class CustomFunc:
     #  State contains number of standups that have successfully been hit
     def init_sharpe_attack(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SHARPE)
-        # HRS:  Disable cradling
-        # Reset drop targets
-        
+
         # Pick the drop that must be hit.  Blink the drop target
         if not restoreState:
             self.saveModeState[plyr] = 0
         self.saveModeValue = random.randint(0, 6)
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+        
+        # Disable the pop bumpers and the sling
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+        
+        # No cradling on flippers
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_LFT_FLIPPER, [rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00'])
+        CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_RGHT_FLIPPER, [rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00'])
 
     ## Init track bandits
     #
@@ -773,19 +798,22 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_TRKBNDT)
     
         if restoreState:
-            self.compInlanes[plyr] = self.saveModeData[plyr] & CustomFunc.INLNSAVE_INLANE_MASK
+            # Restore already hit inlanes
+            if self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_INLANES:
+                self.compInlanes[plyr] = self.saveModeData[plyr] & CustomFunc.INLNSAVE_INLANE_MASK
         else:
             self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_INLANES
             self.saveModeData[plyr] = 0
             
         if self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_INLANES:
             # Blink inlanes
+            # Sound, "Flush out the bandits"
             CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_INLANES)
+        elif self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_PASS:
+            # Sound, "They went through the pass"
             CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_JKPOT)
-            if ((self.saveModeData[plyr] & CustomFunc.INLNSAVE_HORSESHOE) != 0):
-                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_JKPOT)
         else:
-            # Blink drop targets
+            # Sound, "Ya, got em cornered"
             self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
             CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS)
             
@@ -808,9 +836,15 @@ class CustomFunc:
         # Blink drop targets
         self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
         CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS)
+        
+        # Sound, "Looks like we got a turkey shoot here"
     
         if not restoreState:
             self.saveModeData[plyr] = 0
+
+        # Start 60 second timer
+        CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 60000) 
+        CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER) 
     
     ## Init bar fight
     #
@@ -830,23 +864,29 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_BARFGHT)
         
         # Blink pop bumpers
+        # Sound, "Looks like we got a bar fight!"
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPCTR | LedBitNames.LED_POP_UPLFT)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_BTMUP | LedBitNames.LED_POP_BTMLOW)
+        self.saveModeState[plyr] = 0
 
         if restoreState:
             # Disable pop bumpers if completed
             if ((self.saveModeData[plyr] & 0xff) > 9):
                 CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
                 CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_BTMLOW)
+                self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_BTM_LOW
             if (((self.saveModeData[plyr] >> 8) & 0xff) > 9):
                 CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
                 CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_BTMUP)
+                self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_BTM_UP
             if (((self.saveModeData[plyr] >> 16) & 0xff) > 9):
                 CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_UPPER_CTR_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
                 CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPCTR)
+                self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_TOP_CTR
             if (((self.saveModeData[plyr] >> 24) & 0xff) > 9):
                 CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_UPPER_LFT_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
                 CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPLFT)
+                self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_TOP_LFT
         else:
             self.saveModeData[plyr] = 0
     
@@ -859,13 +899,19 @@ class CustomFunc:
     #  @param  restoreState  [in]   Restore the state of the mode
     #  @return None
     #
-    #  @note Hit flashing shooter target within certain amount of time.
+    #  @note Hit flashing shooter target within certain amount of time.  If miss the target,
+    #  must wait five seconds until trying again.  If duel timer times out, 1 in 5 chance of
+    #  being killed
     def init_duel(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_DUEL)
+        _ = restoreState                    # Clear unused variable warning
 
         # Pick the drop that must be hit.  Blink the drop target
         self.saveModeValue = random.randint(0, 6)
-        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x80 >> self.saveModeValue))
+        CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+        
+        # Change general timer to five seconds
+        CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 5000)
         
         # Start duel timer
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_DUEL_TIMER, self._duelTimer[self.level[plyr]]) 
@@ -887,6 +933,8 @@ class CustomFunc:
         
         if not restoreState:
             self.saveModeData[plyr] = 0
+            
+        # Sound, "Go through the pass to get some help"
 
     ## Process skillshot
     #
@@ -1075,6 +1123,7 @@ class CustomFunc:
     #  @note None
     def proc_mode_active(self, plyr):
         self._procFuncTbl[self.mode[plyr]](plyr)
+        self.pollStatus = 0            
         
     ## Move to jackpot available
     #
@@ -1338,12 +1387,12 @@ class CustomFunc:
             trgtHit = True
         if trgtHit:
             if ((self.saveModeState[plyr] >> 16) >= 5) and ((self.saveModeState[plyr] & 0xffff) >= 5):
-                self.stateProg[plyr] |= CustomFunc.STATEPROG_TRGTS_COLLECTED
+                self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_POP_UPLFT)
                 CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPLFT)
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
                 CustomFunc.GameData.StdFuncs.TimerStop(Timers.TIMEOUT_GENERAL_TIMER)
-        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_TRGTS_COLLECTED) != 0) and \
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) != 0) and \
             CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
 
             # Mode successfully completed
@@ -1370,7 +1419,76 @@ class CustomFunc:
     #  @note Disable pop bumpers.  Can only hit blinking shooter target,
     #  then next one, etc.  Hit 5 individual targets completes the mode
     def proc_sniper(self, plyr):
-        pass
+        # Check if a drop target has been hit
+        if ((self.pollStatus & CustomFunc.POLLSTAT_HIT_DROP) != 0) and \
+            ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
+            failMode = False
+            
+            # Find adjacent drop target positions
+            if self.saveModeValue == 0:
+                adj = 0x02
+            else:
+                adj = (0x05 << (self.saveModeValue - 1))
+            # Check if it is the targeted drop
+            if ((self.dropHit & (0x01 << self.saveModeValue)) != 0):
+                self.saveModeState[plyr] += 1
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(0x50000 | (0x01 << self.saveModeValue))
+                CustomFunc.GameData.StdFuncs.Led_Off(0x50000 | (0x01 << self.saveModeValue))
+                
+                # Check if hit all 5 targets successfully
+                if (self.saveModeState[plyr] >= 5):
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+
+                else:
+                    # Pick the next drop
+                    self.saveModeValue = random.randint(0, 6)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+                    self.totDrops = 0
+            # Look adjacent target was hit (allowed in easy mode/medium mode)
+            elif ((self.dropHit & adj) != 0):
+                CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
+                if ((self.level[plyr] == CustomFunc.LEVEL_HARD) or (self.level[plyr] == CustomFunc.LEVEL_WIZARD)):
+                    failMode = True
+            # Otherwise another drop target must have been hit
+            else:
+                failMode = True
+                
+            if failMode:
+                # Sound, "Ya missed" or "Better practice some more"
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_SNIPER)
+                self.stateProg[plyr] = 0
+
+                # Enable the pop bumpers and the sling
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING)
+                
+                # Move back to normal mode
+                self.move_to_normal_mode(plyr)
+            
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) != 0) and \
+            CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+
+            # Mode successfully completed
+            CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+            CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_SNIPER)
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_SNIPER)
+            self.compModes[plyr] |= (1 << CustomFunc.MODE_SNIPER)
+            
+            # Reset state progress
+            self.stateProg[plyr] = 0
+            CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+            
+            # Enable the pop bumpers and the sling
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP)
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP)
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING)
+            
+            # Call move to next mode
+            self.move_to_jackpot_avail(plyr)
     
     ## Process Sharpe attack
     #
@@ -1382,7 +1500,84 @@ class CustomFunc:
     #
     #  @note Five shooter individual targets, no cradling allowed.
     def proc_sharpe_attack(self, plyr):
-        pass
+        # Check if a drop target has been hit
+        if ((self.pollStatus & CustomFunc.POLLSTAT_HIT_DROP) != 0) and \
+            ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
+            failMode = False
+            
+            # Find adjacent drop target positions
+            if self.saveModeValue == 0:
+                adj = 0x02
+            else:
+                adj = (0x05 << (self.saveModeValue - 1))
+            # Check if it is the targeted drop
+            if ((self.dropHit & (0x01 << self.saveModeValue)) != 0):
+                self.saveModeState[plyr] += 1
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(0x50000 | (0x01 << self.saveModeValue))
+                CustomFunc.GameData.StdFuncs.Led_Off(0x50000 | (0x01 << self.saveModeValue))
+                
+                # Check if hit all 5 targets successfully
+                if (self.saveModeState[plyr] >= 5):
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+
+                else:
+                    # Pick the next drop
+                    self.saveModeValue = random.randint(0, 6)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+                    self.totDrops = 0
+            # Look adjacent target was hit (allowed in easy mode/medium mode)
+            elif ((self.dropHit & adj) != 0):
+                CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
+                if ((self.level[plyr] == CustomFunc.LEVEL_HARD) or (self.level[plyr] == CustomFunc.LEVEL_WIZARD)):
+                    failMode = True
+            # Otherwise another drop target must have been hit
+            else:
+                failMode = True
+                
+            if failMode:
+                # Sound, "Ya ain't no Roger Sharpe" or "Better bring in Josh or Zach"
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_SHARPE)
+                self.stateProg[plyr] = 0
+
+                # Enable the pop bumpers and the sling
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING)
+                
+                # Restore flippers
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_LFT_FLIPPER)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_RGHT_FLIPPER)
+                
+                # Move back to normal mode
+                self.move_to_normal_mode(plyr)
+            
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) != 0) and \
+            CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+
+            # Mode successfully completed
+            CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+            CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_SHARPE)
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_SHARPE)
+            self.compModes[plyr] |= (1 << CustomFunc.MODE_SHARPE_ATTACK)
+            
+            # Reset state progress
+            self.stateProg[plyr] = 0
+            CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+            
+            # Enable the pop bumpers and the sling
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP)
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP)
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING)
+
+            # Restore flippers
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_LFT_FLIPPER)
+            CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_RGHT_FLIPPER)
+
+            # Call move to next mode
+            self.move_to_jackpot_avail(plyr)
 
     ## Process track bandits
     #
@@ -1395,7 +1590,47 @@ class CustomFunc:
     #  @note Collect all lanes (can use flippers to rotate).  Jackpot lane must
     #  also be collected, then knock down all the shooter targets.
     def proc_track_bandits(self, plyr):
-        pass
+        # Inlanes must be completed first
+        if self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_INLANES:
+            if ((self.pollStatus & CustomFunc.POLLSTAT_INLANE_COMP) != 0):
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ALL_INLANES)
+                CustomFunc.GameData.StdFuncs.Led_On(CustomFunc.CONST_ALL_INLANES)
+                # Sound, "They went through the pass"
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_JKPOT)
+                self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_PASS
+        # Check if pass is next
+        elif self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_PASS:
+            if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_JKPOT_ROLLOVER):
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_JKPOT)
+                # Sound, "Ya, got em cornered"
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS)
+                self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
+                self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_TARGETS
+                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+        elif self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_TARGETS:
+            if ((self.pollStatus & CustomFunc.POLLSTAT_COMP_DROPS) != 0):
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ALL_DROPS)
+                CustomFunc.GameData.StdFuncs.Led_On(CustomFunc.CONST_ALL_DROPS)
+                # Sound, "Finish it"
+                CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+                self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_KO_HOLE
+        else:
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+                
+                # Mode successfully completed
+                CustomFunc.GameData.StdFuncs.Led_Off(LedBitNames.LED_JKPOT)
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_TRKBNDT)
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_TRKBNDT)
+                self.compModes[plyr] |= (1 << CustomFunc.MODE_TRACK_BANDITS)
+                
+                # Reset state progress
+                self.stateProg[plyr] = 0
+                CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+                
+                # Call move to next mode
+                self.move_to_jackpot_avail(plyr)
     
     ## Process kill em all
     #
@@ -1408,7 +1643,44 @@ class CustomFunc:
     #  @note Drop all shooter targets 3 times.  60 sec to drop bank.
     #  Resets timer when bank is finished.
     def proc_kill_em_all(self, plyr):
-        pass
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
+            # Check if a drop targets have been completed
+            if ((self.pollStatus & CustomFunc.POLLSTAT_COMP_DROPS) != 0):
+                self.saveModeData[plyr] += 1
+                # If targets have been completed three times
+                if (self.saveModeData[plyr] >= 3):
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+                else:
+                    # Reset the timer and the drop targets
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+                    CustomFunc.GameData.StdFuncs.TimerStop(Timers.TIMEOUT_GENERAL_TIMER) 
+                    CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER) 
+            # If the general timeout expires, end mode
+            elif (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
+                # Sound, "They got ya"
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_KILLALL)
+                self.stateProg[plyr] = 0
+    
+                # Move back to normal mode
+                self.move_to_normal_mode(plyr)
+            
+        else:
+            # Check if at end of mode
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+    
+                # Mode successfully completed
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_KILLALL)
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_KILLALL)
+                self.compModes[plyr] |= (1 << CustomFunc.MODE_KILL_EM_ALL)
+                
+                # Reset state progress
+                self.stateProg[plyr] = 0
+                CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+                
+                # Call move to next mode
+                self.move_to_jackpot_avail(plyr)
     
     ## Process bar fight
     #
@@ -1421,7 +1693,59 @@ class CustomFunc:
     #  @note Hit each pop bumper 10 times.  Each time bumper is hit,
     #  light in bumper is lit 10% ore time.  10 hits are full on.
     def proc_bar_fight(self, plyr):
-        pass
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
+            popHit = False
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BTM_LOW_POP):
+                self.saveModeData[plyr] += 0x01
+                if ((self.saveModeData[plyr] & 0xff) > 9):
+                    CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_BTMLOW)
+                    self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_BTM_LOW
+                    popHit = True
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BTM_UP_POP):
+                self.saveModeData[plyr] += 0x100
+                if (((self.saveModeData[plyr] >> 8) & 0xff) > 9):
+                    CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_BTMUP)
+                    self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_BTM_UP
+                    popHit = True
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_UPPER_CTR_POP):
+                self.saveModeData[plyr] += 0x10000
+                if (((self.saveModeData[plyr] >> 16) & 0xff) > 9):
+                    CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_UPPER_CTR_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPCTR)
+                    self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_TOP_CTR
+                    popHit = True
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_UPPER_LFT_POP):
+                self.saveModeData[plyr] += 0x1000000
+                if (((self.saveModeData[plyr] >> 24) & 0xff) > 9):
+                    CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_UPPER_LFT_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_POP_UPLFT)
+                    self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_TOP_LFT
+                    popHit = True
+            if popHit:
+                # Sound, breaking bottle
+                if ((self.saveModeState[plyr] & CustomFunc.MODEBARFIGHT_ALL_POPS) == CustomFunc.MODEBARFIGHT_ALL_POPS):
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_POP_UPCTR | LedBitNames.LED_POP_UPLFT)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_POP_BTMUP | LedBitNames.LED_POP_BTMLOW)
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+        else:
+            # Check if at end of mode
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+    
+                # Mode successfully completed
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_BARFGHT)
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_BARFGHT)
+                self.compModes[plyr] |= (1 << CustomFunc.MODE_BAR_FIGHT)
+                
+                # Reset state progress
+                self.stateProg[plyr] = 0
+                CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+                
+                # Call move to next mode
+                self.move_to_jackpot_avail(plyr)
     
     ## Process duel
     #
@@ -1433,7 +1757,57 @@ class CustomFunc:
     #
     #  @note Hit flashing shooter target within certain amount of time.
     def proc_duel(self, plyr):
-        pass
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
+            if ((self.saveModeValue & CustomFunc.MODEDUEL_RELOAD) == 0):
+                # Check if a drop target has been hit
+                if ((self.pollStatus & CustomFunc.POLLSTAT_HIT_DROP) != 0):
+                    # Check if it is the targeted drop
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(0x50000 | (0x01 << self.saveModeValue))
+                    CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
+                    if ((self.dropHit & (0x01 << self.saveModeValue)) != 0):
+                        # Sound, "You got him"
+                        CustomFunc.GameData.StdFuncs.Led_Off(0x50000 | (0x01 << self.saveModeValue))
+                        
+                        self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+                    # Missed the target, so need to wait to reload
+                    else:
+                        # Sound, "Reload"
+                        self.saveModeValue |= CustomFunc.MODEDUEL_RELOAD
+                        CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
+            else:
+                # If the reload timer expires, reset the drop targets and start blinking the target again 
+                if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
+                    self.saveModeValue &= ~CustomFunc.MODEDUEL_RELOAD
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+            # Check if the player has been killed
+            if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_DUEL_TIMER)):
+                randomNum = random.randint(0, 5 - self.level[plyr])
+                if randomNum == 0:
+                    # Sound, "Ya got shot."
+                    # Disable flippers
+                    CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_LFT_FLIPPER, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                    CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_RGHT_FLIPPER, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
+                else:
+                    # Sound, bullet ricochet sound
+                    CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_DUEL_TIMER) 
+        else:
+            # Check if at end of mode
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+    
+                # Mode successfully completed
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_DUEL)
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_DUEL)
+                self.compModes[plyr] |= (1 << CustomFunc.MODE_DUEL)
+                
+                # Reset state progress
+                self.stateProg[plyr] = 0
+                CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+                
+                # Call move to next mode
+                self.move_to_jackpot_avail(plyr)
     
     ## Process ride for help
     #
@@ -1445,4 +1819,27 @@ class CustomFunc:
     #
     #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
     def proc_ride_for_help(self, plyr):
-        pass
+        if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
+            if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_JKPOT_ROLLOVER):
+                self.saveModeData[plyr] += 1
+                # Sound, Lone ranger beginning bugle
+                if (self.saveModeData[plyr] >= 5):
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
+        else:
+            # Check if at end of mode
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+    
+                # Mode successfully completed
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_DUEL)
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_RIDEHELP)
+                CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_MODE_RIDEHELP)
+                self.compModes[plyr] |= (1 << CustomFunc.MODE_RIDE_FOR_HELP)
+                
+                # Reset state progress
+                self.stateProg[plyr] = 0
+                CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+                
+                # Call move to next mode
+                self.move_to_jackpot_avail(plyr)
