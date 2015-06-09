@@ -201,9 +201,15 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Init(self):
+        RulesFunc.GameData.gameMode = State.MODE_ATTRACT
+
+    ## Function Proc_Attract_Init
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Attract_Init(self):
         RulesFunc.GameData.StdFuncs.Disable_Solenoids()
         RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
-        RulesFunc.GameData.gameMode = State.MODE_ATTRACT
 
     ## Function Proc_Add_Coin
     #
@@ -264,7 +270,6 @@ class RulesFunc:
         RulesFunc.GameData.StdFuncs.BgndImage(Images.IMAGE_SALOON)
         RulesFunc.CustomFunc.init_game()
         RulesFunc.CustomFunc.start_next_ball(0)
-        RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
         RulesFunc.GameData.gameMode = State.MODE_SKILLSHOT
 
     ## Function Proc_Start_Game
@@ -295,6 +300,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Skillshot(self):
+        self.Proc_Timers()
         RulesFunc.CustomFunc.proc_skillshot(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Normal_Play_Init
@@ -314,7 +320,6 @@ class RulesFunc:
         RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
         self.Proc_Flipper()
         self.Proc_Spinner()
-        self.Proc_Kickout_Hole()
         self.Proc_Start_and_Coin()
         self.Proc_Ball_Drain()
         self.Proc_Timers()

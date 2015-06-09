@@ -261,6 +261,7 @@ class CustomFunc:
         self.numSpin = 0
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
         CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
+        CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RELOAD_TIMER)
         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
         self.state[plyr] = State.MODE_SKILLSHOT
@@ -1110,6 +1111,8 @@ class CustomFunc:
                     #Hitting kickout hole, collects the bonus
                     print "Collect bonus"
                     CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                    
         self.pollStatus = 0            
     
     ## Process mode active

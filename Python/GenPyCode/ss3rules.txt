@@ -47,18 +47,18 @@
 SOLENOID_CARDS       2
 {
    #Name                      Card  I/O   Flags       InitKick    DutyCycle   MinOff	Desc
-   Sol_Upper_Lft_Pop          1     1     USE_SWITCH      48         0        0			"UpLftPop"
-   Sol_Upper_Ctr_Pop          1     2     USE_SWITCH      48         0        0			"UpCtrPop"
+   Sol_Upper_Lft_Pop          1     1     USE_SWITCH      16         0        0			"UpLftPop"
+   Sol_Upper_Ctr_Pop          1     2     USE_SWITCH      16         0        0			"UpCtrPop"
    Sol_Top_Drop_Rubber        1     4     USE_SWITCH       0         0        0			"TopDropRbr"
-   Sol_Drop_Bank              1     5     USE_SWITCH      48         0        0			"DropBank"
-   Sol_Kickout_Hole           1     8     AUTO_CLR        48         0        0			"KickOut"
+   Sol_Drop_Bank              1     5     USE_SWITCH      32         0        0			"DropBank"
+   Sol_Kickout_Hole           1     8     AUTO_CLR        32         0        0			"KickOut"
    
-   Sol_Btm_Lft_Sling          2     1     USE_SWITCH      48         0        0			"BtmLftSling"
+   Sol_Btm_Lft_Sling          2     1     USE_SWITCH      16         0        0			"BtmLftSling"
    Sol_Lft_Flipper            2     2     USE_SWITCH      48         4        0			"LftFlip"
-   Sol_Ball_In_Play           2     4     AUTO_CLR        48         0        0			"BallInPlay"
+   Sol_Ball_In_Play           2     4     AUTO_CLR        16         0        0			"BallInPlay"
    Sol_Rght_Flipper           2     5     USE_SWITCH      48         4        0			"RghtFlip"
-   Sol_Btm_Low_Pop            2     7     USE_SWITCH      48         0        0			"BtmLowPop"
-   Sol_Btm_Up_Pop             2     8     USE_SWITCH      48         0        0			"BtmUpPop"
+   Sol_Btm_Low_Pop            2     7     USE_SWITCH      16         0        0			"BtmLowPop"
+   Sol_Btm_Up_Pop             2     8     USE_SWITCH      16         0        0			"BtmUpPop"
 }
 
 INPUT_CARDS          2
@@ -217,7 +217,6 @@ TIMERS
    Timeout_Retry_Timer     3000                          # Relaunch ball every 3 seconds
    Timeout_Jackpot_Timer   30000                         # 30 second jackpot timer
    Timeout_Duel_Timer      60000                         # 60 second duel timer
-   Timeout_Reload_Timer    5000                          # 5 second duel reload timer
    Timeout_General_Timer   10000                         # General timer used during modes
 }
 
@@ -241,6 +240,8 @@ PROCESS_CHAINS
    Proc_Tilt_State         {}
    
    Proc_Init               {}
+   
+   Proc_Attract_Init       {}
    
    Proc_Add_Coin           {}
    
@@ -468,7 +469,7 @@ MODES
    #                                      		AudioChain                                  LedChain                                       InitScoringNum
    Mode_Init               "Init"		{(Proc_Init)               ()                                                 ()
                                           		()                                          ()                                             ()}
-   Mode_Attract            "Attract"	{()                        (Proc_Start_and_Coin)                              (ImageCh_Attract)
+   Mode_Attract            "Attract"	{(Proc_Attract_Init)       (Proc_Start_and_Coin)                              (ImageCh_Attract)
                                           		(SndCh_Attract)                             (LedCh_Attract)                                ()}
    Mode_Init_Game          "InitGame"	{(Proc_Init_Game)          (Proc_Start_Game)                                  ()                        
                                           		()                                          ()                                             ()}

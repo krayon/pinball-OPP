@@ -122,7 +122,9 @@ def getInventory(commThread):
 
             #add to the config/read cmd if necessary
             if (len(commThread.solBrdCfg) < commThread.numSolBrd):
-                commThread.solBrdCfg.append(GameData.SolBitNames.SOL_BRD_CFG[commThread.numSolBrd - 1])
+                commThread.solBrdCfg.append(['\x00' for _ in xrange(24)])
+                for cfgIndx in xrange(24):
+                    commThread.solBrdCfg[commThread.numSolBrd - 1][cfgIndx] = GameData.SolBitNames.SOL_BRD_CFG[commThread.numSolBrd - 1][cfgIndx]
                 commThread.updateSolBrdCfg |= (1 << (commThread.numSolBrd - 1))
                 commThread.readInpCmd.append(data[index])
                 commThread.readInpCmd.append(rs232Intf.READ_SOL_INP_CMD)
@@ -135,7 +137,9 @@ def getInventory(commThread):
 
             #add to the config/read cmd if necessary
             if (len(commThread.inpBrdCfg) < commThread.numInpBrd):
-                commThread.inpBrdCfg.append(GameData.InpBitNames.INP_BRD_CFG[commThread.numInpBrd - 1])
+                commThread.inpBrdCfg.append(['\x00' for _ in xrange(16)])
+                for cfgIndx in xrange(16):
+                    commThread.inpBrdCfg[commThread.numInpBrd - 1][cfgIndx] = GameData.InpBitNames.INP_BRD_CFG[commThread.numInpBrd - 1][cfgIndx]
                 commThread.updateInpBrdCfg |= (1 << (commThread.numInpBrd - 1))
                 commThread.readInpCmd.append(data[index])
                 commThread.readInpCmd.append(rs232Intf.READ_INP_BRD_CMD)
@@ -234,7 +238,9 @@ def readInputs(commThread):
                     index += 3
             elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
                 if data[index + 1] == rs232Intf.READ_INP_BRD_CMD:
-                    InpBrd.update_status(GameData.inpBrd, boardIndex, (ord(data[index + 2]) << 8) | ord(data[index + 3]))
+                    status = (ord(data[index + 2]) << 8) | ord(data[index + 3])
+                    status = ~status & 0xffff
+                    InpBrd.update_status(GameData.inpBrd, boardIndex, status)
                     index += 4
             else:
                 index +=1

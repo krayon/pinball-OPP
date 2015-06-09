@@ -118,8 +118,8 @@ class TimerThread(Thread):
                         # Check if timer has expired
                         if GameData.timerCnt[currTmr] >= \
                                 GameData.Timers.timeouts[currTmr][GameData.Timers.TIMEOUT_OFFSET]:
-                            GameData.expiredTimers[tmrGrp] |= (1 << timer)
-                            GameData.runningTimers[tmrGrp] &= ~(1 << timer)
+                            GameData.expiredTimers[tmrGrp] |= (1 << currTmr)
+                            GameData.runningTimers[tmrGrp] &= ~(1 << currTmr)
             
     ## The timer thread
     #
