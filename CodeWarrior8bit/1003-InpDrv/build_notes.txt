@@ -36,3 +36,4 @@ Version		Proc		StdLib		Upgrade CRC32	App CRC32	Image CRC32	Notes:
 00.00.02	MC9S08SE08	00.00.05	0x75f80832	0x793e63c	0xbeee3835	Fix location of APP_TABLE.  Processor should use small memory model.
 00.00.03	MC9S08SE08	00.00.05	0xbf273823	0xb279f41b	0x6d1f334e	Change osc to slow.  Fix addr compare to use input card.
 00.00.04	MC9S08SE08	00.00.05	0xefbc1f05	0x9884ac80	0x7c69081c	Updated bootloader for slow clock.
+00.00.06	MC9S08SE08	00.00.05	0x0776c0a1	0x7b9c478e	0x0c9809c1	Initialize stateMask so rise/fall edge inputs work

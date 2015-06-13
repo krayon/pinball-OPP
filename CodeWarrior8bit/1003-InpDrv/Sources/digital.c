@@ -323,6 +323,7 @@ void digital_set_init_state(void)
   inputs = PTCD | (((U16)((PTAD & 0x0f) | (PTBD & 0xf0))) << 8);
   
   inpg_glob.inpSwitch = 0;
+  inpg_glob.stateMask = 0;
   for ( index = 0; index < RS232I_NUM_INP; index++)
   {
     if (inpg_glob.inpCfg[index] == STATE_INPUT)
