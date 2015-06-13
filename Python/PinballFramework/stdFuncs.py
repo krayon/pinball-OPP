@@ -48,6 +48,7 @@
 
 from hwobjs.ledBrd import LedBrd
 from hwobjs.solBrd import SolBrd
+from hwobjs.inpBrd import InpBrd
 from dispConstIntf import DispConst
 import dispIntf
 import time
@@ -83,6 +84,21 @@ class StdFuncs():
         else:
             return False
 
+    ## Restore input config
+    #
+    #  Send a command to restore the original input config
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None 
+    def Restore_Input_Cfg(self):
+        for cardNum in xrange(InpBrd.numInpBrd):
+            for inpIndex in xrange(rs232Intf.NUM_INP_PER_BRD):
+                cfgOffs = rs232Intf.CFG_BYTES_PER_INP * inpIndex
+                cfg = [StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs],
+                    StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs + 1]]
+                comms.commIntf.updateInp(StdFuncs.GameData.commThread, cardNum, inpIndex, cfg)
+            comms.commIntf.sendInpCfg(StdFuncs.GameData.commThread, cardNum)
+        
     ## Check solenoid bit
     #
     #  Check if a bit from a solenoid card is currently set.

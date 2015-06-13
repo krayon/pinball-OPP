@@ -66,7 +66,7 @@ def getSerialData(commThread, numBytes):
 #  @param  commThread    [in]   Comm thread object
 #  @return True if error
 def rcvEomResp(commThread):
-    data = getSerialData(commThread, 1);
+    data = getSerialData(commThread, 1)
     if (data[0] != rs232Intf.EOM_CMD):
         return (True)
     return (False)

@@ -164,6 +164,7 @@ class CustomFunc:
         self._duelTimer = [60000, 45000, 30000, 30000]
         self.dropHit = 0
         self.totDrops = 0
+        self.tmpValue = 0
         
     ## Initialize game
     #
@@ -599,7 +600,7 @@ class CustomFunc:
     #  State contains number of spins already counted
     def init_call_posse(self, plyr, restoreState):
         # Blink spinner lane
-        # Sound, "Better call the posse"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BETTER_CALL_POSSE)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SPINNER)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_POSSE)
         
@@ -625,7 +626,7 @@ class CustomFunc:
     #  State contains inlanes that have already been completed
     def init_hustle_jive(self, plyr, restoreState):
         # Blink non-lit inlanes
-        # Sound, "Time for some hustle and jive"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_TIME_HUSTLE_JIVE)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_INLANES)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_HUSTLEJIVE)
         self.disableRotate = True
@@ -651,7 +652,7 @@ class CustomFunc:
     #  State contains next thing to hit.
     def init_target_practice(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_TRGTPRAC)
-        # Sound, "Y'all need some target practice"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_NEED_TRGT_PRACTICE)
         if restoreState:
             # If only had to hit the kickout hole, move back to hit spinner
             if (self.saveModeState[plyr] == CustomFunc.MODETRGT_KICKOUT_HOLE):
@@ -709,14 +710,12 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPLFT)
         if restoreState:
             if (self.saveModeState[plyr] >> 16) >= (self.saveModeState[plyr] & 0xffff):
-                # Sound, "Look in the abandoned house"
-                pass
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_LOOK_HOUSE)
             else:
-                # Sound, "Go check out the abandoned mine"
-                pass
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHECK_MINE)
         else:
             self.saveModeState[plyr] = 0
-            # Sound, "Look in the bandit hideouts"
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_LOOK_HIDEOUTS)
         # Start timeout to play sound every 10s to indicate what target needs hit most
         self.stateProg[plyr] = 0
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 10000) 
@@ -739,7 +738,7 @@ class CustomFunc:
     #  State contains number of standups that have successfully been hit
     def init_sniper(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SNIPER)
-        # Sound, "Snipers only need one shot"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_SNIPERS_ONE_SHOT)
         
         # Pick the drop that must be hit.  Blink the drop target
         if not restoreState:
@@ -768,7 +767,7 @@ class CustomFunc:
     #
     #  State contains number of standups that have successfully been hit
     def init_sharpe_attack(self, plyr, restoreState):
-        # Sound, "Sharpe attack, make Roger proud"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_SHARPE_ATTACK)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SHARPE)
 
         # Pick the drop that must be hit.  Blink the drop target
@@ -813,13 +812,13 @@ class CustomFunc:
             
         if self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_INLANES:
             # Blink inlanes
-            # Sound, "Flush out the bandits"
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_FLUSH_OUT_BANDITS)
             CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_INLANES)
         elif self.saveModeState[plyr] == CustomFunc.MODETRKBNDT_PASS:
-            # Sound, "They went through the pass"
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_WENT_THRU_PASS)
             CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_JKPOT)
         else:
-            # Sound, "Ya, got em cornered"
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_GOT_EM_CORNERED)
             self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
             CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS)
             
@@ -843,7 +842,7 @@ class CustomFunc:
         self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
         CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS)
         
-        # Sound, "Looks like we got a turkey shoot here"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_TURKEY_SHOOT)
     
         if not restoreState:
             self.saveModeData[plyr] = 0
@@ -870,7 +869,7 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_BARFGHT)
         
         # Blink pop bumpers
-        # Sound, "Looks like we got a bar fight!"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BAR_FIGHT)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPCTR | LedBitNames.LED_POP_UPLFT)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_BTMUP | LedBitNames.LED_POP_BTMLOW)
         self.saveModeState[plyr] = 0
@@ -909,7 +908,7 @@ class CustomFunc:
     #  must wait five seconds until trying again.  If duel timer times out, 1 in 5 chance of
     #  being killed
     def init_duel(self, plyr, restoreState):
-        # Sound, "We got a duel.  It's just you and him"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_WE_GOT_A_DUEL)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_DUEL)
         _ = restoreState                    # Clear unused variable warning
 
@@ -941,7 +940,7 @@ class CustomFunc:
         if not restoreState:
             self.saveModeData[plyr] = 0
             
-        # Sound, "Go through the pass to get some help"
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_THRU_PASS_FOR_HELP)
 
     ## Process skillshot
     #
@@ -1381,11 +1380,9 @@ class CustomFunc:
     def proc_check_hideouts(self, plyr):
         if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
             if (self.saveModeState[plyr] >> 16) >= (self.saveModeState[plyr] & 0xffff):
-                # Sound, "Look in the abandoned house"
-                pass
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_LOOK_HOUSE)
             else:
-                # Sound, "Go check out the abandoned mine"
-                pass
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHECK_MINE)
             CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
         trgtHit = False
         if (CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_LFT_TOP_TRGT)):
@@ -1465,7 +1462,12 @@ class CustomFunc:
                 failMode = True
                 
             if failMode:
-                # Sound, "Ya missed" or "Better practice some more"
+                if (self.tmpValue == 0):
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_YA_MISSED)
+                    self.tmpValue = 1
+                else:
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BETTER_PRAC_MORE)
+                    self.tmpValue = 0
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_SNIPER)
                 self.stateProg[plyr] = 0
@@ -1546,7 +1548,12 @@ class CustomFunc:
                 failMode = True
                 
             if failMode:
-                # Sound, "Ya ain't no Roger Sharpe" or "Better bring in Josh or Zach"
+                if (self.tmpValue == 0):
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_NO_ROGER_SHARPE)
+                    self.tmpValue = 1
+                else:
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BRING_JOSH_ZACH)
+                    self.tmpValue = 0
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_SHARPE)
                 self.stateProg[plyr] = 0
@@ -1604,7 +1611,7 @@ class CustomFunc:
             if ((self.pollStatus & CustomFunc.POLLSTAT_INLANE_COMP) != 0):
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ALL_INLANES)
                 CustomFunc.GameData.StdFuncs.Led_On(CustomFunc.CONST_ALL_INLANES)
-                # Sound, "They went through the pass"
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_WENT_THRU_PASS)
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_JKPOT)
                 self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_PASS
         # Check if pass is next
@@ -1612,7 +1619,7 @@ class CustomFunc:
             if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_JKPOT_ROLLOVER):
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
                 CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_JKPOT)
-                # Sound, "Ya, got em cornered"
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_GOT_EM_CORNERED)
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS)
                 self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
                 self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_TARGETS
@@ -1621,7 +1628,7 @@ class CustomFunc:
             if ((self.pollStatus & CustomFunc.POLLSTAT_COMP_DROPS) != 0):
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ALL_DROPS)
                 CustomFunc.GameData.StdFuncs.Led_On(CustomFunc.CONST_ALL_DROPS)
-                # Sound, "Finish it"
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_FINISH_IT)
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
                 self.saveModeState[plyr] = CustomFunc.MODETRKBNDT_KO_HOLE
         else:
@@ -1667,7 +1674,7 @@ class CustomFunc:
                     CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER) 
             # If the general timeout expires, end mode
             elif (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
-                # Sound, "They got ya"
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_THEY_GOT_YA)
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_MODE_KILLALL)
                 self.stateProg[plyr] = 0
     
@@ -1733,7 +1740,7 @@ class CustomFunc:
                     self.saveModeState[plyr] |= CustomFunc.MODEBARFIGHT_TOP_LFT
                     popHit = True
             if popHit:
-                # Sound, breaking bottle
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BREAKING_BOTTLE)
                 if ((self.saveModeState[plyr] & CustomFunc.MODEBARFIGHT_ALL_POPS) == CustomFunc.MODEBARFIGHT_ALL_POPS):
                     CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_POP_UPCTR | LedBitNames.LED_POP_UPLFT)
                     CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_POP_BTMUP | LedBitNames.LED_POP_BTMLOW)
@@ -1774,14 +1781,14 @@ class CustomFunc:
                     CustomFunc.GameData.StdFuncs.Led_Blink_Off(0x50000 | (0x01 << self.saveModeValue))
                     CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
                     if ((self.dropHit & (0x01 << self.saveModeValue)) != 0):
-                        # Sound, "You got him"
+                        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_YOU_GOT_HIM)
                         CustomFunc.GameData.StdFuncs.Led_Off(0x50000 | (0x01 << self.saveModeValue))
                         
                         self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
                         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
                     # Missed the target, so need to wait to reload
                     else:
-                        # Sound, "Reload"
+                        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_RELOAD)
                         self.saveModeValue |= CustomFunc.MODEDUEL_RELOAD
                         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
             else:
@@ -1794,7 +1801,7 @@ class CustomFunc:
             if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_DUEL_TIMER)):
                 randomNum = random.randint(0, 5 - self.level[plyr])
                 if randomNum == 0:
-                    # Sound, "Ya got shot."
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_YA_GOT_SHOT)
                     # Disable flippers
                     CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_LFT_FLIPPER, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
                     CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_RGHT_FLIPPER, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
@@ -1831,7 +1838,7 @@ class CustomFunc:
         if ((self.stateProg[plyr] & CustomFunc.STATEPROG_KO_TO_END_MODE) == 0):
             if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_JKPOT_ROLLOVER):
                 self.saveModeData[plyr] += 1
-                # Sound, Lone ranger beginning bugle
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_LONE_RANGER_BUGLE)
                 if (self.saveModeData[plyr] >= 5):
                     CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE

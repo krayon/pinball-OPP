@@ -201,6 +201,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Init(self):
+        RulesFunc.GameData.StdFuncs.Restore_Input_Cfg()
         RulesFunc.GameData.gameMode = State.MODE_ATTRACT
 
     ## Function Proc_Attract_Init
