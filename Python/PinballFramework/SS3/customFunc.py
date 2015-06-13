@@ -599,6 +599,7 @@ class CustomFunc:
     #  State contains number of spins already counted
     def init_call_posse(self, plyr, restoreState):
         # Blink spinner lane
+        # Sound, "Better call the posse"
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SPINNER)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_POSSE)
         
@@ -624,6 +625,7 @@ class CustomFunc:
     #  State contains inlanes that have already been completed
     def init_hustle_jive(self, plyr, restoreState):
         # Blink non-lit inlanes
+        # Sound, "Time for some hustle and jive"
         CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_INLANES)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_HUSTLEJIVE)
         self.disableRotate = True
@@ -649,6 +651,7 @@ class CustomFunc:
     #  State contains next thing to hit.
     def init_target_practice(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_TRGTPRAC)
+        # Sound, "Y'all need some target practice"
         if restoreState:
             # If only had to hit the kickout hole, move back to hit spinner
             if (self.saveModeState[plyr] == CustomFunc.MODETRGT_KICKOUT_HOLE):
@@ -706,14 +709,14 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_POP_UPLFT)
         if restoreState:
             if (self.saveModeState[plyr] >> 16) >= (self.saveModeState[plyr] & 0xffff):
-                # Play sound "Look in the abandoned house"
+                # Sound, "Look in the abandoned house"
                 pass
             else:
-                # Play sound "Go check out the abandoned mine"
+                # Sound, "Go check out the abandoned mine"
                 pass
         else:
             self.saveModeState[plyr] = 0
-            # Play sound "Look in the bandit hideouts"
+            # Sound, "Look in the bandit hideouts"
         # Start timeout to play sound every 10s to indicate what target needs hit most
         self.stateProg[plyr] = 0
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 10000) 
@@ -736,6 +739,7 @@ class CustomFunc:
     #  State contains number of standups that have successfully been hit
     def init_sniper(self, plyr, restoreState):
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SNIPER)
+        # Sound, "Snipers only need one shot"
         
         # Pick the drop that must be hit.  Blink the drop target
         if not restoreState:
@@ -764,6 +768,7 @@ class CustomFunc:
     #
     #  State contains number of standups that have successfully been hit
     def init_sharpe_attack(self, plyr, restoreState):
+        # Sound, "Sharpe attack, make Roger proud"
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_SHARPE)
 
         # Pick the drop that must be hit.  Blink the drop target
@@ -904,6 +909,7 @@ class CustomFunc:
     #  must wait five seconds until trying again.  If duel timer times out, 1 in 5 chance of
     #  being killed
     def init_duel(self, plyr, restoreState):
+        # Sound, "We got a duel.  It's just you and him"
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_MODE_DUEL)
         _ = restoreState                    # Clear unused variable warning
 
@@ -1375,10 +1381,10 @@ class CustomFunc:
     def proc_check_hideouts(self, plyr):
         if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
             if (self.saveModeState[plyr] >> 16) >= (self.saveModeState[plyr] & 0xffff):
-                # Play sound "Look in the abandoned house"
+                # Sound, "Look in the abandoned house"
                 pass
             else:
-                # Play sound "Go check out the abandoned mine"
+                # Sound, "Go check out the abandoned mine"
                 pass
             CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
         trgtHit = False
