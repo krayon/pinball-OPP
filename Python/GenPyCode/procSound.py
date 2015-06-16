@@ -180,7 +180,7 @@ class ProcSound():
                 return (711)
             ProcSound.sndName.append(name)
             ProcChains.addName(parent.procChains, name, ProcChains.SOUND_NAME)
-        ProcSound.outHndl.write("    {0: <20} = {1}\n".format(name.upper(), self.currEnum))
+        ProcSound.outHndl.write("    {0: <40} = {1}\n".format(name.upper(), self.currEnum))
         self.currEnum += 1
         
         # Copy location

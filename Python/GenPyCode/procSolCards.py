@@ -249,7 +249,10 @@ class ProcSolCards():
             "## Solenoid bit name enumeration.",
             "#  Contains a bit mask for each solenoid.  Can also contain bitfield masks.",
             "#  Top most nibble contains the index of the solenoid card base 0.",
-            "class SolBitNames:"]
+            "class SolBitNames:",
+            "    def __init__(self):",
+            "        pass",
+            ""]
 
         # Open the file or create if necessary
         outHndl = open(parent.consoleObj.outDir + os.sep + "solBitNames.py", 'w+')

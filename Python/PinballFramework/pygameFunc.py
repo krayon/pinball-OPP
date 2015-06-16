@@ -49,6 +49,7 @@
 import pygame
 from dispConstIntf import DispConst
 import dispIntf
+import os
 
 ## Pygame data class.
 #
@@ -138,7 +139,15 @@ class Pygame_Data():
             if Pygame_Data.GameData.bgndSound == 0xffffffff:
                 pygame.mixer.music.stop()
             else:
-                pygame.mixer.music.load(Pygame_Data.GameData.rulesDir + "/" + Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[Pygame_Data.GameData.bgndSound])
+                # If music is copyrighted, make sure it exists
+                filename = Pygame_Data.GameData.rulesDir + "/" + Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[Pygame_Data.GameData.bgndSound]
+                if Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[Pygame_Data.GameData.bgndSound].startswith('copyrighted/'):
+                    if not os.path.isfile(filename):
+                        # Check if shortened version is available 
+                        filename = filename.replace('/copyrighted/','/sounds/', 1)
+                        if not os.path.isfile(filename):
+                            filename = Pygame_Data.GameData.rulesDir + "/sounds/copyrighted.mp3"
+                pygame.mixer.music.load(filename)
                 pygame.mixer.music.play(-1)
             Pygame_Data.GameData.prevBgndSound = Pygame_Data.GameData.bgndSound
             

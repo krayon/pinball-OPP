@@ -172,11 +172,6 @@ class CommThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_comms(self):
-        if (self.kickSolBrd != 0):
-            for board in xrange(SolBrd.numSolBrd):
-                if ((self.kickSolBrd & (1 << board)) != 0):
-                    self.kickSolBrd &= ~(1 << board)
-                    commHelp.sendKick(self, board)
         if (self.updateSolBrdCfg != 0):
             for board in xrange(SolBrd.numSolBrd):
                 if ((self.updateSolBrdCfg & (1 << board)) != 0):
@@ -187,6 +182,11 @@ class CommThread(Thread):
                 if ((self.updateInpBrdCfg & (1 << board)) != 0):
                     self.updateInpBrdCfg &= ~(1 << board)
                     commHelp.sendConfig(self, False, board)
+        if (self.kickSolBrd != 0):
+            for board in xrange(SolBrd.numSolBrd):
+                if ((self.kickSolBrd & (1 << board)) != 0):
+                    self.kickSolBrd &= ~(1 << board)
+                    commHelp.sendKick(self, board)
         commHelp.readInputs(self)
         
     

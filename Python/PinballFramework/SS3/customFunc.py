@@ -51,6 +51,7 @@ from SS3.solBitNames import SolBitNames
 from SS3.sounds import Sounds
 from SS3.ledBitNames import LedBitNames
 from SS3.timers import Timers
+from SS3.bgndSounds import BgndMusic
 import random
 import rs232Intf
 from SS3.states import State
@@ -80,6 +81,8 @@ class CustomFunc:
     MODE_DUEL = 9
     MODE_RIDE_FOR_HELP = 10
     MODE_NUM_MODES = 11
+    
+    ALL_MODES_MASK = 0x3ff
     
     LEVEL_EASY = 0
     LEVEL_MED = 1
@@ -120,6 +123,9 @@ class CustomFunc:
     
     CONST_ALL_INLANES = LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT
     CONST_ALL_DROPS = LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7
+    CONST_ALL_MODES = LedBitNames.LED_MODE_POSSE | LedBitNames.LED_MODE_HUSTLEJIVE | LedBitNames.LED_MODE_TRGTPRAC | LedBitNames.LED_MODE_CHKHIDE | \
+            LedBitNames.LED_MODE_SNIPER | LedBitNames.LED_MODE_SHARPE | LedBitNames.LED_MODE_TRKBNDT | LedBitNames.LED_MODE_KILLALL | \
+            LedBitNames.LED_MODE_BARFGHT | LedBitNames.LED_MODE_DUEL | LedBitNames.LED_MODE_RIDEHELP
     
     ## Initialize CustomFunc class
     #
@@ -270,7 +276,13 @@ class CustomFunc:
         # Tilt is not active during skill shot to allow nudging
         self.tilted = False
         self.tiltActive = False
-
+        
+        # If ballNum = 0, make callout for level
+        if (self.GameData.ballNum == 0):
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_ROOKIE)
+            
+        CustomFunc.GameData.StdFuncs.PlayBgnd(BgndMusic.BGND_GOODBADUGLY)
+        
     ## End ball
     #
     #  End the ball, and reset LEDs
@@ -279,6 +291,9 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def end_ball(self, plyr):
+        # End background music
+        CustomFunc.GameData.StdFuncs.StopBgnd()
+        
         # In easy mode inlanes are retained for next ball, mode completes on ball end.
         # self.compInlanes[plyr] are kept up to date during play, so don't need to store here
         if (self.level[plyr] == CustomFunc.LEVEL_EASY):
@@ -369,6 +384,7 @@ class CustomFunc:
             if (oldMode != self.selectMode):
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.modeLedLkup[oldMode])
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.modeLedLkup[self.selectMode])
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_MODE_CALL_POSSE + self.selectMode)
                     
         # Rotate may or may not happen depending on mode
         elif (self.state[plyr] == State.MODE_MODE_ACTIVE):
@@ -1182,6 +1198,29 @@ class CustomFunc:
             CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
             CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_SPINNER, LedBitNames.LED2_ALL_BITS_MSK, LedBitNames.LED_POP_BTMLOW | LedBitNames.LED_POP_BTMUP, \
                 LedBitNames.LED_LFT_INLN | LedBitNames.LED_LFT_OUTLN, LedBitNames.LED6_ALL_BITS_MSK])
+            
+            # Check if completed all modes at this level
+            if ((self.compModes[plyr] & CustomFunc.ALL_MODES_MASK) == CustomFunc.ALL_MODES_MASK):
+                if (self.level[plyr] == CustomFunc.LEVEL_EASY):
+                    self.level[plyr] += 1
+                    leds = LedBitNames.LED_DEPUTY
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_DEPUTY)
+                elif (self.level[plyr] == CustomFunc.LEVEL_MED):
+                    self.level[plyr] += 1
+                    leds = LedBitNames.LED_SHERIFF
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_SHERIFF)
+                elif (self.level[plyr] == CustomFunc.LEVEL_HARD):
+                    self.level[plyr] += 1
+                    leds = LedBitNames.LED_MARSHAL
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_MARSHAL)
+                elif (self.level[plyr] == CustomFunc.LEVEL_WIZARD):
+                    leds = LedBitNames.LED_MARSHAL
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_LONE_RANGER_BUGLE)
+                CustomFunc.GameData.StdFuncs.Led_On(leds)
+                self.compModes[plyr] = 0
+                CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_MODES)
+                
+            
             self.move_to_normal_mode(plyr)
         if jackpot:
             print "Jackpot"
@@ -1212,6 +1251,7 @@ class CustomFunc:
                 break
         # Blink the mode LED
         CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.modeLedLkup[self.selectMode])
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_MODE_CALL_POSSE + self.selectMode)
         
     ## Process call posse
     #

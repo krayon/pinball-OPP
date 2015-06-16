@@ -56,6 +56,9 @@ import rs232Intf
 #  Contains a bit mask for each solenoid.  Can also contain bitfield masks.
 #  Top most nibble contains the index of the solenoid card base 0.
 class SolBitNames:
+    def __init__(self):
+        pass
+    
     SOL_UPPER_LFT_POP                = 0x00001
     SOL_UPPER_CTR_POP                = 0x00002
     SOL_TOP_DROP_RUBBER              = 0x00008

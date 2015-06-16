@@ -155,3 +155,15 @@ def sendSolKick(commThread, brd, sol):
     commThread.kickSolBrd |= (1 << brd)
     return errIntf.CMD_OK
 
+## Updates complete
+#
+#  Verify configuration changes and kicks have been sent to the hardware
+#
+#  @param  commThread    [in]   Comm thread object
+#  @return True if updates complete
+def updatesComp(commThread):
+    if (commThread.kickSolBrd == 0) and (commThread.updateInpBrdCfg == 0) and (commThread.kickSolBrd == 0):
+        return (True)
+    else:
+        return (False)
+        

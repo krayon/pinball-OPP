@@ -55,39 +55,54 @@
 class Sounds():
     def __init__(self):
         pass
-    
-    SOUND_HOWDYFOLKS     = 0
-    SOUND_YALL_COME_BACK = 1
-    SOUND_HELL_OF_A_SHOT = 2
-    SOUND_NICE_SHOOTIN_TEX = 3
-    SOUND_DING_DING      = 4
-    SOUND_WAH_WUH        = 5
-    SOUND_BRING_JOSH_ZACH = 6
-    SOUND_BETTER_CALL_POSSE = 7
-    SOUND_BETTER_PRAC_MORE = 8
-    SOUND_BREAKING_BOTTLE = 9
-    SOUND_CHECK_MINE     = 10
-    SOUND_FINISH_IT      = 11
-    SOUND_FLUSH_OUT_BANDITS = 12
-    SOUND_GOT_EM_CORNERED = 13
-    SOUND_THRU_PASS_FOR_HELP = 14
-    SOUND_LONE_RANGER_BUGLE = 15
-    SOUND_LOOK_HOUSE     = 16
-    SOUND_LOOK_HIDEOUTS  = 17
-    SOUND_BAR_FIGHT      = 18
-    SOUND_TURKEY_SHOOT   = 19
-    SOUND_NO_ROGER_SHARPE = 20
-    SOUND_RELOAD         = 21
-    SOUND_SHARPE_ATTACK  = 22
-    SOUND_SNIPERS_ONE_SHOT = 23
-    SOUND_THEY_GOT_YA    = 24
-    SOUND_TIME_HUSTLE_JIVE = 25
-    SOUND_WE_GOT_A_DUEL  = 26
-    SOUND_WENT_THRU_PASS = 27
-    SOUND_YA_GOT_SHOT    = 28
-    SOUND_NEED_TRGT_PRACTICE = 29
-    SOUND_YA_MISSED      = 30
-    SOUND_YOU_GOT_HIM    = 31
+
+    SOUND_HOWDYFOLKS                         = 0
+    SOUND_YALL_COME_BACK                     = 1
+    SOUND_HELL_OF_A_SHOT                     = 2
+    SOUND_NICE_SHOOTIN_TEX                   = 3
+    SOUND_DING_DING                          = 4
+    SOUND_WAH_WUH                            = 5
+    SOUND_BRING_JOSH_ZACH                    = 6
+    SOUND_BETTER_CALL_POSSE                  = 7
+    SOUND_BETTER_PRAC_MORE                   = 8
+    SOUND_BREAKING_BOTTLE                    = 9
+    SOUND_CHECK_MINE                         = 10
+    SOUND_FINISH_IT                          = 11
+    SOUND_FLUSH_OUT_BANDITS                  = 12
+    SOUND_GOT_EM_CORNERED                    = 13
+    SOUND_THRU_PASS_FOR_HELP                 = 14
+    SOUND_LONE_RANGER_BUGLE                  = 15
+    SOUND_LOOK_HOUSE                         = 16
+    SOUND_LOOK_HIDEOUTS                      = 17
+    SOUND_BAR_FIGHT                          = 18
+    SOUND_TURKEY_SHOOT                       = 19
+    SOUND_NO_ROGER_SHARPE                    = 20
+    SOUND_RELOAD                             = 21
+    SOUND_SHARPE_ATTACK                      = 22
+    SOUND_SNIPERS_ONE_SHOT                   = 23
+    SOUND_THEY_GOT_YA                        = 24
+    SOUND_TIME_HUSTLE_JIVE                   = 25
+    SOUND_WE_GOT_A_DUEL                      = 26
+    SOUND_WENT_THRU_PASS                     = 27
+    SOUND_YA_GOT_SHOT                        = 28
+    SOUND_NEED_TRGT_PRACTICE                 = 29
+    SOUND_YA_MISSED                          = 30
+    SOUND_YOU_GOT_HIM                        = 31
+    SOUND_MODE_CALL_POSSE                    = 32
+    SOUND_MODE_HUSTLE_JIVE                   = 33
+    SOUND_MODE_TRGT_PRACT                    = 34
+    SOUND_MODE_CHECK_HIDEOUTS                = 35
+    SOUND_MODE_SNIPER                        = 36
+    SOUND_MODE_SHARPE_ATTACK                 = 37
+    SOUND_MODE_TRACK_BANDITS                 = 38
+    SOUND_MODE_KILL_EM_ALL                   = 39
+    SOUND_MODE_BAR_FIGHT                     = 40
+    SOUND_MODE_DUEL                          = 41
+    SOUND_MODE_RIDE_FOR_HELP                 = 42
+    SOUND_ROOKIE                             = 43
+    SOUND_DEPUTY                             = 44
+    SOUND_SHERIFF                            = 45
+    SOUND_MARSHAL                            = 46
 
     ## Sound file list
     # Indexed into using the [Sounds](@ref sounds.Sounds) class
@@ -97,4 +112,8 @@ class Sounds():
         "sounds/LoneRangerBugle.wav", "sounds/LookAbandonedHouse.wav", "sounds/LookBanditHideouts.wav", "sounds/LooksLikeBarFight.wav", "sounds/LooksLikeTurkeyShoot.wav", 
         "sounds/NoRogerSharpe.wav", "sounds/Reload.wav", "sounds/SharpeAttack.wav", "sounds/SnipersNeedOneShot.wav", "sounds/TheyGotYa.wav", 
         "sounds/TimeForHustleJive.wav", "sounds/WeGotADuel.wav", "sounds/WentThruPass.wav", "sounds/YaGotShot.wav", "sounds/YallNeedTargetPractice.wav", 
-        "sounds/YaMissed.wav", "sounds/YouGotHim.wav"]
+        "sounds/YaMissed.wav", "sounds/YouGotHim.wav", "sounds/ModeCallPosse.wav", "sounds/ModeHustleJive.wav", "sounds/ModeTrgtPract.wav", 
+        "sounds/ModeCheckHideouts.wav", "sounds/ModeSniper.wav", "sounds/ModeSharpeAttack.wav", "sounds/ModeTrackBandits.wav", "sounds/ModeKillEmAll.wav", 
+        "sounds/ModeBarFight.wav", "sounds/ModeDuel.wav", "sounds/ModeRideForHelp.wav", "sounds/Rookie.wav", "sounds/Deputy.wav", 
+        "sounds/Sheriff.wav", "sounds/Marshal.wav"]
+

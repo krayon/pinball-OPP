@@ -207,6 +207,15 @@ class StdFuncs():
         bitPos = cardBitPos & 0xffff
         comms.commIntf.sendSolKick(StdFuncs.GameData.commThread, cardNum, bitPos)
 
+    ## Updates Complete
+    #
+    #  Verify solenoid/input cfg changes complete, and kicks were sent
+    #
+    #  @param  self          [in]   Object reference
+    #  @return True if updates complete
+    def UpdatesComplete(self):
+        return(comms.commIntf.updatesComp(StdFuncs.GameData.commThread))
+
     ## Start a timer
     #
     #  Start a timer

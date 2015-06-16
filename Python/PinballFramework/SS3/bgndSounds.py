@@ -53,9 +53,12 @@
 ## Background sounds enumeration.
 #  Contains an entry for each background sound
 class BgndMusic():
-    SOUND_BGNDTRACK      = 0
+    def __init__(self):
+        pass
+
+    BGND_GOODBADUGLY                         = 0
 
     ## Background sound file list
     # Indexed into using the [BgndMusic](@ref bgndSounds.BgndMusic) class
-    BGND_MUSIC_FILES = ["sounds/bgndtrack.mp3"]
+    BGND_MUSIC_FILES = ["copyrighted/GoodBadUgly.mp3"]
 
