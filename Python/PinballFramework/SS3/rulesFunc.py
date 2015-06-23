@@ -120,17 +120,6 @@ class RulesFunc:
         else:
             RulesFunc.prev_flipper &= ~self.RIGHT_FLIPPER
 
-    ## Process spinner input
-    #
-    #  Needs special processing since it is used for bonus and
-    #  jackpot scoring.
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Spinner(self):
-        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
-            RulesFunc.GameData.numSpinners += 1
-            
     ## Function Proc_Kickout_Hole
     #
     #  @param  self          [in]   Object reference
@@ -145,7 +134,10 @@ class RulesFunc:
     #  @return None
     def Proc_Ball_Drain(self):
         if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
-            RulesFunc.GameData.gameMode = State.MODE_END_OF_BALL
+            if (RulesFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
+                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
+            else:
+                RulesFunc.GameData.gameMode = State.MODE_END_OF_BALL
 
     ## Function Proc_Timers
     #
@@ -320,7 +312,7 @@ class RulesFunc:
         RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
         RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
         self.Proc_Flipper()
-        self.Proc_Spinner()
+        RulesFunc.CustomFunc.proc_spinner(RulesFunc.GameData.currPlayer)
         self.Proc_Start_and_Coin()
         self.Proc_Ball_Drain()
         self.Proc_Timers()
@@ -340,6 +332,7 @@ class RulesFunc:
     #  @return None
     def Proc_Choose_Mode(self):
         self.Proc_Flipper()
+        RulesFunc.CustomFunc.proc_choose_mode(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Mode_Active_Init
     #
@@ -356,6 +349,7 @@ class RulesFunc:
         RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
         RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
         RulesFunc.CustomFunc.proc_mode_active(RulesFunc.GameData.currPlayer)
+        self.Proc_Ball_Drain()
    
     ## Function Proc_Jpot_Avail_Init
     #
@@ -370,6 +364,7 @@ class RulesFunc:
     #  @return None
     def Proc_Jpot_Avail(self):
         RulesFunc.CustomFunc.proc_jackpot_avail(RulesFunc.GameData.currPlayer)
+        self.Proc_Ball_Drain()
        
     ## Function Proc_End_Of_Ball
     #
@@ -379,7 +374,6 @@ class RulesFunc:
         if not RulesFunc.CustomFunc.tilted:
             RulesFunc.GameData.StdFuncs.Wait(3000)
         RulesFunc.GameData.scoreLvl = 0
-        RulesFunc.GameData.numSpinners = 0
         RulesFunc.GameData.scoring = False
         RulesFunc.GameData.currPlayer += 1
         RulesFunc.GameData.currPlyrDisp += 1

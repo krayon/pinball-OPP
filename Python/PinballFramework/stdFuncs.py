@@ -94,8 +94,7 @@ class StdFuncs():
         for cardNum in xrange(InpBrd.numInpBrd):
             for inpIndex in xrange(rs232Intf.NUM_INP_PER_BRD):
                 cfgOffs = rs232Intf.CFG_BYTES_PER_INP * inpIndex
-                cfg = [StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs],
-                    StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs + 1]]
+                cfg = StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs]
                 comms.commIntf.updateInp(StdFuncs.GameData.commThread, cardNum, inpIndex, cfg)
             comms.commIntf.sendInpCfg(StdFuncs.GameData.commThread, cardNum)
         
@@ -598,3 +597,21 @@ class StdFuncs():
     #  @return None
     def BlankPlyrNumDisp(self):
         StdFuncs.GameData.blankDisp[DispConst.DISP_PLAYER_NUM] = True
+
+    ## Add Input Score
+    #
+    #  Check if a bit from an input card is currently set.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  inpScoreArr   [in]   input card score array
+    #  @param  solScoreArr   [in]   solenoid card score array
+    #  @return True if set 
+    def AddInputScore(self, inpScoreArr, solScoreArr):
+        for cardNum in xrange(InpBrd.numInpBrd):
+            for bitIndex in xrange(rs232Intf.NUM_INP_PER_BRD):
+                if ((StdFuncs.GameData.currInpStatus[cardNum] & (1 << bitIndex)) != 0):
+                    StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += inpScoreArr[cardNum][bitIndex]
+        for cardNum in xrange(SolBrd.numSolBrd):
+            for bitIndex in xrange(rs232Intf.NUM_SOL_PER_BRD):
+                if ((StdFuncs.GameData.currSolStatus[cardNum] & (1 << bitIndex)) != 0):
+                    StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += solScoreArr[cardNum][bitIndex]

@@ -80,12 +80,12 @@ class SolBitNames:
 
     ## Solenoid board configuration
     # Three bytes for each solenoid being configured
-    SOL_BRD_CFG = [ [rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00',
+    SOL_BRD_CFG = [ [rs232Intf.CFG_SOL_USE_SWITCH, '\x0c', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x0c', '\x00',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x00', '\x00',
         rs232Intf.CFG_SOL_AUTO_CLR, '\x20', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_AUTO_CLR, '\x20', '\x00'],
         [rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_AUTO_CLR, '\x10', '\x00',
         rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
-        rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00'] ]
+        rs232Intf.CFG_SOL_USE_SWITCH, '\x0c', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x0c', '\x00'] ]
 

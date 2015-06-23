@@ -85,9 +85,9 @@ class GameConst:
     # Located using actual screen x,y coordinates for center of display.
     # Auto scaled in simulation.  First entry is playerNum, second entry
     # is BallNum/Credits, third entry is player 1 score, fourth entry is
-    # player 2 score, etc. 
-    SCORE_DISP_POS = [[650,703], [650,900],
-        [271,703], [1011,703], [271,900], [1011,900]]   #Player score positions
+    # player 2 score, etc. Was 703, 900
+    SCORE_DISP_POS = [[650,800], [650,950], 
+        [271,800], [1011,800], [271,950], [1011,950]]   #Player score positions
     
     ## Height of score displays
     SCORE_HEIGHT = 100

@@ -56,7 +56,7 @@
 class LedBitNames:
     def __init__(self):
         pass
-    
+
     ## Number of LED boards in the system
     NUM_LED_BRDS = 6
 
@@ -73,8 +73,8 @@ class LedBitNames:
     LED_ROLL_LFT                     = 0x10001
     LED_ROLL_CTR                     = 0x10002
     LED_ROLL_RGHT                    = 0x10004
-    LED_POP_UPCTR                    = 0x10008
-    LED_POP_UPLFT                    = 0x10010
+    LED_POP_UPLFT                    = 0x10008
+    LED_POP_UPCTR                    = 0x10010
     LED_INLN_LFT                     = 0x10020
     LED_INLN_CTR                     = 0x10040
     LED_INLN_RGHT                    = 0x10080
@@ -84,13 +84,13 @@ class LedBitNames:
     LED_MODE_BARFGHT                 = 0x20004
     LED_MODE_DUEL                    = 0x20008
     LED_MODE_RIDEHELP                = 0x20010
-    LED_POP_BTMUP                    = 0x20040
-    LED_POP_BTMLOW                   = 0x20080
     LED4_ALL_BITS_MSK                = 0x300ff
     LED_ROOKIE                       = 0x30001
     LED_DEPUTY                       = 0x30002
     LED_SHERIFF                      = 0x30004
     LED_MARSHAL                      = 0x30008
+    LED_POP_BTMLOW                   = 0x30010
+    LED_POP_BTMUP                    = 0x30020
     LED_SHOOT_AGAIN                  = 0x30080
     LED5_ALL_BITS_MSK                = 0x400ff
     LED_MODE_SHARPE                  = 0x40001
@@ -114,13 +114,14 @@ class LedBitNames:
     # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class
     LED_BRD_BIT_NAMES = [ ["KODuel", "KOPickJob", "Spin3x", "Spin2x",
         "Spin5x", "Spin4x", "Jkpot", "Spinner"],
-        ["RollLft", "RollCtr", "RollRght", "PopUpCtr",
-        "PopUpLft", "InlnLft", "InlnCtr", "InlnRght"],
+        ["RollLft", "RollCtr", "RollRght", "PopUpLft",
+        "PopUpCtr", "InlnLft", "InlnCtr", "InlnRght"],
         ["TrkBndt", "KillAll", "BarFght", "Duel",
-        "RideHelp", "Unused", "PopBtmUp", "PopBtmLow"],
+        "RideHelp", "Unused", "Unused", "Unused"],
         ["Rookie", "Deputy", "Sheriff", "Marshal",
-        "Unused", "Unused", "Unused", "ShootAgain"],
+        "PopBtmLow", "PopBtmUp", "Unused", "ShootAgain"],
         ["Sharpe", "Sniper", "ChkHide", "TrgtPrac",
         "HustleJive", "Posse", "LftInln", "LftOutln"],
         ["DT1", "DT2", "DT3", "DT4",
         "DT5", "DT6", "DT7", "Unused"] ]
+

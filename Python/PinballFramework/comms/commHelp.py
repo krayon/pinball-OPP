@@ -239,7 +239,6 @@ def readInputs(commThread):
             elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
                 if data[index + 1] == rs232Intf.READ_INP_BRD_CMD:
                     status = (ord(data[index + 2]) << 8) | ord(data[index + 3])
-                    status = ~status & 0xffff
                     InpBrd.update_status(GameData.inpBrd, boardIndex, status)
                     index += 4
             else:

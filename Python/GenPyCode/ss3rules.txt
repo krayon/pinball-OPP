@@ -105,20 +105,18 @@ LED_CARDS            6
    Led_5x                     1     4        "Spin5x"
    Led_2x                     1     5        "Spin2x"
    Led_3x                     1     6        "Spin3x"
-   Led_KO_PickJob             1     7        "KOPickJob"
+   Led_KO_Pick_Job            1     7        "KOPickJob"
    Led_KO_Duel                1     8        "KODuel"
    
    Led_Inln_Rght              2     1        "InlnRght"
    Led_Inln_Ctr               2     2        "InlnCtr"
    Led_Inln_Lft               2     3        "InlnLft"
-   Led_Pop_UpLft              2     4        "PopUpLft"
-   Led_Pop_UpCtr              2     5        "PopUpCtr"
+   Led_Pop_UpCtr              2     4        "PopUpCtr"
+   Led_Pop_UpLft              2     5        "PopUpLft"
    Led_Roll_Rght              2     6        "RollRght"
    Led_Roll_Ctr               2     7        "RollCtr"
    Led_Roll_Lft               2     8        "RollLft"
 
-   Led_Pop_BtmLow             3     1        "PopBtmLow"
-   Led_Pop_BtmUp              3     2        "PopBtmUp"
    Led_Mode_RideHelp          3     4        "RideHelp"
    Led_Mode_Duel              3     5        "Duel"
    Led_Mode_BarFght           3     6        "BarFght"
@@ -126,6 +124,8 @@ LED_CARDS            6
    Led_Mode_TrkBndt           3     8        "TrkBndt"
 
    Led_Shoot_Again            4     1        "ShootAgain"
+   Led_Pop_BtmUp              4     3        "PopBtmUp"
+   Led_Pop_BtmLow             4     4        "PopBtmLow"
    Led_Marshal                4     5        "Marshal"
    Led_Sheriff                4     6        "Sheriff"
    Led_Deputy                 4     7        "Deputy"
@@ -442,12 +442,17 @@ LED_CHAINS
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                      Led_KO_Duel | Led_KO_PickJob | Led_2x | Led_3x | Led_4x | Led_5x |
-                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr, WAIT 100,
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft, WAIT 100,
                                   Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                      Led_KO_Duel | Led_KO_PickJob | Led_2x | Led_3x | Led_4x | Led_5x |
-                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr | Led_Roll_Rght, WAIT 100,
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_PickJob | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 100,
                                   Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
@@ -457,7 +462,7 @@ LED_CHAINS
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                      Led_KO_Duel | Led_KO_PickJob | Led_2x | Led_3x | Led_4x | Led_5x |
-                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
                                   Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
@@ -466,7 +471,7 @@ LED_CHAINS
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                      Led_KO_Duel | Led_KO_PickJob | Led_2x | Led_3x | Led_4x | Led_5x |
-                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
                                   Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
@@ -475,7 +480,7 @@ LED_CHAINS
                                      Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
                                      Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
                                      Led_KO_Duel | Led_KO_PickJob | Led_2x | Led_3x | Led_4x | Led_5x |
-                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
                                 # Blink all lights
                                 0, WAIT 500,
                                 LED1_ALL_BITS_MSK | LED2_ALL_BITS_MSK | LED3_ALL_BITS_MSK | LED4_ALL_BITS_MSK | LED5_ALL_BITS_MSK | LED6_ALL_BITS_MSK, WAIT 500,
