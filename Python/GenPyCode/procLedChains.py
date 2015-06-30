@@ -318,7 +318,7 @@ class ProcLedChains:
             "## LED chains class.",
             "#",
             "#  Contains all the LED chains that are specific this this set of pinball rules.",
-            "class LedChains():"
+            "class LedChains():",
             "    def __init__(self):",
             "        pass",
             "",
