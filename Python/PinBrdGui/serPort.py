@@ -109,19 +109,19 @@ class SerPort():
     def getInventory(self):
         if not self.debug:
             cmdArr = []
+            cmdArr.append(rs232Intf.EOM_CMD)
+            cmdArr.append(rs232Intf.EOM_CMD)
+            cmdArr.append(rs232Intf.EOM_CMD)
+            cmdArr.append(rs232Intf.EOM_CMD)
             cmdArr.append(rs232Intf.INV_CMD)
             cmdArr.append(rs232Intf.EOM_CMD)
             sendCmd = ''.join(cmdArr)
             self._ser.write(sendCmd)
             
             #add two extra bytes for command and EOM
-            data = self.getSerialData(rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
+            data = self.getSerialData(rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 6)
             print repr(data)
         
-            #Response must have at least inv command and eom or return error
-            if (len(data) < 2):
-                print "Inventory response fail"
-                return (101)
         else:
             #Fake an inventory response
             data = []
@@ -131,11 +131,19 @@ class SerPort():
             data.append(rs232Intf.EOM_CMD)
             
         #Response must have inv command at start or return BAD_INV_RESP
-        if (data[0] != rs232Intf.INV_CMD):
+        index = 0
+        while ((data[index] != rs232Intf.INV_CMD) and (index < len(data))):
+            index += 1
+            
+        #Response must have at least inv command and eom or return error
+        if (len(data) == index):
+            print "Inventory response fail, inventory command in response not found"
+            return (101)
+        if (data[index] != rs232Intf.INV_CMD):
             print "Inventory response fail.  Expected = 0x%02x, Rcvd = 0x%02x" % \
-                (ord(rs232Intf.INV_CMD), data[0])
+                (ord(rs232Intf.INV_CMD), data[index])
             return (102)
-        index = 1
+        index += 1
     
         while (data[index] != rs232Intf.EOM_CMD):
             if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_SOL_CARD)):

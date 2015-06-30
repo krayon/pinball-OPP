@@ -47,7 +47,7 @@
 SOLENOID_CARDS       2
 {
    #Name                      Card  I/O   Flags       InitKick    DutyCycle   MinOff    Desc
-   Sol_Upper_Lft_Pop          1     1     USE_SWITCH      16         0        0            "UpLftPop"
+   Sol_Upper_Lft_Pop          1     1     USE_SWITCH      24         0        0            "UpLftPop"
    Sol_Upper_Ctr_Pop          1     2     USE_SWITCH      16         0        0            "UpCtrPop"
    Sol_Top_Drop_Rubber        1     4     USE_SWITCH       0         0        0            "TopDropRbr"
    Sol_Drop_Bank              1     5     USE_SWITCH      32         0        0            "DropBank"

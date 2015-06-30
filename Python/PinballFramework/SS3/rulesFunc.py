@@ -332,6 +332,7 @@ class RulesFunc:
     #  @return None
     def Proc_Choose_Mode(self):
         self.Proc_Flipper()
+        self.Proc_Timers()
         RulesFunc.CustomFunc.proc_choose_mode(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Mode_Active_Init
@@ -349,6 +350,7 @@ class RulesFunc:
         RulesFunc.CustomFunc.proc_inlanes(RulesFunc.GameData.currPlayer)
         RulesFunc.CustomFunc.proc_drop_targets(RulesFunc.GameData.currPlayer)
         RulesFunc.CustomFunc.proc_mode_active(RulesFunc.GameData.currPlayer)
+        self.Proc_Timers()
         self.Proc_Ball_Drain()
    
     ## Function Proc_Jpot_Avail_Init
@@ -371,8 +373,9 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_End_Of_Ball(self):
+        RulesFunc.CustomFunc.end_ball(RulesFunc.GameData.currPlayer)
         if not RulesFunc.CustomFunc.tilted:
-            RulesFunc.GameData.StdFuncs.Wait(3000)
+            RulesFunc.GameData.StdFuncs.Wait(1000)
         RulesFunc.GameData.scoreLvl = 0
         RulesFunc.GameData.scoring = False
         RulesFunc.GameData.currPlayer += 1
