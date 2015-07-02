@@ -297,6 +297,13 @@ class CustomFunc:
         # End background music
         CustomFunc.GameData.StdFuncs.StopBgnd()
 
+        # Restore pop bumper config and sling config
+        CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP)
+        CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP)
+        CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_UPPER_LFT_POP)
+        CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_UPPER_CTR_POP)
+        CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING)
+
         # Turn off the blinking on all the LEDs (cleanup from previous mode)
         CustomFunc.GameData.StdFuncs.Led_Blink_Off([LedBitNames.LED1_ALL_BITS_MSK, LedBitNames.LED2_ALL_BITS_MSK, LedBitNames.LED3_ALL_BITS_MSK, \
             LedBitNames.LED4_ALL_BITS_MSK, LedBitNames.LED5_ALL_BITS_MSK, LedBitNames.LED6_ALL_BITS_MSK])
@@ -713,6 +720,7 @@ class CustomFunc:
             # Pick the drop that must be hit.  Blink the drop target
             self.saveModeValue = random.randint(0, 6)
             CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
         elif self.saveModeState[plyr] == CustomFunc.MODETRGT_INLANE:
             # Pick the inlane that must be hit.
             self.disableRotate = True
@@ -784,6 +792,7 @@ class CustomFunc:
             self.stateProg[plyr] = 0
         self.saveModeValue = random.randint(0, 6)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
         
         # Disable the pop bumpers and the sling
         CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
@@ -815,6 +824,7 @@ class CustomFunc:
             self.stateProg[plyr] = 0
         self.saveModeValue = random.randint(0, 6)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
         
         # Disable the pop bumpers and the sling
         CustomFunc.GameData.StdFuncs.Change_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP, [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00'])
@@ -959,6 +969,7 @@ class CustomFunc:
         # Pick the drop that must be hit.  Blink the drop target
         self.saveModeValue = random.randint(0, 6)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
         
         # Change general timer to five seconds
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 5000)
@@ -1160,11 +1171,53 @@ class CustomFunc:
                     self.state[plyr] = State.MODE_CHOOSE_MODE
                     CustomFunc.GameData.gameMode = State.MODE_CHOOSE_MODE
                 else:
-                    #Hitting kickout hole, collects the bonus
-                    print "Collect bonus"
-                    CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                    self.proc_collect_bonus(plyr)
+        elif (self.level[plyr] == CustomFunc.LEVEL_MED):
+            # Check if just collected inlane towards starting mode
+            if ((self.pollStatus & CustomFunc.POLLSTAT_INLANE_COMP) != 0):
+                if ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) == 0):
+                    # Turn off blinking inlanes, mark state bit, 
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_INLANES_COLLECTED
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ALL_INLANES)
+
+                    # Blink shooter targets
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+                    self.dropTrgtGoal[plyr] = CustomFunc.CONST_ALL_DROPS
+                    CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS) 
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ALL_DROPS) 
+                # Inlanes collected again, increase spinner multiplier
+                else:
+                    if (self.spinMult < 5):
+                        self.spinMult += 1
+                    if (self.spinMult == 2):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_2X)
+                    elif (self.spinMult == 3):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_3X)
+                    elif (self.spinMult == 4):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_4X)
+                    elif (self.spinMult == 5):
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_5X)
+            elif ((self.pollStatus & CustomFunc.POLLSTAT_COMP_DROPS) != 0) and \
+                ((self.stateProg[plyr] & CustomFunc.STATEPROG_INLANES_COLLECTED) != 0):
+                # Check if just collected drops towards starting mode
+                if ((self.stateProg[plyr] & CustomFunc.STATEPROG_SHOOTER_COLLECTED) == 0):
+                    # Turn off blinking drops, mark state bit, 
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_SHOOTER_COLLECTED
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ALL_DROPS) 
+                    CustomFunc.GameData.score[plyr] += self._compInlaneScore[self.level[plyr]]
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_PICK_JOB)
+            # Check if kickout hole collected
+            if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
+                if ((self.stateProg[plyr] & (CustomFunc.STATEPROG_INLANES_COLLECTED | CustomFunc.STATEPROG_SHOOTER_COLLECTED)) == \
+                    (CustomFunc.STATEPROG_INLANES_COLLECTED | CustomFunc.STATEPROG_SHOOTER_COLLECTED)):
+                    CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_PICK_JOB)
+                    print "Choose mode started"
+                    self.state[plyr] = State.MODE_CHOOSE_MODE
+                    CustomFunc.GameData.gameMode = State.MODE_CHOOSE_MODE
+                else:
+                    self.proc_collect_bonus(plyr)
                                         
+        self.proc_play_extra_sounds()
         self.pollStatus = 0            
     
     ## Process mode active
@@ -1177,7 +1230,9 @@ class CustomFunc:
     #
     #  @note None
     def proc_mode_active(self, plyr):
+        CustomFunc.GameData.StdFuncs.AddInputScore(self.normInpScore, self.normSolScore)
         self._procFuncTbl[self.mode[plyr]](plyr)
+        self.proc_play_extra_sounds()
         self.pollStatus = 0            
         
     ## Move to jackpot available
@@ -1192,6 +1247,8 @@ class CustomFunc:
     def move_to_jackpot_avail(self, plyr):
         # Turn off the blinking kickout hole, turn on blinking jackpot
         self.saveModeState[plyr] = 0
+        randomNum = random.randint(0, 1)
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_DONE_JOB + randomNum)
         CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_KO_PICK_JOB)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_JKPOT)
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_JACKPOT_TIMER, self._jkpotTimer[self.level[plyr]]) 
@@ -1210,6 +1267,7 @@ class CustomFunc:
     #
     #  @note None
     def proc_jackpot_avail(self, plyr):
+        CustomFunc.GameData.StdFuncs.AddInputScore(self.normInpScore, self.normSolScore)
         jackpot = False
         # Check if a jackpot was shot
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_JKPOT_ROLLOVER):
@@ -1229,7 +1287,7 @@ class CustomFunc:
         # Check if jackpot mode is done
         if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_JACKPOT_TIMER)):
             CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
-            CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_SPINNER, LedBitNames.LED2_ALL_BITS_MSK, LedBitNames.LED_POP_BTMLOW | LedBitNames.LED_POP_BTMUP, \
+            CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_SPINNER, LedBitNames.LED2_ALL_BITS_MSK, 0, LedBitNames.LED_POP_BTMLOW | LedBitNames.LED_POP_BTMUP, \
                 LedBitNames.LED_LFT_INLN | LedBitNames.LED_LFT_OUTLN, LedBitNames.LED6_ALL_BITS_MSK])
             
             # Check if completed all modes at this level
@@ -1262,6 +1320,7 @@ class CustomFunc:
             print "Jackpot"
             CustomFunc.GameData.score[plyr] += (self._jkpotScore[self.level[plyr]])
             
+        self.proc_play_extra_sounds()
         self.pollStatus = 0            
     
     ## Initialize choose mode
@@ -1334,11 +1393,7 @@ class CustomFunc:
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
             else:
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
-            
+                self.proc_collect_bonus(plyr)
     
     ## Process hustle and jive
     #
@@ -1372,10 +1427,7 @@ class CustomFunc:
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
             else:
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
     
     ## Process target practice
     #
@@ -1408,6 +1460,7 @@ class CustomFunc:
                 self.saveModeState[plyr] = CustomFunc.MODETRGT_DROP_TRGT
                 self.saveModeValue = random.randint(0, 6)
                 CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
         elif self.saveModeState[plyr] == CustomFunc.MODETRGT_DROP_TRGT:
             # Check if the targeted drop target was hit
             if (CustomFunc.GameData.StdFuncs.CheckInpBit(0x10000 | (0x200 << self.saveModeValue))):
@@ -1468,10 +1521,7 @@ class CustomFunc:
                 self.move_to_jackpot_avail(plyr)
         if (self.saveModeState[plyr] != CustomFunc.MODETRGT_KICKOUT_HOLE) and \
             CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-            #Hitting kickout hole, collects the bonus
-            print "Collect bonus"
-            CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-            CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+            self.proc_collect_bonus(plyr)
     
     ## Process check hideouts
     #
@@ -1518,10 +1568,7 @@ class CustomFunc:
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
             else:
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
     
     ## Process sniper
     #
@@ -1560,10 +1607,13 @@ class CustomFunc:
                     self.saveModeValue = random.randint(0, 6)
                     CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
                     CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
                     self.totDrops = 0
             # Look adjacent target was hit (allowed in easy mode/medium mode)
             elif ((self.dropHit & adj) != 0):
                 CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
+                randomNum = random.randint(0, 1)
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BULLET + randomNum)
                 if ((self.level[plyr] == CustomFunc.LEVEL_HARD) or (self.level[plyr] == CustomFunc.LEVEL_WIZARD)):
                     failMode = True
             # Otherwise another drop target must have been hit
@@ -1609,10 +1659,7 @@ class CustomFunc:
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
             else:
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
     
     ## Process Sharpe attack
     #
@@ -1649,11 +1696,14 @@ class CustomFunc:
                     # Pick the next drop
                     self.saveModeValue = random.randint(0, 6)
                     CustomFunc.GameData.StdFuncs.Led_Blink_100(0x50000 | (0x01 << self.saveModeValue))
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_APACHE_KID + self.saveModeValue)
                     CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
                     self.totDrops = 0
             # Look adjacent target was hit (allowed in easy mode/medium mode)
             elif ((self.dropHit & adj) != 0):
                 CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_ALL_DROPS)
+                randomNum = random.randint(0, 1)
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BULLET + randomNum)
                 if ((self.level[plyr] == CustomFunc.LEVEL_HARD) or (self.level[plyr] == CustomFunc.LEVEL_WIZARD)):
                     failMode = True
             # Otherwise another drop target must have been hit
@@ -1708,10 +1758,7 @@ class CustomFunc:
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
             else:
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
 
     ## Process track bandits
     #
@@ -1767,10 +1814,7 @@ class CustomFunc:
                 self.move_to_jackpot_avail(plyr)
         if (self.saveModeState[plyr] != CustomFunc.MODETRKBNDT_KO_HOLE) and \
             CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-            #Hitting kickout hole, collects the bonus
-            print "Collect bonus"
-            CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-            CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+            self.proc_collect_bonus(plyr)
     
     ## Process kill em all
     #
@@ -1797,10 +1841,7 @@ class CustomFunc:
                     CustomFunc.GameData.StdFuncs.TimerStop(Timers.TIMEOUT_GENERAL_TIMER) 
                     CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER) 
                 if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-                    #Hitting kickout hole, collects the bonus
-                    print "Collect bonus"
-                    CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                    self.proc_collect_bonus(plyr)
                     
             # If the general timeout expires, end mode
             elif (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
@@ -1812,10 +1853,7 @@ class CustomFunc:
                 self.move_to_normal_mode(plyr)
             else:
                 if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-                    #Hitting kickout hole, collects the bonus
-                    print "Collect bonus"
-                    CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                    self.proc_collect_bonus(plyr)
             
         else:
             # Check if at end of mode
@@ -1889,10 +1927,7 @@ class CustomFunc:
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
                     CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
             if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
         else:
             # Check if at end of mode
             if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
@@ -1906,6 +1941,12 @@ class CustomFunc:
                 # Reset state progress
                 self.stateProg[plyr] = 0
                 CustomFunc.GameData.score[plyr] += self._compModeScore[self.level[plyr]]
+
+                # Restore pop bumper configs
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LOW_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_UP_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_UPPER_LFT_POP)
+                CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_UPPER_CTR_POP)
                 
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
@@ -1956,10 +1997,7 @@ class CustomFunc:
                     # Sound, bullet ricochet sound
                     CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_DUEL_TIMER) 
             if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
         else:
             # Check if at end of mode
             if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
@@ -1996,10 +2034,7 @@ class CustomFunc:
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_KO_TO_END_MODE
                     CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_KO_DUEL)
             if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
-                #Hitting kickout hole, collects the bonus
-                print "Collect bonus"
-                CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
-                CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)
+                self.proc_collect_bonus(plyr)
         else:
             # Check if at end of mode
             if CustomFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_KICKOUT_HOLE):
@@ -2016,3 +2051,46 @@ class CustomFunc:
                 
                 # Call move to next mode
                 self.move_to_jackpot_avail(plyr)
+
+    ## Process play extra sounds
+    #
+    #  Play extra sounds if certain switches are hit
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    #
+    #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
+    def proc_play_extra_sounds(self):
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_BTM_LFT_OUTLN_ROLLOVER):
+            if (self.GameData.ballNum < self.GameData.GameConst.BALLS_PER_GAME):
+                # Only play a sound 33% of time
+                randomNum = random.randint(0, 2)
+                if (randomNum == 0):
+                    randomNum = random.randint(0, 1)
+                    CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BALL_DRAIN_ORGAN + randomNum)
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_BTM_LFT_INLN_ROLLOVER):
+            # Only play a sound 33% of time
+            randomNum = random.randint(0, 2)
+            if (randomNum == 0):
+                randomNum = random.randint(0, 2)
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_FINE_DESIGNERS + randomNum)
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_HORSE_GALLOP)
+                    
+    ## Collect bonus
+    #
+    #  Collect the bonus
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    #
+    #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
+    def proc_collect_bonus(self, plyr):
+        #Hitting kickout hole, collects the bonus
+        print "Collect bonus"
+        CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
+        randomNum = random.randint(0, 1)
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_HORSE_NEIGH + randomNum)
+        CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_KICKOUT_HOLE)

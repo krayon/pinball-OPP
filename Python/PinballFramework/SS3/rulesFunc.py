@@ -386,6 +386,7 @@ class RulesFunc:
             RulesFunc.GameData.ballNum += 1
             if (RulesFunc.GameData.ballNum >= RulesFunc.GameData.GameConst.BALLS_PER_GAME):
                 print "Game over"
+                RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BALL_DRAIN_BANJO)
                 RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.StdFuncs.StopBgnd()
                 RulesFunc.GameData.StdFuncs.Wait(3000)
