@@ -280,6 +280,7 @@ TIMERS
    Timeout_Jackpot_Timer   30000                         # 30 second jackpot timer
    Timeout_Duel_Timer      60000                         # 60 second duel timer
    Timeout_General_Timer   10000                         # General timer used during modes
+   Timeout_Gallop          3000                          # 3 second gallop timeout
 }
 
 PROCESS_CHAINS

@@ -2076,7 +2076,9 @@ class CustomFunc:
                 randomNum = random.randint(0, 2)
                 CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_FINE_DESIGNERS + randomNum)
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
-            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_HORSE_GALLOP)
+            if not (CustomFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_GALLOP)):
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_HORSE_GALLOP)
+                CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GALLOP)
                     
     ## Collect bonus
     #
