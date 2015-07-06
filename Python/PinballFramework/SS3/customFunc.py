@@ -56,6 +56,7 @@ import random
 import rs232Intf
 from SS3.states import State
 from dispConstIntf import DispConst
+import time
 
 ## Custom functions class.
 #  Contains all the custom rules and functions that are specific this this set
@@ -175,6 +176,7 @@ class CustomFunc:
                               [ 2, 5, 2, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ] ]
         self.normSolScore = [ [ 2, 2, 0, 1, 0, 0, 0, 0 ],
                               [ 1, 0, 0, 0, 0, 0, 2, 2 ] ]
+        self.attractStart = 0
         
     ## Initialize game
     #
@@ -210,6 +212,28 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED1_ALL_BITS_MSK, LedBitNames.LED2_ALL_BITS_MSK, LedBitNames.LED3_ALL_BITS_MSK, \
             LedBitNames.LED4_ALL_BITS_MSK, LedBitNames.LED5_ALL_BITS_MSK, LedBitNames.LED6_ALL_BITS_MSK])
                 
+    ## Init attract mode
+    #
+    #  Initialize attract mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def init_attract_mode(self):
+        self.attractStart = time.time()
+
+    ## Proc attract mode
+    #
+    #  Process attract mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def proc_attract_mode(self):
+        elapsed = time.time() - self.attractStart
+        # Play song every 20 minutes
+        if ((elapsed/60) > 20):
+            self.attractStart = time.time()
+            CustomFunc.GameData.StdFuncs.PlayBgnd(BgndMusic.BGND_AEROSMITH_SHARPSHOOTER | \
+                CustomFunc.GameData.StdFuncs.BGND_PLAY_ONCE)
 
     ## Start next ball
     #

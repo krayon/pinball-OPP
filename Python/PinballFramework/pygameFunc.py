@@ -140,14 +140,19 @@ class Pygame_Data():
                 pygame.mixer.music.stop()
             else:
                 # If music is copyrighted, make sure it exists
-                filename = Pygame_Data.GameData.rulesDir + "/" + Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[Pygame_Data.GameData.bgndSound]
-                if Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[Pygame_Data.GameData.bgndSound].startswith('copyrighted/'):
+                bgndSound = Pygame_Data.GameData.bgndSound & 0xffff 
+                filename = Pygame_Data.GameData.rulesDir + "/" + Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[bgndSound]
+                if Pygame_Data.GameData.BgndMusic.BGND_MUSIC_FILES[bgndSound].startswith('copyrighted/'):
                     if not os.path.isfile(filename):
                         # Check if shortened version is available 
                         filename = filename.replace('/copyrighted/','/sounds/', 1)
                         if not os.path.isfile(filename):
                             filename = Pygame_Data.GameData.rulesDir + "/sounds/copyrighted.mp3"
                 pygame.mixer.music.load(filename)
-                pygame.mixer.music.play(-1)
+                # HRS, support playing a song only once
+                if ((Pygame_Data.GameData.bgndSound & 0x800000) == 0):
+                    pygame.mixer.music.play(-1)
+                else:
+                    pygame.mixer.music.play(0)
             Pygame_Data.GameData.prevBgndSound = Pygame_Data.GameData.bgndSound
             

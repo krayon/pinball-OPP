@@ -203,6 +203,7 @@ class RulesFunc:
     def Proc_Attract_Init(self):
         RulesFunc.GameData.StdFuncs.Disable_Solenoids()
         RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
+        RulesFunc.CustomFunc.init_attract_mode()
 
     ## Function Proc_Add_Coin
     #
@@ -233,6 +234,7 @@ class RulesFunc:
     def Proc_Press_Start(self):
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_START) and (RulesFunc.GameData.ballNum == 0):
             if (RulesFunc.GameData.gameMode == State.MODE_ATTRACT):
+                RulesFunc.GameData.StdFuncs.StopBgnd()
                 CustomFunc.GameData.gameMode = State.MODE_INIT_GAME
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
@@ -253,6 +255,7 @@ class RulesFunc:
     #  @return None
     def Proc_Start_and_Coin(self):
         self.Proc_Press_Start()
+        RulesFunc.CustomFunc.proc_attract_mode()
 
     ## Function Proc_Init_Game
     #

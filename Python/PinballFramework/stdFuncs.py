@@ -59,6 +59,8 @@ import rs232Intf
 #
 #  Class that holds all the standard functions.
 class StdFuncs():
+    BGND_PLAY_ONCE = 0x80000000
+
     ## Initialize StdFuncs class
     #
     #  Initialize standard functions class

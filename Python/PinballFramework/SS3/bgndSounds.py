@@ -57,8 +57,8 @@ class BgndMusic():
         pass
 
     BGND_GOODBADUGLY                         = 0
+    BGND_AEROSMITH_SHARPSHOOTER              = 1
 
     ## Background sound file list
     # Indexed into using the [BgndMusic](@ref bgndSounds.BgndMusic) class
-    BGND_MUSIC_FILES = ["copyrighted/GoodBadUgly.mp3"]
-
+    BGND_MUSIC_FILES = ["copyrighted/GoodBadUgly.mp3", "copyrighted/Aerosmith_Sharpshooter.mp3"]

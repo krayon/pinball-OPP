@@ -150,7 +150,7 @@ class RulesThread(Thread):
             updateCmd = False
             clearChain = False
             
-            # New LED chain is being started
+            # New sound chain is being started
             if RulesThread.GameData.newSoundChain:
                 RulesThread.GameData.newSoundChain = False
                 RulesThread._chainIndex = 0
