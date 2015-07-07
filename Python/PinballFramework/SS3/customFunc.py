@@ -230,7 +230,7 @@ class CustomFunc:
     def proc_attract_mode(self):
         elapsed = time.time() - self.attractStart
         # Play song every 20 minutes
-        if ((elapsed/60) > 20):
+        if ((elapsed/60) >= 20):
             self.attractStart = time.time()
             CustomFunc.GameData.StdFuncs.PlayBgnd(BgndMusic.BGND_AEROSMITH_SHARPSHOOTER | \
                 CustomFunc.GameData.StdFuncs.BGND_PLAY_ONCE)

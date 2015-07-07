@@ -392,7 +392,7 @@ class RulesFunc:
                 RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_BALL_DRAIN_BANJO)
                 RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
                 RulesFunc.GameData.StdFuncs.StopBgnd()
-                RulesFunc.GameData.StdFuncs.Wait(3000)
+                RulesFunc.GameData.StdFuncs.Wait(5000)
                 RulesFunc.GameData.ballNum = 0
                 RulesFunc.GameData.numPlayers = 0
                 RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER_NUM] = True
