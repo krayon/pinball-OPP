@@ -57,6 +57,7 @@ import rs232Intf
 from SS3.states import State
 from dispConstIntf import DispConst
 import time
+import logging
 
 ## Custom functions class.
 #  Contains all the custom rules and functions that are specific this this set
@@ -136,6 +137,8 @@ class CustomFunc:
     #  @param  gameData      [in]   Object reference
     #  @return None
     def __init__(self, gameData):
+        logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s', filename='SS3.log', level=logging.INFO)
+        logging.info('Machine initialized')
         CustomFunc.GameData = gameData
         CustomFunc.tilted = False
         self.state = [State.MODE_SKILLSHOT, State.MODE_SKILLSHOT, State.MODE_SKILLSHOT, State.MODE_SKILLSHOT]
@@ -219,6 +222,7 @@ class CustomFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def init_attract_mode(self):
+        logging.info('Machine state:  Attract_mode')
         self.attractStart = time.time()
 
     ## Proc attract mode
@@ -243,6 +247,7 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def start_next_ball(self, plyr):
+        logging.info('Ball started:  Player = %s, BallNum = %s', plyr + 1, self.GameData.ballNum + 1)
         # First fill in level
         leds = 0
         if (self.level[plyr] == CustomFunc.LEVEL_EASY):
@@ -358,6 +363,9 @@ class CustomFunc:
         if not CustomFunc.tilted:
             print "Collect spinner bonus %d x %d" % (self.spinMult, self.numSpin)
             CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
+            
+        logging.info('Ball ended:  Player = %s, BallNum = %s, Score = %s', \
+            plyr + 1, self.GameData.ballNum + 1, CustomFunc.GameData.score[plyr])
     
     ## Reverse byte
     #
@@ -469,6 +477,8 @@ class CustomFunc:
             self.state[plyr] = State.MODE_MODE_ACTIVE
             
             # Initialize the mode function
+            logging.info('Mode started:  Player = %s, BallNum = %s, Mode = %s', \
+               plyr + 1, self.GameData.ballNum + 1, self.mode[plyr])
             self._initFuncTbl[self.mode[plyr]](plyr, False)
             CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
             self.totDrops = 0
@@ -1038,6 +1048,7 @@ class CustomFunc:
         
         # Check if skillshot made
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_UPPER_CTR_ROLLOVER):
+            logging.info('Skillshot:  Player = %s', plyr + 1)
             self.numSkillShots[plyr] += 1
             CustomFunc.GameData.score[plyr] += self._compInlaneScore[self.level[plyr]]
             if (self.numSkillShots[plyr] & 1 != 0):
@@ -1269,6 +1280,8 @@ class CustomFunc:
     #
     #  @note None
     def move_to_jackpot_avail(self, plyr):
+        logging.info('Mode completed successfully:  Player = %s, BallNum = %s', plyr + 1, self.GameData.ballNum + 1)
+        
         # Turn off the blinking kickout hole, turn on blinking jackpot
         self.saveModeState[plyr] = 0
         randomNum = random.randint(0, 1)
@@ -1341,6 +1354,7 @@ class CustomFunc:
             
             self.move_to_normal_mode(plyr)
         if jackpot:
+            logging.info('Jackpot:  Player = %s, BallNum = %s', plyr + 1, self.GameData.ballNum + 1)
             print "Jackpot"
             CustomFunc.GameData.score[plyr] += (self._jkpotScore[self.level[plyr]])
             
@@ -2115,8 +2129,10 @@ class CustomFunc:
     #
     #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
     def proc_collect_bonus(self, plyr, sound):
+        
         #Hitting kickout hole, collects the bonus
         if not (CustomFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_KICKOUT)):
+            logging.info('Collect bonus:  Player = %s, BallNum = %s', plyr + 1, self.GameData.ballNum + 1)
             CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_KICKOUT)
             print "Collect bonus"
             CustomFunc.GameData.score[plyr] += (self.spinMult * self.numSpin)
