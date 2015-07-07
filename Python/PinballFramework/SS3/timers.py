@@ -73,6 +73,7 @@ class Timers:
     TIMEOUT_DUEL_TIMER               =  6
     TIMEOUT_GENERAL_TIMER            =  7
     TIMEOUT_GALLOP                   =  8
+    TIMEOUT_KICKOUT                  =  9
 
     timeouts = [
         [TIMEOUT_KICKOUT_TIMER, 1000],
@@ -83,4 +84,5 @@ class Timers:
         [TIMEOUT_JACKPOT_TIMER, 30000],
         [TIMEOUT_DUEL_TIMER, 60000],
         [TIMEOUT_GENERAL_TIMER, 10000],
-        [TIMEOUT_GALLOP, 3000] ]
+        [TIMEOUT_GALLOP, 3000],
+        [TIMEOUT_KICKOUT, 500] ]
