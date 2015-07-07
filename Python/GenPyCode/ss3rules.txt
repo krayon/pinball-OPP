@@ -520,7 +520,7 @@ LED_CHAINS
 SOUND_CHAINS
 {
    #Name                   Processing (sound, cmd, sound, cmd, ...)
-   SndCh_Attract           { Sound_Yall_Come_Back, WAIT 30000, Sound_HowdyFolks, WAIT 30000, REPEAT}
+   SndCh_Attract           { Sound_Yall_Come_Back, WAIT 600000, Sound_HowdyFolks, WAIT 600000, REPEAT}
 }
 
 IMAGE_CHAINS

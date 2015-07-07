@@ -76,6 +76,6 @@ class SoundChains():    # Sound chain commands
     #    - Groups have sound name then WAIT command
     #    - Chain ends with REPEAT if desired
     SndCh_Attract = [
-        [Sounds.SOUND_YALL_COME_BACK,  WAIT, 30000],
-        [Sounds.SOUND_HOWDYFOLKS,  WAIT, 30000],
+        [Sounds.SOUND_YALL_COME_BACK,  WAIT, 600000],
+        [Sounds.SOUND_HOWDYFOLKS,  WAIT, 600000],
         [0, REPEAT, 0] ]
