@@ -1,0 +1,115 @@
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 7/24/2015 7:09:50 PM
+
+BeginCmp
+TimeStamp = /55B18CB8;
+Reference = P1;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B16234;
+Reference = P2;
+ValeurCmp = CONN_4;
+IdModule  = SIL-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B1623E;
+Reference = P3;
+ValeurCmp = CONN_4;
+IdModule  = SIL-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B18636;
+Reference = P4;
+ValeurCmp = CONN2X3MOLEX;
+IdModule  = 00_th2x3x4.2mm_nopeg;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A11A;
+Reference = P5;
+ValeurCmp = CONN_4;
+IdModule  = 00_th1x4x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B15C94;
+Reference = P6;
+ValeurCmp = CONN_8;
+IdModule  = SIL-8;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789F3A;
+Reference = P10;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B16200;
+Reference = Q1;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B161EC;
+Reference = Q2;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F78A22C;
+Reference = Q3;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B17B88;
+Reference = Q4;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B1880D;
+Reference = R1;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B1776F;
+Reference = R2;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B17E4D;
+Reference = R3;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B17FED;
+Reference = R4;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B180C1;
+Reference = R5;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+EndListe
