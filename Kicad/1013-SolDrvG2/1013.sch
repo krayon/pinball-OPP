@@ -37,7 +37,7 @@ $Descr A 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Solenoid Driver (Gen 2)"
-Date "24 jul 2015"
+Date "28 jul 2015"
 Rev "-"
 Comp "Open Pinball Project"
 Comment1 ""
@@ -428,7 +428,7 @@ L R R1
 U 1 1 55B1880D
 P 3150 3900
 F 0 "R1" V 3230 3900 40  0000 C CNN
-F 1 "100K" V 3157 3901 40  0000 C CNN
+F 1 "0" V 3157 3901 40  0000 C CNN
 F 2 "~" V 3080 3900 30  0000 C CNN
 F 3 "~" H 3150 3900 30  0000 C CNN
 	1    3150 3900

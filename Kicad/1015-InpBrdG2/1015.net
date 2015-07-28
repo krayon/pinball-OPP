@@ -1,7 +1,7 @@
 (export (version D)
   (design
-    (source C:\Users\Hugh\Desktop\Pinball\OpenPinballProj\Kicad\1015-InpBrdG2\1015.sch)
-    (date "7/26/2015 5:10:31 PM")
+    (source C:/Users/hspahr/Desktop/Pinball/open-pinball-project/Kicad/1015-InpBrdG2/1015.sch)
+    (date "7/28/2015 8:17:43 AM")
     (tool "eeschema (2013-07-07 BZR 4022)-stable"))
   (components
     (comp (ref P2)
@@ -30,7 +30,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 55B1776F))
     (comp (ref R1)
-      (value 100K)
+      (value 0)
       (libsource (lib device) (part R))
       (sheetpath (names /) (tstamps /))
       (tstamp 55B1880D))

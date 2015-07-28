@@ -1,7 +1,7 @@
 (export (version D)
   (design
-    (source C:/Users/Hugh/Desktop/OpenPinballProj/Kicad/1013-SolDrvG2/1013.sch)
-    (date "7/24/2015 7:10:07 PM")
+    (source C:/Users/hspahr/Desktop/Pinball/open-pinball-project/Kicad/1013-SolDrvG2/1013.sch)
+    (date "7/28/2015 8:13:58 AM")
     (tool "eeschema (2013-07-07 BZR 4022)-stable"))
   (components
     (comp (ref Q3)
@@ -105,7 +105,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 55B180C1))
     (comp (ref R1)
-      (value 100K)
+      (value 0)
       (libsource (lib device) (part R))
       (sheetpath (names /) (tstamps /))
       (tstamp 55B1880D))
@@ -148,6 +148,17 @@
       (pins
         (pin (num 1) (name P1) (type passive))
         (pin (num 2) (name PM) (type passive))))
+    (libpart (lib device) (part MOS_N)
+      (docs transistors/mos/*.*)
+      (fields
+        (field (name Reference) Q)
+        (field (name Value) MOS_N)
+        (field (name Footprint) ~)
+        (field (name Datasheet) ~))
+      (pins
+        (pin (num D) (name D) (type passive))
+        (pin (num G) (name G) (type input))
+        (pin (num S) (name S) (type passive))))
     (libpart (lib device) (part R)
       (description Resistance)
       (footprints
@@ -164,17 +175,6 @@
       (pins
         (pin (num 1) (name ~) (type passive))
         (pin (num 2) (name ~) (type passive))))
-    (libpart (lib device) (part MOS_N)
-      (docs transistors/mos/*.*)
-      (fields
-        (field (name Reference) Q)
-        (field (name Value) MOS_N)
-        (field (name Footprint) ~)
-        (field (name Datasheet) ~))
-      (pins
-        (pin (num D) (name D) (type passive))
-        (pin (num G) (name G) (type input))
-        (pin (num S) (name S) (type passive))))
     (libpart (lib device) (part TST)
       (fields
         (field (name Reference) P)

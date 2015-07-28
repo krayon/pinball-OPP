@@ -37,7 +37,7 @@ $Descr A 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Incandescent Driver (Gen 2)"
-Date "26 jul 2015"
+Date "28 jul 2015"
 Rev "-"
 Comp "Open Pinball Project"
 Comment1 ""
@@ -232,7 +232,7 @@ L R R1
 U 1 1 55B1880D
 P 2050 3000
 F 0 "R1" V 2130 3000 40  0000 C CNN
-F 1 "100K" V 2057 3001 40  0000 C CNN
+F 1 "0" V 2057 3001 40  0000 C CNN
 F 2 "~" V 1980 3000 30  0000 C CNN
 F 3 "~" H 2050 3000 30  0000 C CNN
 	1    2050 3000

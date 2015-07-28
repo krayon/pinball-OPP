@@ -1,7 +1,7 @@
 (export (version D)
   (design
-    (source C:/Users/Hugh/Desktop/Pinball/OpenPinballProj/Kicad/1016-IntfBrdG2/1016.sch)
-    (date "7/26/2015 8:49:09 PM")
+    (source C:/Users/hspahr/Desktop/Pinball/open-pinball-project/Kicad/1016-IntfBrdG2/1016.sch)
+    (date "7/28/2015 8:18:49 AM")
     (tool "eeschema (2013-07-07 BZR 4022)-stable"))
   (components
     (comp (ref P2)
@@ -25,7 +25,7 @@
       (sheetpath (names /) (tstamps /))
       (tstamp 55B1623E))
     (comp (ref R1)
-      (value 100K)
+      (value 0)
       (libsource (lib device) (part R))
       (sheetpath (names /) (tstamps /))
       (tstamp 55B1880D))
@@ -99,6 +99,16 @@
         (field (name Datasheet) ~))
       (pins
         (pin (num 1) (name ~) (type passive))))
+    (libpart (lib conn) (part CONN_4)
+      (description "Symbole general de connecteur")
+      (fields
+        (field (name Reference) P)
+        (field (name Value) CONN_4))
+      (pins
+        (pin (num 1) (name P1) (type passive))
+        (pin (num 2) (name P2) (type passive))
+        (pin (num 3) (name P3) (type passive))
+        (pin (num 4) (name P4) (type passive))))
     (libpart (lib conn) (part CONN_4X2)
       (description "Symbole general de connecteur")
       (fields
@@ -112,17 +122,7 @@
         (pin (num 5) (name 5) (type passive))
         (pin (num 6) (name 6) (type passive))
         (pin (num 7) (name 7) (type passive))
-        (pin (num 8) (name 8) (type passive))))
-    (libpart (lib conn) (part CONN_4)
-      (description "Symbole general de connecteur")
-      (fields
-        (field (name Reference) P)
-        (field (name Value) CONN_4))
-      (pins
-        (pin (num 1) (name P1) (type passive))
-        (pin (num 2) (name P2) (type passive))
-        (pin (num 3) (name P3) (type passive))
-        (pin (num 4) (name P4) (type passive)))))
+        (pin (num 8) (name 8) (type passive)))))
   (libraries
     (library (logical device)
       (uri "C:\\Program Files (x86)\\KiCad\\share\\library\\device.lib"))
