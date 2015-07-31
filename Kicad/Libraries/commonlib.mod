@@ -1,4 +1,4 @@
-PCBNEW-LibModule-V1  7/26/2015 12:35:26 PM
+PCBNEW-LibModule-V1  7/30/2015 4:58:11 PM
 # encoding utf-8
 Units mm
 $INDEX
@@ -91,6 +91,7 @@ $INDEX
 00_thcirc4
 00_to220_vert_gds
 00_to92_dgs
+00_to92_sgd
 00_ts-6p
 00_tsop-6
 00_tsot26
@@ -5816,6 +5817,50 @@ Of 0 0 0
 Ro 0 0 0
 $EndSHAPE3D
 $EndMODULE 00_to92_dgs
+$MODULE 00_to92_sgd
+Po 0 0 0 15 55BA8FB8 00000000 ~~
+Li 00_to92_sgd
+Sc 0
+AR /4C88856C/4B3A137C
+Op 0 0 0
+T0 -0.1 -1.1 0.7 0.7 0 0.15 N V 21 N "TO92PN"
+T1 0 0.6 0.6 0.6 0 0.15 N V 21 N "VAL**"
+DS 1.3 1.9 -1.3 1.9 0.15 21
+DS -2.5 -1.7 -2.3 -1.9 0.15 21
+DS -2.3 -1.9 2.3 -1.9 0.15 21
+DS 2.3 -1.9 2.5 -1.7 0.15 21
+DS 2.5 -1.7 2.5 0.7 0.15 21
+DS 2.5 0.7 1.3 1.9 0.15 21
+DS -1.3 1.9 -2.5 0.7 0.15 21
+DS -2.5 0.7 -2.5 -1.7 0.15 21
+$PAD
+Sh "S" C 1.4 1.4 0 0 0
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 1.27 -0.635
+$EndPAD
+$PAD
+Sh "G" C 1.4 1.4 0 0 0
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 0.635
+$EndPAD
+$PAD
+Sh "D" C 1.4 1.4 0 0 0
+Dr 0.8 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -1.27 -0.635
+$EndPAD
+$SHAPE3D
+Na "to-xxx-packages/to92.wrl"
+Sc 1 1 1
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE 00_to92_sgd
 $MODULE 00_ts-6p
 Po 0 0 0 15 4F9AC00B 00000000 ~~
 Li 00_ts-6p
