@@ -48,20 +48,18 @@
  *===============================================================================
  */
 #include "stdtypes.h"
-
-#define TCPWM_CNT0_INTR     0x40050130
-#define TCPWM_INTR_CNT_TC   0x00000001
+#include "procdefs.h"
 
 typedef struct
 {
-    INT             msCnt;
-    INT             neoCnt;
+   INT               msCnt;
+   INT               neoCnt;
 } TMR_INFO;
 
 TMR_INFO tmrInfo;
 
 /* Prototypes */
-void neo_20ms_tick();
+void neo_40ms_tick();
 
 /*
  * ===============================================================================
@@ -85,10 +83,10 @@ void neo_20ms_tick();
  */
 void timer_init()
 {
-    tmrInfo.msCnt = 0;
-    tmrInfo.neoCnt = 0;
+   tmrInfo.msCnt = 0;
+   tmrInfo.neoCnt = 0;
     
-    /* Register the timer isr, start the timer */
+   /* Register the timer isr, start the timer */
 }
 
 /*
@@ -113,24 +111,24 @@ void timer_init()
  */
 void timer_overflow_isr()
 {
-    /* Statement added so interface can be polled instead of interrupt driven */
-    if (*(R32 *)TCPWM_CNT0_INTR & TCPWM_INTR_CNT_TC)
-    {
-        tmrInfo.msCnt++;
+   /* Statement added so interface can be polled instead of interrupt driven */
+   if (*(R32 *)TCPWM_CNT0_INTR & TCPWM_INTR_CNT_TC)
+   {
+      tmrInfo.msCnt++;
+       
+      /* Clear isr pending bit */
+      *(R32 *)TCPWM_CNT0_INTR = TCPWM_INTR_CNT_TC;
         
-        /* Clear isr pending bit */
-        *(R32 *)TCPWM_CNT0_INTR = TCPWM_INTR_CNT_TC;
-        
-        /* Call the neopixel timer.  This will eventually be a registered
-         *  recurring timer event with a function pointer.
-         */
-        tmrInfo.neoCnt++;
-        if (tmrInfo.neoCnt == 20)
-        {
-            tmrInfo.neoCnt = 0;
-            neo_20ms_tick();
-        }
-    }
+      /* Call the neopixel timer.  This will eventually be a registered
+       *  recurring timer event with a function pointer.
+       */
+      tmrInfo.neoCnt++;
+      if (tmrInfo.neoCnt == 40)
+      {
+         tmrInfo.neoCnt = 0;
+         neo_40ms_tick();
+      }
+   }
 }
 
 /*
@@ -153,7 +151,7 @@ void timer_overflow_isr()
  */
 INT timer_get_ms_count()
 {
-    return(tmrInfo.msCnt);
+   return(tmrInfo.msCnt);
 }
 
 /* [] END OF FILE */

@@ -48,23 +48,26 @@
  * determines the value of the data sent to the Neopixel.  Neopixels data
  * is presented 8 bits of green, then red, then blue with msb first.
  *
- * This file requires a 20ms tick to start the neopixel processing, and an
- * interrupt when the SPI FIFO is empty.
+ * This file requires a 40ms tick to start the neopixel processing, and an
+ * interrupt when the SPI FIFO gets low.
  *
  *===============================================================================
  */
+#include <stdlib.h>
 #include "stdtypes.h"
 #include "neointf.h"
 
 #define SCB1_TX_FIFO_STATUS     0x40070208
 #define SCB_USED_MASK           0xf             /* Num FIFO bytes used */
 #define NUM_FIFO_BYTES          8               /* Num SCB FIFO bytes */
+#define FIFO_LOW_THRESH         4
 
+#define SCB1_TX_FIFO_CTRL       0x40070204
 #define SCB1_TX_FIFO_WR         0x40070240
 #define SCB1_INTR_TX            0x40070f80
 #define SCB1_INTR_TX_MASK       0x40070f88
 #define INTR_TX_SCB_NOT_FULL    0x00000002
-#define INTR_TX_SCB_EMPTY       0x00000010
+#define INTR_TX_SCB_TRIGGER     0x00000001
 
 /* This lookup table is used to prepend a 1, and append a 0 to the data.
  * An 8 bit color is broken into two nibbles, then the results of the two lookups
@@ -75,44 +78,42 @@
 #define COLOR_LKUP_BITS     12
 
 const U16 colorLkup[] =
-    { 0x0924, 0x0926, 0x0934, 0x0936, 0x09a4, 0x09a6, 0x09b4, 0x09b6,
-      0x0d24, 0x0d26, 0x0d34, 0x0d36, 0x0da4, 0x0da6, 0x0db4, 0x0db6 };
+   { 0x0924, 0x0926, 0x0934, 0x0936, 0x09a4, 0x09a6, 0x09b4, 0x09b6,
+     0x0d24, 0x0d26, 0x0d34, 0x0d36, 0x0da4, 0x0da6, 0x0db4, 0x0db6 };
 
 /* Can be changed by user, order is a byte for green, red, and blue */
 U32 colorTbl[32] =
-    { 0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffffff, 0x000000,
-      0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
-      0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
-      0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0xffffff };
+   { 0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffffff, 0x000000,
+     0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
+     0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
+     0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0xffffff };
     
-#define NEO_MAX_PIXELS      64
-#define BYTES_PER_PIXEL     9       /* 3 8-bit colors, 3 bits needed/bit color */
-#define BUFFER_SIZE         2 * BYTES_PER_PIXEL
-#define MAX_STATE_NUM       64      /* State num goes from 0 - 63 */
-#define MAX_MULT_FACT_SHFT  6       /* Must be power of 2 */
+#define NEO_MAX_PIXELS           64
+#define BYTES_PER_PIXEL          9       /* 3 8-bit colors, 3 bits needed/bit color */
+#define MAX_STATE_NUM            32      /* State num goes from 0 - 3 */
+#define MAX_MULT_FACT_SHFT       5       /* Must be power of 2 */
     
-#define CMD_MASK            0xe0
-#define CMD_FADE_CMDS       0x40
-#define CMD_COLOR_TBL_MASK  (NEOI_COLOR_TBL_SIZE - 1)
-#define CMD_FAST_CMD        0x20
+#define CMD_MASK                 0xe0
+#define CMD_FADE_CMDS            0x40
+#define CMD_COLOR_TBL_MASK       (NEOI_COLOR_TBL_SIZE - 1)
+#define CMD_FAST_CMD             0x20
     
-#define STAT_BLINK_SLOW_ON  0x01
-#define STAT_FADE_SLOW_DEC  0x01
-#define STAT_BLINK_FAST_ON  0x02
-#define STAT_FADE_FAST_DEC  0x02
-#define STAT_START_PROC     0x80    /* Set by isr to start processing */
-#define STAT_DONE_PIXEL     0x40    /* Set by isr, data for pixel consumed, fill out next buffer */
-#define STAT_RUNNING        0x20    /* Neopixel process is running */
+#define STAT_BLINK_SLOW_ON       0x01
+#define STAT_FADE_SLOW_DEC       0x01
+#define STAT_BLINK_FAST_ON       0x02
+#define STAT_FADE_FAST_DEC       0x02
+#define STAT_START_PROC          0x80    /* Set by isr to start processing */
+#define STAT_XMT_SPI_DATA        0x40    /* Send neopixel data over SPI for update */
 
 typedef struct
 {
-    U8              pxlCmd[NEO_MAX_PIXELS];
-    U8              stateNum;       /* 0 - 63 counter used to fade/blink LEDs */
-    U8              pxlIndex;
-    U8              stat;           /* If blinking LED is on/fading LED is brighter */
-    U8              isrCopyIdx;     /* Next byte to be copied to FIFO */
-    U8              buffer[18];     /* Holds next 2 LEDs data bytes */
-    U8              numPixels;      /* Number of pixels */
+   U8                stateNum;            /* 0 - 31 counter used to fade/blink LEDs */
+   U8                stat;                /* If blinking LED is on/fading LED is brighter */
+   U8                numPixels;           /* Number of pixels */
+   U8                *pxlCmd_p;           /* Ptr to array of pixel commands */
+   U16               *buf_p;              /* Holds pixel data bytes */
+   U16               *src_p;              /* Ptr to next byte of data to copy to FIFO */
+   U16               *end_p;              /* Ptr to end of pixel data buffer */
 } NEO_INFO;
 
 NEO_INFO neoInfo;
@@ -127,7 +128,7 @@ NEO_INFO neoInfo;
 /**
  * Initialize neopixel processing
  * 
- * Turn off all pixels, and reset indices.  Register a 20ms repeating tick function.
+ * Turn off all pixels, and reset indices.  Register a 40ms repeating tick function.
  * 
  * @param   numPixels   [in]        Number of pixels
  * @param   None 
@@ -139,33 +140,41 @@ NEO_INFO neoInfo;
  * ===============================================================================
  */
 void neo_init(
-    U8              numPixels)
+   U8                numPixels)
 {
-    U8              *tmp_p;
+   U8                *tmp_p;
     
-    /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
-    neoInfo.stateNum = 0;
-    neoInfo.pxlIndex = 0;
-    neoInfo.stat = 0;
-    neoInfo.isrCopyIdx = 0;
-    neoInfo.numPixels = numPixels;
-    for (tmp_p = &neoInfo.pxlCmd[0]; tmp_p < &neoInfo.pxlCmd[numPixels]; tmp_p++)
-    {
-        *tmp_p = NEOI_CMD_LED_ON;
-    }
+   /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
+   neoInfo.stateNum = 0;
+   neoInfo.stat = 0;
+   neoInfo.numPixels = numPixels;
     
-    /* Register a 20ms repeating tick function, register FIFO empty if necessary */
+   /* HRS:  Test for null on commands */
+   neoInfo.pxlCmd_p = malloc(numPixels);
+    
+   /* Must add 1 in case odd number of pixels since using U16s to store info,
+    * and last piece may end in middle of U16
+    */
+   neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 1);
+   neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 1)/sizeof(U16));
+   for (tmp_p = neoInfo.pxlCmd_p; tmp_p < neoInfo.pxlCmd_p + numPixels; tmp_p++)
+   {
+      *tmp_p = NEOI_CMD_LED_ON;
+   }
+    
+   /* Register a 40ms repeating tick function, register FIFO empty if necessary */
+   *(R32 *)SCB1_TX_FIFO_CTRL = 4;
 }
 
 /*
  * ===============================================================================
  * 
- * Name: neo_20ms_tick
+ * Name: neo_40ms_tick
  * 
  * ===============================================================================
  */
 /**
- * 20 ms tick function.
+ * 40 ms tick function.
  * 
  * Starts the neo pixel processing setting a state bit.
  * 
@@ -177,9 +186,12 @@ void neo_init(
  * 
  * ===============================================================================
  */
-void neo_20ms_tick()
+void neo_40ms_tick()
 {
-    neoInfo.stat |= STAT_START_PROC;
+   if ((neoInfo.stat & (STAT_START_PROC | STAT_XMT_SPI_DATA)) == 0)
+   {
+      neoInfo.stat |= STAT_START_PROC;
+   }
 }
 
 /*
@@ -205,55 +217,22 @@ void neo_20ms_tick()
  */
 void neo_fill_fifo()
 {
-    INT bytesWritten = 0;
-    U32 regData;
+   /* While the Tx FIFO is not full */
+   *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_NOT_FULL;
+   while ((*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_NOT_FULL) &&
+     (neoInfo.src_p < neoInfo.end_p))
+   {
+      *(R32 *)SCB1_TX_FIFO_WR = *neoInfo.src_p++;
+      *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_NOT_FULL;
+   }
     
-    /* While the Tx FIFO is not full */
-    /* HRS:  Was while (*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_NOT_FULL) */
-    while (((*(R32 *)SCB1_TX_FIFO_STATUS) & SCB_USED_MASK) < NUM_FIFO_BYTES)
-    {
-        regData = *(R32 *)SCB1_INTR_TX;
-        bytesWritten++;
-        *(R32 *)SCB1_TX_FIFO_WR = neoInfo.buffer[neoInfo.isrCopyIdx];
-        *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_NOT_FULL;
-        neoInfo.isrCopyIdx++;
-        if (neoInfo.isrCopyIdx == BYTES_PER_PIXEL)
-        {
-            /* Only create new pixel info if <= num pixels.
-             * Note: must create blank pixel to cmds to pixels and
-             *   force low signal level.
-             */
-            if (neoInfo.pxlIndex <= neoInfo.numPixels)
-            {
-                /* Mark that a new pixel needs to be calculated */
-                neoInfo.stat |= STAT_DONE_PIXEL;
-            }
-            else
-            {
-                /* Disable FIFO empty isr, mask it */
-                *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_EMPTY;
-                neoInfo.stat &= ~STAT_RUNNING;
-            }
-        }
-        else if (neoInfo.isrCopyIdx == 2 * BYTES_PER_PIXEL)
-        {
-            /* Only create new pixel info if <= num pixels.
-             * Note: must create blank pixel to cmds to pixels and
-             *   force low signal level.
-             */
-            if (neoInfo.pxlIndex <= neoInfo.numPixels)
-            {
-                /* Mark that a new pixel needs to be calculated, and wrap index */
-                neoInfo.stat |= STAT_DONE_PIXEL;
-                neoInfo.isrCopyIdx = 0;
-            }
-            else
-            {
-                /* Disable FIFO empty interrupt */
-                *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_EMPTY;
-            }
-        }
-    }
+   /* If done transmitting */
+   if (neoInfo.src_p >= neoInfo.end_p)
+   {
+      /* Mask the FIFO count interrupt */
+      *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_TRIGGER;
+      neoInfo.stat &= ~STAT_XMT_SPI_DATA;
+   }
 }
 
 /*
@@ -279,25 +258,25 @@ void neo_fill_fifo()
  * ===============================================================================
  */
 void neo_mult_pixel_color(
-    INT             *pxlColor_p,
-    INT             multFact)
+   INT               *pxlColor_p,
+   INT               multFact)
 {
-    INT             byteIndex;
-    INT             outData;
-    INT             tmpVal;
+   INT               byteIndex;
+   INT               outData;
+   INT               tmpVal;
     
-    /* If factor is max value, there is no change */
-    if (multFact != (1 << MAX_MULT_FACT_SHFT))
-    {
-        outData = 0;
-        for (byteIndex = 0; byteIndex < 3; byteIndex++)
-        {
-            tmpVal = (*pxlColor_p >> (byteIndex * 8)) & 0xff;
-            tmpVal = (tmpVal * multFact) >> MAX_MULT_FACT_SHFT;
-            outData |= (tmpVal << (byteIndex * 8));
-        }
-        *pxlColor_p = outData;
-    }
+   /* If factor is max value, there is no change */
+   if (multFact != (1 << MAX_MULT_FACT_SHFT))
+   {
+      outData = 0;
+      for (byteIndex = 0; byteIndex < 3; byteIndex++)
+      {
+         tmpVal = (*pxlColor_p >> (byteIndex * 8)) & 0xff;
+         tmpVal = (tmpVal * multFact) >> MAX_MULT_FACT_SHFT;
+         outData |= (tmpVal << (byteIndex * 8));
+      }
+      *pxlColor_p = outData;
+   }
 }
 
 /*
@@ -323,36 +302,36 @@ void neo_mult_pixel_color(
  * ===============================================================================
  */
 void neo_convert_color_to_buffer(
-    INT             pxlColor,
-    U8              *buf_p)
+   INT               pxlColor,
+   U8                *buf_p)
 {
 #define NUM_DATA_NIBS       6
 #define BITS_IN_NIB_SHIFT   2
     
-    INT             nibbleIndex;
-    INT             nibble;
-    INT             data = 0;
-    INT             dataIndex;
+   INT               nibbleIndex;
+   INT               nibble;
+   INT               data = 0;
+   INT               dataIndex;
     
-    for (nibbleIndex = 0; nibbleIndex < NUM_DATA_NIBS; nibbleIndex++)
-    {
-        nibble = (pxlColor >> ((NUM_DATA_NIBS - nibbleIndex - 1) << BITS_IN_NIB_SHIFT)) & 0xf;
-        if ((nibbleIndex & 0x01) == 0)
-        {
-            data = colorLkup[nibble] << COLOR_LKUP_BITS;
-        }
-        else
-        {
-            data |= colorLkup[nibble];
+   for (nibbleIndex = 0; nibbleIndex < NUM_DATA_NIBS; nibbleIndex++)
+   {
+      nibble = (pxlColor >> ((NUM_DATA_NIBS - nibbleIndex - 1) << BITS_IN_NIB_SHIFT)) & 0xf;
+      if ((nibbleIndex & 0x01) == 0)
+      {
+         data = colorLkup[nibble] << COLOR_LKUP_BITS;
+      }
+      else
+      {
+         data |= colorLkup[nibble];
 
-            /* Data for color formed, copy 3 bytes to output buffer */
-            for (dataIndex = 2; dataIndex >= 0; dataIndex--)
-            {
-                *buf_p = data >> (dataIndex * 8);
-                buf_p++;
-            }
-        }
-    }
+         /* Data for color formed, copy 3 bytes to output buffer */
+         for (dataIndex = 2; dataIndex >= 0; dataIndex--)
+         {
+            *buf_p = data >> (dataIndex * 8);
+            buf_p++;
+         }
+      }
+   }
 }
 
 /*
@@ -377,114 +356,114 @@ void neo_convert_color_to_buffer(
  * 
  * ===============================================================================
  */
-void neo_fill_buffer()
+U16 *neo_fill_buffer(
+   U8                pxlCmd,
+   U16               *dest_p,
+   BOOL              evenByte)
 {
-    INT             pxlCmd;
-    INT             pxlColor;
-    INT             multFact;
-    U8              buffer[BYTES_PER_PIXEL];
-    U8              *src_p;
-    U8              *dest_p;
+   INT               pxlColor;
+   INT               multFact;
+   INT               index;
+   U8                buffer[BYTES_PER_PIXEL];
     
-    /* If more than the number of pixels, fill with all 0s */
-    if (neoInfo.pxlIndex >= neoInfo.numPixels)
-    {
-        for (dest_p = &buffer[0]; dest_p < &buffer[BYTES_PER_PIXEL]; dest_p++)
-        {
-            *dest_p = 0;
-        }
-    }
-    else
-    {
-        pxlCmd = neoInfo.pxlCmd[neoInfo.pxlIndex];
-        pxlColor = colorTbl[pxlCmd & CMD_COLOR_TBL_MASK];
-        
-        /* Verify pixel is not "on".  An "on" pixel overrides the state */
-        if ((pxlCmd & NEOI_CMD_LED_ON) == 0)
-        {
-            if (pxlCmd & CMD_FADE_CMDS)
+   pxlColor = colorTbl[pxlCmd & CMD_COLOR_TBL_MASK];
+    
+   /* Verify pixel is not "on".  An "on" pixel overrides the state */
+   if ((pxlCmd & NEOI_CMD_LED_ON) == 0)
+   {
+      if (pxlCmd & CMD_FADE_CMDS)
+      {
+         /* Determine if fast or slow fade */
+         if (pxlCmd & CMD_FAST_CMD)
+         {
+            /* Fast fade command, check if getting brighter or darker */
+            if (neoInfo.stat & STAT_FADE_FAST_DEC)
             {
-                /* Determine if fast or slow fade */
-                if (pxlCmd & CMD_FAST_CMD)
-                {
-                    /* Fast fade command, check if getting brighter or darker */
-                    if (neoInfo.stat & STAT_FADE_FAST_DEC)
-                    {
-                        multFact = MAX_STATE_NUM - ((neoInfo.stateNum & 0xf) * 4);
-                    }
-                    else
-                    {
-                        multFact = ((neoInfo.stateNum & 0xf) + 1) * 4;
-                    }
-                }
-                else
-                {
-                    /* Slow fade command, check if getting brighter or darker */
-                    if (neoInfo.stat & STAT_FADE_SLOW_DEC)
-                    {
-                        multFact = MAX_STATE_NUM - neoInfo.stateNum;
-                    }
-                    else
-                    {
-                        multFact = neoInfo.stateNum + 1;
-                    }
-                }
-                neo_mult_pixel_color(&pxlColor, multFact);
+               multFact = MAX_STATE_NUM - ((neoInfo.stateNum & 0xf) * 4);
             }
             else
             {
-                /* Determine if fast or blink */
-                if (pxlCmd & CMD_FAST_CMD)
-                {
-                    /* Fast blink command, check if pixel should be off */
-                    if ((neoInfo.stat & STAT_BLINK_FAST_ON) == 0)
-                    {
-                        pxlColor = 0;
-                    }
-                }
-                else
-                {
-                    /* Slow blink command, check if pixel should be off */
-                    if ((neoInfo.stat & STAT_BLINK_SLOW_ON) == 0)
-                    {
-                        pxlColor = 0;
-                    }
-                }
+               multFact = ((neoInfo.stateNum & 0xf) + 1) * 4;
             }
-        }
-        neo_convert_color_to_buffer(pxlColor, &buffer[0]);
-    }
-    
-    if (neoInfo.pxlIndex & 0x01)
-    {
-        /* Fill out the 2nd buffer */
-        dest_p = &neoInfo.buffer[BYTES_PER_PIXEL];
-    }
-    else
-    {
-        /* Fill out the 1st buffer */
-        dest_p = &neoInfo.buffer[0];
-    }
-    for (src_p = &buffer[0]; src_p < &buffer[BYTES_PER_PIXEL]; src_p++, dest_p++)
-    {
-        *dest_p = *src_p;
-    }
-    
-    neoInfo.pxlIndex++;
+         }
+         else
+         {
+            /* Slow fade command, check if getting brighter or darker */
+            if (neoInfo.stat & STAT_FADE_SLOW_DEC)
+            {
+               multFact = MAX_STATE_NUM - neoInfo.stateNum;
+            }
+            else
+            {
+               multFact = neoInfo.stateNum + 1;
+            }
+         }
+         neo_mult_pixel_color(&pxlColor, multFact);
+      }
+      else
+      {
+         /* Determine if fast or blink */
+         if (pxlCmd & CMD_FAST_CMD)
+         {
+            /* Fast blink command, check if pixel should be off */
+            if ((neoInfo.stat & STAT_BLINK_FAST_ON) == 0)
+            {
+               pxlColor = 0;
+            }
+         }
+         else
+         {
+            /* Slow blink command, check if pixel should be off */
+            if ((neoInfo.stat & STAT_BLINK_SLOW_ON) == 0)
+            {
+               pxlColor = 0;
+            }
+         }
+      }
+   }
+   neo_convert_color_to_buffer(pxlColor, &buffer[0]);
+   if (evenByte)
+   {
+      for (index = 0; index < BYTES_PER_PIXEL; index++)
+      {
+         if ((index & 1) == 0)
+         {
+            *dest_p = buffer[index] << 8;
+         }
+         else
+         {
+            *dest_p++ |= buffer[index];
+         }
+      }
+   }
+   else
+   {
+      for (index = 0; index < BYTES_PER_PIXEL; index++)
+      {
+         if ((index & 1) == 0)
+         {
+            *dest_p++ |= buffer[index];
+         }
+         else
+         {
+            *dest_p = buffer[index] << 8;
+         }
+      }
+   }
+   return (dest_p);
 }
 
 /*
  * ===============================================================================
  * 
- * Name: neo_fifo_empty_isr
+ * Name: neo_fifo_trigger_isr
  * 
  * ===============================================================================
  */
 /**
- * FIFO empty ISR
+ * FIFO trigger ISR
  * 
- * Grabs data from buffer and adds it to the FIFO.  If it finishes a pixel, it sets
- * the done pixel flag so the data for the next pixel is calculated.
+ * Grabs data from buffer and adds it to the FIFO.
  * 
  * @param   None 
  * @return  None
@@ -494,19 +473,19 @@ void neo_fill_buffer()
  * 
  * ===============================================================================
  */
-void neo_fifo_empty_isr()
+void neo_fifo_trigger_isr()
 {
-    /* Statement added so interface can be polled instead of interrupt driven */
-    if (*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_EMPTY)
-    {
-        if (neoInfo.stat & STAT_RUNNING)
-        {
-            neo_fill_fifo();
-        }
+   /* Statement added so interface can be polled instead of interrupt driven */
+   if (*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_TRIGGER)
+   {
+      if (neoInfo.stat & STAT_XMT_SPI_DATA)
+      {
+         neo_fill_fifo();
+      }
         
-        /* Clear isr pending bit */
-        *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_EMPTY;
-    }
+      /* Clear isr pending bit */
+      *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_TRIGGER;
+   }
 }
 
 /*
@@ -533,37 +512,47 @@ void neo_fifo_empty_isr()
  */
 void neo_task()
 {
-    /* Check if new cycle needs to be started */
-    if (neoInfo.stat & STAT_START_PROC)
-    {
-        neoInfo.stat &= ~STAT_START_PROC;
-        neoInfo.stat |= STAT_RUNNING;
-        neoInfo.pxlIndex = 0;
-        neoInfo.isrCopyIdx = 0;
+   U8                *cmd_p;
+   U16               *buf_p;
+   BOOL              evenByte;
+    
+   /* Check if new cycle needs to be started */
+   if (neoInfo.stat & STAT_START_PROC)
+   {
+      neoInfo.stat &= ~STAT_START_PROC;
+       
+      /* Move to next pixel state */
+      neoInfo.stateNum++;
+      neoInfo.stateNum &= (MAX_STATE_NUM - 1);
+      if ((neoInfo.stateNum & 0x7) == 0)
+      {
+         neoInfo.stat ^= STAT_BLINK_FAST_ON;
+      }
+      if (neoInfo.stateNum == 0)
+      {
+         neoInfo.stat ^= STAT_BLINK_SLOW_ON;
+      }
+        
+      /* Update the pixel data buffer,  */
+      buf_p = neoInfo.buf_p;
+      evenByte = TRUE;
+      for (cmd_p = neoInfo.pxlCmd_p; cmd_p < neoInfo.pxlCmd_p + neoInfo.numPixels; cmd_p++)
+      {
+         buf_p = neo_fill_buffer(*cmd_p, buf_p, evenByte);
+         evenByte = !evenByte;
+      }
+        
+      /* Start SPI transfer */
+      neoInfo.src_p = neoInfo.buf_p;
+      neoInfo.stat |= STAT_XMT_SPI_DATA;
 
-        /* Move to next pixel state */
-        neoInfo.stateNum++;
-        neoInfo.stateNum &= (MAX_STATE_NUM - 1);
-        if ((neoInfo.stateNum & 0xf) == 0)
-        {
-            neoInfo.stat ^= STAT_BLINK_FAST_ON;
-        }
-        if (neoInfo.stateNum == 0)
-        {
-            neoInfo.stat ^= STAT_BLINK_SLOW_ON;
-        }
+      /* Fill SPI FIFO to start transfer */
+      neo_fill_fifo();
         
-        /* Fill out two buffers */
-        neo_fill_buffer();
-        neo_fill_buffer();
-        
-        /* Fill SPI FIFO to start transfer */
-        neo_fill_fifo();
-        
-        /* Enable FIFO empty isr, clear bit and unmask it */
-        *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_EMPTY;
-        *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_EMPTY;
-    }
+      /* Enable FIFO empty isr, clear bit and unmask it */
+      *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_TRIGGER;
+      *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
+   }
 }
 
 /*
@@ -588,15 +577,15 @@ void neo_task()
  * ===============================================================================
  */
 void neo_update_pixel_color(
-    INT             pixel,
-    INT             colorTblIdx)
+   INT               pixel,
+   INT               colorTblIdx)
 {
-    INT             pxlCmd;
+   INT               pxlCmd;
    
-    pxlCmd = neoInfo.pxlCmd[pixel];
-    pxlCmd &= ~CMD_COLOR_TBL_MASK;
-    pxlCmd |= colorTblIdx;
-    neoInfo.pxlCmd[pixel] = pxlCmd;
+   pxlCmd = neoInfo.pxlCmd_p[pixel];
+   pxlCmd &= ~CMD_COLOR_TBL_MASK;
+   pxlCmd |= colorTblIdx;
+   neoInfo.pxlCmd_p[pixel] = pxlCmd;
 }
 
 /*
@@ -621,15 +610,15 @@ void neo_update_pixel_color(
  * ===============================================================================
  */
 void neo_update_pixel_cmd(
-    INT             pixel,
-    INT             cmd)
+   INT               pixel,
+   INT               cmd)
 {
-    INT             pxlCmd;
+   INT               pxlCmd;
    
-    pxlCmd = neoInfo.pxlCmd[pixel];
-    pxlCmd &= ~CMD_MASK;
-    pxlCmd |= cmd;
-    neoInfo.pxlCmd[pixel] = pxlCmd;
+   pxlCmd = neoInfo.pxlCmd_p[pixel];
+   pxlCmd &= ~CMD_MASK;
+   pxlCmd |= cmd;
+   neoInfo.pxlCmd_p[pixel] = pxlCmd;
 }
 
 /* [] END OF FILE */

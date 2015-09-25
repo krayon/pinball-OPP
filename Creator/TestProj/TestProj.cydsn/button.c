@@ -50,34 +50,34 @@
 #include "neointf.h"
 #include "stdlintf.h"
 
-#define NUM_NEO_CMDS        5
+#define NUM_NEO_CMDS          5
 const U8 neoCmds[] =
-    { NEOI_CMD_LED_ON,      NEOI_CMD_BLINK_SLOW,    NEOI_CMD_BLINK_FAST, 
-      NEOI_CMD_FADE_SLOW,   NEOI_CMD_FADE_FAST };
+   { NEOI_CMD_LED_ON,      NEOI_CMD_BLINK_SLOW,    NEOI_CMD_BLINK_FAST, 
+     NEOI_CMD_FADE_SLOW,   NEOI_CMD_FADE_FAST };
 
 /* The default color table only has colors from 0 to 6 */
 #define COLOR_TBL_ENTRIES   7
 
-#define NEOI_CMD_LED_ON     0x80
-#define NEOI_CMD_BLINK_SLOW 0x00
-#define NEOI_CMD_BLINK_FAST 0x20
-#define NEOI_CMD_FADE_SLOW  0x40
-#define NEOI_CMD_FADE_FAST  0x60
+#define NEOI_CMD_LED_ON       0x80
+#define NEOI_CMD_BLINK_SLOW   0x00
+#define NEOI_CMD_BLINK_FAST   0x20
+#define NEOI_CMD_FADE_SLOW    0x40
+#define NEOI_CMD_FADE_FAST    0x60
     
 /* Button is port 0, bit 7 */
-#define BTN_STAT_MASK       0x00000080
-#define BTN_NOT_PRESSED     0x00000080
+#define BTN_STAT_MASK         0x00000080
+#define BTN_NOT_PRESSED       0x00000080
 
-#define GLITCH_TIME         3           /* Assume presses < 3 ms is a glitch */
-#define LONG_PRESS_TIME     1000        /* Anything > 1000 ms is a long press */
+#define GLITCH_TIME           3           /* Assume presses < 3 ms is a glitch */
+#define LONG_PRESS_TIME       1000        /* Anything > 1000 ms is a long press */
 
 typedef struct
 {
-    INT             startCnt;
-    INT             numPxl;
-    INT             cmdIdx;
-    INT             colorIdx;
-    U8              prevBtn;
+   INT                  startCnt;
+   INT                  numPxl;
+   INT                  cmdIdx;
+   INT                  colorIdx;
+   U8                   prevBtn;
 } BTN_INFO;
 
 BTN_INFO btnInfo;
@@ -106,16 +106,16 @@ INT timer_get_ms_count();
  * ===============================================================================
  */
 void button_init(
-    INT             numPxl)
+   INT                  numPxl)
 {
     /* Initialize the pin to be pulled up input */
-    stdldigio_config_dig_port(STDLI_DIG_PORT_0 | STDLI_DIG_PULLUP,
-        BTN_STAT_MASK, 0);
+   stdldigio_config_dig_port(STDLI_DIG_PORT_0 | STDLI_DIG_PULLUP,
+      BTN_STAT_MASK, 0);
     
-    btnInfo.prevBtn = BTN_NOT_PRESSED;
-    btnInfo.numPxl = numPxl;
-    btnInfo.colorIdx = 0;
-    btnInfo.cmdIdx = 0;
+   btnInfo.prevBtn = BTN_NOT_PRESSED;
+   btnInfo.numPxl = numPxl;
+   btnInfo.colorIdx = 0;
+   btnInfo.cmdIdx = 0;
 }
 
 /*
@@ -143,80 +143,80 @@ void button_init(
  */
 void button_task()
 {
-    U8              currBtn;
-    INT             length;
-    INT             index;
-    INT             cmd;
-    BOOL            updateVal = FALSE;
+   U8                   currBtn;
+   INT                  length;
+   INT                  index;
+   INT                  cmd;
+   BOOL                 updateVal = FALSE;
     
-    currBtn = stdldigio_read_port(STDLI_DIG_PORT_0, BTN_STAT_MASK);
+   currBtn = stdldigio_read_port(STDLI_DIG_PORT_0, BTN_STAT_MASK);
     
-    /* Check if button has changed */
-    if (currBtn ^ btnInfo.prevBtn)
-    {
-        /* Check if button just released */
-        if (currBtn & BTN_NOT_PRESSED)
-        {
-            /* Button was released, grab current time and length of time pressed */
-            length = timer_get_ms_count() - btnInfo.startCnt;
-            if (length < GLITCH_TIME)
+   /* Check if button has changed */
+   if (currBtn ^ btnInfo.prevBtn)
+   {
+      /* Check if button just released */
+      if (currBtn & BTN_NOT_PRESSED)
+      {
+         /* Button was released, grab current time and length of time pressed */
+         length = timer_get_ms_count() - btnInfo.startCnt;
+         if (length < GLITCH_TIME)
+         {
+            /* This is a glitch so just ignore. */
+         }
+         else if (length > LONG_PRESS_TIME)
+         {
+            /* Long press, change command */
+            btnInfo.cmdIdx++;
+            if (btnInfo.cmdIdx == NUM_NEO_CMDS)
             {
-                /* This is a glitch so just ignore. */
+               updateVal = TRUE;
             }
-            else if (length > LONG_PRESS_TIME)
+            else if (btnInfo.cmdIdx > NUM_NEO_CMDS)
             {
-                /* Long press, change command */
-                btnInfo.cmdIdx++;
-                if (btnInfo.cmdIdx == NUM_NEO_CMDS)
-                {
-                    updateVal = TRUE;
-                }
-                else if (btnInfo.cmdIdx > NUM_NEO_CMDS)
-                {
-                    btnInfo.cmdIdx = 0;
-                }
-                cmd = neoCmds[btnInfo.cmdIdx];
-                for (index = 0; index < btnInfo.numPxl; index++)
-                {
-                    /* Update so each pixel gets its own command */
-                    if (updateVal)
-                    {
-                        cmd = neoCmds[index % NUM_NEO_CMDS];
-                    }
-                    neo_update_pixel_cmd(index, cmd);
-                }
+               btnInfo.cmdIdx = 0;
             }
-            else
+            cmd = neoCmds[btnInfo.cmdIdx];
+            for (index = 0; index < btnInfo.numPxl; index++)
             {
-                /* Short press, change colors */
-                btnInfo.colorIdx++;
-                if (btnInfo.colorIdx == COLOR_TBL_ENTRIES)
-                {
-                    updateVal = TRUE;
-                }
-                else if (btnInfo.colorIdx > COLOR_TBL_ENTRIES)
-                {
-                    btnInfo.colorIdx = 0;
-                }
-                cmd = btnInfo.colorIdx;
-                for (index = 0; index < btnInfo.numPxl; index++)
-                {
-                    /* Update so each pixel gets its own color */
-                    if (updateVal)
-                    {
-                        cmd = index % COLOR_TBL_ENTRIES;
-                    }
-                    neo_update_pixel_color(index, cmd);
-                }
+               /* Update so each pixel gets its own command */
+               if (updateVal)
+               {
+                  cmd = neoCmds[index % NUM_NEO_CMDS];
+               }
+               neo_update_pixel_cmd(index, cmd);
             }
-        }
-        else
-        {
-            /* Button just pressed, save start time */
-            btnInfo.startCnt = timer_get_ms_count();
-        }
-    }
-    btnInfo.prevBtn = currBtn;
+         }
+         else
+         {
+            /* Short press, change colors */
+            btnInfo.colorIdx++;
+            if (btnInfo.colorIdx == COLOR_TBL_ENTRIES)
+            {
+               updateVal = TRUE;
+            }
+            else if (btnInfo.colorIdx > COLOR_TBL_ENTRIES)
+            {
+               btnInfo.colorIdx = 0;
+            }
+            cmd = btnInfo.colorIdx;
+            for (index = 0; index < btnInfo.numPxl; index++)
+            {
+               /* Update so each pixel gets its own color */
+               if (updateVal)
+               {
+                  cmd = index % COLOR_TBL_ENTRIES;
+               }
+               neo_update_pixel_color(index, cmd);
+            }
+         }
+      }
+      else
+      {
+         /* Button just pressed, save start time */
+         btnInfo.startCnt = timer_get_ms_count();
+      }
+   }   
+   btnInfo.prevBtn = currBtn;
 }
 
 /* [] END OF FILE */

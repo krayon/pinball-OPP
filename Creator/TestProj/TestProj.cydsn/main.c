@@ -47,6 +47,7 @@
  *===============================================================================
  */
 #include <project.h>
+#include <stdlib.h>
 #include "stdtypes.h"
 #include "neointf.h"
 
@@ -54,7 +55,7 @@
 #define NUM_PIXELS          16
 
 /* Prototype declarations */
-void neo_fifo_empty_isr();
+void neo_fifo_trigger_isr();
 
 void timer_init();
 void timer_overflow_isr();
@@ -65,26 +66,26 @@ void button_task();
 
 int main()
 {
-    /* CyGlobalIntEnable; Enable global interrupts. */
+   CyGlobalIntEnable; /* Enable global interrupts. */
 
-    Clock_Start();
-    Clock_1_Start();
-    PWM_Start();
-    PWM_1_Start();
-    SPI_1_Start();
+   Clock_Start();
+   Clock_1_Start();
+   PWM_Start();
+   PWM_1_Start();
+   SPI_1_Start();
 	
-    /* Initialize tasks */
-    neo_init(NUM_PIXELS);
-    timer_init();
-    button_init(NUM_PIXELS);
+   /* Initialize tasks */
+   neo_init(NUM_PIXELS);
+   timer_init();
+   button_init(NUM_PIXELS);
 
-    for(;;)
-    {
-        timer_overflow_isr();
-        neo_fifo_empty_isr();
-        neo_task();
-        button_task();
-    }
+   for(;;)
+   {
+      timer_overflow_isr();
+      neo_fifo_trigger_isr();
+      neo_task();
+      button_task();
+   }
 }
 
 /* [] END OF FILE */

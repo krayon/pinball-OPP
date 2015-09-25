@@ -56,8 +56,6 @@
  *===============================================================================
  */
 #include "stdtypes.h"   /* include peripheral declarations */
-/* #include <hidef.h>      for EnableInterrupts macro */
-/* #include "derivative.h" include peripheral declarations */
 #include "stdlintf.h"
 
 #define GPIO_PRT0_BASE      0x40040000
@@ -113,91 +111,91 @@
  * ===============================================================================
  */
 void stdldigio_config_dig_port(
-  STDLI_DIG_PORT_INFO_E     portInfo,     /* port, input/output, drive, and pullup */
-    U8                      mask,         /* mask of data bits to change */
-    U8                      data)         /* data if output bits, unused if input */
+   STDLI_DIG_PORT_INFO_E      portInfo,     /* port, input/output, drive, and pullup */
+   U8                         mask,         /* mask of data bits to change */
+   U8                         data)         /* data if output bits, unused if input */
 {
-#define HIGH_IMP            0x01
-#define RES_PUP             0x02
-#define RES_PDN             0x03
-#define OPEN_DRAIN_DRV_LOW  0x04
-#define STRONG_DRV          0x06
+#define HIGH_IMP              0x01
+#define RES_PUP               0x02
+#define RES_PDN               0x03
+#define OPEN_DRAIN_DRV_LOW    0x04
+#define STRONG_DRV            0x06
     
-    U8                      port;
-    R32                     *gpioReg_p;
-    R32                     *hsioReg_p;
-    INT                     pinCfg;
-    INT                     index;
-    U32                     portCfg;
-    U32                     portCfgMsk;
-    U32                     hsioMsk;
-    U32                     intCfgMsk;
+   U8                         port;
+   R32                        *gpioReg_p;
+   R32                        *hsioReg_p;
+   INT                        pinCfg;
+   INT                        index;
+   U32                        portCfg;
+   U32                        portCfgMsk;
+   U32                        hsioMsk;
+   U32                        intCfgMsk;
 
-    port = portInfo & STDLI_DIG_PORT_MASK;
-    gpioReg_p = (R32 *)(GPIO_PRT0_BASE + (port * GPIO_REG_OFFSET));
-    hsioReg_p = (R32 *)(HSIO_PORT_SEL_BASE + (port * HSIO_REG_OFFSET));
+   port = portInfo & STDLI_DIG_PORT_MASK;
+   gpioReg_p = (R32 *)(GPIO_PRT0_BASE + (port * GPIO_REG_OFFSET));
+   hsioReg_p = (R32 *)(HSIO_PORT_SEL_BASE + (port * HSIO_REG_OFFSET));
     
-    /* check the direction of the digital bits */
-    if (portInfo & STDLI_DIG_OUT)
-    {
-        /* This is an output, write the data, figure out cfg */
-        gpioReg_p[DR_OFFSET] = (gpioReg_p[DR_OFFSET] & ~mask) | (data & mask);
+   /* check the direction of the digital bits */
+   if (portInfo & STDLI_DIG_OUT)
+   {
+      /* This is an output, write the data, figure out cfg */
+      gpioReg_p[DR_OFFSET] = (gpioReg_p[DR_OFFSET] & ~mask) | (data & mask);
         
-        if (portInfo & STDLI_DIG_OC_PULLDWN)
-        {
-            pinCfg = OPEN_DRAIN_DRV_LOW;
-        }
-        else
-        {
-            pinCfg = STRONG_DRV;
-        }
-    }
-    else
-    {
-        if (portInfo & STDLI_DIG_PULLUP)
-        {
-            /* Set DR to turn on pullup */
-            pinCfg = RES_PUP;
-            gpioReg_p[DR_OFFSET] |= mask;
-        }
-        else if (portInfo & STDLI_DIG_PULLDWN)
-        {
-            /* Set DR to turn on pulldown */
-            pinCfg = RES_PDN;
-            gpioReg_p[DR_OFFSET] &= ~mask;
-        }
-        else
-        {
-            pinCfg = HIGH_IMP;
-        }
-    }
+      if (portInfo & STDLI_DIG_OC_PULLDWN)
+      {
+         pinCfg = OPEN_DRAIN_DRV_LOW;
+      }
+      else
+      {
+         pinCfg = STRONG_DRV;
+      }
+   }
+   else
+   {
+      if (portInfo & STDLI_DIG_PULLUP)
+      {
+         /* Set DR to turn on pullup */
+         pinCfg = RES_PUP;
+         gpioReg_p[DR_OFFSET] |= mask;
+      }
+      else if (portInfo & STDLI_DIG_PULLDWN)
+      {
+         /* Set DR to turn on pulldown */
+         pinCfg = RES_PDN;
+         gpioReg_p[DR_OFFSET] &= ~mask;
+      }
+      else
+      {
+         pinCfg = HIGH_IMP;
+      }
+   }
     
-    /* Calculate the complete config for the port and GPIO routing */
-    portCfg = 0;
-    portCfgMsk = 0;
-    hsioMsk = 0;
-    intCfgMsk = 0;
-    for (index = 0; index < 8; index++)
-    {
-        if (mask & (1 << index))
-        {
-            portCfg |= (pinCfg << (index * 3));
-            portCfgMsk |= (0x07 << (index * 3));
-            hsioMsk |= (0x0f << (index * 4));
-            intCfgMsk |= (0x03 << (index * 2));
-        }
-    }
+   /* Calculate the complete config for the port and GPIO routing */
+   portCfg = 0;
+   portCfgMsk = 0;
+   hsioMsk = 0;
+   intCfgMsk = 0;
+   for (index = 0; index < 8; index++)
+   {
+      if (mask & (1 << index))
+      {
+         portCfg |= (pinCfg << (index * 3));
+         portCfgMsk |= (0x07 << (index * 3));
+         hsioMsk |= (0x0f << (index * 4));
+         intCfgMsk |= (0x03 << (index * 2));
+      }
+   }
     
-    /* Set the pin configuration, turn off pin interrupts, and disable
-     * analog pin drivers.
-     */
-    gpioReg_p[PC_OFFSET] &= ~portCfgMsk;
-    gpioReg_p[PC_OFFSET] |= portCfg;
-    gpioReg_p[INT_CFG_OFFSET] &= ~intCfgMsk;
-    gpioReg_p[PC2_OFFSET] &= ~mask;
+   /* Set the pin configuration, turn off pin interrupts, and disable
+    * analog pin drivers.
+    */
+   gpioReg_p[PC_OFFSET] &= ~portCfgMsk;
+   gpioReg_p[PC_OFFSET] |= portCfg;
+   gpioReg_p[INT_CFG_OFFSET] &= ~intCfgMsk;
+   gpioReg_p[PC2_OFFSET] &= ~mask;
 
-    /* Send the GPIO bit to the hardware pin */
-    *hsioReg_p &= ~hsioMsk;
+   /* Send the GPIO bit to the hardware pin */
+   *hsioReg_p &= ~hsioMsk;
     
 } /* End stdldigio_config_dig_port */
 
@@ -223,10 +221,10 @@ void stdldigio_config_dig_port(
  * ===============================================================================
  */
 U8 stdldigio_read_port(
-  STDLI_DIG_PORT_INFO_E     port,         /* data port, ex. STDLI_DIG_PORT_0 */
-  U8                        mask)         /* mask of data bits to read */
+   STDLI_DIG_PORT_INFO_E      port,         /* data port, ex. STDLI_DIG_PORT_0 */
+   U8                         mask)         /* mask of data bits to read */
 {
-    return((U8)(*(R32 *)(GPIO_PRT0_PS_BASE + ((port) * GPIO_REG_OFFSET))) & mask);
+   return((U8)(*(R32 *)(GPIO_PRT0_PS_BASE + ((port) * GPIO_REG_OFFSET))) & mask);
 } /* End stdldigio_read_port */
 
 /*
@@ -241,7 +239,7 @@ U8 stdldigio_read_port(
  * 
  * Write to a digital port using a bit mask.
  * 
- * @param   port        [in]    port such as STDLI_DIG_PORT_A  
+ * @param   port        [in]    port such as STDLI_DIG_PORT_1 
  * @param   mask        [in]    mask of bits to change 
  * @param   data        [in]    data to be written 
  * @return  None
@@ -252,15 +250,15 @@ U8 stdldigio_read_port(
  * ===============================================================================
  */
 void stdldigio_write_port(
-    STDLI_DIG_PORT_INFO_E   port,         /* data port, ex. STDLI_DIG_PORT_A */
-    U8                      mask,         /* mask of data bits to write */
-    U8                      data)         /* data to write */
+   STDLI_DIG_PORT_INFO_E      port,         /* data port, ex. STDLI_DIG_PORT_1 */
+   U8                         mask,         /* mask of data bits to write */
+   U8                         data)         /* data to write */
 {
-    R32                     *reg_p;
+   R32                        *reg_p;
   
-    reg_p = (R32 *)(GPIO_PRT0_BASE + (port * GPIO_REG_OFFSET));
+   reg_p = (R32 *)(GPIO_PRT0_BASE + (port * GPIO_REG_OFFSET));
   
-    *reg_p = (*reg_p & ~mask) | (data  & mask);
+   *reg_p = (*reg_p & ~mask) | (data  & mask);
 } /* End stdldigio_write_port */
 
 /* [] END OF FILE */

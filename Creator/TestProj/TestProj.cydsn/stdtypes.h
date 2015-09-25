@@ -47,6 +47,8 @@
  *
  *===============================================================================
  */
+#ifndef STDTYPES_H
+#define STDTYPES_H
 
 typedef unsigned char U8;
 typedef unsigned short U16;
@@ -56,7 +58,15 @@ typedef unsigned int UINT;
 typedef volatile unsigned long R32;
 typedef int BOOL;
 
-#define FALSE       0 
-#define TRUE        !FALSE 
+#define FALSE           0 
+#define TRUE            !FALSE 
 
+#define MAX_U8          0xff
+#define MAX_U16         0xffff
+#define MAX_U32         0xffffffff
+
+#define NULL ((void *)0)
+
+#endif
+    
 /* [] END OF FILE */
