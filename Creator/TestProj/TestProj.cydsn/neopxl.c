@@ -66,6 +66,7 @@
 #define SCB1_TX_FIFO_WR         0x40070240
 #define SCB1_INTR_TX            0x40070f80
 #define SCB1_INTR_TX_MASK       0x40070f88
+#define INTR_TX_SCB_UNDERFLOW   0x00000040
 #define INTR_TX_SCB_NOT_FULL    0x00000002
 #define INTR_TX_SCB_TRIGGER     0x00000001
 
@@ -110,6 +111,8 @@ typedef struct
    U8                stateNum;            /* 0 - 31 counter used to fade/blink LEDs */
    U8                stat;                /* If blinking LED is on/fading LED is brighter */
    U8                numPixels;           /* Number of pixels */
+   INT               underflow;           /* Underflow count */
+   INT               complUpd;            /* Number of completed updates */
    U8                *pxlCmd_p;           /* Ptr to array of pixel commands */
    U16               *buf_p;              /* Holds pixel data bytes */
    U16               *src_p;              /* Ptr to next byte of data to copy to FIFO */
@@ -147,6 +150,8 @@ void neo_init(
    /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
    neoInfo.stateNum = 0;
    neoInfo.stat = 0;
+   neoInfo.underflow = 0;
+   neoInfo.complUpd = 0;
    neoInfo.numPixels = numPixels;
     
    /* HRS:  Test for null on commands */
@@ -164,6 +169,8 @@ void neo_init(
     
    /* Register a 40ms repeating tick function, register FIFO empty if necessary */
    *(R32 *)SCB1_TX_FIFO_CTRL = 4;
+   
+   /* HRS SCB_SetCustomInterruptHandler(); */
 }
 
 /*
@@ -231,7 +238,12 @@ void neo_fill_fifo()
    {
       /* Mask the FIFO count interrupt */
       *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_TRIGGER;
+      if (*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_UNDERFLOW)
+      {
+         neoInfo.underflow++;
+      }
       neoInfo.stat &= ~STAT_XMT_SPI_DATA;
+      neoInfo.complUpd++;
    }
 }
 
@@ -550,7 +562,7 @@ void neo_task()
       neo_fill_fifo();
         
       /* Enable FIFO empty isr, clear bit and unmask it */
-      *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_TRIGGER;
+      *(R32 *)SCB1_INTR_TX = (INTR_TX_SCB_TRIGGER | INTR_TX_SCB_UNDERFLOW);
       *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
    }
 }
