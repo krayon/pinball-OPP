@@ -157,11 +157,24 @@ void neo_init(
    /* HRS:  Test for null on commands */
    neoInfo.pxlCmd_p = malloc(numPixels);
     
-   /* Must add 1 in case odd number of pixels since using U16s to store info,
-    * and last piece may end in middle of U16
+   /* If odd, add 1 since odd number of bytes and need integral number of U16s.
+    * If even, add 2 so extra U16 is added to be blank.  Guarantees neopixel
+    * transfers end with data bit low.
     */
-   neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 1);
-   neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 1)/sizeof(U16));
+   if (numPixels & 0x01)
+   {
+      neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 1);
+      neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 1)/sizeof(U16));
+      /* Last U16 SPI transfer has 8 bytes of data, and 8 bits of zeros */
+   }
+   else
+   {
+      neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 2);
+      neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 2)/sizeof(U16));
+      
+      /* Clear last U16 so last transfers have SPI data low */
+      *(neoInfo.end_p - 1) = 0;
+   }
    for (tmp_p = neoInfo.pxlCmd_p; tmp_p < neoInfo.pxlCmd_p + numPixels; tmp_p++)
    {
       *tmp_p = NEOI_CMD_LED_ON;
