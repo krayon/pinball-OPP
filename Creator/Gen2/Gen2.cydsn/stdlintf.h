@@ -60,6 +60,18 @@
  
 #include "stdtypes.h"
 
+/*
+ * Generic structures/enumerations used for Standard Library.
+ */
+typedef enum
+{
+   STDLI_TOO_MANY_TICK_FUNCS  = 0x01,
+   STDLI_ILLEGAL_CB_FUNC      = 0x02,
+   STDLI_BAD_NUM_TICKS        = 0x03,  
+   STDLI_TIMER_NOT_CFG        = 0x08,
+   STDLI_SW_ERROR             = 0x0c,
+} STDLI_ERR_E;
+
 /* 
  * API for serial functions
  */
@@ -84,18 +96,21 @@ typedef struct
   BOOL                      txAct;        /* Filled by utility */
   U8                        pollBit;      /* Filled by utility */
 } STDLI_SER_INFO_T;
-   
-/*
- * Generic structures/enumerations used for Standard Library.
- */
-typedef enum
-{
-   STDLI_TOO_MANY_TICK_FUNCS  = 0x01,
-   STDLI_ILLEGAL_CB_FUNC      = 0x02,
-   STDLI_BAD_NUM_TICKS        = 0x03,  
-   STDLI_TIMER_NOT_CFG        = 0x08,
-   STDLI_SW_ERROR             = 0x0c,
-} STDLI_ERR_E;
+
+void stdlser_init_ser_port(
+  STDLI_SER_PORT_E          portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+  STDLI_SER_INFO_T          *serInfo_p);  /* Ser state, txBuf addr, txBuf size, rx
+                                           *  callback func.
+                                           */
+U16 stdlser_xmt_data(
+  STDLI_SER_PORT_E          portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+  BOOL                      blocking,     /* TRUE to block waiting to put xmt data on queue */
+  U8                        *data_p,      /* Ptr to data to xmt */
+  U16                       numChar);     /* Num chars to xmt */
+void stdlser_calc_crc8(
+   U8                        *crc8_p,      /* Ptr to crc8 */
+   INT                       length,       /* Num chars in data stream */
+   U8                        *data_p);     /* Ptr to data stream */
 
 /* 
  * API for timing functions

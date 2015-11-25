@@ -105,6 +105,8 @@
 #define TCPWM_CNT0_INTR_SET      0x40050134
 #define TCPWM_CNT0_INTR_MASK     0x40050138
 #define TCPWM_CNT0_INTR_MASKED   0x4005013c
+
+#define CM0_AIRCR                0xe000ed0cu
     
 #define TCPWM_INTR_CNT_TC        0x00000001
    
@@ -117,7 +119,12 @@
                                  {                       \
                                     __asm("CPSID   i"); \
                                  } while ( 0 )
-    
+
+#define ResetProc                do                      \
+                                 {                       \
+                                    *((unsigned volatile long *)CM0_AIRCR) = 0x05fa0004; \
+                                 } while ( 0 )
+
 #endif
 
 /* [] END OF FILE */

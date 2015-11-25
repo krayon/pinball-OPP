@@ -55,8 +55,11 @@
 #include "stdlintf.h"
 
 #define GEN2G_CFG_TBL         0x00007e80
+#define GEN2G_FLASH_SECT_SZ   0x80
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
+#define GEN2G_SER_NUM_ADDR    0x00007ffc
+#define GEN2G_APP_TBL_ADDR    0x00007f80
 
 typedef enum
 {
@@ -78,17 +81,12 @@ typedef struct
  */
 typedef struct
 {
-   U8                         nvCfgCrc;   /* CRC from wingCfg to end of res3 */
+   U8                         nvCfgCrc;   /* CRC from wingCfg to end of cfgData */
    U8                         res1[3];
    RS232I_GEN2_WING_TYPE_E    wingCfg[RS232I_NUM_WING];
    GEN2G_NVCFG_TYPE_E         nvCfg[GEN2G_NUM_NVCFG];
    U8                         res2[4];
    U8                         cfgData[0xf0];
-   /* HRS:  Config can have different orders
-   RS232I_SOL_CFG_T           solCfg[RS232I_NUM_GEN2_SOL];
-   RS232I_CFG_INP_TYPE_E      inpCfg[RS232I_NUM_GEN2_INP];
-   GEN2G_NEO_COLOR_TBL_T      colorTbl[RS232I_SZ_COLOR_TBL];
-   U8                         reserved2[0x40]; */
 } GEN2G_NV_CFG_T;
 
 #ifndef GEN2G_INSTANTIATE
@@ -97,6 +95,24 @@ typedef struct
    GEN2G_NV_CFG_T *gen2g_nv_cfg_p
 #ifdef GEN2G_INSTANTIATE
    = (GEN2G_NV_CFG_T *)GEN2G_CFG_TBL
+#endif
+;
+
+/* This will be stored at the beginning of the app when the bootloader
+ * rewrite is completed.
+ */
+typedef struct
+{
+  U32                   appLen;           /* Length of application */
+  U8                    codeVersion[4];   /* Application version */
+} APP_START_T;
+
+#ifndef GEN2G_INSTANTIATE
+   extern
+#endif
+   APP_START_T *gen2g_appTbl_p
+#ifdef GEN2G_INSTANTIATE
+   = (APP_START_T *)GEN2G_APP_TBL_ADDR
 #endif
 ;
 
@@ -159,26 +175,22 @@ void inpdrv_init();
 typedef struct
 {
    U16                        procCtl;
-   U16                        validSwitch;
-   U16                        stateMask;
    STDLI_ELAPSED_TIME_T       elapsedTime;
 } GEN2G_SOL_DRV_T;
 
 typedef struct
 {
-   U16                        inpSwitch;
-   U16                        stateMask;
-} GEN2G_INP_DRV_T;
-
-typedef struct
-{
    BOOL                       validCfg;
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
+   U32                        validSwitch;
+   U32                        stateMask;
+   U32                        crcErr;
    U16                        solDrvProcCtl;
    U16                        solDrvValidSwitch;
    GEN2G_SOL_DRV_T            solDrv;
-   GEN2G_INP_DRV_T            inpDrv;
    GEN2G_NV_CFG_T             nvCfgInfo;
+   GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
+   GEN2G_INP_CFG_T            *inpCfg_p;
    U8                         *freeCfg_p;
 } GEN2G_INFO;
 

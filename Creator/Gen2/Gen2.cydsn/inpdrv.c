@@ -76,7 +76,6 @@ typedef struct
    INT                        currInp;
    U32                        inpMask;
    INPDRV_INP_T               inp[RS232I_NUM_GEN2_INP];
-   GEN2G_INP_CFG_T            *inpCfg_p;
 } INPDRV_GLOB_T;
 
 INPDRV_GLOB_T                 inpdrv_info;
@@ -136,7 +135,7 @@ void inpdrv_init(void)
    }
    
    /* Set the location of the configuration data */
-   inpdrv_info.inpCfg_p = (GEN2G_INP_CFG_T *)gen2g_info.freeCfg_p;
+   gen2g_info.inpCfg_p = (GEN2G_INP_CFG_T *)gen2g_info.freeCfg_p;
    gen2g_info.freeCfg_p += sizeof(GEN2G_INP_CFG_T);
 
 } /* End inpdrv_init */
@@ -184,7 +183,7 @@ void inpdrv_task(void)
       }
       index = inpdrv_info.currInp;
       inp_p = &inpdrv_info.inp[index];
-      cfg = inpdrv_info.inpCfg_p->inpCfg[index];
+      cfg = gen2g_info.inpCfg_p->inpCfg[index];
 
       if (cfg == FALL_EDGE)
       {
@@ -228,7 +227,7 @@ void inpdrv_task(void)
                {
                   inp_p->state = INP_LOW;
                   DisableInterrupts;
-                  gen2g_info.inpDrv.inpSwitch |= (1 << index);
+                  gen2g_info.validSwitch |= (1 << index);
                   EnableInterrupts;
                }
             }
@@ -257,7 +256,7 @@ void inpdrv_task(void)
                {
                   inp_p->state = INP_HIGH;
                   DisableInterrupts;
-                  gen2g_info.inpDrv.inpSwitch |= (1 << index);
+                  gen2g_info.validSwitch |= (1 << index);
                   EnableInterrupts;
                }
             }
@@ -307,8 +306,8 @@ void inpdrv_task(void)
       inpdrv_info.currInp = index;
 
       DisableInterrupts;
-      gen2g_info.inpDrv.inpSwitch = (gen2g_info.inpDrv.inpSwitch & ~gen2g_info.inpDrv.stateMask) |
-         (inputs & gen2g_info.inpDrv.stateMask);
+      gen2g_info.validSwitch = (gen2g_info.validSwitch & ~gen2g_info.stateMask) |
+         (inputs & gen2g_info.stateMask);
       EnableInterrupts;
    }
 } /* End inpdrv_task */
@@ -351,21 +350,21 @@ void inpdrv_set_init_state(void)
       }
    }
   
-   gen2g_info.inpDrv.inpSwitch = 0;
-   gen2g_info.inpDrv.stateMask = 0;
+   gen2g_info.validSwitch = 0;
+   gen2g_info.stateMask = 0;
    for ( index = 0; index < RS232I_NUM_GEN2_INP; index++)
    {
-      cfg = inpdrv_info.inpCfg_p->inpCfg[index];
+      cfg = gen2g_info.inpCfg_p->inpCfg[index];
       if (cfg == STATE_INPUT)
       {
-         gen2g_info.inpDrv.stateMask |= (1 << index);
+         gen2g_info.stateMask |= (1 << index);
          inpdrv_info.inp[index].state = INP_STATE;
       }
       else if (cfg == RISE_EDGE)
       {
          if (inputs & (1 << index))
          {
-            gen2g_info.inpDrv.inpSwitch |= (1 << index);
+            gen2g_info.validSwitch |= (1 << index);
             inpdrv_info.inp[index].state = INP_HIGH;
          }
          else
@@ -377,7 +376,7 @@ void inpdrv_set_init_state(void)
       {
          if ((inputs & (1 << index)) == 0)
          {
-            gen2g_info.inpDrv.inpSwitch |= (1 << index);
+            gen2g_info.validSwitch |= (1 << index);
             inpdrv_info.inp[index].state = INP_LOW;
          }
          else
@@ -386,5 +385,5 @@ void inpdrv_set_init_state(void)
          }
       }
    }
-   gen2g_info.inpDrv.inpSwitch |= (inputs & gen2g_info.inpDrv.stateMask);
+   gen2g_info.validSwitch |= (inputs & gen2g_info.stateMask);
 } /* End inpdrv_set_init_state */

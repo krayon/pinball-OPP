@@ -644,4 +644,32 @@ void neo_update_pixel_cmd(
    neoInfo.pxlCmd_p[pixel] = pxlCmd;
 }
 
+/*
+ * ===============================================================================
+ * 
+ * Name: neo_update_color_tbl
+ * 
+ * ===============================================================================
+ */
+/**
+ * Neopixel update color table entry
+ * 
+ * Update the pixel's command
+ * 
+ * @param   index       [in]        Index in color table to change
+ * @param   color       [in]        New color table color
+ * @return  None
+ * 
+ * @pre     None 
+ * @note    None
+ * 
+ * ===============================================================================
+ */
+void neo_update_color_tbl(
+   INT               index,
+   U32               color)
+{
+   colorTbl[index] = color;
+}
+
 /* [] END OF FILE */

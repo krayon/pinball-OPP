@@ -24,7 +24,7 @@
  * @date:   12/07/2012
  *
  * @note:   Open Pinball Project
- *          Copyright© 2015, Hugh Spahr
+ *          Copyright© 2012-2015, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -52,8 +52,6 @@
 
 #include "stdtypes.h"   /* include peripheral declarations */
    
-#define RS232I_NUM_SOL      8
-#define RS232I_NUM_INP      16
 #define RS232I_NUM_WING     4
 #define RS232I_NUM_GEN2_SOL 16
 #define RS232I_NUM_GEN2_INP 32
@@ -78,8 +76,8 @@ typedef enum
   RS232I_READ_GEN2_INP      = 0x08,     /* Data */
   RS232I_CONFIG_INP         = 0x09,     /* For each input, CFG_INP_TYPE */
   RS232I_GEN2_UNUSED        = 0x0a,     /* Unused */
-  RS232I_SAVE_CFG           = 0x0b,     /* Verify byte = 0xf4 */
-  RS232I_ERASE_CFG          = 0x0c,     /* Verify byte = 0xf3 */
+  RS232I_SAVE_CFG           = 0x0b,
+  RS232I_ERASE_CFG          = 0x0c,
   RS232I_GET_GEN2_CFG       = 0x0d,     /* For each wing,  GEN2_WING_TYPE */
   RS232I_SET_GEN2_CFG       = 0x0e,     /* For each wing,  GEN2_WING_TYPE */
   RS232I_CHNG_NEO_CMD       = 0x0f,

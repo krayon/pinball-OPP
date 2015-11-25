@@ -131,6 +131,8 @@ void main_copy_flash_to_ram()
    
    /* Init gen2g structure */
    gen2g_info.typeWingBrds = 0;
+   gen2g_info.crcErr = 0;
+   gen2g_info.stateMask = 0;
    
    /* Test if wing cfg have valid settings */
    crc = 0xff;

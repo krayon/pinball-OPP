@@ -90,7 +90,7 @@ U8                          *stdleeprom_addr_p;
  * ===============================================================================
  */
 BOOL stdlflash_sector_erase( 
-   U8                         *dest_p)      /* ptr to sector addr in eeprom */
+   U8                         *dest_p)      /* ptr to sector addr in flash */
 {
    U32                        stack[3];
    U32                        status;

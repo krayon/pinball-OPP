@@ -81,7 +81,6 @@ typedef struct
    INT                        currInp;
    U16                        solMask;
    SOLDRV_SOL_T               sol[RS232I_NUM_GEN2_SOL];
-   GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
 } SOLDRV_GLOB_T;
 
 SOLDRV_GLOB_T                 soldrv_info;
@@ -143,7 +142,7 @@ void soldrv_init()
    }
    
    /* Set the location of the configuration data */
-   soldrv_info.solDrvCfg_p = (GEN2G_SOL_DRV_CFG_T *)gen2g_info.freeCfg_p;
+   gen2g_info.solDrvCfg_p = (GEN2G_SOL_DRV_CFG_T *)gen2g_info.freeCfg_p;
    gen2g_info.freeCfg_p += sizeof(GEN2G_SOL_DRV_CFG_T);
    gen2g_info.solDrvProcCtl = 0;
    
@@ -196,7 +195,7 @@ void soldrv_task(void)
       }
       index = soldrv_info.currInp;
       sol_p = &soldrv_info.sol[index];
-      solCfg_p = &soldrv_info.solDrvCfg_p->solCfg[index];
+      solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[index];
     
       /* If using the switch as a trigger input, check it.  Note: switches active low */
       if ((solCfg_p->cfg & USE_SWITCH) && ((inputs & (1 << index)) == 0))
@@ -229,7 +228,8 @@ void soldrv_task(void)
             {
                sol_p->state = SOL_INITIAL_KICK;
                DisableInterrupts;
-               gen2g_info.solDrv.validSwitch |= (1 << index);
+               /* HRS:  Convert to use 32 bits */
+               gen2g_info.validSwitch |= (1 << index);
                EnableInterrupts;
                sol_p->foundClr = FALSE;
                port = index >> 2;
@@ -354,8 +354,9 @@ void soldrv_task(void)
          }
       }
       DisableInterrupts;
-      gen2g_info.solDrv.validSwitch = (gen2g_info.solDrv.validSwitch & ~gen2g_info.solDrv.stateMask) |
-         (inputs & gen2g_info.solDrv.stateMask);
+      /* HRS:  Convert to use 32 bits */
+      gen2g_info.validSwitch = (gen2g_info.validSwitch & ~gen2g_info.stateMask) |
+         (inputs & gen2g_info.stateMask);
       EnableInterrupts;
          
       foundNextBit = FALSE;
@@ -374,5 +375,39 @@ void soldrv_task(void)
       soldrv_info.currInp = index;
   }
 } /* End soldrv_task */
+
+/*
+ * ===============================================================================
+ * 
+ * Name: soldrv_set_init_state
+ * 
+ * ===============================================================================
+ */
+/**
+ * Set initial input state
+ *
+ * Set the initial input state after a config command was received.
+ * 
+ * @param   None 
+ * @return  None
+ * 
+ * @pre     None 
+ * @note    None
+ * 
+ * ===============================================================================
+ */
+void soldrv_set_init_state(void)
+{
+   INT                        index;
+                        
+   for (index = 0; index < RS232I_NUM_GEN2_SOL; index++)
+   {
+      if ((gen2g_info.solDrvCfg_p->solCfg[index].cfg & USE_SWITCH) == 0)
+      {
+         /* HRS:  Convert to use 32 bits */
+         gen2g_info.stateMask |= (1 << index);
+      }
+   }
+} /* End soldrv_set_init_state */
 
 /* [] END OF FILE */

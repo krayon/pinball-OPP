@@ -66,5 +66,8 @@ void neo_update_pixel_color(
 void neo_update_pixel_cmd(
    INT                  pixel,
    INT                  cmd);
+void neo_update_color_tbl(
+   INT               index,
+   U32               color);
 
 /* [] END OF FILE */
