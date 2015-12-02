@@ -95,20 +95,20 @@ typedef enum
 #endif
 const U8                    CMD_LEN[RS232I_NUM_CMDS]
 #ifdef RS232I_INSTANTIATE
- ={ 4,  /* RS232I_GET_SER_NUM */    4,  /* RS232I_GET_PROD_ID */
-    4,  /* RS232I_GET_VERS */       4,  /* RS232I_SET_SER_NUM */
-    0,  /* RS232I_RESET */          0,  /* RS232I_GO_BOOT */
-    48, /* RS232I_CONFIG_SOL */     4,  /* RS232I_KICK_SOL */
-    4,  /* RS232I_READ_GEN2_INP */  32, /* RS232I_CONFIG_INP */
-    2,  /* RS232I_GEN2_UNUSED */    1,  /* RS232I_SAVE_CFG */
-    1,  /* RS232I_ERASE_CFG */      4,  /* RS232I_GET_GEN2_CFG */
-    4,  /* RS232I_SET_GEN2_CFG */   6,  /* RS232I_CHNG_NEO_CMD */
-    6,  /* RS232I_CHNG_NEO_COLOR */ 4,  /* RS232I_CHNG_NEO_COLOR_TBL */
-    96, /* RS232I_SET_NEO_COLOR_TBL */
+ ={ 4,  /* RS232I_GET_SER_NUM */       4,  /* RS232I_GET_PROD_ID */
+    4,  /* RS232I_GET_VERS */          4,  /* RS232I_SET_SER_NUM */
+    0,  /* RS232I_RESET */             0,  /* RS232I_GO_BOOT */
+    48, /* RS232I_CONFIG_SOL */        4,  /* RS232I_KICK_SOL */
+    4,  /* RS232I_READ_GEN2_INP */     32, /* RS232I_CONFIG_INP */
+    2,  /* RS232I_GEN2_UNUSED */       1,  /* RS232I_SAVE_CFG */
+    1,  /* RS232I_ERASE_CFG */         4,  /* RS232I_GET_GEN2_CFG */
+    4,  /* RS232I_SET_GEN2_CFG */      6,  /* RS232I_CHNG_NEO_CMD */
+    6,  /* RS232I_CHNG_NEO_COLOR */    4,  /* RS232I_CHNG_NEO_COLOR_TBL */
+    97, /* RS232I_SET_NEO_COLOR_TBL */
   }
 #endif
 ;
-/* Note:  This is the length of the cmd excluding card ID and cmd */
+/* Note:  This is the length of the cmd excluding card ID, cmd and CRC */
 
 typedef enum
 {

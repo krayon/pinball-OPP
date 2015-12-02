@@ -50,11 +50,13 @@
 #include <stdlib.h>
 #include "stdtypes.h"
 #include "neointf.h"
+#include "stdlintf.h"
 #define GEN2G_INSTANTIATE
 #include "gen2glob.h"
 
-/* HRS:  This should be a configuration param from serial port */
-#define NUM_PIXELS          16
+
+/* HRS:  Debug */
+void debug_save_nv_cfg();
 
 /* Prototype declarations */
 void neo_fifo_trigger_isr();
@@ -68,30 +70,27 @@ void button_task();
 void main_copy_flash_to_ram();
 void main_call_wing_inits();
 
-/* HRS:  Should be in stdlintf.h */
-void stdlser_calc_crc8(
-   U8                        *crc8_p,      /* Ptr to crc8 */
-   INT                       length,       /* Num chars in data stream */
-   U8                        *data_p);     /* Ptr to data stream */
-
 int main()
 {
    CyGlobalIntEnable; /* Enable global interrupts. */
 
+   debug_save_nv_cfg();
+   
    Clock_Start();
    Clock_1_Start();
    PWM_Start();
    PWM_1_Start();
    SPI_1_Start();
-   isr_spi_Start();
 	
    main_copy_flash_to_ram();
    main_call_wing_inits();
    
    /* Initialize tasks */
-   neo_init(NUM_PIXELS);
+   neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
    timer_init();
-   button_init(NUM_PIXELS);
+   button_init(gen2g_info.nvCfgInfo.numNeoPxls);
+
+   isr_spi_Start();
 
    for(;;)
    {
@@ -133,6 +132,7 @@ void main_copy_flash_to_ram()
    gen2g_info.typeWingBrds = 0;
    gen2g_info.crcErr = 0;
    gen2g_info.stateMask = 0;
+   gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    
    /* Test if wing cfg have valid settings */
    crc = 0xff;
@@ -151,7 +151,6 @@ void main_copy_flash_to_ram()
    else
    {
       gen2g_info.validCfg = FALSE;
-      gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
       for (dst_p = (U32 *)&gen2g_info.nvCfgInfo;
          dst_p < (U32 *)((U32)&gen2g_info.nvCfgInfo + sizeof(GEN2G_NV_CFG_T)); dst_p++)
       {

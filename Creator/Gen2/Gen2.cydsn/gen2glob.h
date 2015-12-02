@@ -85,7 +85,8 @@ typedef struct
    U8                         res1[3];
    RS232I_GEN2_WING_TYPE_E    wingCfg[RS232I_NUM_WING];
    GEN2G_NVCFG_TYPE_E         nvCfg[GEN2G_NUM_NVCFG];
-   U8                         res2[4];
+   U8                         numNeoPxls;
+   U8                         res2[3];
    U8                         cfgData[0xf0];
 } GEN2G_NV_CFG_T;
 
@@ -155,6 +156,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
 /* Init prototypes */
 void soldrv_init();
 void inpdrv_init();
+void neopxl_init();
 
 #ifndef GEN2G_INSTANTIATE
    extern
@@ -167,7 +169,7 @@ void inpdrv_init();
       NULL,                         /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
       NULL,                         /* WING_SW_MATRIX_IN */
-      NULL,                         /* WING_NEO */
+      neopxl_init,                  /* WING_NEO */
   }
 #endif
 ;
@@ -191,6 +193,7 @@ typedef struct
    GEN2G_NV_CFG_T             nvCfgInfo;
    GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
    GEN2G_INP_CFG_T            *inpCfg_p;
+   GEN2G_NEO_CFG_T            *neoCfg_p;
    U8                         *freeCfg_p;
 } GEN2G_INFO;
 

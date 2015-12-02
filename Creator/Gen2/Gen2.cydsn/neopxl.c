@@ -55,6 +55,7 @@
  */
 #include <stdlib.h>
 #include "stdtypes.h"
+#include "gen2glob.h"
 #include "neointf.h"
 
 #define SCB1_TX_FIFO_STATUS     0x40070208
@@ -82,13 +83,6 @@ const U16 colorLkup[] =
    { 0x0924, 0x0926, 0x0934, 0x0936, 0x09a4, 0x09a6, 0x09b4, 0x09b6,
      0x0d24, 0x0d26, 0x0d34, 0x0d36, 0x0da4, 0x0da6, 0x0db4, 0x0db6 };
 
-/* Can be changed by user, order is a byte for green, red, and blue */
-U32 colorTbl[32] =
-   { 0xff0000, 0x00ff00, 0x0000ff, 0xffff00, 0xff00ff, 0x00ffff, 0xffffff, 0x000000,
-     0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
-     0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000,
-     0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0x000000, 0xffffff };
-    
 #define NEO_MAX_PIXELS           64
 #define BYTES_PER_PIXEL          9       /* 3 8-bit colors, 3 bits needed/bit color */
 #define MAX_STATE_NUM            32      /* State num goes from 0 - 3 */
@@ -120,6 +114,33 @@ typedef struct
 } NEO_INFO;
 
 NEO_INFO neoInfo;
+
+/*
+ * ===============================================================================
+ * 
+ * Name: neopxl_init
+ * 
+ * ===============================================================================
+ */
+/**
+ * Initialize the neopixel driver
+ * 
+ * Set the neopixel color table pointer.
+ * 
+ * @param   None
+ * @return  None
+ * 
+ * @pre     None 
+ * @note    None
+ * 
+ * ===============================================================================
+ */
+void neopxl_init()
+{
+   /* Set the location of the configuration data */
+   gen2g_info.neoCfg_p = (GEN2G_NEO_CFG_T *)gen2g_info.freeCfg_p;
+   gen2g_info.freeCfg_p += sizeof(GEN2G_NEO_CFG_T);
+} /* neopxl_init */
 
 /*
  * ===============================================================================
@@ -388,8 +409,11 @@ U16 *neo_fill_buffer(
    INT               multFact;
    INT               index;
    U8                buffer[BYTES_PER_PIXEL];
-    
-   pxlColor = colorTbl[pxlCmd & CMD_COLOR_TBL_MASK];
+   
+   
+   pxlColor = (((INT)gen2g_info.neoCfg_p->colorTbl[pxlCmd & CMD_COLOR_TBL_MASK].green) << 16) |
+      (((INT)gen2g_info.neoCfg_p->colorTbl[pxlCmd & CMD_COLOR_TBL_MASK].red) << 8) | 
+      (INT)gen2g_info.neoCfg_p->colorTbl[pxlCmd & CMD_COLOR_TBL_MASK].blue; 
     
    /* Verify pixel is not "on".  An "on" pixel overrides the state */
    if ((pxlCmd & NEOI_CMD_LED_ON) == 0)
@@ -669,7 +693,9 @@ void neo_update_color_tbl(
    INT               index,
    U32               color)
 {
-   colorTbl[index] = color;
+   gen2g_info.neoCfg_p->colorTbl[index].green = (color >> 16) & 0xff;
+   gen2g_info.neoCfg_p->colorTbl[index].red = (color >> 8) & 0xff;
+   gen2g_info.neoCfg_p->colorTbl[index].blue = color & 0xff;
 }
 
 /* [] END OF FILE */

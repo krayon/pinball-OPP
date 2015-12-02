@@ -58,9 +58,9 @@
 #include "stdtypes.h"   /* include peripheral declarations */
 #include "stdlintf.h"
 
-#define CPUSS_CONFIG_REG         0x40100000
-#define CPUSS_SYSREQ_REG         0x40100004
-#define CPUSS_SYSARG_REG         0x40100008
+#define CPUSS_CONFIG_REG         0x40000000
+#define CPUSS_SYSREQ_REG         0x40000004
+#define CPUSS_SYSARG_REG         0x40000008
 #define LOAD_FLASH_SYS_CMD       0x0000d7b6
 #define LOAD_FLASH_OP_CODE       0x80000004
 #define ADDR_TO_ROW_NUM_SHFT     9
@@ -159,10 +159,11 @@ BOOL stdlflash_write(
    INT                        index;
 
 #define PROGRAM_OP_CODE       0x80000006
+#define PROG_ROW_SYS_CMD      0x0000d9b6
    
    /* Create the load latch buffer command */
    stack[0] = LOAD_FLASH_SYS_CMD;
-   stack[1] = numBytes;
+   stack[1] = numBytes - 1;
    for (index = 0, stack_p = (U8 *)&stack[2]; index < numBytes; index++)
    {
       *stack_p++ = *src_p++;
@@ -178,7 +179,7 @@ BOOL stdlflash_write(
    }
    
    /* Run the program row command.  Row must previously have been erased */
-   stack[0] = WRITE_ROW_SYS_CMD | (((U32)dest_p & ~0x7f) << ADDR_TO_ROW_NUM_SHFT);
+   stack[0] = PROG_ROW_SYS_CMD | (((U32)dest_p & ~0x7f) << ADDR_TO_ROW_NUM_SHFT);
    *((R32 *)CPUSS_SYSARG_REG) = (U32)&stack[0];
    *((R32 *)CPUSS_SYSREQ_REG) = PROGRAM_OP_CODE;
    status = *((R32 *)CPUSS_SYSARG_REG);

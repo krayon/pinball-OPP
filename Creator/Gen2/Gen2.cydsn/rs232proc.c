@@ -594,6 +594,9 @@ void rs232proc_task(void)
             }
             else
             {
+               /* rcvBuf[0] contains the number of Neopixels */
+               gen2g_info.nvCfgInfo.numNeoPxls = rs232_glob.rxBuf[0];
+               
                /* Whole command has been received */
                if (data != rs232_glob.crc8)
                {
