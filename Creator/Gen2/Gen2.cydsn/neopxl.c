@@ -163,7 +163,7 @@ void neopxl_init()
  * 
  * ===============================================================================
  */
-void neo_init(
+GEN2G_ERROR_E neo_init(
    U8                numPixels)
 {
    U8                *tmp_p;
@@ -175,8 +175,13 @@ void neo_init(
    neoInfo.complUpd = 0;
    neoInfo.numPixels = numPixels;
     
-   /* HRS:  Test for null on commands */
+   /* Test for null on commands */
    neoInfo.pxlCmd_p = malloc(numPixels);
+   if (neoInfo.pxlCmd_p == NULL)
+   {
+      gen2g_info.error = ERR_MALLOC_FAIL;
+      return(ERR_MALLOC_FAIL);
+   }
     
    /* If odd, add 1 since odd number of bytes and need integral number of U16s.
     * If even, add 2 so extra U16 is added to be blank.  Guarantees neopixel
@@ -196,13 +201,22 @@ void neo_init(
       /* Clear last U16 so last transfers have SPI data low */
       *(neoInfo.end_p - 1) = 0;
    }
+   if (neoInfo.buf_p == NULL)
+   {
+      gen2g_info.error = ERR_MALLOC_FAIL;
+      return(ERR_MALLOC_FAIL);
+   }
    for (tmp_p = neoInfo.pxlCmd_p; tmp_p < neoInfo.pxlCmd_p + numPixels; tmp_p++)
    {
       *tmp_p = NEOI_CMD_LED_ON;
    }
+   
+   /* Disable the TX SCB interrupt, set the interrupt to occur at 4 words */
+   *(R32 *)SCB1_TX_FIFO_CTRL = 4;
+   *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_TRIGGER;
     
    /* Register a 40ms repeating tick function, register FIFO empty if necessary */
-   *(R32 *)SCB1_TX_FIFO_CTRL = 4;
+   return(NO_ERRORS);
 }
 
 /*

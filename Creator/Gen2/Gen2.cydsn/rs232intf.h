@@ -84,6 +84,7 @@ typedef enum
   RS232I_CHNG_NEO_COLOR     = 0x10,
   RS232I_CHNG_NEO_COLOR_TBL = 0x11,
   RS232I_SET_NEO_COLOR_TBL  = 0x12,
+  RS232I_INCAND_CMD         = 0x13,
   RS232I_NUM_CMDS,
   
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
@@ -104,7 +105,7 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
     1,  /* RS232I_ERASE_CFG */         4,  /* RS232I_GET_GEN2_CFG */
     4,  /* RS232I_SET_GEN2_CFG */      6,  /* RS232I_CHNG_NEO_CMD */
     6,  /* RS232I_CHNG_NEO_COLOR */    4,  /* RS232I_CHNG_NEO_COLOR_TBL */
-    97, /* RS232I_SET_NEO_COLOR_TBL */
+    97, /* RS232I_SET_NEO_COLOR_TBL */ 5,  /* RS232I_INCAND_CMD */
   }
 #endif
 ;
@@ -173,5 +174,21 @@ typedef enum
   NEOCMD_MASK               = 0xe0,
   NEOCMD_COLOR_TBL_MASK     = 0x1f,
 } __attribute__((packed)) RS232I_GEN2_NEO_CMD_E;
+
+typedef enum
+{
+  INCAND_ROT_LEFT           = 0x00,
+  INCAND_ROT_RIGHT          = 0x01,
+  INCAND_LED_ON             = 0x02,
+  INCAND_LED_OFF            = 0x03,
+  INCAND_LED_BLINK_SLOW     = 0x04,
+  INCAND_LED_BLINK_FAST     = 0x05,
+  INCAND_LED_BLINK_OFF      = 0x06,
+
+  INCAND_SET                = 0x80,
+  INCAND_SET_ON             = 0x01,
+  INCAND_SET_BLINK_SLOW     = 0x02,
+  INCAND_SET_BLINK_FAST     = 0x04,
+} __attribute__((packed)) RS232I_GEN2_INCAND_CMD_E;
 
 #endif

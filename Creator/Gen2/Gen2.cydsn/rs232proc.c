@@ -92,8 +92,7 @@ typedef struct
 RS232_GLOB_T                  rs232_glob;
 
 /* Prototypes */
-void inpdrv_set_init_state();
-void soldrv_set_init_state();
+void digital_set_init_state();
 void rs232proc_rx_ser_char(
   U16                       cbParam,
   U8                        data);
@@ -428,13 +427,13 @@ void rs232proc_task(void)
                         {
                            *dest_p++ = *src_p++;
                         }
-                        soldrv_set_init_state();
+                        digital_set_init_state();
                         break;
                      }
                      case RS232I_KICK_SOL:
                      {
                         DisableInterrupts;
-                        gen2g_info.solDrv.procCtl = (gen2g_info.solDrv.procCtl & 
+                        gen2g_info.solDrvProcCtl = (gen2g_info.solDrvProcCtl & 
                            ~(((U16)rs232_glob.rxBuf[2] << 8) | (U16)rs232_glob.rxBuf[3])) |
                            (((U16)rs232_glob.rxBuf[0] << 8) | (U16)rs232_glob.rxBuf[1]);
                         EnableInterrupts;
@@ -451,7 +450,7 @@ void rs232proc_task(void)
                         {
                            *dest_p++ = *src_p++;
                         }
-                        inpdrv_set_init_state();
+                        digital_set_init_state();
                         break;
                      }
                      case RS232I_SAVE_CFG:

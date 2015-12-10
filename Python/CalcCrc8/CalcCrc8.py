@@ -98,7 +98,9 @@ def main(argv=None):
         if (len(msgBytes) != 0):
             msgInts = []
             for indByte in msgBytes:
-                msgInts.append(int(indByte, 16))
+                # If separators used from brdIntf document, ignore them
+                if indByte != '|':
+                    msgInts.append(int(indByte, 16))
             crc8 = 0xff
             crc8Byte = 0xff
             for indInt in msgInts:

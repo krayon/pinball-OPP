@@ -47,6 +47,7 @@
  *===============================================================================
  */
 #include "stdtypes.h"
+#include "gen2glob.h"
 
 #define NEOI_CMD_LED_ON     0x80
 #define NEOI_CMD_BLINK_SLOW 0x00
@@ -57,7 +58,7 @@
 #define NEOI_COLOR_TBL_SIZE 0x20
 
 /* Prototypes */
-void neo_init(
+GEN2G_ERROR_E neo_init(
    U8                   numPixels);
 void neo_task();
 void neo_update_pixel_color(
@@ -67,7 +68,7 @@ void neo_update_pixel_cmd(
    INT                  pixel,
    INT                  cmd);
 void neo_update_color_tbl(
-   INT               index,
-   U32               color);
+   INT                  index,
+   U32                  color);
 
 /* [] END OF FILE */

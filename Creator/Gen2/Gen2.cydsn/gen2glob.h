@@ -54,6 +54,15 @@
 #include "rs232intf.h"
 #include "stdlintf.h"
 
+typedef enum
+{
+   NO_ERRORS                  = 0x00,
+   ERR_MALLOC_FAIL            = 0x01,
+   
+   /* OR'd with STDLI_ERR_E so error codes don't conflict */
+   ERR_STDL_ERR_MASK          = 0x80,
+} __attribute__((packed)) GEN2G_ERROR_E;
+   
 #define GEN2G_CFG_TBL         0x00007e80
 #define GEN2G_FLASH_SECT_SZ   0x80
 #define GEN2G_NV_PARM_SIZE    0xfc
@@ -63,10 +72,10 @@
 
 typedef enum
 {
-  NVCFG_UNUSED              = 0x00,
-  NVCFG_SOL                 = 0x01,
-  NVCFG_INP                 = 0x02,
-  NVCFG_COLOR_TBL           = 0x03,
+   NVCFG_UNUSED               = 0x00,
+   NVCFG_SOL                  = 0x01,
+   NVCFG_INP                  = 0x02,
+   NVCFG_COLOR_TBL            = 0x03,
 } __attribute__((packed)) GEN2G_NVCFG_TYPE_E;
 
 typedef struct
@@ -154,8 +163,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
 ;
 
 /* Init prototypes */
-void soldrv_init();
-void inpdrv_init();
+void digital_init();
 void neopxl_init();
 
 #ifndef GEN2G_INSTANTIATE
@@ -164,8 +172,8 @@ void neopxl_init();
  void (*GEN2G_INIT_FP[MAX_WING_TYPES])()
 #ifdef GEN2G_INSTANTIATE
  ={   NULL,                         /* WING_UNUSED */
-      soldrv_init,                  /* WING_SOL */
-      inpdrv_init,                  /* WING_INP */
+      digital_init,                 /* WING_SOL */
+      digital_init,                 /* WING_INP */
       NULL,                         /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
       NULL,                         /* WING_SW_MATRIX_IN */
@@ -176,20 +184,12 @@ void neopxl_init();
 
 typedef struct
 {
-   U16                        procCtl;
-   STDLI_ELAPSED_TIME_T       elapsedTime;
-} GEN2G_SOL_DRV_T;
-
-typedef struct
-{
    BOOL                       validCfg;
+   GEN2G_ERROR_E              error;
+   U16                        solDrvProcCtl;
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
    U32                        validSwitch;
-   U32                        stateMask;
    U32                        crcErr;
-   U16                        solDrvProcCtl;
-   U16                        solDrvValidSwitch;
-   GEN2G_SOL_DRV_T            solDrv;
    GEN2G_NV_CFG_T             nvCfgInfo;
    GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
    GEN2G_INP_CFG_T            *inpCfg_p;

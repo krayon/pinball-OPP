@@ -56,10 +56,6 @@ typedef unsigned long U32;
 typedef int INT;
 typedef unsigned int UINT;
 typedef volatile unsigned long R32;
-typedef int BOOL;
-
-#define FALSE           0 
-#define TRUE            !FALSE 
 
 #define MAX_U8          0xff
 #define MAX_U16         0xffff
@@ -67,6 +63,12 @@ typedef int BOOL;
 
 #define NULL ((void *)0)
 
+typedef enum
+{
+   FALSE                   = 0,
+   TRUE                    = !FALSE
+} __attribute__((packed)) BOOL;
+   
 #endif
     
 /* [] END OF FILE */

@@ -49,10 +49,10 @@
 #include <project.h>
 #include <stdlib.h>
 #include "stdtypes.h"
-#include "neointf.h"
-#include "stdlintf.h"
 #define GEN2G_INSTANTIATE
 #include "gen2glob.h"
+#include "neointf.h"
+#include "stdlintf.h"
 
 
 /* HRS:  Debug */
@@ -70,6 +70,8 @@ void button_task();
 void main_copy_flash_to_ram();
 void main_call_wing_inits();
 
+void digital_task(void);
+
 int main()
 {
    CyGlobalIntEnable; /* Enable global interrupts. */
@@ -86,11 +88,13 @@ int main()
    main_call_wing_inits();
    
    /* Initialize tasks */
-   neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
+   gen2g_info.error = neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
    timer_init();
    button_init(gen2g_info.nvCfgInfo.numNeoPxls);
 
-   isr_spi_Start();
+   /* HRS:  Removed since didn't finish interrupt yet
+    * isr_spi_Start();
+    */
 
    for(;;)
    {
@@ -98,6 +102,7 @@ int main()
       neo_fifo_trigger_isr();
       neo_task();
       button_task();
+      digital_task();
    }
 }
 
@@ -131,7 +136,7 @@ void main_copy_flash_to_ram()
    /* Init gen2g structure */
    gen2g_info.typeWingBrds = 0;
    gen2g_info.crcErr = 0;
-   gen2g_info.stateMask = 0;
+   gen2g_info.error = NO_ERRORS;
    gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    
    /* Test if wing cfg have valid settings */
