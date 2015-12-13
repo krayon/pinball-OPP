@@ -78,39 +78,40 @@ typedef enum
 /* Serial interface structures/enumerations */
 typedef enum
 {
-  STDLI_SER_PORT_1          = 0x00,
-  STDLI_SER_PORT_2          = 0x01,
-  STDLI_POLL_SER_PORT       = 0x80
+  STDLI_SER_PORT_1            = 0x00,
+  STDLI_SER_PORT_2            = 0x01,
+  STDLI_POLL_SER_PORT         = 0x80
 } STDLI_SER_PORT_E;
 
 #define STDLI_NUM_SER_PORT  2
 
 typedef struct
 {
-  U8                        *txBuf_p;
-  U8                        txBufSize;
-  void                      (*rxSerChar_fp)(U16 cbParm, U8 data);
-  U16                       cbParm;
-  U8                        curTxHead;    /* Filled by utility */
-  U8                        curTxTail;    /* Filled by utility */
-  BOOL                      txAct;        /* Filled by utility */
-  U8                        pollBit;      /* Filled by utility */
+   U8                         *txBuf_p;
+   U8                         txBufSize;
+   void                       (*rxSerChar_fp)(U16 cbParm, U8 data);
+   U16                        cbParm;
+   U8                         curTxHead;    /* Filled by utility */
+   U8                         curTxTail;    /* Filled by utility */
+   BOOL                       txAct;        /* Filled by utility */
+   BOOL                       poll;         /* Filled by utility */
 } STDLI_SER_INFO_T;
 
+void stdlser_ser_module_init(void);
 void stdlser_init_ser_port(
-  STDLI_SER_PORT_E          portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
-  STDLI_SER_INFO_T          *serInfo_p);  /* Ser state, txBuf addr, txBuf size, rx
+   STDLI_SER_PORT_E           portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   STDLI_SER_INFO_T           *serInfo_p);  /* Ser state, txBuf addr, txBuf size, rx
                                            *  callback func.
                                            */
-U16 stdlser_xmt_data(
-  STDLI_SER_PORT_E          portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
-  BOOL                      blocking,     /* TRUE to block waiting to put xmt data on queue */
-  U8                        *data_p,      /* Ptr to data to xmt */
-  U16                       numChar);     /* Num chars to xmt */
+INT stdlser_xmt_data(
+   STDLI_SER_PORT_E           portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   BOOL                       blocking,     /* TRUE to block waiting to put xmt data on queue */
+   U8                         *data_p,      /* Ptr to data to xmt */
+   U16                        numChar);     /* Num chars to xmt */
 void stdlser_calc_crc8(
-   U8                        *crc8_p,      /* Ptr to crc8 */
-   INT                       length,       /* Num chars in data stream */
-   U8                        *data_p);     /* Ptr to data stream */
+   U8                         *crc8_p,      /* Ptr to crc8 */
+   INT                        length,       /* Num chars in data stream */
+   U8                         *data_p);     /* Ptr to data stream */
 
 /* 
  * API for timing functions

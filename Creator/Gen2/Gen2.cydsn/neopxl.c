@@ -213,7 +213,7 @@ GEN2G_ERROR_E neo_init(
    
    /* Disable the TX SCB interrupt, set the interrupt to occur at 4 words */
    *(R32 *)SCB1_TX_FIFO_CTRL = 4;
-   *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_TRIGGER;
+   *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
     
    /* Register a 40ms repeating tick function, register FIFO empty if necessary */
    return(NO_ERRORS);
@@ -283,7 +283,7 @@ void neo_fill_fifo()
    if (neoInfo.src_p >= neoInfo.end_p)
    {
       /* Mask the FIFO count interrupt */
-      *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_TRIGGER;
+      *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
       if (*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_UNDERFLOW)
       {
          neoInfo.underflow++;
@@ -612,7 +612,7 @@ void neo_task()
         
       /* Enable FIFO empty isr, clear bit and unmask it */
       *(R32 *)SCB1_INTR_TX = (INTR_TX_SCB_TRIGGER | INTR_TX_SCB_UNDERFLOW);
-      *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
+      *(R32 *)SCB1_INTR_TX_MASK |= INTR_TX_SCB_TRIGGER;
    }
 }
 

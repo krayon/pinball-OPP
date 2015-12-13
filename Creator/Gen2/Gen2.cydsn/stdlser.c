@@ -59,21 +59,36 @@
 #include "stdlintf.h"
 #include "stdlglob.h"
 
-#define SER1_ADDR           0x38    /* Address of first port (port 1) */
-#define SCIxS1_RCV_OVERRUN  0x28    /* Rcv bit or overrun */
-#define SCIxS1_TDRE         0x80    /* Xmt data register empty */
-#define SCIxC2_TX_INT_EN    0x80    /* Xmt interrupt enable */
+#define SCB1_ADDR_OFFSET      0x00010000
+
+#define SCB0_TX_FIFO_STATUS   0x40060208
+#define TX_FIFO_USED_MASK     0x0000000f
+
+#define SCB0_TX_FIFO_WR       0x40060240
+
+#define SCB0_RX_FIFO_RD       0x40060340
+
+#define SCB0_INTR_TX          0x40060f80
+#define INTR_TX_SCB_NOT_FULL  0x00000002
+
+#define SCB0_INTR_TX_MASK     0x40060f88
+#define INTR_TX_SCB_TRIGGER   0x00000001
+
+#define SCB0_INTR_RX          0x40060fc0
+#define INTR_RX_SCB_NOT_EMPTY 0x00000004
+
+#define SCB0_INTR_RX_MASK     0x40060fc8
 
 typedef struct
 {
-  STDLI_SER_INFO_T          *serInfo_p[STDLI_NUM_SER_PORT];
+   STDLI_SER_INFO_T           *serInfo_p[STDLI_NUM_SER_PORT];
 } STDLSER_GLOB_T;
 
-STDLSER_GLOB_T              stdlser_glob;
+STDLSER_GLOB_T                stdlser_glob;
 
 /* Prototypes: */
 void stdlser_xmt_char(
-  STDLI_SER_PORT_E          portNum);
+  STDLI_SER_PORT_E            portNum);
 
 /*
  * ===============================================================================
@@ -97,8 +112,8 @@ void stdlser_xmt_char(
  */
 void stdlser_ser_module_init(void)
 {
-  stdlser_glob.serInfo_p[STDLI_SER_PORT_1] = NULL;
-  stdlser_glob.serInfo_p[STDLI_SER_PORT_2] = NULL;
+   stdlser_glob.serInfo_p[STDLI_SER_PORT_1] = NULL;
+   stdlser_glob.serInfo_p[STDLI_SER_PORT_2] = NULL;
 } /* End stdlser_ser_module_init */
 
 /*
@@ -129,29 +144,46 @@ void stdlser_ser_module_init(void)
  * ===============================================================================
  */
 void stdlser_init_ser_port(
-  STDLI_SER_PORT_E          portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
-  STDLI_SER_INFO_T          *serInfo_p)   /* Ser state, txBuf addr, txBuf size, rx
-                                           *  callback func.
-                                           */
+  STDLI_SER_PORT_E            portNum,       /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+  STDLI_SER_INFO_T            *serInfo_p)    /* Ser state, txBuf addr, txBuf size, rx
+                                              *  callback func.
+                                              */
 {
-
-#define RCV_INT_EN          0x20;
-#define PORT_NUM_MASK       0x01
+#define PORT_NUM_MASK         0x01
+   
+   R32                        *intrTxMaskReg_p;
+   R32                        *intrRxMaskReg_p;
+   
+   if ((portNum & PORT_NUM_MASK) == STDLI_SER_PORT_1)
+   {
+      intrTxMaskReg_p = (R32 *)SCB0_INTR_TX_MASK;
+      intrRxMaskReg_p = (R32 *)SCB0_INTR_RX_MASK;
+   }
+   else
+   {
+      intrTxMaskReg_p = (R32 *)(SCB0_INTR_TX_MASK + SCB1_ADDR_OFFSET);
+      intrRxMaskReg_p = (R32 *)(SCB0_INTR_RX_MASK + SCB1_ADDR_OFFSET);
+   }
+   
+   serInfo_p->curTxHead = 0;
+   serInfo_p->curTxTail = 0;
+   serInfo_p->txAct = FALSE;
+   if (portNum & STDLI_POLL_SER_PORT)
+   {
+      /* Mask interrupts */
+      serInfo_p->poll = TRUE;
+      *intrRxMaskReg_p &= ~INTR_RX_SCB_NOT_EMPTY;
+   }
+   else
+   {
+      /* Enable rx interrupt */
+      serInfo_p->poll = FALSE;
+      *intrRxMaskReg_p |= INTR_RX_SCB_NOT_EMPTY;
+   }
+   *intrTxMaskReg_p &= ~INTR_TX_SCB_TRIGGER;
+   stdlser_glob.serInfo_p[portNum & PORT_NUM_MASK] = serInfo_p;
   
-  serInfo_p->curTxHead = 0;
-  serInfo_p->curTxTail = 0;
-  serInfo_p->txAct = FALSE;
-  if (portNum & STDLI_POLL_SER_PORT)
-  {
-    serInfo_p->pollBit = 0;
-  }
-  else
-  {
-    serInfo_p->pollBit = RCV_INT_EN;
-  }
-  stdlser_glob.serInfo_p[portNum & PORT_NUM_MASK] = serInfo_p;
-  
-  /* Configure the pins/baud rate */
+   /* HRS: Configure the pins/baud rate, currently done by autogen */
 
 } /* End stdlser_init_ser_port */
 
@@ -177,30 +209,46 @@ void stdlser_init_ser_port(
  * ===============================================================================
  */
 void stdlser_rcv_char(
-  STDLI_SER_PORT_E          portNum)
+   STDLI_SER_PORT_E           portNum)
 {
-  U8                        tmpVal = 0;
-  STDLI_SER_INFO_T          *serInfo_p;
+   STDLI_SER_INFO_T           *serInfo_p;
+   R32                        *intrRxReg_p;
+   R32                        *rxFifoRdReg_p;
 
-  /* Clear the interrupt bit */  
-  serInfo_p = stdlser_glob.serInfo_p[portNum];
+   /* Clear the interrupt bit */
+   serInfo_p = stdlser_glob.serInfo_p[portNum];
   
-  /* If the serial port has been registered, call callback function */
-  if (serInfo_p != NULL)
-  {
-    serInfo_p->rxSerChar_fp(serInfo_p->cbParm, tmpVal);
-  }
+   /* If the serial port has been registered, call callback function */
+   if (serInfo_p != NULL)
+   {
+      if (portNum == STDLI_SER_PORT_1)
+      {
+         intrRxReg_p = (R32 *)SCB0_INTR_RX;
+         rxFifoRdReg_p = (R32 *)SCB0_RX_FIFO_RD;
+      }
+      else
+      {
+         intrRxReg_p = (R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET);
+         rxFifoRdReg_p = (R32 *)(SCB0_RX_FIFO_RD + SCB1_ADDR_OFFSET);
+      }
+      *intrRxReg_p = INTR_RX_SCB_NOT_EMPTY;
+      while (*intrRxReg_p & INTR_RX_SCB_NOT_EMPTY)
+      {
+         serInfo_p->rxSerChar_fp(serInfo_p->cbParm, (U8)(*rxFifoRdReg_p & 0xff));
+         *intrRxReg_p = INTR_RX_SCB_NOT_EMPTY;
+      }
+   }
 } /* End stdlser_rcv_char */
 
 /*
  * ===============================================================================
  * 
- * Name: stdlser_rcv_portx_isr
+ * Name: stdlser_isr
  * 
  * ===============================================================================
  */
 /**
- * ISR for rcving serial port chars
+ * ISR for rcving/xmting serial port chars
  * 
  * Call rcv char func passing in the serial port num.
  * 
@@ -212,43 +260,49 @@ void stdlser_rcv_char(
  * 
  * ===============================================================================
  */
-void stdlser_rcv_port1_isr(void)
-{
-  stdlser_rcv_char(STDLI_SER_PORT_1);
-} /* End stdlser_rcv_port1_isr */
-
 void stdlser_port1_poll(void)
 {
-  STDLI_SER_INFO_T          *serInfo_p;
+   STDLI_SER_INFO_T           *serInfo_p;
 
-  serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_1];
-  /* If rcv overrun */
-  stdlser_rcv_char(STDLI_SER_PORT_1);
-  /* If tx avail  */
-  if (serInfo_p->txAct)
-  {
-    stdlser_xmt_char(STDLI_SER_PORT_1);
-  }
-} /* End stdlser_rcv_port1_poll */
+   *(R32 *)SCB0_INTR_RX = INTR_RX_SCB_NOT_EMPTY;
+   if ((*(R32 *)SCB0_INTR_RX) & INTR_RX_SCB_NOT_EMPTY)
+   {
+      stdlser_rcv_char(STDLI_SER_PORT_1);
+   }
+   serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_1];
+   *(R32 *)SCB0_INTR_TX = INTR_TX_SCB_TRIGGER;
+   if (((*(R32 *)SCB0_INTR_TX) & INTR_TX_SCB_TRIGGER) && serInfo_p->txAct)
+   {
+      stdlser_xmt_char(STDLI_SER_PORT_1);
+   }
+} /* End stdlser_port1_poll */
 
-void stdlser_rcv_port2_isr(void)
+void stdlser_port1_isr(void)
 {
-  stdlser_rcv_char(STDLI_SER_PORT_2);
-} /* End stdlser_rcv_port2_isr */
+   stdlser_port1_poll();
+} /* End stdlser_port1_isr */
 
 void stdlser_port2_poll(void)
 {
-  STDLI_SER_INFO_T          *serInfo_p;
+   STDLI_SER_INFO_T           *serInfo_p;
 
-  serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_2];
-  /* If rcv overrun */
-  stdlser_rcv_char(STDLI_SER_PORT_2);
-  /* If tx avail  */
-  if (serInfo_p->txAct)
-  {
-    stdlser_xmt_char(STDLI_SER_PORT_2);
-  }
-} /* End stdlser_rcv_port2_poll */
+   *((R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET)) = INTR_RX_SCB_NOT_EMPTY;
+   if ((*((R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET))) & INTR_RX_SCB_NOT_EMPTY)
+   {
+      stdlser_rcv_char(STDLI_SER_PORT_1);
+   }
+   serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_1];
+   *((R32 *)(SCB0_INTR_TX + SCB1_ADDR_OFFSET)) = INTR_TX_SCB_TRIGGER;
+   if (((*((R32 *)SCB0_INTR_TX + SCB1_ADDR_OFFSET)) & INTR_TX_SCB_TRIGGER) && serInfo_p->txAct)
+   {
+      stdlser_xmt_char(STDLI_SER_PORT_1);
+   }
+} /* End stdlser_port2_poll */
+
+void stdlser_port2_isr(void)
+{
+   stdlser_port2_poll();
+} /* End stdlser_port2_isr */
 
 /*
  * ===============================================================================
@@ -273,42 +327,51 @@ void stdlser_port2_poll(void)
  * ===============================================================================
  */
 void stdlser_xmt_char(
-  STDLI_SER_PORT_E          portNum)
+   STDLI_SER_PORT_E           portNum)
 {
-  STDLI_SER_INFO_T          *serInfo_p;
-  U8                        data;
+   STDLI_SER_INFO_T           *serInfo_p;
+   R32                        *txFifoWrReg_p;
+   R32                        *intrTxMaskReg_p;
+   R32                        *txFifoStatusReg_p;
 
-#define TDRE_FLAG           0x80
-
-  serInfo_p = stdlser_glob.serInfo_p[portNum];
-  if (!serInfo_p->txAct)
-  {
-    serInfo_p->txAct = TRUE;
-  }
+   if (portNum == STDLI_SER_PORT_1)
+   {
+      txFifoWrReg_p = (R32 *)SCB0_TX_FIFO_WR;
+      intrTxMaskReg_p = (R32 *)SCB0_INTR_TX_MASK;
+      txFifoStatusReg_p = (R32 *)SCB0_TX_FIFO_STATUS;
+   }
+   else
+   {
+      txFifoWrReg_p = (R32 *)(SCB0_TX_FIFO_WR + SCB1_ADDR_OFFSET);
+      intrTxMaskReg_p = (R32 *)(SCB0_INTR_TX_MASK + SCB1_ADDR_OFFSET);
+      txFifoStatusReg_p = (R32 *)(SCB0_TX_FIFO_STATUS + SCB1_ADDR_OFFSET);
+   }
+   serInfo_p = stdlser_glob.serInfo_p[portNum];
   
-  /* Check if there is a character to be transmitted */
-  if (serInfo_p->curTxHead != serInfo_p->curTxTail)
-  {        
-    /* xmt avail */
-    {
-      data = serInfo_p->txBuf_p[serInfo_p->curTxHead]; 
-      serInfo_p->curTxHead++;
-      if (serInfo_p->curTxHead == serInfo_p->txBufSize)
+   /* Check if there is a character to be transmitted */
+   if (serInfo_p->curTxHead != serInfo_p->curTxTail)
+   {
+      /* While the Tx FIFO is not full */
+      while (((*txFifoStatusReg_p & TX_FIFO_USED_MASK) != 8) &&
+        (serInfo_p->curTxHead != serInfo_p->curTxTail))
       {
-        serInfo_p->curTxHead = 0;
+         /* Send the byte */
+         *txFifoWrReg_p = serInfo_p->txBuf_p[serInfo_p->curTxHead];
+         serInfo_p->curTxHead++;
+         if (serInfo_p->curTxHead == serInfo_p->txBufSize)
+         {
+            serInfo_p->curTxHead = 0;
+         }
       }
-    }
     
-    /* Check if this is the last character */
-    if (serInfo_p->curTxHead == serInfo_p->curTxTail)
-    {
-      /* Clear the transmit done isr bit */
-      serInfo_p->txAct = FALSE;
-    }
-    /* Send the byte */
-   data++;
-
-  }
+      /* Check if this is the last character */
+      if (serInfo_p->curTxHead == serInfo_p->curTxTail)
+      {
+         /* Clear the transmit done isr bit */
+         serInfo_p->txAct = FALSE;
+         *intrTxMaskReg_p &= ~INTR_TX_SCB_TRIGGER;
+      }
+   }
 } /* End void stdlser_xmt_char */
 
 /*
@@ -336,91 +399,71 @@ void stdlser_xmt_char(
  * 
  * ===============================================================================
  */
-U16 stdlser_xmt_data(
-  STDLI_SER_PORT_E          portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
-  BOOL                      blocking,     /* TRUE to block waiting to put xmt data on queue */
-  U8                        *data_p,      /* Ptr to data to xmt */
-  U16                       numChar)      /* Num chars to xmt */
+INT stdlser_xmt_data(
+   STDLI_SER_PORT_E           portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   BOOL                       blocking,     /* TRUE to block waiting to put xmt data on queue */
+   U8                         *data_p,      /* Ptr to data to xmt */
+   U16                        numChar)      /* Num chars to xmt */
 {
-  U8                        tmpCnt;
-  STDLI_SER_INFO_T          *serInfo_p;
-  U8                        nxtIndex;
-  BOOL                      spaceAvail;
+   INT                        tmpCnt;
+   STDLI_SER_INFO_T           *serInfo_p;
+   U8                         nxtIndex;
+   BOOL                       spaceAvail;
+   R32                        *intrTxMaskReg_p;
   
-  serInfo_p = stdlser_glob.serInfo_p[portNum];
-  if (serInfo_p == NULL)
-  {
-    return(0);
-  }
+   serInfo_p = stdlser_glob.serInfo_p[portNum];
+   if (serInfo_p == NULL)
+   {
+      return(0);
+   }
+   if (portNum == STDLI_SER_PORT_1)
+   {
+      intrTxMaskReg_p = (R32 *)SCB0_INTR_TX_MASK;
+   }
+   else
+   {
+      intrTxMaskReg_p = (R32 *)(SCB0_INTR_TX_MASK + SCB1_ADDR_OFFSET);
+   }
   
-  for (tmpCnt = 0, spaceAvail = TRUE; 
-    (tmpCnt < numChar) && spaceAvail; )
-  {
-    /* Check if at the end of the tx buffer */
-    nxtIndex = serInfo_p->curTxTail + 1;
-    if (nxtIndex == serInfo_p->txBufSize)
-    {
-      nxtIndex = 0;
-    }
-    if (serInfo_p->curTxHead == nxtIndex)
-    {
-      if (blocking)
+   for (tmpCnt = 0, spaceAvail = TRUE; 
+      (tmpCnt < numChar) && spaceAvail; )
+   {
+      /* Check if at the end of the tx buffer */
+      nxtIndex = serInfo_p->curTxTail + 1;
+      if (nxtIndex == serInfo_p->txBufSize)
       {
-         /* Pet the watchdog timer and try again */
+         nxtIndex = 0;
+      }
+      if (serInfo_p->curTxHead == nxtIndex)
+      {
+         if (blocking)
+         {
+            /* Pet the watchdog timer and try again */
+         }
+         else
+         {
+            spaceAvail = FALSE;
+         }
       }
       else
       {
-        spaceAvail = FALSE;
+         serInfo_p->txBuf_p[serInfo_p->curTxTail] = data_p[tmpCnt];
+         serInfo_p->curTxTail = nxtIndex;
+         tmpCnt++;
       }
-    }
-    else
-    {
-      serInfo_p->txBuf_p[serInfo_p->curTxTail] = data_p[tmpCnt];
-      serInfo_p->curTxTail = nxtIndex;
-      tmpCnt++;
-    }
-  }
-  if (!serInfo_p->txAct)
-  {
-    /* Since tx is not active, enable the isr bit if not polled */
-    serInfo_p->txAct = TRUE;
-    if (serInfo_p->pollBit)
-    {
-      /* Set tx int bit if not polling */
-    }
-  }
-  return(tmpCnt);
+   }
+   if (!serInfo_p->txAct)
+   {
+      /* Since tx is not active, enable the isr bit if not polled */
+      serInfo_p->txAct = TRUE;
+      if (!serInfo_p->poll)
+      {
+         /* Set tx int bit if not polling */
+         *intrTxMaskReg_p |= INTR_TX_SCB_TRIGGER;
+      }
+   }
+   return(tmpCnt);
 } /* End void stdlser_xmt_data */
-
-/*
- * ===============================================================================
- * 
- * Name: stdlser_xmt_portx_isr
- * 
- * ===============================================================================
- */
-/**
- * ISR for tx complete serial port chars
- * 
- * Call send char func passing in the serial port.
- * 
- * @param   None 
- * @return  None
- * 
- * @pre     None 
- * @note    None
- * 
- * ===============================================================================
- */
-void stdlser_xmt_port1_isr(void)
-{
-  stdlser_xmt_char(STDLI_SER_PORT_1);
-} /* End stdlser_xmt_port1_isr */
-
-void stdlser_xmt_port2_isr(void)
-{
-  stdlser_xmt_char(STDLI_SER_PORT_2);
-} /* End stdlser_xmt_port2_isr */
 
 /*
  * ===============================================================================

@@ -49,11 +49,11 @@
  */
  
 #include "stdtypes.h"
+#define RS232I_INSTANTIATE
+#include "rs232intf.h"
 #include "stdlintf.h"
 #include "neointf.h"
 #include "procdefs.h"         /* for EnableInterrupts macro */
-#define RS232I_INSTANTIATE
-#include "rs232intf.h"
 #include "gen2glob.h"
 
 #define STDL_FILE_ID          2
@@ -100,6 +100,10 @@ void rs232proc_force_boot_mode(void);
 void rs232proc_bswap_copy_dest(
    U32                        *data_p,
    U8                         *dst_p);
+void rs232proc_copy_dest(
+   U8                         *src_p,
+   U8                         *dst_p,
+   UINT                       length);
 void rs232proc_bswap_data_buf(
    U32                        *data_p,
    UINT                       numBytes);
@@ -253,7 +257,7 @@ void rs232proc_task(void)
                      case RS232I_GET_GEN2_CFG:
                      {
                         /* Product ID is uniquely identified by wing board cfg */
-                        rs232proc_bswap_copy_dest((U32 *)&gen2g_info.nvCfgInfo.wingCfg[0], &txBuf[2]);
+                        rs232proc_copy_dest(&gen2g_info.nvCfgInfo.wingCfg[0], &txBuf[2], RS232I_NUM_WING);
                         rs232_glob.state = RS232_STRIP_CMD;
                         txBuf[6] = 0xff;
                         stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
@@ -685,6 +689,38 @@ void rs232proc_bswap_copy_dest(
       *dst_p++ = *src_p++;
    }
 } /* End rs232proc_bswap_copy_dest */
+
+/*
+ * ===============================================================================
+ * 
+ * Name: rs232proc_copy_dest
+ * 
+ * ===============================================================================
+ */
+/**
+ * Byte copy to destination
+ * 
+ * @param   None 
+ * @return  None
+ * 
+ * @pre     None 
+ * @note    None
+ * 
+ * ===============================================================================
+ */
+void rs232proc_copy_dest(
+   U8                         *src_p,
+   U8                         *dst_p,
+   UINT                       length)
+{
+   UINT                       index;
+   
+   for (index = 0; index < length; index++)
+   {
+      *dst_p++ = *src_p++;
+   }
+} /* End rs232proc_copy_dest */
+
 
 /*
  * ===============================================================================

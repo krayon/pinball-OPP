@@ -72,6 +72,9 @@ void main_call_wing_inits();
 
 void digital_task(void);
 
+void rs232proc_init();
+void rs232proc_task();
+
 int main()
 {
    CyGlobalIntEnable; /* Enable global interrupts. */
@@ -83,26 +86,30 @@ int main()
    PWM_Start();
    PWM_1_Start();
    SPI_1_Start();
+   UART_1_Start();
+
 	
    main_copy_flash_to_ram();
    main_call_wing_inits();
+
+   stdlser_ser_module_init();
+   rs232proc_init();
    
    /* Initialize tasks */
    gen2g_info.error = neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
    timer_init();
    button_init(gen2g_info.nvCfgInfo.numNeoPxls);
 
-   /* HRS:  Removed since didn't finish interrupt yet
-    * isr_spi_Start();
-    */
+   isr_spi_Start();
+   isr_uart_Start();
 
    for(;;)
    {
       timer_overflow_isr();
-      neo_fifo_trigger_isr();
       neo_task();
       button_task();
       digital_task();
+      rs232proc_task();
    }
 }
 
