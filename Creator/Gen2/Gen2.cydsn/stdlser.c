@@ -59,6 +59,8 @@
 #include "stdlintf.h"
 #include "stdlglob.h"
 
+#define TX_FIFO_TRIGGER       4
+
 #define SCB1_ADDR_OFFSET      0x00010000
 
 #define SCB0_TX_FIFO_STATUS   0x40060208
@@ -66,10 +68,12 @@
 
 #define SCB0_TX_FIFO_WR       0x40060240
 
+#define SCB0_RX_FIFO_STATUS   0x40060308
+#define RX_FIFO_USED_MASK     0x0000000f
+
 #define SCB0_RX_FIFO_RD       0x40060340
 
 #define SCB0_INTR_TX          0x40060f80
-#define INTR_TX_SCB_NOT_FULL  0x00000002
 
 #define SCB0_INTR_TX_MASK     0x40060f88
 #define INTR_TX_SCB_TRIGGER   0x00000001
@@ -190,30 +194,32 @@ void stdlser_init_ser_port(
 /*
  * ===============================================================================
  * 
- * Name: stdlser_rcv_char
+ * Name: stdlser_get_rcv_data
  * 
  * ===============================================================================
  */
 /**
- * Function for rcving serial port char
+ * Function for getting serial port char
  * 
  * Read the rcv data, to clear the ISR.  Check if a rcv function has been
  * registered.  If so, call the rcv function.
  * 
  * @param   portNum     [in]    Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2
- * @return  None
+ * @return  TRUE if serial character is available
  * 
  * @pre     None 
  * @note    None
  * 
  * ===============================================================================
  */
-void stdlser_rcv_char(
-   STDLI_SER_PORT_E           portNum)
+BOOL stdlser_get_rcv_data(
+   STDLI_SER_PORT_E           portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   U8                         *data_p)      /* Rcv'd character */
 {
    STDLI_SER_INFO_T           *serInfo_p;
-   R32                        *intrRxReg_p;
    R32                        *rxFifoRdReg_p;
+   R32                        *rxFifoStatusReg_p;
+   R32                        *intrRxMaskReg_p;
 
    /* Clear the interrupt bit */
    serInfo_p = stdlser_glob.serInfo_p[portNum];
@@ -223,21 +229,28 @@ void stdlser_rcv_char(
    {
       if (portNum == STDLI_SER_PORT_1)
       {
-         intrRxReg_p = (R32 *)SCB0_INTR_RX;
+         rxFifoStatusReg_p = (R32 *)SCB0_RX_FIFO_STATUS;
          rxFifoRdReg_p = (R32 *)SCB0_RX_FIFO_RD;
+         intrRxMaskReg_p = (R32 *)SCB0_INTR_RX_MASK;
       }
       else
       {
-         intrRxReg_p = (R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET);
+         rxFifoStatusReg_p = (R32 *)(SCB0_RX_FIFO_STATUS + SCB1_ADDR_OFFSET);
          rxFifoRdReg_p = (R32 *)(SCB0_RX_FIFO_RD + SCB1_ADDR_OFFSET);
+         intrRxMaskReg_p = (R32 *)(SCB0_INTR_RX_MASK + SCB1_ADDR_OFFSET);
       }
-      *intrRxReg_p = INTR_RX_SCB_NOT_EMPTY;
-      while (*intrRxReg_p & INTR_RX_SCB_NOT_EMPTY)
+      if ((*(R32 *)rxFifoStatusReg_p & RX_FIFO_USED_MASK) != 0)
       {
-         serInfo_p->rxSerChar_fp(serInfo_p->cbParm, (U8)(*rxFifoRdReg_p & 0xff));
-         *intrRxReg_p = INTR_RX_SCB_NOT_EMPTY;
+         *data_p = (U8)(*rxFifoRdReg_p & 0xff);
+         return (TRUE);
+      }
+      else
+      {
+         /* No more data, so re-enable the rx interrupt */
+         *intrRxMaskReg_p |= INTR_RX_SCB_NOT_EMPTY;
       }
    }
+   return (FALSE);
 } /* End stdlser_rcv_char */
 
 /*
@@ -264,16 +277,24 @@ void stdlser_port1_poll(void)
 {
    STDLI_SER_INFO_T           *serInfo_p;
 
-   *(R32 *)SCB0_INTR_RX = INTR_RX_SCB_NOT_EMPTY;
-   if ((*(R32 *)SCB0_INTR_RX) & INTR_RX_SCB_NOT_EMPTY)
-   {
-      stdlser_rcv_char(STDLI_SER_PORT_1);
-   }
    serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_1];
-   *(R32 *)SCB0_INTR_TX = INTR_TX_SCB_TRIGGER;
-   if (((*(R32 *)SCB0_INTR_TX) & INTR_TX_SCB_TRIGGER) && serInfo_p->txAct)
+   if ((*(R32 *)SCB0_RX_FIFO_STATUS & RX_FIFO_USED_MASK) != 0)
+   {
+      /* Mask rx interrupts */
+      *(R32 *)SCB0_INTR_RX_MASK &= ~INTR_RX_SCB_NOT_EMPTY;
+      serInfo_p->rxSerChar_fp(serInfo_p->cbParm_p);
+   }
+   if (*(R32 *)SCB0_INTR_RX & INTR_RX_SCB_NOT_EMPTY)
+   {
+      *(R32 *)SCB0_INTR_RX |= INTR_RX_SCB_NOT_EMPTY;
+   }
+   if ((((*(R32 *)SCB0_TX_FIFO_STATUS) & TX_FIFO_USED_MASK) <= TX_FIFO_TRIGGER) && serInfo_p->txAct)
    {
       stdlser_xmt_char(STDLI_SER_PORT_1);
+   }
+   if (*(R32 *)SCB0_INTR_TX & INTR_TX_SCB_TRIGGER)
+   {
+      *(R32 *)SCB0_INTR_TX |= INTR_TX_SCB_TRIGGER;
    }
 } /* End stdlser_port1_poll */
 
@@ -286,16 +307,25 @@ void stdlser_port2_poll(void)
 {
    STDLI_SER_INFO_T           *serInfo_p;
 
-   *((R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET)) = INTR_RX_SCB_NOT_EMPTY;
-   if ((*((R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET))) & INTR_RX_SCB_NOT_EMPTY)
+   serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_2];
+   if (((*(R32 *)(SCB0_RX_FIFO_STATUS + SCB1_ADDR_OFFSET)) & RX_FIFO_USED_MASK) != 0)
    {
-      stdlser_rcv_char(STDLI_SER_PORT_1);
+      /* Mask rx interrupts */
+      *(R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET) |= INTR_RX_SCB_NOT_EMPTY;
+      serInfo_p->rxSerChar_fp(serInfo_p->cbParm_p);
    }
-   serInfo_p = stdlser_glob.serInfo_p[STDLI_SER_PORT_1];
-   *((R32 *)(SCB0_INTR_TX + SCB1_ADDR_OFFSET)) = INTR_TX_SCB_TRIGGER;
-   if (((*((R32 *)SCB0_INTR_TX + SCB1_ADDR_OFFSET)) & INTR_TX_SCB_TRIGGER) && serInfo_p->txAct)
+   if (*(R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET) & INTR_RX_SCB_NOT_EMPTY)
    {
-      stdlser_xmt_char(STDLI_SER_PORT_1);
+      *(R32 *)(SCB0_INTR_RX + SCB1_ADDR_OFFSET) |= INTR_RX_SCB_NOT_EMPTY;
+   }
+   if ((((*(R32 *)SCB0_TX_FIFO_STATUS + SCB1_ADDR_OFFSET) & TX_FIFO_USED_MASK) <= TX_FIFO_TRIGGER) && serInfo_p->txAct)
+   {
+      *(R32 *)(SCB0_INTR_TX + SCB1_ADDR_OFFSET) |= INTR_TX_SCB_TRIGGER;
+      stdlser_xmt_char(STDLI_SER_PORT_2);
+   }
+   if (*(R32 *)(SCB0_INTR_TX + SCB1_ADDR_OFFSET) & INTR_TX_SCB_TRIGGER)
+   {
+      *(R32 *)(SCB0_INTR_TX + SCB1_ADDR_OFFSET) |= INTR_TX_SCB_TRIGGER;
    }
 } /* End stdlser_port2_poll */
 

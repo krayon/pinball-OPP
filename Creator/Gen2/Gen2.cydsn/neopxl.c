@@ -58,18 +58,19 @@
 #include "gen2glob.h"
 #include "neointf.h"
 
-#define SCB1_TX_FIFO_STATUS     0x40070208
-#define SCB_USED_MASK           0xf             /* Num FIFO bytes used */
-#define NUM_FIFO_BYTES          8               /* Num SCB FIFO bytes */
-#define FIFO_LOW_THRESH         4
+#define SCB1_TX_FIFO_STATUS      0x40070208
+#define SCB_USED_MASK            0xf             /* Num FIFO bytes used */
+#define NUM_FIFO_BYTES           8               /* Num SCB FIFO bytes */
+#define FIFO_LOW_THRESH          4
 
-#define SCB1_TX_FIFO_CTRL       0x40070204
-#define SCB1_TX_FIFO_WR         0x40070240
-#define SCB1_INTR_TX            0x40070f80
-#define SCB1_INTR_TX_MASK       0x40070f88
-#define INTR_TX_SCB_UNDERFLOW   0x00000040
-#define INTR_TX_SCB_NOT_FULL    0x00000002
-#define INTR_TX_SCB_TRIGGER     0x00000001
+#define SCB1_TX_FIFO_CTRL        0x40070204
+#define SCB1_TX_FIFO_STATUS      0x40070208
+#define TX_FIFO_USED_MASK        0x0000000f
+#define SCB1_TX_FIFO_WR          0x40070240
+#define SCB1_INTR_TX             0x40070f80
+#define SCB1_INTR_TX_MASK        0x40070f88
+#define INTR_TX_SCB_UNDERFLOW    0x00000040
+#define INTR_TX_SCB_TRIGGER      0x00000001
 
 /* This lookup table is used to prepend a 1, and append a 0 to the data.
  * An 8 bit color is broken into two nibbles, then the results of the two lookups
@@ -271,13 +272,12 @@ void neo_40ms_tick()
 void neo_fill_fifo()
 {
    /* While the Tx FIFO is not full */
-   *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_NOT_FULL;
-   while ((*(R32 *)SCB1_INTR_TX & INTR_TX_SCB_NOT_FULL) &&
+   while (((*(R32 *)SCB1_TX_FIFO_STATUS & TX_FIFO_USED_MASK) < 8) &&
      (neoInfo.src_p < neoInfo.end_p))
    {
       *(R32 *)SCB1_TX_FIFO_WR = *neoInfo.src_p++;
-      *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_NOT_FULL;
    }
+   *(R32 *)SCB1_INTR_TX = INTR_TX_SCB_TRIGGER;
     
    /* If done transmitting */
    if (neoInfo.src_p >= neoInfo.end_p)

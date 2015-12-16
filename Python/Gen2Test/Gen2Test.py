@@ -22,10 +22,10 @@
 #
 # @file:   Gen2Test.py
 # @author: Hugh Spahr
-# @date:   12/20/2012
+# @date:   12/12/2015
 #
 # @note:   Open Pinball Project
-#          Copyright 2012-2015, Hugh Spahr
+#          Copyright 2015, Hugh Spahr
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -82,41 +82,48 @@ CRC8ByteLookup = \
       0xae, 0xa9, 0xa0, 0xa7, 0xb2, 0xb5, 0xbc, 0xbb, 0x96, 0x91, 0x98, 0x9f, 0x8a, 0x8d, 0x84, 0x83, \
       0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3 ]
 
+# Config inputs as all state inputs
+wingCfg = [ [ rs232Intf.WING_NEO, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INCAND ] ]
+             
+# Config inputs as all state inputs
 inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
-# Config for reading the state, all flippers
-##solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04' ] ]
+# Config for solenoid wing board in second position, first two config'd as flippers, second two config'd as one-shots
+solCfg =  [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ] ]
+solCfg1 = [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ] ]
 
-# SS2, Board 1 config
-##solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00' ] ]
-
-# SS2, Board 2 config
-##solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x20', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x20', '\x00' ] ]
-
-# Johnny config
-##solCfg = [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', \
-##             rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x00' ] ]
-
-# Joe's config
-solCfg =  [ [ rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-              rs232Intf.CFG_SOL_USE_SWITCH, '\x20', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-              rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x20', '\x00', \
-              rs232Intf.CFG_SOL_USE_SWITCH, '\x20', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04' ] ]
-
+# Config color table
+#              Entry 0                 Entry 1                 Entry 2                 Entry 3 */
+colorCfg = [ [ '\xff', '\x00', '\x00', '\x00', '\xff', '\x00', '\x00', '\x00', '\xff', '\xff', '\xff', '\x00', \ /* 0-3 */
+               '\xff', '\x00', '\xff', '\x00', '\xff', '\xff', '\xff', '\xff', '\xff', '\x00', '\x00', '\x00', \ /* 4-7 */
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 8-11 */
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 12-15 */
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 16-19 */
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 20-23 */
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 24-27 */
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 28-31 */
+            ] ]
 
 #calculate a crc8
 def calcCrc8(msgInts):
@@ -163,7 +170,7 @@ def rcvInvResp():
     return (0)
 
 #send input cfg cmd
-def sendInpCfgCmd(cardNum, cfg):
+def sendInpCfgCmd(cardNum):
     global ser
     global numGen2Brd
     global gen2AddrArr
@@ -172,12 +179,8 @@ def sendInpCfgCmd(cardNum, cfg):
     cmdArr = []
     cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_INP_CMD)
-    for loop in range(rs232Intf.NUM_INP_PER_BRD):
-        if ((cfg == rs232Intf.CFG_INP_STATE) or (cfg != rs232Intf.CFG_INP_FALL_EDGE) or \
-            (cfg != rs232Intf.CFG_INP_RISE_EDGE)):
-            cmdArr.append(cfg)
-        else:
-            cmdArr.append(inpCfg[cardNum][loop])
+    for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
+        cmdArr.append(inpCfg[cardNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -219,14 +222,15 @@ def rcvReadInpResp(cardNum):
     global currInpData
     data = getSerialData();
     if (data[0] != inpAddrArr[cardNum]):
-        print "\nData = %d, expected = %d" % (ord(data[0]),ord(inpAddrArr[cardNum]))
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
         print repr(data)
         return (500)
     if (data[1] != rs232Intf.READ_GEN2_INP_CMD):
         print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
         print repr(data)
         return (501)
-    crc8 = calcCrc8(data)
+    tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
+    crc8 = calcCrc8(tmpData)
     if (data[6] != crc8):
         print "\nBad CRC, Data = %d, expected = %d" % (ord(data[6]),crc8)
         return (502)
@@ -239,14 +243,14 @@ def rcvReadInpResp(cardNum):
 #send sol cfg cmd
 def sendSolCfgCmd(cardNum, cfgNum):
     global ser
-    global numSolBrd
-    global solAddrArr
-    if (cardNum >= numSolBrd):
+    global numGen2Brd
+    global gen2AddrArr
+    if (cardNum >= numGen2Brd):
         return (600)    
     cmdArr = []
-    cmdArr.append(solAddrArr[cardNum])
+    cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_SOL_CMD)
-    for loop in xrange(rs232Intf.NUM_SOL_PER_BRD):
+    for loop in xrange(rs232Intf.NUM_G2_SOL_PER_BRD):
         if cfgNum == 0:
             cmdArr.append(solCfg[cardNum][loop * 3])
             cmdArr.append(solCfg[cardNum][(loop * 3) + 1])
@@ -260,42 +264,87 @@ def sendSolCfgCmd(cardNum, cfgNum):
     ser.write(sendCmd)
     return (0)
 
-#send read input board
-def sendReadSolBrdCmd(cardNum):
+#send read wing cfg board
+def sendReadWingCfgCmd(cardNum):
     global ser
-    global numSolBrd
-    global solAddrArr
-    if (cardNum >= numSolBrd):
+    global numGen2Brd
+    global gen2AddrArr
+    if (cardNum >= gen2AddrArr):
         return (700)
     cmdArr = []
-    cmdArr.append(solAddrArr[cardNum])
-    cmdArr.append(rs232Intf.READ_SOL_INP_CMD)
+    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(rs232Intf.GET_GEN2_CFG)
     cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
     return (0)
 
-#rcv read input cmd
-def rcvReadSolResp(cardNum):
+#rcv read wing cfg resp
+def rcvReadWingCfgResp(cardNum):
     global ser
-    global numSolBrd
-    global solAddrArr
+    global gen2AddrArr
     global currSolData
     data = getSerialData();
-    if (data[0] != solAddrArr[cardNum]):
-        print "\nData = %d, expected = %d" % (ord(data[0]),ord(solAddrArr[cardNum]))
+    if (data[0] != gen2AddrArr[cardNum]):
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
         print repr(data)
         return (800)
     if (data[1] != rs232Intf.READ_SOL_INP_CMD):
-        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_SOL_INP_CMD))
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.GET_GEN2_CFG))
         print repr(data)
         return (801)
-    if (data[3] != rs232Intf.EOM_CMD):
-        print "\nData = %d, expected = %d" % (ord(data[3]),ord(rs232Intf.EOM_CMD))
+    tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
+    crc8 = calcCrc8(tmpData)
+    if (data[6] != crc8):
+        print "\nBad CRC, Data = %d, expected = %d" % (ord(data[6]),crc8)
         return (802)
-    currSolData[cardNum] = ord(data[2])
+    if (data[7] != rs232Intf.EOM_CMD):
+        print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
+        return (803)
+    currWingCfg[cardNum] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
     return (0)
+
+#send wing cfg cmd
+def sendWingCfgCmd(cardNum):
+    global ser
+    global numGen2Brd
+    global gen2AddrArr
+    if (cardNum >= numGen2Brd):
+        return (900)    
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(rs232Intf.SET_GEN2_CFG)
+    for loop in range(rs232Intf.NUM_G2_WING_PER_BRD):
+        cmdArr.append(wingCfg[cardNum][loop])
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
+#send color table cfg cmd
+def sendColorCfgCmd(cardNum):
+    global ser
+    global numGen2Brd
+    global gen2AddrArr
+    if (cardNum >= numGen2Brd):
+        return (900)    
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(rs232Intf.SET_NEO_COLOR_TBL)
+    for loop in range(rs232Intf.NUM_COLOR_TBL):
+        cmdArr.append(colorCfg[cardNum][loop])
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
 
 def endTest(error):
     global ser
@@ -317,21 +366,17 @@ for arg in sys.argv:
   elif arg.startswith('-test='):
     testNum = int(arg.replace('-test=','',1))
   elif arg.startswith('-?'):
-    print "python inpDrvTest.py [OPTIONS]"
+    print "python Gen2Test.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
     print "    -test=testNum      test number, defaults to 0"
     print "    -boot              force a single board into bootloader"
     print "    -saveCfg           save a cfg on a single board."
-    print "        Only 1 board can be attached.  Uses solCfg, or inpCfg"
+    print "        Only 1 board can be attached.  Uses wingCfg, solCfg, inpCfg and colorCfg"
     print "    -eraseCfg          erase a cfg on a single board."
     print "        Only 1 board can be attached.\n"
     print "-test=0: Send inventory and verify response 10000 times."
-    print "-test=1: Read first input board continuously.  ('x' exits)"
-    print "-test=2: Read first solenoid board continuously.  ('x' exits)"
-    print "   Uses solCfg.  Read inputs are edges, not state."
-    print "-test=3: Read first solenoid board continuously.  ('x' exits)"
-    print "   Uses solCfg1.  Read inputs are edges, not state."
+    print "-test=1: Read first Gen2 inputs continuously.  ('x' exits)"
     end = True
   elif arg.startswith('-boot'):
     boot = True
@@ -344,7 +389,7 @@ if end:
     ch = msvcrt.getch()
     sys.exit(0)
 try:
-    ser=serial.Serial(port, baudrate=19200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
+    ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
 except serial.SerialException:
     print "\nCould not open " + port
     print "\nPress any key to close window"
@@ -357,13 +402,11 @@ rcvInvResp()
 if (boot):
     #Make test num invalid
     testNum = 255
-    if ((numSolBrd == 0) and (numInpBrd == 1)) or ((numSolBrd == 1) and (numInpBrd == 0)):
+    if (numGen2Brd == 1):
         cmdArr = []
-        if (numInpBrd == 1):
-            cmdArr.append(inpAddrArr[0])
-        else:
-            cmdArr.append(solAddrArr[0])
+        cmdArr.append(gen2AddrArr[0])
         cmdArr.append(rs232Intf.GO_BOOT_CMD)
+        cmdArr.append(calcCrc8(cmdArr))
         sendCmd = ''.join(cmdArr)
         ser.write(sendCmd)
         print "Sent Go Boot command."
@@ -374,27 +417,24 @@ if (boot):
 elif (saveCfg):
     #Make test num invalid
     testNum = 255
-    cmdArr = []
-    if ((numSolBrd == 0) and (numInpBrd == 1)):
-        #Save config for input board
-        sendInpCfgCmd(0, rs232Intf.CFG_INP_STATE)
+    if (numGen2Brd == 1):
+        #Save config for Gen2 board
+        sendWingCfgCmd(0)
         error = rcvEomResp()
         if error: endTest(error)
-        cmdArr.append(inpAddrArr[0])
-        cmdArr.append(rs232Intf.SAVE_CFG_CMD)
-        cmdArr.append(rs232Intf.SAVE_CFG_CHECK_BYTE)
-        sendCmd = ''.join(cmdArr)
-        ser.write(sendCmd)
-        print "Sent save cfg command."
-        time.sleep(1)
-    elif ((numSolBrd == 1) and (numInpBrd == 0)):
-        #Save config for solenoid board
+        sendInpCfgCmd(0)
+        error = rcvEomResp()
+        if error: endTest(error)
         sendSolCfgCmd(0,0)
         error = rcvEomResp()
         if error: endTest(error)
-        cmdArr.append(solAddrArr[0])
+        sendColorCfgCmd(0)
+        error = rcvEomResp()
+        if error: endTest(error)
+        cmdArr = []
+        cmdArr.append(gen2AddrArr[0])
         cmdArr.append(rs232Intf.SAVE_CFG_CMD)
-        cmdArr.append(rs232Intf.SAVE_CFG_CHECK_BYTE)
+        cmdArr.append(calcCrc8(cmdArr))
         sendCmd = ''.join(cmdArr)
         ser.write(sendCmd)
         print "Sent save cfg command."
@@ -406,20 +446,11 @@ elif (eraseCfg):
     #Make test num invalid
     testNum = 255
     cmdArr = []
-    if ((numSolBrd == 0) and (numInpBrd == 1)):
-        #Erase config for input board
-        cmdArr.append(inpAddrArr[0])
+    if (numGen2Brd == 1):
+        #Erase config for Gen2 board
+        cmdArr.append(gen2AddrArr[0])
         cmdArr.append(rs232Intf.ERASE_CFG_CMD)
-        cmdArr.append(rs232Intf.ERASE_CFG_CHECK_BYTE)
-        sendCmd = ''.join(cmdArr)
-        ser.write(sendCmd)
-        print "Sent erase cfg command."
-        time.sleep(1)
-    elif ((numSolBrd == 1) and (numInpBrd == 0)):
-        #Erase config for solenoid board
-        cmdArr.append(solAddrArr[0])
-        cmdArr.append(rs232Intf.ERASE_CFG_CMD)
-        cmdArr.append(rs232Intf.ERASE_CFG_CHECK_BYTE)
+        cmdArr.append(calcCrc8(cmdArr))
         sendCmd = ''.join(cmdArr)
         ser.write(sendCmd)
         print "Sent erase cfg command."
@@ -434,7 +465,7 @@ if (testNum == 0):
         if (data[0] != rs232Intf.INV_CMD):
             print "Bad resp, index = %d, data = %d" % (0, ord(data[0]))
             bad = True
-        if (data[1] != '\x10'):
+        if (data[1] != '\x20'):
             print repr(data)
             print "Bad resp, index = %d, data = %d" % (1, ord(data[1]))
             bad = True
@@ -446,9 +477,6 @@ if (testNum == 0):
             break;
         print "\nSuccessful loop."
 elif (testNum == 1):
-    sendInpCfgCmd(0, rs232Intf.CFG_INP_STATE)
-    error = rcvEomResp()
-    if error: endTest(error)
     exitReq = False
     count = 0
     while (not exitReq):
@@ -459,64 +487,8 @@ elif (testNum == 1):
             endTest(error)
         outArr = []
         outArr.append('\r')
-        for loop in range(rs232Intf.NUM_INP_PER_BRD):
-            if (currInpData[0] & (1 << (rs232Intf.NUM_INP_PER_BRD - loop - 1))):
-                outArr.append('1')
-            else:
-                outArr.append('0')
-        sys.stdout.write(''.join(outArr))
-        count = count + 1
-        
-        #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
-            if ((char == 'x') or (char == 'X')):
-                print "\nCount = %d" % count
-                exitReq = True
-elif (testNum == 2):
-    sendSolCfgCmd(0,0)
-    error = rcvEomResp()
-    if error: endTest(error)
-    exitReq = False
-    count = 0
-    while (not exitReq):
-        sendReadSolBrdCmd(0)
-        error = rcvReadSolResp(0)
-        if error:
-            print "\nCount = %d" % count
-            endTest(error)
-        outArr = []
-        outArr.append('\r')
-        for loop in range(rs232Intf.NUM_SOL_PER_BRD):
-            if (currSolData[0] & (1 << (rs232Intf.NUM_SOL_PER_BRD - loop - 1))):
-                outArr.append('1')
-            else:
-                outArr.append('0')
-        sys.stdout.write(''.join(outArr))
-        count = count + 1
-        
-        #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
-            if ((char == 'x') or (char == 'X')):
-                print "\nCount = %d" % count
-                exitReq = True
-elif (testNum == 3):
-    sendSolCfgCmd(0,1)
-    error = rcvEomResp()
-    if error: endTest(error)
-    exitReq = False
-    count = 0
-    while (not exitReq):
-        sendReadSolBrdCmd(0)
-        error = rcvReadSolResp(0)
-        if error:
-            print "\nCount = %d" % count
-            endTest(error)
-        outArr = []
-        outArr.append('\r')
-        for loop in range(rs232Intf.NUM_SOL_PER_BRD):
-            if (currSolData[0] & (1 << (rs232Intf.NUM_SOL_PER_BRD - loop - 1))):
+        for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
+            if (currInpData[0] & (1 << (rs232Intf.NUM_G2_INP_PER_BRD - loop - 1))):
                 outArr.append('1')
             else:
                 outArr.append('0')

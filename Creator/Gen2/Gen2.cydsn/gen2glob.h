@@ -93,9 +93,8 @@ typedef struct
    U8                         nvCfgCrc;   /* CRC from wingCfg to end of cfgData */
    U8                         res1[3];
    RS232I_GEN2_WING_TYPE_E    wingCfg[RS232I_NUM_WING];
-   GEN2G_NVCFG_TYPE_E         nvCfg[GEN2G_NUM_NVCFG];
    U8                         numNeoPxls;
-   U8                         res2[3];
+   U8                         res2[7];
    U8                         cfgData[0xf0];
 } GEN2G_NV_CFG_T;
 
@@ -109,13 +108,18 @@ typedef struct
 ;
 
 /* This will be stored at the beginning of the app when the bootloader
- * rewrite is completed.
+ * rewrite is completed.  Currently it is saved in RAM.
  */
 typedef struct
 {
   U32                   appLen;           /* Length of application */
-  U8                    codeVersion[4];   /* Application version */
+  U32                   codeVers;         /* Application version */
 } APP_START_T;
+
+#ifndef GEN2G_INSTANTIATE
+   extern
+#endif
+   APP_START_T appStart;
 
 #ifndef GEN2G_INSTANTIATE
    extern

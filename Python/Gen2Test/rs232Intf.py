@@ -78,6 +78,14 @@ CARD_ID_SOL_CARD    = '\x00'
 CARD_ID_INP_CARD    = '\x10'
 CARD_ID_GEN2_CARD   = '\x20'
 
+NUM_G2_WING_PER_BRD = 4
+WING_SOL            = '\x01'
+WING_INP            = '\x02'
+WING_INCAND         = '\x03'
+WING_SW_MATRIX_OUT  = '\x04'
+WING_SW_MATRIX_IN   = '\x05'
+WING_NEO            = '\x06'
+
 NUM_G2_INP_PER_BRD  = 32
 CFG_INP_STATE       = '\x00'
 CFG_INP_FALL_EDGE   = '\x01'
@@ -86,6 +94,8 @@ CFG_INP_RISE_EDGE   = '\x02'
 NUM_G2_SOL_PER_BRD  = 16
 CFG_SOL_USE_SWITCH  = '\x01'
 CFG_SOL_AUTO_CLR    = '\x02'
+
+NUM_COLOR_TBL       = 32
 
 INCAND_ROT_LEFT     = '\x00'
 INCAND_ROT_RIGHT    = '\x01'

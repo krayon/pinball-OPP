@@ -162,7 +162,7 @@ BOOL stdlflash_write(
 #define PROG_ROW_SYS_CMD      0x0000d9b6
    
    /* Create the load latch buffer command */
-   stack[0] = LOAD_FLASH_SYS_CMD;
+   stack[0] = LOAD_FLASH_SYS_CMD | (((U32)dest_p & 0x7f) << 16);
    stack[1] = numBytes - 1;
    for (index = 0, stack_p = (U8 *)&stack[2]; index < numBytes; index++)
    {

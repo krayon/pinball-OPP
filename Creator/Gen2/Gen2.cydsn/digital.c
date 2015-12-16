@@ -402,6 +402,7 @@ void digital_task(void)
       gen2g_info.validSwitch = (gen2g_info.validSwitch & ~dig_info.stateMask) |
          (filtState & dig_info.stateMask);
       EnableInterrupts;
+      dig_info.oldState = inputs;
    }
 } /* End digital_task */
 
@@ -476,6 +477,10 @@ void digital_set_init_state(void)
          }
          data = stdldigio_read_port(index, SOL_INP_BIT_MASK);
          stdldigio_write_port(index, SOL_OUTP_BIT_MASK, 0);
+      }
+      else
+      {
+         data = 0;
       }
       inputs |= (data << (index << 3));
    }

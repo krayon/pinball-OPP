@@ -89,8 +89,8 @@ typedef struct
 {
    U8                         *txBuf_p;
    U8                         txBufSize;
-   void                       (*rxSerChar_fp)(U16 cbParm, U8 data);
-   U16                        cbParm;
+   void                       (*rxSerChar_fp)(void *cbParm_p);
+   void                       *cbParm_p;
    U8                         curTxHead;    /* Filled by utility */
    U8                         curTxTail;    /* Filled by utility */
    BOOL                       txAct;        /* Filled by utility */
@@ -99,19 +99,22 @@ typedef struct
 
 void stdlser_ser_module_init(void);
 void stdlser_init_ser_port(
-   STDLI_SER_PORT_E           portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
-   STDLI_SER_INFO_T           *serInfo_p);  /* Ser state, txBuf addr, txBuf size, rx
-                                           *  callback func.
-                                           */
+   STDLI_SER_PORT_E           portNum,       /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   STDLI_SER_INFO_T           *serInfo_p);   /* Ser state, txBuf addr, txBuf size, rx
+                                              *  callback func.
+                                              */
 INT stdlser_xmt_data(
-   STDLI_SER_PORT_E           portNum,      /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
-   BOOL                       blocking,     /* TRUE to block waiting to put xmt data on queue */
-   U8                         *data_p,      /* Ptr to data to xmt */
-   U16                        numChar);     /* Num chars to xmt */
+   STDLI_SER_PORT_E           portNum,       /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   BOOL                       blocking,      /* TRUE to block waiting to put xmt data on queue */
+   U8                         *data_p,       /* Ptr to data to xmt */
+   U16                        numChar);      /* Num chars to xmt */
 void stdlser_calc_crc8(
-   U8                         *crc8_p,      /* Ptr to crc8 */
-   INT                        length,       /* Num chars in data stream */
-   U8                         *data_p);     /* Ptr to data stream */
+   U8                         *crc8_p,       /* Ptr to crc8 */
+   INT                        length,        /* Num chars in data stream */
+   U8                         *data_p);      /* Ptr to data stream */
+BOOL stdlser_get_rcv_data(
+   STDLI_SER_PORT_E           portNum,       /* Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2 */
+   U8                         *data_p);      /* Rcv'd character */
 
 /* 
  * API for timing functions
@@ -203,7 +206,7 @@ void stdldigio_write_port(
  * API for erasing and writing to flash
  */
 BOOL stdlflash_sector_erase( 
-   U8                         *dest_p);     /* ptr to sector addr in eeprom */
+   U8                         *dest_p);     /* ptr to sector addr in flash */
 BOOL stdlflash_write( 
    U8                         *src_p,       /* ptr to source of data */
    U8                         *dest_p,      /* ptr to destination of data in flash */
