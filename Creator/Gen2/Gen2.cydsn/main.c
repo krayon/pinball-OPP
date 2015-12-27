@@ -64,9 +64,6 @@ void neo_fifo_trigger_isr();
 void timer_init();
 void timer_overflow_isr();
 
-void button_init(
-    INT             numPxl);
-void button_task();
 void main_copy_flash_to_ram();
 void main_call_wing_inits();
 
@@ -75,11 +72,15 @@ void digital_task(void);
 void rs232proc_init();
 void rs232proc_task();
 
+void incand_task(void);
+
 int main()
 {
    CyGlobalIntEnable; /* Enable global interrupts. */
 
+#ifdef GEN2_DEBUG   
    debug_save_nv_cfg();
+#endif
    
    Clock_Start();
    Clock_1_Start();
@@ -98,7 +99,6 @@ int main()
    /* Initialize tasks */
    gen2g_info.error = neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
    timer_init();
-   button_init(gen2g_info.nvCfgInfo.numNeoPxls);
 
    isr_spi_Start();
    isr_uart_Start();
@@ -107,9 +107,9 @@ int main()
    {
       timer_overflow_isr();
       neo_task();
-      button_task();
       digital_task();
       rs232proc_task();
+      incand_task();
    }
 }
 

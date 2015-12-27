@@ -1,0 +1,276 @@
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 12/18/2015 6:57:11 AM
+
+BeginCmp
+TimeStamp = /55B16234;
+Reference = P1;
+ValeurCmp = CONN_4;
+IdModule  = SIL-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B15C94;
+Reference = P2;
+ValeurCmp = CONN_8;
+IdModule  = SIL-8;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B1623E;
+Reference = P3;
+ValeurCmp = CONN_4;
+IdModule  = SIL-4;
+EndCmp
+
+BeginCmp
+TimeStamp = /4F789F3A;
+Reference = P4;
+ValeurCmp = SPADE_187;
+IdModule  = 00_th1x2x200;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B50F36;
+Reference = P5;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x4.2mm_nopeg;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B18CB8;
+Reference = P6;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B503D5;
+Reference = P7;
+ValeurCmp = CONN_8;
+IdModule  = 00_th1x8x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B16200;
+Reference = Q1;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEB4;
+Reference = Q2;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEC4;
+Reference = Q3;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EED4;
+Reference = Q4;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEE4;
+Reference = Q5;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEF4;
+Reference = Q6;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EF04;
+Reference = Q7;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EF14;
+Reference = Q8;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC94;
+Reference = Q9;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EEED;
+Reference = Q10;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EEF7;
+Reference = Q11;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EF01;
+Reference = Q12;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EF0B;
+Reference = Q13;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EF15;
+Reference = Q14;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EF1F;
+Reference = Q15;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EF29;
+Reference = Q16;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC14;
+Reference = Q17;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC1E;
+Reference = Q18;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC28;
+Reference = Q19;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC32;
+Reference = Q20;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC3C;
+Reference = Q21;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC46;
+Reference = Q22;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC50;
+Reference = Q23;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /5673EC5A;
+Reference = Q24;
+ValeurCmp = MOSFET_N;
+IdModule  = 00_sot23gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B1776F;
+Reference = R1;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEBA;
+Reference = R2;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EECA;
+Reference = R3;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEDA;
+Reference = R4;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEEA;
+Reference = R5;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EEFA;
+Reference = R6;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EF0A;
+Reference = R7;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B4EF1A;
+Reference = R8;
+ValeurCmp = 10K;
+IdModule  = 00_sm0805;
+EndCmp
+
+EndListe

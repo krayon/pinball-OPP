@@ -105,6 +105,9 @@ void rs232proc_copy_dest(
 void rs232proc_bswap_data_buf(
    U32                        *data_p,
    UINT                       numBytes);
+void incand_proc_cmd(
+   U8                         cmd,
+   U32                        mask);
 
 /*
  * ===============================================================================
@@ -184,6 +187,8 @@ void rs232proc_task(void)
 #define NEO_GREEN_OFFSET      1
 #define NEO_RED_OFFSET        2
 #define NEO_BLUE_OFFSET       3
+#define INCAND_CMD_OFFSET     0
+#define INCAND_MASK_OFFSET    1
   
    /* Check if received a char */
    if (rs232_glob.rcvChar)
@@ -303,6 +308,7 @@ void rs232proc_task(void)
                         case RS232I_CHNG_NEO_CMD:
                         case RS232I_CHNG_NEO_COLOR:
                         case RS232I_CHNG_NEO_COLOR_TBL:
+                        case RS232I_INCAND_CMD:
                         {
                            /* Verify CRC to be sure */
                            rs232_glob.state = RS232_RCV_DATA_CMD;
@@ -426,8 +432,6 @@ void rs232proc_task(void)
                         }
                         case RS232I_CONFIG_SOL:
                         {
-                           rs232proc_bswap_data_buf((U32 *)&rs232_glob.rxBuf[0],
-                              sizeof(GEN2G_SOL_DRV_CFG_T));
                            for (index = 0, src_p = &rs232_glob.rxBuf[0],
                               dest_p = (U8 *)gen2g_info.solDrvCfg_p;
                               index < sizeof(GEN2G_SOL_DRV_CFG_T);
@@ -449,8 +453,6 @@ void rs232proc_task(void)
                         }
                         case RS232I_CONFIG_INP:
                         {
-                           rs232proc_bswap_data_buf((U32 *)&rs232_glob.rxBuf[0],
-                              sizeof(GEN2G_INP_CFG_T));
                            for (index = 0, src_p = &rs232_glob.rxBuf[0],
                               dest_p = (U8 *)gen2g_info.inpCfg_p;
                               index < sizeof(GEN2G_INP_CFG_T);
@@ -472,10 +474,22 @@ void rs232proc_task(void)
                               (U8 *)GEN2G_CFG_TBL, GEN2G_FLASH_SECT_SZ);
                            stdlflash_write(((U8 *)&gen2g_info.nvCfgInfo) + GEN2G_FLASH_SECT_SZ,
                               ((U8 *)GEN2G_CFG_TBL) + GEN2G_FLASH_SECT_SZ, GEN2G_FLASH_SECT_SZ);
+                           gen2g_info.validCfg = TRUE;
                            break;
                         }
                         case RS232I_ERASE_CFG:
                         {
+                           gen2g_info.validCfg = FALSE;
+                           gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
+                           gen2g_info.typeWingBrds = 0;
+                           gen2g_info.inpCfg_p = NULL;
+                           gen2g_info.neoCfg_p = NULL;
+                           for (index = 0, dest_p = &gen2g_info.nvCfgInfo.cfgData[0];
+                              index < sizeof(gen2g_info.nvCfgInfo.cfgData);
+                              index++)
+                           {
+                              *dest_p++ = 0;
+                           }
                            stdlflash_sector_erase((U8 *)GEN2G_CFG_TBL);
                            stdlflash_sector_erase((U8 *)(GEN2G_CFG_TBL + GEN2G_FLASH_SECT_SZ));
                            break;
@@ -485,7 +499,22 @@ void rs232proc_task(void)
                            for (index = 0; index < RS232I_NUM_WING; index++)
                            {
                               gen2g_info.nvCfgInfo.wingCfg[index] = rs232_glob.rxBuf[index];
+                              if (gen2g_info.nvCfgInfo.wingCfg[index] != WING_UNUSED)
+                              {
+                                 gen2g_info.typeWingBrds |= (1 << gen2g_info.nvCfgInfo.wingCfg[index]);
+                              }
                            }
+                           
+                           /* Walk through types and call init functions using jump table, sets up config ptrs */
+                           for (index = WING_UNUSED + 1; index < MAX_WING_TYPES; index++)
+                           {
+                              if (((gen2g_info.typeWingBrds & (1 << index)) != 0) &&
+                                 (GEN2G_INIT_FP[index] != NULL))
+                              {
+                                 GEN2G_INIT_FP[index]();
+                              }
+                           }
+                           break;
                         }
                         case RS232I_CHNG_NEO_CMD:
                         {
@@ -528,6 +557,15 @@ void rs232proc_task(void)
                               ((U32)rs232_glob.rxBuf[NEO_RED_OFFSET] << 8) |
                               ((U32)rs232_glob.rxBuf[NEO_BLUE_OFFSET] << 16);
                            neo_update_color_tbl((INT)rs232_glob.rxBuf[NEO_CMD_OFFSET], tmpU32);
+                           break;
+                        }
+                        case RS232I_INCAND_CMD:
+                        {
+                           mask = (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET] |
+                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 8) |
+                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 2] << 16) |
+                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 24);
+                           incand_proc_cmd(rs232_glob.rxBuf[INCAND_CMD_OFFSET], mask);
                            break;
                         }
                         default:
@@ -588,9 +626,9 @@ void rs232proc_task(void)
                if (index == 2)
                {
                   /* New color table entry completed */
-                  tmpU32 = (U32)rs232_glob.rxBuf[0] |
+                  tmpU32 = ((U32)rs232_glob.rxBuf[0] << 16) |
                      ((U32)rs232_glob.rxBuf[1] << 8) |
-                     ((U32)rs232_glob.rxBuf[2] << 16);
+                     (U32)rs232_glob.rxBuf[2];
                   index = rs232_glob.currIndex / 3;
                   neo_update_color_tbl(index, tmpU32);
                }

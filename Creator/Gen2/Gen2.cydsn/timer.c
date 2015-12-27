@@ -49,6 +49,7 @@
  */
 #include "stdtypes.h"
 #include "procdefs.h"
+#include "gen2glob.h"
 
 typedef struct
 {
@@ -60,6 +61,7 @@ TMR_INFO tmrInfo;
 
 /* Prototypes */
 void neo_40ms_tick();
+void incand_40ms_tick();
 
 /*
  * ===============================================================================
@@ -85,6 +87,8 @@ void timer_init()
 {
    tmrInfo.msCnt = 0;
    tmrInfo.neoCnt = 0;
+   gen2g_info.ledStateNum = 0;
+   gen2g_info.ledStatus = 0;
     
    /* Register the timer isr, start the timer */
 }
@@ -125,8 +129,21 @@ void timer_overflow_isr()
       tmrInfo.neoCnt++;
       if (tmrInfo.neoCnt == 40)
       {
+         /* Move to next LED state */
+         gen2g_info.ledStateNum++;
+         gen2g_info.ledStateNum &= (GEN2G_MAX_STATE_NUM - 1);
+         if ((gen2g_info.ledStateNum & 0x7) == 0)
+         {
+            gen2g_info.ledStatus ^= GEN2G_STAT_BLINK_FAST_ON;
+         }
+         if (gen2g_info.ledStateNum == 0)
+         {
+            gen2g_info.ledStatus ^= GEN2G_STAT_BLINK_SLOW_ON;
+         }
+        
          tmrInfo.neoCnt = 0;
          neo_40ms_tick();
+         incand_40ms_tick();
       }
    }
 }

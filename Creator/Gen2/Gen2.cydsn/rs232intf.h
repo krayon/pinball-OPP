@@ -101,8 +101,8 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
     0,  /* RS232I_RESET */             0,  /* RS232I_GO_BOOT */
     48, /* RS232I_CONFIG_SOL */        4,  /* RS232I_KICK_SOL */
     4,  /* RS232I_READ_GEN2_INP */     32, /* RS232I_CONFIG_INP */
-    2,  /* RS232I_GEN2_UNUSED */       1,  /* RS232I_SAVE_CFG */
-    1,  /* RS232I_ERASE_CFG */         4,  /* RS232I_GET_GEN2_CFG */
+    2,  /* RS232I_GEN2_UNUSED */       0,  /* RS232I_SAVE_CFG */
+    0,  /* RS232I_ERASE_CFG */         4,  /* RS232I_GET_GEN2_CFG */
     4,  /* RS232I_SET_GEN2_CFG */      6,  /* RS232I_CHNG_NEO_CMD */
     6,  /* RS232I_CHNG_NEO_COLOR */    4,  /* RS232I_CHNG_NEO_COLOR_TBL */
     97, /* RS232I_SET_NEO_COLOR_TBL */ 5,  /* RS232I_INCAND_CMD */

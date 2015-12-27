@@ -86,7 +86,6 @@ const U16 colorLkup[] =
 
 #define NEO_MAX_PIXELS           64
 #define BYTES_PER_PIXEL          9       /* 3 8-bit colors, 3 bits needed/bit color */
-#define MAX_STATE_NUM            32      /* State num goes from 0 - 3 */
 #define MAX_MULT_FACT_SHFT       5       /* Must be power of 2 */
     
 #define CMD_MASK                 0xe0
@@ -94,17 +93,12 @@ const U16 colorLkup[] =
 #define CMD_COLOR_TBL_MASK       (NEOI_COLOR_TBL_SIZE - 1)
 #define CMD_FAST_CMD             0x20
     
-#define STAT_BLINK_SLOW_ON       0x01
-#define STAT_FADE_SLOW_DEC       0x01
-#define STAT_BLINK_FAST_ON       0x02
-#define STAT_FADE_FAST_DEC       0x02
 #define STAT_START_PROC          0x80    /* Set by isr to start processing */
 #define STAT_XMT_SPI_DATA        0x40    /* Send neopixel data over SPI for update */
 
 typedef struct
 {
-   U8                stateNum;            /* 0 - 31 counter used to fade/blink LEDs */
-   U8                stat;                /* If blinking LED is on/fading LED is brighter */
+   U8                stat;                /* Status */
    U8                numPixels;           /* Number of pixels */
    INT               underflow;           /* Underflow count */
    INT               complUpd;            /* Number of completed updates */
@@ -170,7 +164,6 @@ GEN2G_ERROR_E neo_init(
    U8                *tmp_p;
     
    /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
-   neoInfo.stateNum = 0;
    neoInfo.stat = 0;
    neoInfo.underflow = 0;
    neoInfo.complUpd = 0;
@@ -209,7 +202,7 @@ GEN2G_ERROR_E neo_init(
    }
    for (tmp_p = neoInfo.pxlCmd_p; tmp_p < neoInfo.pxlCmd_p + numPixels; tmp_p++)
    {
-      *tmp_p = NEOI_CMD_LED_ON;
+      *tmp_p = NEOI_CMD_BLINK_SLOW;
    }
    
    /* Disable the TX SCB interrupt, set the interrupt to occur at 4 words */
@@ -242,9 +235,12 @@ GEN2G_ERROR_E neo_init(
  */
 void neo_40ms_tick()
 {
-   if ((neoInfo.stat & (STAT_START_PROC | STAT_XMT_SPI_DATA)) == 0)
+   if (gen2g_info.validCfg)
    {
-      neoInfo.stat |= STAT_START_PROC;
+      if ((neoInfo.stat & (STAT_START_PROC | STAT_XMT_SPI_DATA)) == 0)
+      {
+         neoInfo.stat |= STAT_START_PROC;
+      }
    }
 }
 
@@ -438,25 +434,25 @@ U16 *neo_fill_buffer(
          if (pxlCmd & CMD_FAST_CMD)
          {
             /* Fast fade command, check if getting brighter or darker */
-            if (neoInfo.stat & STAT_FADE_FAST_DEC)
+            if (gen2g_info.ledStatus & GEN2G_STAT_FADE_FAST_DEC)
             {
-               multFact = MAX_STATE_NUM - ((neoInfo.stateNum & 0xf) * 4);
+               multFact = GEN2G_MAX_STATE_NUM - ((gen2g_info.ledStateNum & 0xf) * 4);
             }
             else
             {
-               multFact = ((neoInfo.stateNum & 0xf) + 1) * 4;
+               multFact = ((gen2g_info.ledStateNum & 0xf) + 1) * 4;
             }
          }
          else
          {
             /* Slow fade command, check if getting brighter or darker */
-            if (neoInfo.stat & STAT_FADE_SLOW_DEC)
+            if (gen2g_info.ledStatus & GEN2G_STAT_FADE_SLOW_DEC)
             {
-               multFact = MAX_STATE_NUM - neoInfo.stateNum;
+               multFact = GEN2G_MAX_STATE_NUM - gen2g_info.ledStateNum;
             }
             else
             {
-               multFact = neoInfo.stateNum + 1;
+               multFact = gen2g_info.ledStateNum + 1;
             }
          }
          neo_mult_pixel_color(&pxlColor, multFact);
@@ -467,7 +463,7 @@ U16 *neo_fill_buffer(
          if (pxlCmd & CMD_FAST_CMD)
          {
             /* Fast blink command, check if pixel should be off */
-            if ((neoInfo.stat & STAT_BLINK_FAST_ON) == 0)
+            if ((gen2g_info.ledStatus & GEN2G_STAT_BLINK_FAST_ON) == 0)
             {
                pxlColor = 0;
             }
@@ -475,7 +471,7 @@ U16 *neo_fill_buffer(
          else
          {
             /* Slow blink command, check if pixel should be off */
-            if ((neoInfo.stat & STAT_BLINK_SLOW_ON) == 0)
+            if ((gen2g_info.ledStatus & GEN2G_STAT_BLINK_SLOW_ON) == 0)
             {
                pxlColor = 0;
             }
@@ -578,22 +574,10 @@ void neo_task()
    BOOL              evenByte;
     
    /* Check if new cycle needs to be started */
-   if (neoInfo.stat & STAT_START_PROC)
+   if (gen2g_info.validCfg && (neoInfo.stat & STAT_START_PROC))
    {
       neoInfo.stat &= ~STAT_START_PROC;
        
-      /* Move to next pixel state */
-      neoInfo.stateNum++;
-      neoInfo.stateNum &= (MAX_STATE_NUM - 1);
-      if ((neoInfo.stateNum & 0x7) == 0)
-      {
-         neoInfo.stat ^= STAT_BLINK_FAST_ON;
-      }
-      if (neoInfo.stateNum == 0)
-      {
-         neoInfo.stat ^= STAT_BLINK_SLOW_ON;
-      }
-        
       /* Update the pixel data buffer,  */
       buf_p = neoInfo.buf_p;
       evenByte = TRUE;

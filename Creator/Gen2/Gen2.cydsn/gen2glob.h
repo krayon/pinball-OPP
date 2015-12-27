@@ -54,6 +54,8 @@
 #include "rs232intf.h"
 #include "stdlintf.h"
 
+#define GEN2_DEBUG            1
+
 typedef enum
 {
    NO_ERRORS                  = 0x00,
@@ -69,6 +71,12 @@ typedef enum
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_SER_NUM_ADDR    0x00007ffc
 #define GEN2G_APP_TBL_ADDR    0x00007f80
+
+#define GEN2G_STAT_BLINK_SLOW_ON       0x01
+#define GEN2G_STAT_FADE_SLOW_DEC       0x01
+#define GEN2G_STAT_BLINK_FAST_ON       0x02
+#define GEN2G_STAT_FADE_FAST_DEC       0x02
+#define GEN2G_MAX_STATE_NUM            32      /* State num goes from 0 - 31 */
 
 typedef enum
 {
@@ -169,6 +177,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
 /* Init prototypes */
 void digital_init();
 void neopxl_init();
+void incand_init();
 
 #ifndef GEN2G_INSTANTIATE
    extern
@@ -178,7 +187,7 @@ void neopxl_init();
  ={   NULL,                         /* WING_UNUSED */
       digital_init,                 /* WING_SOL */
       digital_init,                 /* WING_INP */
-      NULL,                         /* WING_INCAND */
+      incand_init,                  /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
       NULL,                         /* WING_SW_MATRIX_IN */
       neopxl_init,                  /* WING_NEO */
@@ -191,6 +200,8 @@ typedef struct
    BOOL                       validCfg;
    GEN2G_ERROR_E              error;
    U16                        solDrvProcCtl;
+   U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
+   U8                         ledStatus;      /* If blinking LED is on/fading LED is brighter */
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
    U32                        validSwitch;
    U32                        crcErr;
