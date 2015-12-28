@@ -520,10 +520,10 @@ void rs232proc_task(void)
                         {
                            /* tmpU32 starting index of pixels to change */
                            tmpU32 = (U32)rs232_glob.rxBuf[NEO_INDEX_OFFSET];
-                           mask = (U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET] |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 8) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 2] << 16) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 24);
+                           mask = (U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 3] |
+                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 2] << 8) |
+                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 16) |
+                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET] << 24);
                            for (index = 0, currBit = 1; index < 32; index++, currBit <<= 1)
                            {
                               if ((currBit & mask) != 0)
@@ -537,10 +537,10 @@ void rs232proc_task(void)
                         {
                            /* tmpU32 starting index of pixels to change */
                            tmpU32 = (U32)rs232_glob.rxBuf[NEO_INDEX_OFFSET];
-                           mask = (U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET] |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 8) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 2] << 16) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 24);
+                           mask = (U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 3] |
+                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 2] << 8) |
+                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 16) |
+                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET] << 24);
                            for (index = 0, currBit = 1; index < 32; index++, currBit <<= 1)
                            {
                               if ((currBit & mask) != 0)
@@ -553,18 +553,18 @@ void rs232proc_task(void)
                         case RS232I_CHNG_NEO_COLOR_TBL:
                         {
                            /* tmpU32 is the new color table color */
-                           tmpU32 = (U32)rs232_glob.rxBuf[NEO_GREEN_OFFSET] |
+                           tmpU32 = ((U32)rs232_glob.rxBuf[NEO_GREEN_OFFSET] << 16) |
                               ((U32)rs232_glob.rxBuf[NEO_RED_OFFSET] << 8) |
-                              ((U32)rs232_glob.rxBuf[NEO_BLUE_OFFSET] << 16);
+                              (U32)rs232_glob.rxBuf[NEO_BLUE_OFFSET];
                            neo_update_color_tbl((INT)rs232_glob.rxBuf[NEO_CMD_OFFSET], tmpU32);
                            break;
                         }
                         case RS232I_INCAND_CMD:
                         {
-                           mask = (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET] |
-                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 8) |
-                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 2] << 16) |
-                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 24);
+                           mask = ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET] << 24) |
+                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 16) |
+                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 2] << 8) |
+                              (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1];
                            incand_proc_cmd(rs232_glob.rxBuf[INCAND_CMD_OFFSET], mask);
                            break;
                         }

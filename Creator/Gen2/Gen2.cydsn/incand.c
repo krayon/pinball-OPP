@@ -181,9 +181,6 @@ void incand_task()
          }
          ledOut |= incandInfo.ledOnBitfield;
          
-         /* Invert because incandescent boards are active low */
-         ledOut = ~ledOut;
-
          /* Write the new values */
          for (index = 0; index < RS232I_NUM_WING; index++)
          {
@@ -400,11 +397,13 @@ void incand_proc_cmd(
       case INCAND_LED_BLINK_SLOW:
       {
          incandInfo.ledBlinkSlowBitfield |= mask;
+         incandInfo.ledBlinkFastBitfield &= ~mask;
          break;
       }
       case INCAND_LED_BLINK_FAST:
       {
          incandInfo.ledBlinkFastBitfield |= mask;
+         incandInfo.ledBlinkSlowBitfield &= ~mask;
          break;
       }
       case INCAND_LED_BLINK_OFF:
@@ -429,10 +428,12 @@ void incand_proc_cmd(
             if (cmd & INCAND_SET_BLINK_SLOW)
             {
                incandInfo.ledBlinkSlowBitfield |= mask;
+               incandInfo.ledBlinkFastBitfield &= ~mask;
             }
             else if (cmd & INCAND_SET_BLINK_FAST)
             {
                incandInfo.ledBlinkFastBitfield |= mask;
+               incandInfo.ledBlinkSlowBitfield &= ~mask;
             }
             else
             {
