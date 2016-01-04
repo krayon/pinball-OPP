@@ -54,8 +54,6 @@
 #include "rs232intf.h"
 #include "stdlintf.h"
 
-#define GEN2_DEBUG            1
-
 typedef enum
 {
    NO_ERRORS                  = 0x00,

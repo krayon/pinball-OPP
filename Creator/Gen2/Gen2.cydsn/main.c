@@ -78,9 +78,7 @@ int main()
 {
    CyGlobalIntEnable; /* Enable global interrupts. */
 
-#ifdef GEN2_DEBUG   
    debug_save_nv_cfg();
-#endif
    
    Clock_Start();
    Clock_1_Start();

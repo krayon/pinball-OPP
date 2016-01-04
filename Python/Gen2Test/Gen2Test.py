@@ -115,22 +115,24 @@ solCfg1 = [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
 
 # Config color table
 #              Entry 0                 Entry 1                 Entry 2                 Entry 3 */
-colorCfg = [ [ '\xff', '\x00', '\x00', '\x00', '\xff', '\x00', '\x00', '\x00', '\xff', '\xff', '\xff', '\x00', \ /* 0-3 */
-               '\xff', '\x00', '\xff', '\x00', '\xff', '\xff', '\xff', '\xff', '\xff', '\x00', '\x00', '\x00', \ /* 4-7 */
-               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 8-11 */
-               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 12-15 */
-               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 16-19 */
-               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 20-23 */
-               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 24-27 */
-               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \ /* 28-31 */
+colorCfg = [ [ '\xff', '\x00', '\x00', '\x00', '\xff', '\x00', '\x00', '\x00', '\xff', '\xff', '\xff', '\x00', \
+               '\xff', '\x00', '\xff', '\x00', '\xff', '\xff', '\xff', '\xff', '\xff', '\x00', '\x00', '\x00', \
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+               '\x10', \
             ] ]
 
 #calculate a crc8
-def calcCrc8(msgInts):
+def calcCrc8(msgChars):
     crc8Byte = 0xff
-    for indInt in msgInts:
+    for indChar in msgChars:
+        indInt = ord(indChar)
         crc8Byte = CRC8ByteLookup[crc8Byte ^ indInt];
-    return (crc8Byte)
+    return (chr(crc8Byte))
 
 
 #grab data from serial port
@@ -166,7 +168,7 @@ def rcvInvResp():
         index = index + 1
     print "Found %d Gen2 brds." % numGen2Brd
     print "Addr = "
-    print gen2AddrArr
+    print [hex(ord(n)) for n in gen2AddrArr]
     return (0)
 
 #send input cfg cmd
@@ -259,6 +261,7 @@ def sendSolCfgCmd(cardNum, cfgNum):
             cmdArr.append(solCfg1[cardNum][loop * 3])
             cmdArr.append(solCfg1[cardNum][(loop * 3) + 1])
             cmdArr.append(solCfg1[cardNum][(loop * 3) + 2])
+    cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
@@ -337,14 +340,13 @@ def sendColorCfgCmd(cardNum):
     cmdArr = []
     cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.SET_NEO_COLOR_TBL)
-    for loop in range(rs232Intf.NUM_COLOR_TBL):
+    for loop in range((rs232Intf.NUM_COLOR_TBL * 3) + 1):
         cmdArr.append(colorCfg[cardNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
     return (0)
-
 
 def endTest(error):
     global ser
@@ -419,25 +421,30 @@ elif (saveCfg):
     testNum = 255
     if (numGen2Brd == 1):
         #Save config for Gen2 board
+        print "Sending wing cfg."
         sendWingCfgCmd(0)
         error = rcvEomResp()
         if error: endTest(error)
+        print "Sending input cfg."
         sendInpCfgCmd(0)
         error = rcvEomResp()
         if error: endTest(error)
+        print "Sending solenoid cfg."
         sendSolCfgCmd(0,0)
         error = rcvEomResp()
         if error: endTest(error)
+        print "Sending color table cfg."
         sendColorCfgCmd(0)
         error = rcvEomResp()
         if error: endTest(error)
+        print "Sending save cfg command."
         cmdArr = []
         cmdArr.append(gen2AddrArr[0])
         cmdArr.append(rs232Intf.SAVE_CFG_CMD)
         cmdArr.append(calcCrc8(cmdArr))
         sendCmd = ''.join(cmdArr)
         ser.write(sendCmd)
-        print "Sent save cfg command."
+        print "Done save cfg command."
         time.sleep(1)
     else:
         print "Only one board should be attached"
