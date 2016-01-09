@@ -1,0 +1,391 @@
+#config_version=3
+
+#
+#===============================================================================
+## @mainpage
+#
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#===============================================================================
+##
+# @file    config.yaml
+# @author  Hugh Spahr
+# @date    1/8/2016
+#
+# @note    Open Pinball Project
+# @note    Copyright 2016, Hugh Spahr
+#
+# @brief Main configuration file for MPF SS3 machine.
+
+#===============================================================================
+
+#hardware:
+#    platform: opp
+#    driverboards: opp
+
+#opp:
+#    ports: COM1
+
+modes:
+  - base
+
+sound_system:
+    buffer: 512
+    frequency: 44100
+    channels: 1
+    initial_volume: 1
+    volume_steps: 20
+    tracks:
+        voice:
+            volume: 1
+            priority: 2
+            simultaneous_sounds: 1
+            preload: no
+        sfx:
+            volume: 1
+            priority: 1
+            preload: no
+            simultaneous_sounds: 3
+    stream:
+        name: music
+        priority: 0
+
+switches:
+    s_upper_rght_rollover:
+        number: 0_0
+        tags: playfield_active
+    s_upper_ctr_rollover:
+        number: 0_1
+        tags: playfield_active
+    s_upper_lft_rollover:
+        number: 0_2
+        tags: playfield_active
+    s_upper_lft_top_trgt:
+        number: 0_3
+        tags: playfield_active
+    s_upper_lft_btm_trgt:
+        number: 0_4
+        tags: playfield_active
+    s_upper_ctr_rght_rollover:
+        number: 0_5
+        tags: playfield_active
+    s_upper_ctr_ctr_rollover:
+        number: 0_6
+        tags: playfield_active
+    s_upper_ctr_lft_rollover:
+        number: 0_7
+        tags: playfield_active
+    s_upper_lft_pop:
+        number: 0_12
+        tags: playfield_active
+    s_upper_ctr_pop:
+        number: 0_13
+        tags: playfield_active
+    s_drop_bank:
+        number: 0_14
+        tags: playfield_active
+
+    s_kickout_hole:
+        number: 1_0
+    s_btm_low_pop:
+        number: 1_1
+        tags: playfield_active
+    s_btm_up_pop:
+        number: 1_2
+        tags: playfield_active
+    s_upper_rubber:
+        number: 1_16
+        tags: playfield_active
+    s_spinner:
+        number: 1_17
+        tags: playfield_active
+    s_ctr_rght_rubber:
+        number: 1_18
+        tags: playfield_active
+    s_jkpot_rollover:
+        number: 1_19
+        tags: playfield_active
+    s_below_kickout_rubber:
+        number: 1_20
+        tags: playfield_active
+    s_top_drop_rubber:
+        number: 1_21
+        tags: playfield_active
+    s_drop_trgt_1s:
+        number: 1_24
+        tags: playfield_active
+    s_drop_trgt_2h:
+        number: 1_25
+        tags: playfield_active
+    s_drop_trgt_3o:
+        number: 1_26
+        tags: playfield_active
+    s_drop_trgt_4o:
+        number: 1_27
+        tags: playfield_active
+    s_drop_trgt_5t:
+        number: 1_28
+        tags: playfield_active
+    s_drop_trgt_6e:
+        number: 1_29
+        tags: playfield_active
+    s_drop_trgt_7r:
+        number: 1_30
+        tags: playfield_active
+    s_drop_bank_miss:
+        number: 1_31
+        tags: playfield_active
+
+    s_btm_lft_sling:
+        number: 4_0
+        tags: playfield_active
+    s_lft_flipper:
+        number: 4_1
+    s_trough:
+        number: 4_2
+    s_rght_flipper:
+        number: 4_3
+    s_btm_lft_inln_rollover:
+        number: 4_16
+        tags: playfield_active
+    s_btm_lft_outln_rollover:
+        number: 4_17
+        tags: playfield_active
+    s_ctr_low_rollover:
+        number: 4_18
+        tags: playfield_active
+    s_btm_rght_rubber:
+        number: 4_19
+        tags: playfield_active
+    s_btm_rght_low_rubber:
+        number: 4_20
+        tags: playfield_active
+
+    s_slam_tilt:
+        number: 4_24
+    s_tilt:
+        number: 4_25
+    s_coin_drop:
+        number: 4_26
+    s_start:
+        number: 4_27
+        tags: start
+
+coils:
+    c_upper_lft_pop: 
+        number: 0_12
+        pulse_ms: 24
+    c_upper_ctr_pop: 
+        number: 0_13
+        pulse_ms: 16
+    c_drop_bank: 
+        number: 0_14
+        pulse_ms: 32
+
+    c_kickout_hole: 
+        number: 1_0
+        pulse_ms: 32
+    c_btm_low_pop: 
+        number: 1_1
+        pulse_ms: 16
+    c_btm_up_pop: 
+        number: 1_2
+        pulse_ms: 16
+
+    c_btm_lft_sling: 
+        number: 4_0
+        pulse_ms: 16
+    c_lft_flipper: 
+        number: 4_1
+        pulse_ms: 32
+        hold_power: 4
+    c_trough_eject: 
+        number: 4_2
+        pulse_ms: 16
+    c_rght_flipper: 
+        number: 4_3
+        pulse_ms: 32
+        hold_power: 4
+
+matrix_lights:
+    l_spinner:
+        number: 0_8
+    l_jkpot:
+        number: 0_9
+    l_4x:
+        number: 0_10
+    l_5x:
+        number: 0_11
+    l_2x:
+        number: 0_12
+    l_3x:
+        number: 0_13
+    l_ko_pick_job:
+        number: 0_14
+    l_ko_duel:
+        number: 0_15
+
+    l_inln_rght:
+        number: 0_16
+    l_inln_ctr:
+        number: 0_17
+    l_inln_lft:
+        number: 0_18
+    l_pop_upctr:
+        number: 0_19
+    l_pop_uplft:
+        number: 0_20
+    l_roll_rght:
+        number: 0_21
+    l_roll_ctr:
+        number: 0_22
+    l_roll_lft:
+        number: 0_23
+
+    l_dt_7:
+        number: 1_8
+    l_dt_6:
+        number: 1_9
+    l_dt_5:
+        number: 1_10
+    l_dt_4:
+        number: 1_11
+    l_dt_3:
+        number: 1_12
+    l_dt_2:
+        number: 1_13
+    l_dt_1:
+        number: 1_14
+
+    l_lft_outln:
+        number: 2_0
+    l_lft_inln:
+        number: 2_1
+    l_mode_posse:
+        number: 2_2
+    l_mode_hustlejive:
+        number: 2_3
+    l_mode_trgtprac:
+        number: 2_4
+    l_mode_chkhide:
+        number: 2_5
+    l_mode_sniper:
+        number: 2_6
+    l_mode_sharpe:
+        number: 2_7
+
+    l_mode_ridehelp:
+        number: 2_8
+    l_mode_duel:
+        number: 2_9
+    l_mode_barfght:
+        number: 2_10
+    l_mode_killall:
+        number: 2_11
+    l_mode_trkbndt:
+        number: 2_12
+
+    l_shoot_again:
+        number: 4_8
+    l_pop_btmup:
+        number: 4_9
+    l_pop_btmlow:
+        number: 4_10
+    l_marshal:
+        number: 4_11
+    l_sheriff:
+        number: 4_12
+    l_deputy:
+        number: 4_13
+    l_rookie:
+        number: 4_14
+
+flippers:
+    left_flipper:
+        main_coil: c_lft_flipper
+        activation_switch: s_lft_flipper
+    right_flipper:
+        main_coil: c_rght_flipper
+        activation_switch: s_rght_flipper
+
+ball_devices:
+    bd_drain:
+        ball_switches: s_trough
+        entrance_count_delay: 300ms
+        eject_coil: c_trough_eject
+        tags: trough, home, drain, ball_add_live
+        debug: yes
+    bd_kickout_hole:
+        ball_switches: s_kickout_hole
+        entrance_count_delay: 300ms
+        eject_coil: c_kickout_hole
+        debug: yes
+
+autofire_coils:
+  btm_lft_sling:
+    coil: c_btm_lft_sling
+    switch: s_btm_lft_sling
+  upper_lft_pop:
+    coil: c_upper_lft_pop
+    switch: s_upper_lft_pop
+  upper_ctr_pop:
+    coil: c_upper_ctr_pop
+    switch: s_upper_ctr_pop
+  btm_low_pop:
+    coil: c_btm_low_pop
+    switch: s_btm_low_pop
+  btm_up_pop:
+    coil: c_btm_up_pop
+    switch: s_btm_up_pop
+
+virtual_platform_start_active_switches:
+    s_trough
+
+keyboard:
+    z:
+        switch: s_lft_flipper
+    /:
+        switch: s_rght_flipper
+    s:
+        switch: s_start
+    d:
+        switch: s_trough
+        toggle: true
+    1:
+        switch: s_upper_rght_rollover
+    2:
+        switch: s_upper_ctr_rollover
+
+window:
+    title: SharpeShooter III
+    width: 1280
+    height: 1024
