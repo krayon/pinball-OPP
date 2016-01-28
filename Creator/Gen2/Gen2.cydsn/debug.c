@@ -116,7 +116,7 @@ void debug_save_nv_cfg()
    gen2g_info.nvCfgInfo.wingCfg[2] = WING_INP;
    gen2g_info.nvCfgInfo.wingCfg[3] = WING_INCAND;
    gen2g_info.nvCfgInfo.numNeoPxls = 16;
-   appStart.codeVers = 0x01020304;
+   appStart.codeVers = 0x00000100;
    
    for (src_p = (U8 *)&cfg[0], dst_p = (U8 *)&gen2g_info.nvCfgInfo.cfgData;
       src_p < (U8 *)&cfg[0] + sizeof(cfg); )

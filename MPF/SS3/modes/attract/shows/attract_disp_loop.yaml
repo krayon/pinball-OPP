@@ -51,6 +51,47 @@
   display:
     - type: image
       image: sal_empty
+      slide_priority: 10
+    - type: text
+#      text: "%machine|player_1_score%"
+      text: "8888888888"
+      font: old_disp
+      number_grouping: true
+      min_digits: 2
+      x: 64
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+#      text: "%machine|player_2_score%"
+      text: "8888888888"
+      font: old_disp
+      number_grouping: true
+      min_digits: 2
+      x: 832
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+#      text: "%machine|player_3_score%"
+      text: "8888888888"
+      font: old_disp
+      number_grouping: true
+      min_digits: 2
+      x: 64
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+#      text: "%machine|player_4_score%"
+      text: "8888888888"
+      font: old_disp
+      number_grouping: true
+      min_digits: 2
+      x: 832
+      y: 912
+      color: ee9900
+      size: 64
 #HRS:  Example sound in loop
 #  sounds:
 #    sound: Rookie
@@ -59,29 +100,35 @@
   display:
     - type: image
       image: sal_girl
+      slide_priority: 10
 
 - tocks: 10
   display:
     - type: image
       image: sal_empty
+      slide_priority: 10
 
 - tocks: 10
   display:
     - type: image
       image: sal_guy
+      slide_priority: 10
 
 - tocks: 10
   display:
     - type: image
       image: sal_guyBang
+      slide_priority: 10
 
 - tocks: 10
   display:
     - type: image
       image: sal_empty
+      slide_priority: 10
 
 - tocks: 10
   display:
     - type: image
       image: sal_guyShot
+      slide_priority: 10
 

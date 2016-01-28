@@ -412,6 +412,13 @@ void incand_proc_cmd(
          incandInfo.ledBlinkFastBitfield &= ~mask;
          break;
       }
+      case INCAND_LED_SET_ON_OFF:
+      {
+         incandInfo.ledOnBitfield = mask;
+         incandInfo.ledBlinkSlowBitfield = 0;
+         incandInfo.ledBlinkFastBitfield = 0;
+         break;
+      }
       default:
       {
          if (cmd & INCAND_SET)

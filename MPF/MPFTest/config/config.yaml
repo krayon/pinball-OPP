@@ -1,0 +1,187 @@
+#config_version=3
+
+#
+#===============================================================================
+## @mainpage
+#
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#===============================================================================
+##
+# @file    config.yaml
+# @author  Hugh Spahr
+# @date    1/27/2016
+#
+# @note    Open Pinball Project
+# @note    Copyright 2016, Hugh Spahr
+#
+# @brief Main configuration file for MPF Test machine.
+
+#===============================================================================
+
+hardware:
+    platform: opp
+    driverboards: gen2
+
+opp:
+    ports: COM10
+    config_number_format: hex
+
+switches:
+    # Wing 0 is Neopixel, 1 is solenoid, 2 is input, 3 is incand
+    s_lft_flipper:
+        number: 0-8
+        tags: playfield_active
+    s_rght_flipper:
+        number: 0-9
+        tags: playfield_active
+    s_trough:
+        number: 0-10
+        tags: playfield_active
+    s_sol_7:
+        number: 0-11
+        tags: playfield_active
+    s_start:
+        number: 0-16
+        tags: playfield_active
+        tags: start
+    s_inp_17:
+        number: 0-17
+        tags: playfield_active
+    s_inp_18:
+        number: 0-18
+        tags: playfield_active
+    s_inp_19:
+        number: 0-19
+        tags: playfield_active
+    s_inp_20:
+        number: 0-20
+        tags: playfield_active
+    s_inp_21:
+        number: 0-21
+        tags: playfield_active
+    s_inp_22:
+        number: 0-22
+        tags: playfield_active
+    s_inp_23:
+        number: 0-23
+        tags: playfield_active
+
+coils:
+    c_lft_flipper: 
+        number: 0-4
+        pulse_ms: 16
+        hold_power: 4
+    c_rght_flipper: 
+        number: 0-5
+        pulse_ms: 16
+        hold_power: 4
+    c_trough_eject: 
+        number: 0-6
+        pulse_ms: 16
+    c_sol_7: 
+        number: 0-7
+        pulse_ms: 16
+
+matrix_lights:
+    l_incand_24:
+        number: 0-24
+    l_incand_25:
+        number: 0-25
+    l_incand_26:
+        number: 0-26
+    l_incand_27:
+        number: 0-27
+    l_incand_28:
+        number: 0-28
+    l_incand_29:
+        number: 0-29
+    l_incand_30:
+        number: 0-30
+    l_incand_31:
+        number: 0-31
+
+flippers:
+    left_flipper:
+        main_coil: c_lft_flipper
+        activation_switch: s_lft_flipper
+    right_flipper:
+        main_coil: c_rght_flipper
+        activation_switch: s_rght_flipper
+
+ball_devices:
+    bd_drain:
+        ball_switches: s_trough
+        entrance_count_delay: 300ms
+        eject_coil: c_trough_eject
+        tags: trough, home, drain, ball_add_live
+        debug: yes
+
+autofire_coils:
+  fake_sling:
+    coil: c_sol_7
+    switch: s_sol_7
+
+virtual_platform_start_active_switches:
+    s_trough
+
+keyboard:
+    z:
+        switch: s_lft_flipper
+    /:
+        switch: s_rght_flipper
+    s:
+        switch: s_start
+    d:
+        switch: s_trough
+        toggle: true
+    0:
+        switch: s_sol_7
+    1:
+        switch: s_inp_17
+    2:
+        switch: s_inp_18
+    3:
+        switch: s_inp_19
+    4:
+        switch: s_inp_20
+    5:
+        switch: s_inp_21
+    6:
+        switch: s_inp_22
+    7:
+        switch: s_inp_23
+
+window:
+    title: SharpeShooter III
+    width: 1280
+    height: 1024

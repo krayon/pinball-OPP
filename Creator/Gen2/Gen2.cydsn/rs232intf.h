@@ -184,6 +184,7 @@ typedef enum
   INCAND_LED_BLINK_SLOW     = 0x04,
   INCAND_LED_BLINK_FAST     = 0x05,
   INCAND_LED_BLINK_OFF      = 0x06,
+  INCAND_LED_SET_ON_OFF     = 0x07,
 
   INCAND_SET                = 0x80,
   INCAND_SET_ON             = 0x01,

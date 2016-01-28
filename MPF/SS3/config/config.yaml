@@ -48,12 +48,13 @@
 
 #===============================================================================
 
-#hardware:
-#    platform: opp
-#    driverboards: opp
+hardware:
+    platform: opp
+    driverboards: gen2
 
-#opp:
-#    ports: COM1
+opp:
+    ports: COM10
+    config_number_format: hex
 
 modes:
   - base
@@ -81,253 +82,253 @@ sound_system:
 
 switches:
     s_upper_rght_rollover:
-        number: 0_0
+        number: 0-0
         tags: playfield_active
     s_upper_ctr_rollover:
-        number: 0_1
+        number: 0-1
         tags: playfield_active
     s_upper_lft_rollover:
-        number: 0_2
+        number: 0-2
         tags: playfield_active
     s_upper_lft_top_trgt:
-        number: 0_3
+        number: 0-3
         tags: playfield_active
     s_upper_lft_btm_trgt:
-        number: 0_4
+        number: 0-4
         tags: playfield_active
     s_upper_ctr_rght_rollover:
-        number: 0_5
+        number: 0-5
         tags: playfield_active
     s_upper_ctr_ctr_rollover:
-        number: 0_6
+        number: 0-6
         tags: playfield_active
     s_upper_ctr_lft_rollover:
-        number: 0_7
+        number: 0-7
         tags: playfield_active
     s_upper_lft_pop:
-        number: 0_12
+        number: 0-12
         tags: playfield_active
     s_upper_ctr_pop:
-        number: 0_13
+        number: 0-13
         tags: playfield_active
     s_drop_bank:
-        number: 0_14
+        number: 0-14
         tags: playfield_active
 
     s_kickout_hole:
-        number: 1_0
+        number: 1-0
     s_btm_low_pop:
-        number: 1_1
+        number: 1-1
         tags: playfield_active
     s_btm_up_pop:
-        number: 1_2
+        number: 1-2
         tags: playfield_active
     s_upper_rubber:
-        number: 1_16
+        number: 1-16
         tags: playfield_active
     s_spinner:
-        number: 1_17
+        number: 1-17
         tags: playfield_active
     s_ctr_rght_rubber:
-        number: 1_18
+        number: 1-18
         tags: playfield_active
     s_jkpot_rollover:
-        number: 1_19
+        number: 1-19
         tags: playfield_active
     s_below_kickout_rubber:
-        number: 1_20
+        number: 1-20
         tags: playfield_active
     s_top_drop_rubber:
-        number: 1_21
+        number: 1-21
         tags: playfield_active
     s_drop_trgt_1s:
-        number: 1_24
+        number: 1-24
         tags: playfield_active
     s_drop_trgt_2h:
-        number: 1_25
+        number: 1-25
         tags: playfield_active
     s_drop_trgt_3o:
-        number: 1_26
+        number: 1-26
         tags: playfield_active
     s_drop_trgt_4o:
-        number: 1_27
+        number: 1-27
         tags: playfield_active
     s_drop_trgt_5t:
-        number: 1_28
+        number: 1-28
         tags: playfield_active
     s_drop_trgt_6e:
-        number: 1_29
+        number: 1-29
         tags: playfield_active
     s_drop_trgt_7r:
-        number: 1_30
+        number: 1-30
         tags: playfield_active
     s_drop_bank_miss:
-        number: 1_31
+        number: 1-31
         tags: playfield_active
 
     s_btm_lft_sling:
-        number: 4_0
+        number: 3-0
         tags: playfield_active
     s_lft_flipper:
-        number: 4_1
+        number: 3-1
     s_trough:
-        number: 4_2
+        number: 3-2
     s_rght_flipper:
-        number: 4_3
+        number: 3-3
     s_btm_lft_inln_rollover:
-        number: 4_16
+        number: 3-16
         tags: playfield_active
     s_btm_lft_outln_rollover:
-        number: 4_17
+        number: 3-17
         tags: playfield_active
     s_ctr_low_rollover:
-        number: 4_18
+        number: 3-18
         tags: playfield_active
     s_btm_rght_rubber:
-        number: 4_19
+        number: 3-19
         tags: playfield_active
     s_btm_rght_low_rubber:
-        number: 4_20
+        number: 3-20
         tags: playfield_active
 
     s_slam_tilt:
-        number: 4_24
+        number: 3-24
     s_tilt:
-        number: 4_25
+        number: 3-25
     s_coin_drop:
-        number: 4_26
+        number: 3-26
     s_start:
-        number: 4_27
+        number: 3-27
         tags: start
 
 coils:
     c_upper_lft_pop: 
-        number: 0_12
+        number: 0-12
         pulse_ms: 24
     c_upper_ctr_pop: 
-        number: 0_13
+        number: 0-13
         pulse_ms: 16
     c_drop_bank: 
-        number: 0_14
+        number: 0-14
         pulse_ms: 32
 
     c_kickout_hole: 
-        number: 1_0
+        number: 1-0
         pulse_ms: 32
     c_btm_low_pop: 
-        number: 1_1
+        number: 1-1
         pulse_ms: 16
     c_btm_up_pop: 
-        number: 1_2
+        number: 1-2
         pulse_ms: 16
 
     c_btm_lft_sling: 
-        number: 4_0
+        number: 3-0
         pulse_ms: 16
     c_lft_flipper: 
-        number: 4_1
+        number: 3-1
         pulse_ms: 32
         hold_power: 4
     c_trough_eject: 
-        number: 4_2
+        number: 3-2
         pulse_ms: 16
     c_rght_flipper: 
-        number: 4_3
+        number: 3-3
         pulse_ms: 32
         hold_power: 4
 
 matrix_lights:
     l_spinner:
-        number: 0_8
+        number: 0-8
     l_jkpot:
-        number: 0_9
+        number: 0-9
     l_4x:
-        number: 0_10
+        number: 0-10
     l_5x:
-        number: 0_11
+        number: 0-11
     l_2x:
-        number: 0_12
+        number: 0-12
     l_3x:
-        number: 0_13
+        number: 0-13
     l_ko_pick_job:
-        number: 0_14
+        number: 0-14
     l_ko_duel:
-        number: 0_15
+        number: 0-15
 
     l_inln_rght:
-        number: 0_16
+        number: 0-16
     l_inln_ctr:
-        number: 0_17
+        number: 0-17
     l_inln_lft:
-        number: 0_18
+        number: 0-18
     l_pop_upctr:
-        number: 0_19
+        number: 0-19
     l_pop_uplft:
-        number: 0_20
+        number: 0-20
     l_roll_rght:
-        number: 0_21
+        number: 0-21
     l_roll_ctr:
-        number: 0_22
+        number: 0-22
     l_roll_lft:
-        number: 0_23
+        number: 0-23
 
     l_dt_7:
-        number: 1_8
+        number: 1-8
     l_dt_6:
-        number: 1_9
+        number: 1-9
     l_dt_5:
-        number: 1_10
+        number: 1-10
     l_dt_4:
-        number: 1_11
+        number: 1-11
     l_dt_3:
-        number: 1_12
+        number: 1-12
     l_dt_2:
-        number: 1_13
+        number: 1-13
     l_dt_1:
-        number: 1_14
+        number: 1-14
 
     l_lft_outln:
-        number: 2_0
+        number: 2-0
     l_lft_inln:
-        number: 2_1
+        number: 2-1
     l_mode_posse:
-        number: 2_2
+        number: 2-2
     l_mode_hustlejive:
-        number: 2_3
+        number: 2-3
     l_mode_trgtprac:
-        number: 2_4
+        number: 2-4
     l_mode_chkhide:
-        number: 2_5
+        number: 2-5
     l_mode_sniper:
-        number: 2_6
+        number: 2-6
     l_mode_sharpe:
-        number: 2_7
+        number: 2-7
 
     l_mode_ridehelp:
-        number: 2_8
+        number: 2-8
     l_mode_duel:
-        number: 2_9
+        number: 2-9
     l_mode_barfght:
-        number: 2_10
+        number: 2-10
     l_mode_killall:
-        number: 2_11
+        number: 2-11
     l_mode_trkbndt:
-        number: 2_12
+        number: 2-12
 
     l_shoot_again:
-        number: 4_8
+        number: 3-8
     l_pop_btmup:
-        number: 4_9
+        number: 3-9
     l_pop_btmlow:
-        number: 4_10
+        number: 3-10
     l_marshal:
-        number: 4_11
+        number: 3-11
     l_sheriff:
-        number: 4_12
+        number: 3-12
     l_deputy:
-        number: 4_13
+        number: 3-13
     l_rookie:
-        number: 4_14
+        number: 3-14
 
 flippers:
     left_flipper:
@@ -389,3 +390,7 @@ window:
     title: SharpeShooter III
     width: 1280
     height: 1024
+
+Fonts:
+    old_disp:
+        file: LCDM2N__.TTF

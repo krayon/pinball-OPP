@@ -53,3 +53,6 @@ show_player:
     - show: attract_disp_loop
       repeat: yes
       tocks_per_sec: 1
+    - show: attract_light_loop
+      repeat: yes
+      tocks_per_sec: 1
