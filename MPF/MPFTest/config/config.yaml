@@ -56,6 +56,9 @@ opp:
     ports: COM10
     config_number_format: hex
 
+modes:
+  - base
+
 switches:
     # Wing 0 is Neopixel, 1 is solenoid, 2 is input, 3 is incand
     s_lft_flipper:
@@ -66,7 +69,6 @@ switches:
         tags: playfield_active
     s_trough:
         number: 0-10
-        tags: playfield_active
     s_sol_7:
         number: 0-11
         tags: playfield_active
@@ -130,6 +132,56 @@ matrix_lights:
     l_incand_31:
         number: 0-31
 
+leds:
+    l_led0:
+        number: 0-0
+        default_color: ffffff
+    l_led1:
+        number: 0-1
+        default_color: ffffff
+    l_led2:
+        number: 0-2
+        default_color: ffffff
+    l_led3:
+        number: 0-3
+        default_color: ffffff
+    l_led4:
+        number: 0-4
+        default_color: ffffff
+    l_led5:
+        number: 0-5
+        default_color: ffffff
+    l_led6:
+        number: 0-6
+        default_color: ffffff
+    l_led7:
+        number: 0-7
+        default_color: ffffff
+    l_led8:
+        number: 0-8
+        default_color: ffffff
+    l_led9:
+        number: 0-9
+        default_color: ffffff
+    l_led10:
+        number: 0-10
+        default_color: ffffff
+    l_led11:
+        number: 0-11
+        default_color: ffffff
+    l_led12:
+        number: 0-12
+        default_color: ffffff
+    l_led13:
+        number: 0-13
+        default_color: ffffff
+    l_led14:
+        number: 0-14
+        default_color: ffffff
+    l_led15:
+        number: 0-15
+        default_color: ffffff
+
 flippers:
     left_flipper:
         main_coil: c_lft_flipper
@@ -164,21 +216,21 @@ keyboard:
     d:
         switch: s_trough
         toggle: true
-    0:
-        switch: s_sol_7
     1:
-        switch: s_inp_17
+        switch: s_sol_7
     2:
-        switch: s_inp_18
+        switch: s_inp_17
     3:
-        switch: s_inp_19
+        switch: s_inp_18
     4:
-        switch: s_inp_20
+        switch: s_inp_19
     5:
-        switch: s_inp_21
+        switch: s_inp_20
     6:
-        switch: s_inp_22
+        switch: s_inp_21
     7:
+        switch: s_inp_22
+    8:
         switch: s_inp_23
 
 window:

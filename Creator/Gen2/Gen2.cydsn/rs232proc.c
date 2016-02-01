@@ -309,6 +309,8 @@ void rs232proc_task(void)
                         case RS232I_CHNG_NEO_COLOR:
                         case RS232I_CHNG_NEO_COLOR_TBL:
                         case RS232I_INCAND_CMD:
+                        case RS232I_CONFIG_IND_SOL:
+                        case RS232I_CONFIG_IND_INP:
                         {
                            /* Verify CRC to be sure */
                            rs232_glob.state = RS232_RCV_DATA_CMD;
@@ -566,6 +568,27 @@ void rs232proc_task(void)
                               ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 2] << 8) |
                               (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1];
                            incand_proc_cmd(rs232_glob.rxBuf[INCAND_CMD_OFFSET], mask);
+                           break;
+                        }
+                        case RS232I_CONFIG_IND_SOL:
+                        {
+                           /* First byte contains solenoid number [0-15] */
+                           for (index = 0, src_p = &rs232_glob.rxBuf[1],
+                              dest_p = ((U8 *)gen2g_info.solDrvCfg_p) +
+                                 (rs232_glob.rxBuf[0] * sizeof(RS232I_SOL_CFG_T));
+                              index < sizeof(RS232I_SOL_CFG_T);
+                              index++)
+                           {
+                              *dest_p++ = *src_p++;
+                           }
+                           digital_set_init_state();
+                           break;
+                        }
+                        case RS232I_CONFIG_IND_INP:
+                        {
+                           gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxBuf[0]] =
+                              rs232_glob.rxBuf[1];
+                           digital_set_init_state();
                            break;
                         }
                         default:

@@ -37,25 +37,36 @@
 
 #===============================================================================
 ##
-# @file    attract.yaml
+# @file    base.yaml
 # @author  Hugh Spahr
-# @date    1/8/2016
+# @date    1/28/2016
 #
 # @note    Open Pinball Project
 # @note    Copyright 2016, Hugh Spahr
 #
-# @brief yaml file for attract mode
+# @brief yaml code for the base mode
 
 #===============================================================================
 
-show_player:
-  mode_attract_started:
-    - show: attract_disp_loop
-      repeat: yes
-      tocks_per_sec: 1
+mode:
+    start_events: ball_starting
+    priority: 100
 
-light_player:
-    mode_attract_started:
-      - show: attract_light_loop
-        repeat: yes
-        tocks_per_sec: 1
+scoring:
+    s_sol_7:
+        score: 1
+    s_inp_17:
+        score: 2
+    s_inp_18:
+        score: 3
+    s_inp_19:
+        score: 4
+    s_inp_20:
+        score: 5
+    s_inp_21:
+        score: 6
+    s_inp_22:
+        score: 7
+    s_inp_23:
+        score: 8
+

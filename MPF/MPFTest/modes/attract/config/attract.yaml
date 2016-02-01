@@ -39,7 +39,7 @@
 ##
 # @file    attract.yaml
 # @author  Hugh Spahr
-# @date    1/8/2016
+# @date    1/28/2016
 #
 # @note    Open Pinball Project
 # @note    Copyright 2016, Hugh Spahr
@@ -50,12 +50,12 @@
 
 show_player:
   mode_attract_started:
-    - show: attract_disp_loop
+    - show: attract_light_loop
       repeat: yes
       tocks_per_sec: 1
 
 light_player:
-    mode_attract_started:
-      - show: attract_light_loop
-        repeat: yes
-        tocks_per_sec: 1
+  mode_attract_started:
+    - show: attract_light_loop
+      repeat: yes
+      tocks_per_sec: 1

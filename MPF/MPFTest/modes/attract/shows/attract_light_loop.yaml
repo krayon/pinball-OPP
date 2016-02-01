@@ -1,0 +1,181 @@
+#
+#===============================================================================
+## @mainpage
+#
+#                           OOOO
+#                         OOOOOOOO
+#        PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#    PPP          PPP   OOO      OOO   PPP          PPP
+#     PPP         PPP   OOO      OOO   PPP         PPP
+#      PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#       PPPPPPPPPPPPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP   OOO      OOO   PPP
+#                 PPP    OOO    OOO    PPP
+#                 PPP     OOOOOOOO     PPP
+#                PPPPP      OOOO      PPPPP
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+#===============================================================================
+##
+# @file    attract_light_loop.yaml
+# @author  Hugh Spahr
+# @date    1/28/2016
+#
+# @note    Open Pinball Project
+# @note    Copyright 2016, Hugh Spahr
+#
+# @brief yaml file that includes the light loop in attract mode
+
+#===============================================================================
+
+
+- tocks: 1
+  lights:
+    l_incand_24: ff
+    l_incand_25: 00
+    l_incand_26: 00
+    l_incand_27: 00
+    l_incand_28: 00
+    l_incand_29: 00
+    l_incand_30: 00
+    l_incand_31: 00
+  leds:
+    l_led0: ffffff
+    l_led1: 000000
+    l_led2: 000000
+    l_led3: 000000
+    l_led4: 000000
+    l_led5: 000000
+    l_led6: 000000
+    l_led7: 000000
+    l_led8: 000000
+    l_led9: 000000
+    l_led10: 000000
+    l_led11: 000000
+    l_led12: 000000
+    l_led13: 000000
+    l_led14: 000000
+    l_led15: 000000
+- tocks: 1
+  lights:
+    l_incand_24: 00
+    l_incand_25: ff
+  leds:
+    l_led0: 000000
+    l_led1: ffffff
+- tocks: 1
+  lights:
+    l_incand_25: 00
+    l_incand_26: ff
+  leds:
+    l_led1: 000000
+    l_led2: ffffff
+- tocks: 1
+  lights:
+    l_incand_26: 00
+    l_incand_27: ff
+  leds:
+    l_led2: 000000
+    l_led3: ffffff
+- tocks: 1
+  lights:
+    l_incand_27: 00
+    l_incand_28: ff
+  leds:
+    l_led3: 000000
+    l_led4: ffffff
+- tocks: 1
+  lights:
+    l_incand_28: 00
+    l_incand_29: ff
+  leds:
+    l_led4: 000000
+    l_led5: ffffff
+- tocks: 1
+  lights:
+    l_incand_29: 00
+    l_incand_30: ff
+  leds:
+    l_led5: 000000
+    l_led6: ffffff
+- tocks: 1
+  lights:
+    l_incand_30: 00
+    l_incand_31: ff
+  leds:
+    l_led6: 000000
+    l_led7: ffffff
+- tocks: 1
+  lights:
+    l_incand_24: ff
+    l_incand_31: 00
+  leds:
+    l_led7: 000000
+    l_led8: ffffff
+- tocks: 1
+  lights:
+    l_incand_24: 00
+    l_incand_25: ff
+  leds:
+    l_led8: 000000
+    l_led9: ffffff
+- tocks: 1
+  lights:
+    l_incand_25: 00
+    l_incand_26: ff
+  leds:
+    l_led9: 000000
+    l_led10: ffffff
+- tocks: 1
+  lights:
+    l_incand_26: 00
+    l_incand_27: ff
+  leds:
+    l_led10: 000000
+    l_led11: ffffff
+- tocks: 1
+  lights:
+    l_incand_27: 00
+    l_incand_28: ff
+  leds:
+    l_led11: 000000
+    l_led12: ffffff
+- tocks: 1
+  lights:
+    l_incand_28: 00
+    l_incand_29: ff
+  leds:
+    l_led12: 000000
+    l_led13: ffffff
+- tocks: 1
+  lights:
+    l_incand_29: 00
+    l_incand_30: ff
+  leds:
+    l_led13: 000000
+    l_led14: ffffff
+- tocks: 1
+  lights:
+    l_incand_30: 00
+    l_incand_31: ff
+  leds:
+    l_led14: 000000
+    l_led15: ffffff
