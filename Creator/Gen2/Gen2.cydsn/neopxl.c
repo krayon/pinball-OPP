@@ -84,7 +84,6 @@ const U16 colorLkup[] =
    { 0x0924, 0x0926, 0x0934, 0x0936, 0x09a4, 0x09a6, 0x09b4, 0x09b6,
      0x0d24, 0x0d26, 0x0d34, 0x0d36, 0x0da4, 0x0da6, 0x0db4, 0x0db6 };
 
-#define NEO_MAX_PIXELS           64
 #define BYTES_PER_PIXEL          9       /* 3 8-bit colors, 3 bits needed/bit color */
 #define MAX_MULT_FACT_SHFT       5       /* Must be power of 2 */
     

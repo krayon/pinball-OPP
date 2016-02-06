@@ -55,6 +55,8 @@ class OppRs232Intf:
     SET_NEO_COLOR_TBL   = '\x12'
     INCAND_CMD          = '\x13'
     CFG_IND_SOL_CMD     = '\x14'
+    CFG_IND_INP_CMD     = '\x15'
+    SET_IND_NEO_CMD     = '\x16'
 
     INV_CMD             = '\xf0'
     ILLEGAL_CMD         = '\xfe'
@@ -83,6 +85,7 @@ class OppRs232Intf:
     CFG_SOL_AUTO_CLR    = '\x02'
 
     NUM_COLOR_TBL       = 32
+    NEO_CMD_ON          = 0x80
 
     INCAND_ROT_LEFT     = '\x00'
     INCAND_ROT_RIGHT    = '\x01'
@@ -154,6 +157,7 @@ class HardwarePlatform(Platform):
         super(HardwarePlatform, self).__init__(machine)
         self.log = logging.getLogger('OPP')
         self.log.info("Configuring OPP hardware.")
+        self.platformVersion = "0.1.0.0"
 
         if not serial_imported:
             self.log.error('Could not import "pySerial". This is required for '
@@ -324,6 +328,7 @@ class HardwarePlatform(Platform):
             sendCmd = ''.join(wholeMsg)
 
             self.opp_connection.send(sendCmd)
+            self.log.debug("Update incand cmd:%s", "".join(" 0x%02x" % ord(b) for b in sendCmd))
 
     def get_hw_switch_states(self):
         hw_states = dict()
@@ -331,18 +336,16 @@ class HardwarePlatform(Platform):
             currBit = 1
             for index in range(0, 32):
                 if ((currBit & oppInp.mask) != 0):
-                    if ((currBit & oppInp.state) == 0):
+                    if ((currBit & oppInp.oldState) == 0):
                         hw_states[oppInp.cardNum + '-' + str(index)] = 1
                     else:
                         hw_states[oppInp.cardNum + '-' + str(index)] = 0
                 currBit <<= 1
-            self.log.info("Mask = 0x%08x, Inputs = 0x%08x", oppInp.mask, oppInp.state)
         self.hw_switch_data = hw_states
-        self.log.critical("Ping")
         return self.hw_switch_data
         
     def inv_resp(self, msg):
-        self.log.info("Received Inventory Response:%s", "".join(" 0x%02x" % ord(b) for b in msg))
+        self.log.debug("Received Inventory Response:%s", "".join(" 0x%02x" % ord(b) for b in msg))
 
         index = 1
         while (msg[index] != OppRs232Intf.EOM_CMD):
@@ -351,6 +354,7 @@ class HardwarePlatform(Platform):
                 self.gen2AddrArr.append(msg[index])
                 self.currInpData.append(0)
             index += 1
+        self.log.info("Found %d Gen2 OPP boards.", self.numGen2Brd)
 
     def eom_resp(self, msg):
         # An EOM command can be used to resynchronize communications if message synch is lost
@@ -358,7 +362,7 @@ class HardwarePlatform(Platform):
 
     def get_gen2_cfg_resp(self, msg):
         # Multiple get gen2 cfg responses can be received at once
-        self.log.info("Received Gen2 Cfg Response:%s", "".join(" 0x%02x" % ord(b) for b in msg))
+        self.log.debug("Received Gen2 Cfg Response:%s", "".join(" 0x%02x" % ord(b) for b in msg))
         end = False
         currIndex = 0
         wholeMsg = []
@@ -393,7 +397,8 @@ class HardwarePlatform(Platform):
                     self.opp_solenoid.append(OPPSolenoidCard(msg[currIndex], solMask, self.solDict, self))
                 if (inpMask != 0):
                     # Create the input object, and add to the command to read all inputs
-                    self.opp_inputs.append(OPPInput(msg[currIndex], inpMask, self.inpDict, self.inpAddrDict))
+                    self.opp_inputs.append(OPPInput(msg[currIndex], inpMask, self.inpDict,
+                        self.inpAddrDict, self.machine))
 
                     # Add command to read all inputs to read input message
                     inpMsg = []
@@ -407,7 +412,7 @@ class HardwarePlatform(Platform):
                     wholeMsg.extend(inpMsg)
             
                 if hasNeo:
-                    self.opp_neopixels.append(OPPNeopixelCard(msg[currIndex], self.neoCardDict))
+                    self.opp_neopixels.append(OPPNeopixelCard(msg[currIndex], self.neoCardDict, self))
             if (not end):
                 if (msg[currIndex + 7] == OppRs232Intf.GET_GEN2_CFG):
                     currIndex += 7
@@ -426,7 +431,7 @@ class HardwarePlatform(Platform):
 
     def vers_resp(self, msg):
         # Multiple get version responses can be received at once
-        self.log.info("Received Version Response:%s", "".join(" 0x%02x" % ord(b) for b in msg))
+        self.log.debug("Received Version Response:%s", "".join(" 0x%02x" % ord(b) for b in msg))
         end = False
         currIndex = 0
         while (not end):
@@ -469,26 +474,36 @@ class HardwarePlatform(Platform):
 
     def read_gen2_inp_resp(self, msg):
         # Single read gen2 input response.  Receive function breaks them down
-        end = False
-        currIndex = 0
-        hw_states = dict()
 
         # Verify the CRC8 is correct
-        crc8 = OppRs232Intf.calc_crc8_part_msg(msg, currIndex, 6)
-        if (msg[currIndex + 6] != crc8):
+        crc8 = OppRs232Intf.calc_crc8_part_msg(msg, 0, 6)
+        if (msg[6] != crc8):
             self.badCRC += 1
             hex_string = "".join(" 0x%02x" % ord(b) for b in msg)
             self.log.warning("Msg contains bad CRC:%s.", hex_string)
             end = True
         else:
-            oppInp = self.inpAddrDict[msg[currIndex]]
-            newState = (ord(msg[currIndex + 2]) << 24) | \
-                (ord(msg[currIndex + 3]) << 16) | \
-                (ord(msg[currIndex + 4]) << 8) | \
-                ord(msg[currIndex + 5])
+            oppInp = self.inpAddrDict[msg[0]]
+            newState = (ord(msg[2]) << 24) | \
+                (ord(msg[3]) << 16) | \
+                (ord(msg[4]) << 8) | \
+                ord(msg[5])
 
-            # Update the state which holds inputs that are active 
-            oppInp.state |= newState
+            # Update the state which holds inputs that are active
+            if hasattr(oppInp.machine, 'switch_controller'):
+                changes = oppInp.oldState ^ newState
+                if (changes != 0):
+                    currBit = 1
+                    for index in range(0, 32):
+                        if ((currBit & changes) != 0):
+                            if ((currBit & newState) == 0):
+                                oppInp.machine.switch_controller.process_switch(state=1,
+                                    num=oppInp.cardNum + '-' + str(index))
+                            else:
+                                oppInp.machine.switch_controller.process_switch(state=0,
+                                    num=oppInp.cardNum + '-' + str(index))
+                        currBit <<= 1
+            oppInp.oldState = newState
 
     def configure_driver(self, config, device_type='coil'):
         if not self.opp_connection:
@@ -505,7 +520,7 @@ class HardwarePlatform(Platform):
         _, solenoid = config['number'].split('-')
         opp_sol = self.solDict[config['number']]
         opp_sol.driver_settings.update(opp_sol.merge_driver_settings(**config))
-        self.log.info("Config driver %s, %s, %s", config['number'],
+        self.log.debug("Config driver %s, %s, %s", config['number'],
             opp_sol.driver_settings['pulse_ms'], opp_sol.driver_settings['hold_power'])
 
         pulse_len = int(opp_sol.driver_settings['pulse_ms'])
@@ -532,7 +547,7 @@ class HardwarePlatform(Platform):
         msg.append(OppRs232Intf.EOM_CMD)
         cmd = ''.join(msg)
         
-        self.log.info("Writing individual config: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
+        self.log.debug("Writing individual config: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
         self.opp_connection.send(cmd)
 
         return (opp_sol, config['number']) 
@@ -548,7 +563,7 @@ class HardwarePlatform(Platform):
             self.log.critical("A request was made to configure an OPP switch "
                               "with number %s which doesn't exist" % config['number'])
             sys.exit()
-            
+
         return (self.inpDict[config['number']], config['number'])
 
     def configure_led(self, config):
@@ -556,7 +571,6 @@ class HardwarePlatform(Platform):
             self.log.critical("A request was made to configure an OPP LED, "
                               "but no OPP connection is available")
             sys.exit()
-        
 
         card, pixelNum = config['number'].split('-')
         if not card in self.neoCardDict:
@@ -692,7 +706,7 @@ class HardwarePlatform(Platform):
         msg.append(OppRs232Intf.EOM_CMD)
         cmd = ''.join(msg)
 
-        self.log.info("Writing hardware rule: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
+        self.log.debug("Writing hardware rule: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
         self.opp_connection.send(cmd)
 
     def clear_hw_rule(self, sw_name):
@@ -721,25 +735,25 @@ class HardwarePlatform(Platform):
             del self.hw_rules[driver_obj]
 
             driver_settings = driver_obj.hw_driver.driver_settings
-            driver_settings['pulse_ms'] = '0'
-            driver_settings['hold_power'] = '0'
 
             card, solenoid = driver_obj.number.split('-')
             solIndex = int(solenoid) * OppRs232Intf.CFG_BYTES_PER_SOL
-            driver_obj.hw_driver.solCard.currCfgLst[solIndex] = '\x00'
-            driver_obj.hw_driver.solCard.currCfgLst[solIndex + OppRs232Intf.INIT_KICK_OFFSET] = '\x00'
-            driver_obj.hw_driver.solCard.currCfgLst[solIndex + OppRs232Intf.DUTY_CYCLE_OFFSET] = '\x00'
+            cmd = chr(ord(driver_obj.hw_driver.solCard.currCfgLst[solIndex]) & \
+                ~ord(OppRs232Intf.CFG_SOL_USE_SWITCH))
+            driver_obj.hw_driver.solCard.currCfgLst[solIndex] = cmd
 
             msg = []
             msg.append(driver_obj.hw_driver.solCard.addr)
-            msg.append(OppRs232Intf.CFG_SOL_CMD)
-            for byte in driver_obj.hw_driver.solCard.currCfgLst:
-                msg.append(byte)
+            msg.append(OppRs232Intf.CFG_IND_SOL_CMD)
+            msg.append(chr(int(solenoid)))
+            msg.append(cmd)
+            msg.append(driver_obj.hw_driver.solCard.currCfgLst[solIndex + 1])
+            msg.append(driver_obj.hw_driver.solCard.currCfgLst[solIndex + 2])
             msg.append(OppRs232Intf.calc_crc8_whole_msg(msg))
             msg.append(OppRs232Intf.EOM_CMD)
             cmd = ''.join(msg)
-            
-            self.log.info("Clearing hardware rule: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
+
+            self.log.debug("Clearing hardware rule: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
             self.opp_connection.send(cmd)
 
 class OPPIncandCard(object):
@@ -777,7 +791,10 @@ class OPPIncand(object):
         """Enables (turns on) this driver."""
         _, incand = self.number.split("-")
         currBit = (1 << int(incand))
-        self.incandCard.newState |= currBit
+        if brightness == 0:
+            self.incandCard.newState &= ~currBit
+        else:
+            self.incandCard.newState |= currBit
 
 class OPPSolenoid(object):
 
@@ -939,12 +956,13 @@ class OPPSolenoidCard(object):
 
 class OPPInput(object):
 
-    def __init__(self, addr, mask, inpDict, inpAddrDict):
+    def __init__(self, addr, mask, inpDict, inpAddrDict, machine):
         self.log = logging.getLogger('OPPInput')
         self.addr = addr
-        self.state = 0
+        self.oldState = 0
         self.mask = mask
         self.cardNum = str(ord(addr) - ord(OppRs232Intf.CARD_ID_GEN2_CARD))
+        self.machine = machine
 
         self.log.debug("Creating OPP Input at hardware address: 0x%02x",
             ord(addr))
@@ -956,12 +974,14 @@ class OPPInput(object):
 
 class OPPNeopixelCard(object):
 
-    def __init__(self, addr, neoCardDict):
+    def __init__(self, addr, neoCardDict, platform):
         self.log = logging.getLogger('OPPNeopixel')
         self.addr = addr
+        self.platform = platform
         self.card = str(ord(addr) - ord(OppRs232Intf.CARD_ID_GEN2_CARD))
         self.numPixels = 0
-        self.colorTableLst = [0 for _ in range(32)]
+        self.numColorEntries = 0
+        self.colorTableDict = dict()
         neoCardDict[self.card] = self
 
         self.log.debug("Creating OPP Neopixel card at hardware address: 0x%02x",
@@ -971,16 +991,19 @@ class OPPNeopixelCard(object):
         if number > self.numPixels:
             self.numPixels = number + 1
         pixel_number = self.card + '-' + str(number)
-        pixel = OPPNeopixel(pixel_number)
+        pixel = OPPNeopixel(pixel_number, self)
         neoDict[pixel_number] = pixel
         return pixel
 
 class OPPNeopixel(object):
 
-    def __init__(self, number):
+    def __init__(self, number, neoCard):
         self.log = logging.getLogger('OPPNeopixel')
         self.number = number
         self.current_color = '000000'
+        self.neoCard = neoCard
+        _, index = number.split('-')
+        self.index_char = chr(int(index))
 
         self.log.debug("Creating OPP Neopixel: %s",
             number)
@@ -996,9 +1019,46 @@ class OPPNeopixel(object):
             0-255 each.
         """
 
-        self.current_color = self.rgb_to_hex(color)
         # todo this is crazy inefficient right now. todo change it so it can use
         # hex strings as the color throughout
+        new_color = self.rgb_to_hex(color)
+        error = False
+
+        # Check if this color exists in the color table
+        if not new_color in self.neoCard.colorTableDict:
+            # Check if there are available spaces in the table
+            if (self.neoCard.numColorEntries < 32):
+                # Send the command to add color table entry
+                self.neoCard.colorTableDict[new_color] = \
+                    chr(self.neoCard.numColorEntries + OppRs232Intf.NEO_CMD_ON)
+                msg = []
+                msg.append(self.neoCard.addr)
+                msg.append(OppRs232Intf.CHNG_NEO_COLOR_TBL)
+                msg.append(chr(self.neoCard.numColorEntries))
+                msg.append(chr(int(new_color[2:4],16)))
+                msg.append(chr(int(new_color[:2],16)))
+                msg.append(chr(int(new_color[-2:],16)))
+                msg.append(OppRs232Intf.calc_crc8_whole_msg(msg))
+                cmd = ''.join(msg)
+                self.log.debug("Add Neo color table entry: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
+                self.neoCard.platform.opp_connection.send(cmd)
+                self.neoCard.numColorEntries += 1
+            else:
+                error = True
+                self.log.warn("Not enough Neo color table entries. "
+                              "OPP only supports 32.")
+
+        # Send msg to set the neopixel
+        if (not error):
+            msg = []
+            msg.append(self.neoCard.addr)
+            msg.append(OppRs232Intf.SET_IND_NEO_CMD)
+            msg.append(self.index_char)
+            msg.append(self.neoCard.colorTableDict[new_color])
+            msg.append(OppRs232Intf.calc_crc8_whole_msg(msg))
+            cmd = ''.join(msg)
+            self.log.debug("Set Neopixel color: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
+            self.neoCard.platform.opp_connection.send(cmd)
 
 class SerialCommunicator(object):
 
@@ -1053,13 +1113,13 @@ class SerialCommunicator(object):
         cmd = ''.join(msg)
         
         self.log.debug("Sending inventory command: %s", "".join(" 0x%02x" % ord(b) for b in cmd))
-        self.serial_connection.write(cmd) # HRS:  Deal with errors
+        self.serial_connection.write(cmd)
         
         time.sleep(.1)
         resp = self.serial_connection.read(30)
         
         # resp will contain the inventory response.
-        self.platform.process_received_message(resp) # HRS:  Deal with errors
+        self.platform.process_received_message(resp)
 
         # Now send get gen2 configuration message to find populated wing boards
         self.send_get_gen2_cfg_cmd()
@@ -1069,13 +1129,13 @@ class SerialCommunicator(object):
 
         # resp will contain the gen2 cfg reponses.  That will end up creating all the
         # correct objects.
-        self.platform.process_received_message(resp) # HRS:  Deal with errors
+        self.platform.process_received_message(resp)
 
         # get the version of the firmware
         self.send_vers_cmd()
         time.sleep(.1)
         resp = self.serial_connection.read(30)
-        self.platform.process_received_message(resp) # HRS:  Deal with errors
+        self.platform.process_received_message(resp)
         
         # see if version of firmware is new enough
         if (self.platform.minVersion < MIN_FW):
@@ -1089,8 +1149,8 @@ class SerialCommunicator(object):
         self.serial_connection.write(self.platform.read_input_msg)
         time.sleep(.1)
         resp = self.serial_connection.read(100)
-        self.log.info("Init get input response: %s", "".join(" 0x%02x" % ord(b) for b in resp))
-        self.platform.process_received_message(resp) # HRS:  Deal with errors
+        self.log.debug("Init get input response: %s", "".join(" 0x%02x" % ord(b) for b in resp))
+        self.platform.process_received_message(resp)
         
     def send_get_gen2_cfg_cmd(self):
         # Now send get gen2 configuration message to find populated wing boards
@@ -1151,7 +1211,7 @@ class SerialCommunicator(object):
 
     def stop(self):
         """Stops and shuts down this serial connection."""
-        self.log.error("HRS:  Stop called on serial connection")
+        self.log.error("Stop called on serial connection")
         self.serial_connection.close()
         self.serial_connection = None  # child threads stop when this is None
 
@@ -1236,14 +1296,15 @@ class SerialCommunicator(object):
             lines = traceback.format_exception(exc_type, exc_value,
                                                exc_traceback)
             msg = ''.join(line for line in lines)
-            self.log.critical("!!! HRS:  Gah, got a crash")
+            self.log.critical("!!! Receive loop error exception")
             self.machine.crash_queue.put(msg)
-        self.log.critical("!!! HRS:  rcv loop exited")
+        self.log.critical("!!! Receive loop exited")
 
 # The MIT License (MIT)
 
 # Oringal code on which this module was based:
-# Copyright (c) 2009-2011 Adam Preble and Gerry Stellenberg
+# Copyright (c) 2009-2011 Adam Preble and Gerry Stellenberg, but almost
+#   everything has been changed at this point.
 
 # Copyright (c) 2016 Hugh Spahr
 

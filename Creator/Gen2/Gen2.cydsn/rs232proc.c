@@ -189,6 +189,8 @@ void rs232proc_task(void)
 #define NEO_BLUE_OFFSET       3
 #define INCAND_CMD_OFFSET     0
 #define INCAND_MASK_OFFSET    1
+#define CONFIG_NUM_OFFSET     0
+#define CONFIG_DATA_OFFSET    1
   
    /* Check if received a char */
    if (rs232_glob.rcvChar)
@@ -311,6 +313,7 @@ void rs232proc_task(void)
                         case RS232I_INCAND_CMD:
                         case RS232I_CONFIG_IND_SOL:
                         case RS232I_CONFIG_IND_INP:
+                        case RS232I_SET_IND_NEO:
                         {
                            /* Verify CRC to be sure */
                            rs232_glob.state = RS232_RCV_DATA_CMD;
@@ -427,9 +430,8 @@ void rs232proc_task(void)
                         }
                         case RS232I_GO_BOOT:
                         {
-                           /* Write the magic number */
-                           *((R32 *)RAM_FIRST_ADDR) = MAGIC_NUM;
-                           ResetProc;
+                           /* This command resets the processor */
+                           Bootloadable_Load();
                            break;
                         }
                         case RS232I_CONFIG_SOL:
@@ -566,16 +568,16 @@ void rs232proc_task(void)
                            mask = ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET] << 24) |
                               ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 16) |
                               ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 2] << 8) |
-                              (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1];
+                              (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 3];
                            incand_proc_cmd(rs232_glob.rxBuf[INCAND_CMD_OFFSET], mask);
                            break;
                         }
                         case RS232I_CONFIG_IND_SOL:
                         {
                            /* First byte contains solenoid number [0-15] */
-                           for (index = 0, src_p = &rs232_glob.rxBuf[1],
+                           for (index = 0, src_p = &rs232_glob.rxBuf[CONFIG_DATA_OFFSET],
                               dest_p = ((U8 *)gen2g_info.solDrvCfg_p) +
-                                 (rs232_glob.rxBuf[0] * sizeof(RS232I_SOL_CFG_T));
+                                 (rs232_glob.rxBuf[CONFIG_NUM_OFFSET] * sizeof(RS232I_SOL_CFG_T));
                               index < sizeof(RS232I_SOL_CFG_T);
                               index++)
                            {
@@ -586,9 +588,17 @@ void rs232proc_task(void)
                         }
                         case RS232I_CONFIG_IND_INP:
                         {
-                           gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxBuf[0]] =
-                              rs232_glob.rxBuf[1];
+                           gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxBuf[CONFIG_NUM_OFFSET]] =
+                              rs232_glob.rxBuf[CONFIG_DATA_OFFSET];
                            digital_set_init_state();
+                           break;
+                        }
+                        case RS232I_SET_IND_NEO:
+                        {
+                           neo_update_pixel_cmd(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
+                              (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
+                           neo_update_pixel_color(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
+                              (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
                            break;
                         }
                         default:

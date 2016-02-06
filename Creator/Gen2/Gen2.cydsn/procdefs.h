@@ -125,6 +125,8 @@
                                     *((unsigned volatile long *)CM0_AIRCR) = 0x05fa0004; \
                                  } while ( 0 )
 
+void Bootloadable_Load();
+   
 #endif
 
 /* [] END OF FILE */

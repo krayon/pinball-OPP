@@ -234,6 +234,6 @@ keyboard:
         switch: s_inp_23
 
 window:
-    title: SharpeShooter III
-    width: 1280
-    height: 1024
+    title: MPF OPP Test
+    width: 640
+    height: 480

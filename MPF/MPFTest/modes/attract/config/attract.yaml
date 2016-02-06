@@ -59,3 +59,9 @@ light_player:
     - show: attract_light_loop
       repeat: yes
       tocks_per_sec: 1
+
+slide_player:
+    mode_attract_started:
+      - type: image
+        image: background
+        slide_priority: 10

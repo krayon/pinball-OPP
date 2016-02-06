@@ -53,20 +53,33 @@ mode:
     priority: 100
 
 scoring:
-    s_sol_7:
+    s_sol_7_active:
         score: 1
-    s_inp_17:
+    s_inp_17_active:
         score: 2
-    s_inp_18:
+    s_inp_18_active:
         score: 3
-    s_inp_19:
+    s_inp_19_active:
         score: 4
-    s_inp_20:
+    s_inp_20_active:
         score: 5
-    s_inp_21:
+    s_inp_21_active:
         score: 6
-    s_inp_22:
+    s_inp_22_active:
         score: 7
-    s_inp_23:
+    s_inp_23_active:
         score: 8
 
+slide_player:
+    mode_base_started:
+      - type: image
+        image: background
+        slide_priority: 10
+      - type: text
+        text: "%score%"
+        number_grouping: true
+        min_digits: 2
+        v_pos: center
+        y: 200
+        color: ee9900
+        size: 60

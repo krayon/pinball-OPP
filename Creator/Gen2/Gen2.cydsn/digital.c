@@ -466,7 +466,10 @@ void digital_set_init_state(void)
          {
             if (solDrvCfg_p->cfg & USE_SWITCH)
             {
-               *inpCfg_p = FALL_EDGE;
+               /* HRS:  Change to always send state input, even on solenoids
+                * *inpCfg_p = FALL_EDGE;
+                */
+               *inpCfg_p = STATE_INPUT;
                inpState_p->solState_p = solState_p;
             }
             else
