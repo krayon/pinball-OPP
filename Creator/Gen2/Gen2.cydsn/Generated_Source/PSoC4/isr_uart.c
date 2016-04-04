@@ -27,8 +27,6 @@
 ********************************************************************************/
 /* `#START isr_uart_intc` */
 
-void stdlser_port1_isr(void);
-   
 /* `#END` */
 
 extern cyisraddress CyRamVectors[CYINT_IRQ_BASE + CY_NUM_INTERRUPTS];
@@ -161,7 +159,6 @@ CY_ISR(isr_uart_Interrupt)
 {
     /*  Place your Interrupt code here. */
     /* `#START isr_uart_Interrupt` */
-   stdlser_port1_isr();
 
     /* `#END` */
 }

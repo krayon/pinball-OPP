@@ -26,9 +26,8 @@
 *  Place your includes, defines and code here 
 ********************************************************************************/
 /* `#START isr_spi_intc` */
-
 void neo_fifo_trigger_isr();
-   
+
 /* `#END` */
 
 extern cyisraddress CyRamVectors[CYINT_IRQ_BASE + CY_NUM_INTERRUPTS];
@@ -161,8 +160,7 @@ CY_ISR(isr_spi_Interrupt)
 {
     /*  Place your Interrupt code here. */
     /* `#START isr_spi_Interrupt` */
-   
-   neo_fifo_trigger_isr();
+    neo_fifo_trigger_isr();
 
     /* `#END` */
 }

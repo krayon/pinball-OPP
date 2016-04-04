@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.01'
+testVers = '00.00.02'
 
 import sys
 import serial
@@ -84,7 +84,7 @@ CRC8ByteLookup = \
 
 # Config inputs as all state inputs
 wingCfg = [ [ rs232Intf.WING_NEO, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INCAND ] ]
-             
+
 # Config inputs as all state inputs
 inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
@@ -99,14 +99,6 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
 solCfg =  [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
               rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
-              rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ] ]
-solCfg1 = [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
-              rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
               rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
@@ -182,7 +174,10 @@ def sendInpCfgCmd(cardNum):
     cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_INP_CMD)
     for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
-        cmdArr.append(inpCfg[cardNum][loop])
+        if loadCfg:
+            cmdArr.append(cfgFile.inpCfg[cardNum][loop])
+        else:
+            cmdArr.append(inpCfg[cardNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -243,7 +238,7 @@ def rcvReadInpResp(cardNum):
     return (0)
 
 #send sol cfg cmd
-def sendSolCfgCmd(cardNum, cfgNum):
+def sendSolCfgCmd(cardNum):
     global ser
     global numGen2Brd
     global gen2AddrArr
@@ -253,14 +248,14 @@ def sendSolCfgCmd(cardNum, cfgNum):
     cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.CFG_SOL_CMD)
     for loop in xrange(rs232Intf.NUM_G2_SOL_PER_BRD):
-        if cfgNum == 0:
+        if loadCfg:
+            cmdArr.append(cfgFile.solCfg[cardNum][loop * 3])
+            cmdArr.append(cfgFile.solCfg[cardNum][(loop * 3) + 1])
+            cmdArr.append(cfgFile.solCfg[cardNum][(loop * 3) + 2])
+        else:
             cmdArr.append(solCfg[cardNum][loop * 3])
             cmdArr.append(solCfg[cardNum][(loop * 3) + 1])
             cmdArr.append(solCfg[cardNum][(loop * 3) + 2])
-        else:
-            cmdArr.append(solCfg1[cardNum][loop * 3])
-            cmdArr.append(solCfg1[cardNum][(loop * 3) + 1])
-            cmdArr.append(solCfg1[cardNum][(loop * 3) + 2])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -323,7 +318,10 @@ def sendWingCfgCmd(cardNum):
     cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.SET_GEN2_CFG)
     for loop in range(rs232Intf.NUM_G2_WING_PER_BRD):
-        cmdArr.append(wingCfg[cardNum][loop])
+        if loadCfg:
+            cmdArr.append(cfgFile.wingCfg[cardNum][loop])
+        else:
+            cmdArr.append(wingCfg[cardNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -341,7 +339,10 @@ def sendColorCfgCmd(cardNum):
     cmdArr.append(gen2AddrArr[cardNum])
     cmdArr.append(rs232Intf.SET_NEO_COLOR_TBL)
     for loop in range((rs232Intf.NUM_COLOR_TBL * 3) + 1):
-        cmdArr.append(colorCfg[cardNum][loop])
+        if loadCfg:
+            cmdArr.append(cfgFile.colorCfg[cardNum][loop])
+        else:
+            cmdArr.append(colorCfg[cardNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -362,6 +363,7 @@ end = False
 boot = False
 saveCfg = False
 eraseCfg = False
+loadCfg = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -374,9 +376,11 @@ for arg in sys.argv:
     print "    -test=testNum      test number, defaults to 0"
     print "    -boot              force a single board into bootloader"
     print "    -saveCfg           save a cfg on a single board."
-    print "        Only 1 board can be attached.  Uses wingCfg, solCfg, inpCfg and colorCfg"
+    print "        Only 1 board can be attached.  Load configuration option must also be set."
     print "    -eraseCfg          erase a cfg on a single board."
     print "        Only 1 board can be attached.\n"
+    print "    -loadCfg           configuration is read from cfgFile.py"
+    print "        Only 1 board can be attached.  Uses wingCfg, solCfg, inpCfg and colorCfg\n"
     print "-test=0: Send inventory and verify response 10000 times."
     print "-test=1: Read first Gen2 inputs continuously.  ('x' exits)"
     end = True
@@ -386,6 +390,8 @@ for arg in sys.argv:
     saveCfg = True
   elif arg.startswith('-eraseCfg'):
     eraseCfg = True
+  elif arg.startswith('-loadCfg'):
+    loadCfg = True
 if end:
     print "\nPress any key to close window"
     ch = msvcrt.getch()
@@ -419,6 +425,8 @@ if (boot):
 elif (saveCfg):
     #Make test num invalid
     testNum = 255
+    if loadCfg:
+        import cfgFile
     if (numGen2Brd == 1):
         #Save config for Gen2 board
         print "Sending wing cfg."
@@ -430,13 +438,23 @@ elif (saveCfg):
         error = rcvEomResp()
         if error: endTest(error)
         print "Sending solenoid cfg."
-        sendSolCfgCmd(0,0)
+        sendSolCfgCmd(0)
         error = rcvEomResp()
         if error: endTest(error)
-        print "Sending color table cfg."
-        sendColorCfgCmd(0)
-        error = rcvEomResp()
-        if error: endTest(error)
+        if loadCfg:
+            colorTblExists = 'cfgFile.colorCfg' in locals() or 'cfgFile.colorCfg' in globals()
+            if colorTblExists:
+                print "Sending color table cfg."
+                sendColorCfgCmd(0)
+                error = rcvEomResp()
+                if error: endTest(error)
+            else:
+                print "Skipping sending color table."
+        else:
+            print "Sending color table cfg."
+            sendColorCfgCmd(0)
+            error = rcvEomResp()
+            if error: endTest(error)
         print "Sending save cfg command."
         cmdArr = []
         cmdArr.append(gen2AddrArr[0])
