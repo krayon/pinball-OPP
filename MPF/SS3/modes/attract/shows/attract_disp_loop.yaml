@@ -53,42 +53,39 @@
       image: sal_empty
       slide_priority: 10
     - type: text
-#      text: "%machine|player_1_score%"
-      text: "8888888888"
+      text: "%machine|player_1_score%"
       font: old_disp
       number_grouping: true
-      min_digits: 2
-      x: 64
+      # Currently setting min digits to 10 since there is no right justification
+      min_digits: 10
+      x: 56
       y: 768
       color: ee9900
       size: 64
     - type: text
-#      text: "%machine|player_2_score%"
-      text: "8888888888"
+      text: "%machine|player_2_score%"
       font: old_disp
       number_grouping: true
-      min_digits: 2
-      x: 832
+      min_digits: 10
+      x: 800
       y: 768
       color: ee9900
       size: 64
     - type: text
-#      text: "%machine|player_3_score%"
-      text: "8888888888"
+      text: "%machine|player_3_score%"
       font: old_disp
       number_grouping: true
-      min_digits: 2
-      x: 64
+      min_digits: 10
+      x: 56
       y: 912
       color: ee9900
       size: 64
     - type: text
-#      text: "%machine|player_4_score%"
-      text: "8888888888"
+      text: "%machine|player_4_score%"
       font: old_disp
       number_grouping: true
-      min_digits: 2
-      x: 832
+      min_digits: 10
+      x: 800
       y: 912
       color: ee9900
       size: 64
@@ -101,34 +98,250 @@
     - type: image
       image: sal_girl
       slide_priority: 10
+    - type: text
+      text: "%machine|player_1_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_2_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_3_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_4_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 912
+      color: ee9900
+      size: 64
 
 - tocks: 10
   display:
     - type: image
       image: sal_empty
       slide_priority: 10
+    - type: text
+      text: "%machine|player_1_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_2_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_3_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_4_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 912
+      color: ee9900
+      size: 64
 
 - tocks: 10
   display:
     - type: image
       image: sal_guy
       slide_priority: 10
+    - type: text
+      text: "%machine|player_1_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_2_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_3_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_4_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 912
+      color: ee9900
+      size: 64
 
 - tocks: 10
   display:
     - type: image
       image: sal_guyBang
       slide_priority: 10
+    - type: text
+      text: "%machine|player_1_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_2_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_3_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_4_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 912
+      color: ee9900
+      size: 64
 
 - tocks: 10
   display:
     - type: image
       image: sal_empty
       slide_priority: 10
+    - type: text
+      text: "%machine|player_1_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_2_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_3_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_4_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 912
+      color: ee9900
+      size: 64
 
 - tocks: 10
   display:
     - type: image
       image: sal_guyShot
       slide_priority: 10
+    - type: text
+      text: "%machine|player_1_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_2_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 768
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_3_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 56
+      y: 912
+      color: ee9900
+      size: 64
+    - type: text
+      text: "%machine|player_4_score%"
+      font: old_disp
+      number_grouping: true
+      min_digits: 10
+      x: 800
+      y: 912
+      color: ee9900
+      size: 64
 

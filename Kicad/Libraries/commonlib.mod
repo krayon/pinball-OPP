@@ -1,4 +1,4 @@
-PCBNEW-LibModule-V1  7/30/2015 4:58:11 PM
+PCBNEW-LibModule-V1  3/29/2016 9:17:55 PM
 # encoding utf-8
 Units mm
 $INDEX
@@ -69,6 +69,7 @@ $INDEX
 00_th1x2x200
 00_th1x2x2mm_ra
 00_th1x2x3.96
+00_th1x2x4.2mm_cheap
 00_th1x2x4.2mm_nopeg
 00_th1x2x5mm
 00_th1x33x100
@@ -81,6 +82,7 @@ $INDEX
 00_th2x10x4.2mm
 00_th2x12x4.2mm
 00_th2x3x4.2mm
+00_th2x3x4.2mm_cheap
 00_th2x3x4.2mm_nopeg
 00_th2x5x100
 00_th2x7x4.2mm
@@ -3866,6 +3868,41 @@ Ne 2 "GND"
 Po 1.9812 0
 $EndPAD
 $EndMODULE 00_th1x2x3.96
+$MODULE 00_th1x2x4.2mm_cheap
+Po 0 0 0 15 56FB2938 00000000 ~~
+Li 00_th1x2x4.2mm_cheap
+Cd Double rangee de contacts 2 x 8 pins
+Kw CONN
+Sc 0
+AR /502284CF/50229575
+Op 0 0 0
+T0 0 -5.6007 1.016 1.016 0 0.2032 N V 21 N "Ref**"
+T1 0.127 0.127 1.016 1.016 0 0.2032 N I 21 N "CONN1X2"
+DS -2.5 -5 2.5 -5 0.15 21
+DS 2.5 -5 2.5 5 0.15 21
+DS 2.5 5 -2.5 5 0.15 21
+DS -2.5 5 -2.5 -5 0.15 21
+$PAD
+Sh "1" R 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 2.1
+$EndPAD
+$PAD
+Sh "2" C 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 -2.1
+$EndPAD
+$SHAPE3D
+Na "pin_array/pins_array_8x2.wrl"
+Sc 1 1 1
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE 00_th1x2x4.2mm_cheap
 $MODULE 00_th1x2x4.2mm_nopeg
 Po 0 0 0 15 55B50AAB 00000000 ~~
 Li 00_th1x2x4.2mm_nopeg
@@ -5040,6 +5077,69 @@ Of 0 0 0
 Ro 0 0 0
 $EndSHAPE3D
 $EndMODULE 00_th2x3x4.2mm
+$MODULE 00_th2x3x4.2mm_cheap
+Po 0 0 0 15 56FB2820 00000000 ~~
+Li 00_th2x3x4.2mm_cheap
+Cd Double rangee de contacts 2 x 8 pins
+Kw CONN
+Sc 0
+AR /502284CF/50229575
+Op 0 0 0
+T0 0 -5.6007 1.016 1.016 0 0.2032 N V 21 N "Ref**"
+T1 0.127 0.127 1.016 1.016 0 0.2032 N I 21 N "CONN2X3"
+DS -5.99948 4.8006 6.10108 4.8006 0.20066 21
+DS -5.99948 -4.8006 6.10108 -4.8006 0.20066 21
+DS -5.99948 -4.8006 -5.99948 4.8006 0.20066 21
+DS 6.10108 4.8006 6.10108 -4.8006 0.20066 21
+$PAD
+Sh "1" R 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 4.20116 2.1
+$EndPAD
+$PAD
+Sh "2" C 2 2 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 2.1
+$EndPAD
+$PAD
+Sh "3" C 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -4.20116 2.1
+$EndPAD
+$PAD
+Sh "4" C 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 4.20116 -2.1
+$EndPAD
+$PAD
+Sh "5" C 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 0 -2.1
+$EndPAD
+$PAD
+Sh "6" C 1.99898 1.99898 0 0 0
+Dr 1.39954 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -4.20116 -2.1
+$EndPAD
+$SHAPE3D
+Na "pin_array/pins_array_8x2.wrl"
+Sc 1 1 1
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE 00_th2x3x4.2mm_cheap
 $MODULE 00_th2x3x4.2mm_nopeg
 Po 0 0 0 15 55B18B65 00000000 ~~
 Li 00_th2x3x4.2mm_nopeg

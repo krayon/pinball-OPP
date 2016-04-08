@@ -38,7 +38,7 @@ encoding utf-8
 Sheet 1 1
 Title "Surface Mount Incandescent Driver (Gen 2)"
 Date "18 dec 2015"
-Rev "-"
+Rev "1"
 Comp "Open Pinball Project"
 Comment1 ""
 Comment2 ""

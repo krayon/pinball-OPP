@@ -1,4 +1,4 @@
-Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 7/26/2015 8:51:12 PM
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 4/8/2016 12:50:28 PM
 
 BeginCmp
 TimeStamp = /55B18CB8;
@@ -50,9 +50,23 @@ IdModule  = 00_th1x4x100-lock;
 EndCmp
 
 BeginCmp
+TimeStamp = /56FD1895;
+Reference = P8;
+ValeurCmp = CONN_3;
+IdModule  = SIL-3;
+EndCmp
+
+BeginCmp
+TimeStamp = /570704B2;
+Reference = P15;
+ValeurCmp = CONN_2;
+IdModule  = 00_th1x2x100-lock;
+EndCmp
+
+BeginCmp
 TimeStamp = /55B1880D;
 Reference = R1;
-ValeurCmp = 100K;
+ValeurCmp = 0;
 IdModule  = R3;
 EndCmp
 

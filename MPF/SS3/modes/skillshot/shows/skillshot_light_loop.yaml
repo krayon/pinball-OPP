@@ -1,5 +1,3 @@
-#config_version=3
-
 #
 #===============================================================================
 ## @mainpage
@@ -37,81 +35,21 @@
 
 #===============================================================================
 ##
-# @file    base.yaml
+# @file    skillshot_light_loop.yaml
 # @author  Hugh Spahr
-# @date    1/8/2016
+# @date    2/23/2016
 #
 # @note    Open Pinball Project
 # @note    Copyright 2016, Hugh Spahr
 #
-# @brief yaml code for the base mode
+# @brief yaml file that includes the light loop in attract mode
 
 #===============================================================================
 
-mode:
-  start_events: cmd_end_attract_mode
-  priority: 100
 
-slide_player:
-  mode_base_started:
-    - type: image
-      image: sal_guy
-      slide_priority: 10
-    - type: text
-      text: "%player1|score%"
-      font: old_disp
-      number_grouping: true
-      # Currently setting min digits to 10 since there is no right justification
-      min_digits: 10
-      x: 56
-      y: 768
-      color: ee9900
-      size: 64
-    - type: text
-      text: "%player2|score%"
-      font: old_disp
-      number_grouping: true
-      min_digits: 10
-      x: 800
-      y: 768
-      color: ee9900
-      size: 64
-    - type: text
-      text: "%player3|score%"
-      font: old_disp
-      number_grouping: true
-      min_digits: 10
-      x: 56
-      y: 912
-      color: ee9900
-      size: 64
-    - type: text
-      text: "%player4|score%"
-      font: old_disp
-      number_grouping: true
-      min_digits: 10
-      x: 800
-      y: 912
-      color: ee9900
-      size: 64
-
-#sound_player:
-#  init_mode:
-    # HRS:  This should play good bad and ugly
-    #sound: Rookie
-    #start_events: mode_base_started
-
-scoring:
-  sharpe_lanes_default_unlit_hit:
-    score: 5
-  sharpe_lanes_default_lit_hit:
-    score: 2
-  sharpe_lanes_default_lit_complete:
-    score: 50
-
-shot_groups:
-  sharpe_lanes:
-    rotate_left_events: left_flipper_active
-    rotate_right_events: right_flipper_active
-    reset_events:
-      sharpe_lanes_default_lit_complete: 1s
+- tocks: 1
+  lights:
+    l_inln_ctr: ff
+- tocks: 1
+  lights:
+    l_inln_ctr: 00

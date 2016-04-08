@@ -37,8 +37,8 @@ $Descr A 11000 8500
 encoding utf-8
 Sheet 1 1
 Title "Interface Board (Gen 2)"
-Date "28 jul 2015"
-Rev "-"
+Date "8 apr 2016"
+Rev "1"
 Comp "Open Pinball Project"
 Comment1 ""
 Comment2 ""
@@ -144,7 +144,7 @@ Connection ~ 3300 3600
 Wire Wire Line
 	2600 3300 2600 4400
 Wire Wire Line
-	2600 3600 2900 3600
+	2100 3600 2900 3600
 Wire Wire Line
 	2900 3600 2900 3400
 Wire Wire Line
@@ -256,8 +256,6 @@ Text Label 4650 4400 0    60   ~ 0
 P1
 Text Label 4650 4300 0    60   ~ 0
 P2
-Text Label 4650 4200 0    60   ~ 0
-P3
 $Comp
 L CONN_4 P4
 U 1 1 55B54C71
@@ -378,13 +376,9 @@ Wire Wire Line
 Wire Wire Line
 	5800 4300 5800 6200
 Wire Wire Line
-	6600 4500 6600 4700
+	6600 4700 6600 4500
 Wire Wire Line
-	6600 4700 5900 4700
-Wire Wire Line
-	5900 4200 5900 6100
-Wire Wire Line
-	5900 4200 4600 4200
+	5500 4700 6600 4700
 Wire Wire Line
 	5900 6100 6600 6100
 Wire Wire Line
@@ -397,8 +391,6 @@ Wire Wire Line
 Connection ~ 5800 4800
 Text Label 4950 4300 0    60   ~ 0
 SYNCH
-Text Label 4950 4200 0    60   ~ 0
-FUTURE
 $Comp
 L R R3
 U 1 1 55B57FF4
@@ -455,13 +447,63 @@ Wire Wire Line
 	6300 4600 7700 4600
 Connection ~ 6300 4600
 Wire Wire Line
-	7300 4900 7300 4400
-Wire Wire Line
-	7300 4400 7700 4400
+	7300 4900 7300 3700
 Connection ~ 6800 4900
-Wire Wire Line
-	7500 3400 7500 4500
 Wire Wire Line
 	7500 4500 7700 4500
 Connection ~ 6800 3400
+$Comp
+L CONN_3 P8
+U 1 1 56FD1895
+P 8050 3800
+F 0 "P8" V 8000 3800 50  0000 C CNN
+F 1 "CONN_3" V 8100 3800 40  0000 C CNN
+F 2 "" H 8050 3800 60  0000 C CNN
+F 3 "" H 8050 3800 60  0000 C CNN
+	1    8050 3800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7100 3900 7700 3900
+Connection ~ 7100 3900
+Wire Wire Line
+	7500 3400 7500 4500
+Wire Wire Line
+	7300 3700 7700 3700
+Wire Wire Line
+	7700 3800 7600 3800
+Wire Wire Line
+	7600 3800 7600 4400
+Wire Wire Line
+	7600 4400 7700 4400
+$Comp
+L CONN_2 P15
+U 1 1 570704B2
+P 1750 3700
+F 0 "P15" V 1700 3700 40  0000 C CNN
+F 1 "CONN_2" V 1800 3700 40  0000 C CNN
+F 2 "" H 1750 3700 60  0000 C CNN
+F 3 "" H 1750 3700 60  0000 C CNN
+	1    1750 3700
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	2200 3600 2200 3800
+Wire Wire Line
+	2200 3800 2100 3800
+Connection ~ 2200 3600
+$Comp
+L +12V1 #PWR?
+U 1 1 570708B1
+P 5500 4700
+F 0 "#PWR?" H 5500 4650 20  0001 C CNN
+F 1 "+12V1" H 5500 4800 30  0000 C CNN
+F 2 "~" H 5500 4700 60  0000 C CNN
+F 3 "~" H 5500 4700 60  0000 C CNN
+	1    5500 4700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5900 4700 5900 6100
+NoConn ~ 4600 4200
 $EndSCHEMATC

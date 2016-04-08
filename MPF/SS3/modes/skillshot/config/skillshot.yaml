@@ -37,23 +37,24 @@
 
 #===============================================================================
 ##
-# @file    base.yaml
+# @file    skillshot.yaml
 # @author  Hugh Spahr
-# @date    1/8/2016
+# @date    2/23/2016
 #
 # @note    Open Pinball Project
 # @note    Copyright 2016, Hugh Spahr
 #
-# @brief yaml code for the base mode
+# @brief yaml code for the skillshot mode
 
 #===============================================================================
 
 mode:
-  start_events: cmd_end_attract_mode
+  start_events: ball_starting
+  stop_events: cmd_end_attract_mode
   priority: 100
 
 slide_player:
-  mode_base_started:
+  mode_skillshot_started:
     - type: image
       image: sal_guy
       slide_priority: 10
@@ -95,23 +96,25 @@ slide_player:
       color: ee9900
       size: 64
 
-#sound_player:
-#  init_mode:
-    # HRS:  This should play good bad and ugly
-    #sound: Rookie
-    #start_events: mode_base_started
+sound_player:
+  init_mode:
+    sound: Rookie
+    start_events: mode_skillshot_started
+
+light_player:
+    mode_skillshot_started:
+      - show: skillshot_light_loop
+        repeat: yes
+        tocks_per_sec: 2
+
+event_player:
+  playfield_active:
+    cmd_end_attract_mode
+#  s_upper_rght_rollover_active:
+#    cmd_end_attract_mode
 
 scoring:
-  sharpe_lanes_default_unlit_hit:
-    score: 5
-  sharpe_lanes_default_lit_hit:
-    score: 2
-  sharpe_lanes_default_lit_complete:
+  s_upper_ctr_rollover_active:
     score: 50
-
-shot_groups:
-  sharpe_lanes:
-    rotate_left_events: left_flipper_active
-    rotate_right_events: right_flipper_active
-    reset_events:
-      sharpe_lanes_default_lit_complete: 1s
+  s_upper_ctr_rollover_active:
+    score: 50

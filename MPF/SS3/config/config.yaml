@@ -48,37 +48,18 @@
 
 #===============================================================================
 
-hardware:
-    platform: opp
-    driverboards: gen2
+#hardware:
+#    platform: opp
+#    driverboards: gen2
 
-opp:
-    ports: COM10
-    config_number_format: hex
+#opp:
+#    ports: COM10
+#    config_number_format: hex
 
 modes:
   - base
-
-sound_system:
-    buffer: 512
-    frequency: 44100
-    channels: 1
-    initial_volume: 1
-    volume_steps: 20
-    tracks:
-        voice:
-            volume: 1
-            priority: 2
-            simultaneous_sounds: 1
-            preload: no
-        sfx:
-            volume: 1
-            priority: 1
-            preload: no
-            simultaneous_sounds: 3
-    stream:
-        name: music
-        priority: 0
+  - skillshot
+  - attract
 
 switches:
     s_upper_rght_rollover:
@@ -368,6 +349,30 @@ autofire_coils:
     coil: c_btm_up_pop
     switch: s_btm_up_pop
 
+shots:
+  shot_sharpe_s:
+    switch: s_upper_lft_rollover
+    light: l_inln_lft
+  shot_sharpe_h:
+    switch: s_upper_ctr_rollover
+    light: l_inln_ctr
+  shot_sharpe_a:
+    switch: s_upper_rght_rollover
+    light: l_inln_rght
+  shot_sharpe_r:
+    switch: s_upper_ctr_lft_rollover
+    light: l_roll_lft
+  shot_sharpe_p:
+    switch: s_upper_ctr_ctr_rollover
+    light: l_roll_ctr
+  shot_sharpe_e:
+    switch: s_upper_ctr_rght_rollover
+    light: l_roll_rght
+
+shot_groups:
+  sharpe_lanes:
+    shots: shot_sharpe_s, shot_sharpe_h, shot_sharpe_a, shot_sharpe_r, shot_sharpe_p, shot_sharpe_e
+
 virtual_platform_start_active_switches:
     s_trough
 
@@ -382,9 +387,17 @@ keyboard:
         switch: s_trough
         toggle: true
     1:
-        switch: s_upper_rght_rollover
+        switch: s_upper_lft_rollover
     2:
         switch: s_upper_ctr_rollover
+    3:
+        switch: s_upper_rght_rollover
+    4:
+        switch: s_upper_ctr_lft_rollover
+    5:
+        switch: s_upper_ctr_ctr_rollover
+    6:
+        switch: s_upper_ctr_rght_rollover
 
 window:
     title: SharpeShooter III
@@ -394,3 +407,25 @@ window:
 Fonts:
     old_disp:
         file: LCDM2N__.TTF
+
+sound_system:
+    buffer: 512
+    frequency: 44100
+    channels: 1
+    initial_volume: 1
+    volume_steps: 20
+    tracks:
+        voice:
+            volume: 1
+            priority: 2
+            simultaneous_sounds: 1
+            preload: no
+        sfx:
+            volume: 1
+            priority: 1
+            preload: no
+            simultaneous_sounds: 3
+    stream:
+        name: music
+        priority: 0
+

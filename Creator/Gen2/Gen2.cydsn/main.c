@@ -78,7 +78,14 @@ int main()
 {
    CyGlobalIntEnable; /* Enable global interrupts. */
 
+   appStart.codeVers = 0x00010100;
+   
+/* Used for forcing the standard configuration onto the board.  If this is left on,
+ * the programmed configuration will always be overwritten.
+ */
+#if 0
    debug_save_nv_cfg();
+#endif
    
    Clock_Start();
    Clock_1_Start();
