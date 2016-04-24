@@ -47,12 +47,12 @@
 #
 #===============================================================================
 
-testVers = '00.00.01'
+testVers = '00.00.02'
 
 import rs232Intf
 
 # Config inputs as all state inputs
-wingCfg = [ [ rs232Intf.WING_SOL, rs232Intf.WING_SOL, rs232Intf.WING_SOL, rs232Intf.WING_INP ] ]
+wingCfg = [ [ rs232Intf.WING_SOL, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INP ] ]
 
 # Config inputs as all state inputs
 inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
