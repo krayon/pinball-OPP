@@ -63,46 +63,46 @@ modes:
 
 switches:
     s_upper_rght_rollover:
-        number: 0-0
+        number: 0-16
         tags: playfield_active
     s_upper_ctr_rollover:
-        number: 0-1
+        number: 0-17
         tags: playfield_active
     s_upper_lft_rollover:
-        number: 0-2
+        number: 0-18
         tags: playfield_active
     s_upper_lft_top_trgt:
-        number: 0-3
+        number: 0-19
         tags: playfield_active
     s_upper_lft_btm_trgt:
-        number: 0-4
+        number: 0-20
         tags: playfield_active
     s_upper_ctr_rght_rollover:
-        number: 0-5
+        number: 0-21
         tags: playfield_active
     s_upper_ctr_ctr_rollover:
-        number: 0-6
+        number: 0-22
         tags: playfield_active
     s_upper_ctr_lft_rollover:
-        number: 0-7
+        number: 0-23
         tags: playfield_active
     s_upper_lft_pop:
-        number: 0-12
+        number: 0-24
         tags: playfield_active
     s_upper_ctr_pop:
-        number: 0-13
+        number: 0-25
         tags: playfield_active
     s_drop_bank:
-        number: 0-14
+        number: 0-26
         tags: playfield_active
 
     s_kickout_hole:
-        number: 1-0
+        number: 1-8
     s_btm_low_pop:
-        number: 1-1
+        number: 1-9
         tags: playfield_active
     s_btm_up_pop:
-        number: 1-2
+        number: 1-10
         tags: playfield_active
     s_upper_rubber:
         number: 1-16
@@ -148,14 +148,14 @@ switches:
         tags: playfield_active
 
     s_btm_lft_sling:
-        number: 3-0
+        number: 3-8
         tags: playfield_active
     s_lft_flipper:
-        number: 3-1
+        number: 3-9
     s_trough:
-        number: 3-2
+        number: 3-10
     s_rght_flipper:
-        number: 3-3
+        number: 3-11
     s_btm_lft_inln_rollover:
         number: 3-16
         tags: playfield_active
@@ -194,79 +194,79 @@ coils:
         pulse_ms: 32
 
     c_kickout_hole: 
-        number: 1-0
+        number: 1-4
         pulse_ms: 32
     c_btm_low_pop: 
-        number: 1-1
+        number: 1-5
         pulse_ms: 16
     c_btm_up_pop: 
-        number: 1-2
+        number: 1-6
         pulse_ms: 16
 
     c_btm_lft_sling: 
-        number: 3-0
+        number: 3-4
         pulse_ms: 16
     c_lft_flipper: 
-        number: 3-1
+        number: 3-5
         pulse_ms: 32
         hold_power: 4
     c_trough_eject: 
-        number: 3-2
+        number: 3-6
         pulse_ms: 16
     c_rght_flipper: 
-        number: 3-3
+        number: 3-7
         pulse_ms: 32
         hold_power: 4
 
 matrix_lights:
     l_spinner:
-        number: 0-8
+        number: 0-0
     l_jkpot:
-        number: 0-9
+        number: 0-1
     l_4x:
-        number: 0-10
+        number: 0-2
     l_5x:
-        number: 0-11
+        number: 0-3
     l_2x:
-        number: 0-12
+        number: 0-4
     l_3x:
-        number: 0-13
+        number: 0-5
     l_ko_pick_job:
-        number: 0-14
+        number: 0-6
     l_ko_duel:
-        number: 0-15
+        number: 0-7
 
     l_inln_rght:
-        number: 0-16
+        number: 0-8
     l_inln_ctr:
-        number: 0-17
+        number: 0-9
     l_inln_lft:
-        number: 0-18
+        number: 0-10
     l_pop_upctr:
-        number: 0-19
+        number: 0-11
     l_pop_uplft:
-        number: 0-20
+        number: 0-12
     l_roll_rght:
-        number: 0-21
+        number: 0-13
     l_roll_ctr:
-        number: 0-22
+        number: 0-14
     l_roll_lft:
-        number: 0-23
+        number: 0-15
 
     l_dt_7:
-        number: 1-8
+        number: 1-0
     l_dt_6:
-        number: 1-9
+        number: 1-1
     l_dt_5:
-        number: 1-10
+        number: 1-2
     l_dt_4:
-        number: 1-11
+        number: 1-3
     l_dt_3:
-        number: 1-12
+        number: 1-4
     l_dt_2:
-        number: 1-13
+        number: 1-5
     l_dt_1:
-        number: 1-14
+        number: 1-6
 
     l_lft_outln:
         number: 2-0
@@ -297,19 +297,19 @@ matrix_lights:
         number: 2-12
 
     l_shoot_again:
-        number: 3-8
+        number: 3-0
     l_pop_btmup:
-        number: 3-9
+        number: 3-1
     l_pop_btmlow:
-        number: 3-10
+        number: 3-2
     l_marshal:
-        number: 3-11
+        number: 3-3
     l_sheriff:
-        number: 3-12
+        number: 3-4
     l_deputy:
-        number: 3-13
+        number: 3-5
     l_rookie:
-        number: 3-14
+        number: 3-6
 
 flippers:
     left_flipper:
