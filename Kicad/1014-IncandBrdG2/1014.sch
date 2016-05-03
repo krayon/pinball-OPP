@@ -38,7 +38,7 @@ encoding utf-8
 Sheet 1 1
 Title "Incandescent Driver (Gen 2)"
 Date "30 jul 2015"
-Rev "-"
+Rev "0"
 Comp "Open Pinball Project"
 Comment1 ""
 Comment2 ""
