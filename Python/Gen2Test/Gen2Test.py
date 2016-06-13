@@ -392,6 +392,11 @@ for arg in sys.argv:
     eraseCfg = True
   elif arg.startswith('-loadCfg'):
     loadCfg = True
+    if arg.startswith('-loadCfg='):
+      loadFileName = arg.replace('-loadCfg=','',1)
+    else:
+      loadFileName = "cfgFile"
+
 if end:
     print "\nPress any key to close window"
     ch = msvcrt.getch()
@@ -426,7 +431,7 @@ elif (saveCfg):
     #Make test num invalid
     testNum = 255
     if loadCfg:
-        import cfgFile
+        cfgFile = __import__(loadFileName)
     if (numGen2Brd == 1):
         #Save config for Gen2 board
         print "Sending wing cfg."
