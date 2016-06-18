@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.02'
+testVers = '00.00.03'
 
 import sys
 import serial
@@ -57,12 +57,13 @@ import msvcrt
 import rs232Intf
 
 port = 'COM1'
-testNum = 0
+testNum = 255
 data = ""
 NUM_MSGS = 1
 currInpData = []
 numGen2Brd = 0
 gen2AddrArr = []
+currWingCfg = []
 
 CRC8ByteLookup = \
     [ 0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15, 0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d, \
@@ -147,6 +148,7 @@ def rcvInvResp():
     global numGen2Brd
     global gen2AddrArr
     global currInpData
+    global currWingCfg
     data = getSerialData();
     #First byte should be inventory cmd
     index = 1
@@ -157,10 +159,10 @@ def rcvInvResp():
             numGen2Brd = numGen2Brd + 1
             gen2AddrArr.append(data[index])
             currInpData.append(0)
+            currWingCfg.append(0)
         index = index + 1
     print "Found %d Gen2 brds." % numGen2Brd
-    print "Addr = "
-    print [hex(ord(n)) for n in gen2AddrArr]
+    print "Addr = %s" % [hex(ord(n)) for n in gen2AddrArr]
     return (0)
 
 #send input cfg cmd
@@ -287,12 +289,13 @@ def rcvReadWingCfgResp(cardNum):
     global ser
     global gen2AddrArr
     global currSolData
+    global currWingCfg
     data = getSerialData();
     if (data[0] != gen2AddrArr[cardNum]):
         print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
         print repr(data)
         return (800)
-    if (data[1] != rs232Intf.READ_SOL_INP_CMD):
+    if (data[1] != rs232Intf.GET_GEN2_CFG):
         print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.GET_GEN2_CFG))
         print repr(data)
         return (801)
@@ -305,6 +308,22 @@ def rcvReadWingCfgResp(cardNum):
         print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
         return (803)
     currWingCfg[cardNum] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
+    print hex(ord(gen2AddrArr[cardNum])),"WingCfg = 0x{:08x}".format(currWingCfg[cardNum])
+    print hex(ord(gen2AddrArr[cardNum])),
+    for index in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+        if data[index + 2] == rs232Intf.WING_SOL:
+            print "SOL_WING ",
+        elif data[index + 2] == rs232Intf.WING_INP:
+            print "INP_WING ",
+        elif data[index + 2] == rs232Intf.WING_INCAND:
+            print "INCAND_WING ",
+        elif data[index + 2] == rs232Intf.WING_SW_MATRIX_OUT:
+            print "SW_MATRIX_OUT_WING ",
+        elif data[index + 2] == rs232Intf.WING_SW_MATRIX_IN:
+            print "SW_MATRIX_IN_WING ",
+        elif data[index + 2] == rs232Intf.WING_NEO:
+            print "NEO_WING ",
+    print ""
     return (0)
 
 #send wing cfg cmd
@@ -412,6 +431,9 @@ print "Sending inventory cmd"
 bad = False
 sendInvCmd()
 rcvInvResp()
+for index in xrange(numGen2Brd):
+    sendReadWingCfgCmd(index)
+    rcvReadWingCfgResp(index)
 if (boot):
     #Make test num invalid
     testNum = 255
