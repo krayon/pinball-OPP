@@ -1,4 +1,4 @@
-#config_version=3
+#config_version=4
 
 #
 #===============================================================================
@@ -57,280 +57,280 @@
 #    config_number_format: hex
 
 modes:
-  - base
-  - skillshot
-  - attract
+- base
+- skillshot
+- attract
 
 switches:
-    s_upper_rght_rollover:
-        number: 0-16
-        tags: playfield_active
-    s_upper_ctr_rollover:
-        number: 0-17
-        tags: playfield_active
-    s_upper_lft_rollover:
-        number: 0-18
-        tags: playfield_active
-    s_upper_lft_top_trgt:
-        number: 0-19
-        tags: playfield_active
-    s_upper_lft_btm_trgt:
-        number: 0-20
-        tags: playfield_active
-    s_upper_ctr_rght_rollover:
-        number: 0-21
-        tags: playfield_active
-    s_upper_ctr_ctr_rollover:
-        number: 0-22
-        tags: playfield_active
-    s_upper_ctr_lft_rollover:
-        number: 0-23
-        tags: playfield_active
-    s_upper_lft_pop:
-        number: 0-24
-        tags: playfield_active
-    s_upper_ctr_pop:
-        number: 0-25
-        tags: playfield_active
-    s_drop_bank:
-        number: 0-26
-        tags: playfield_active
+  s_upper_rght_rollover:
+    number: 0-16
+    tags: playfield_active
+  s_upper_ctr_rollover:
+    number: 0-17
+    tags: playfield_active
+  s_upper_lft_rollover:
+    number: 0-18
+    tags: playfield_active
+  s_upper_lft_top_trgt:
+    number: 0-19
+    tags: playfield_active
+  s_upper_lft_btm_trgt:
+    number: 0-20
+    tags: playfield_active
+  s_upper_ctr_rght_rollover:
+    number: 0-21
+    tags: playfield_active
+  s_upper_ctr_ctr_rollover:
+    number: 0-22
+    tags: playfield_active
+  s_upper_ctr_lft_rollover:
+    number: 0-23
+    tags: playfield_active
+  s_upper_lft_pop:
+    number: 0-24
+    tags: playfield_active
+  s_upper_ctr_pop:
+    number: 0-25
+    tags: playfield_active
+  s_drop_bank:
+    number: 0-26
+    tags: playfield_active
 
-    s_kickout_hole:
-        number: 1-8
-    s_btm_low_pop:
-        number: 1-9
-        tags: playfield_active
-    s_btm_up_pop:
-        number: 1-10
-        tags: playfield_active
-    s_upper_rubber:
-        number: 1-16
-        tags: playfield_active
-    s_spinner:
-        number: 1-17
-        tags: playfield_active
-    s_ctr_rght_rubber:
-        number: 1-18
-        tags: playfield_active
-    s_jkpot_rollover:
-        number: 1-19
-        tags: playfield_active
-    s_below_kickout_rubber:
-        number: 1-20
-        tags: playfield_active
-    s_top_drop_rubber:
-        number: 1-21
-        tags: playfield_active
-    s_drop_trgt_1s:
-        number: 1-24
-        tags: playfield_active
-    s_drop_trgt_2h:
-        number: 1-25
-        tags: playfield_active
-    s_drop_trgt_3o:
-        number: 1-26
-        tags: playfield_active
-    s_drop_trgt_4o:
-        number: 1-27
-        tags: playfield_active
-    s_drop_trgt_5t:
-        number: 1-28
-        tags: playfield_active
-    s_drop_trgt_6e:
-        number: 1-29
-        tags: playfield_active
-    s_drop_trgt_7r:
-        number: 1-30
-        tags: playfield_active
-    s_drop_bank_miss:
-        number: 1-31
-        tags: playfield_active
+  s_kickout_hole:
+    number: 1-8
+  s_btm_low_pop:
+    number: 1-9
+    tags: playfield_active
+  s_btm_up_pop:
+    number: 1-10
+    tags: playfield_active
+  s_upper_rubber:
+    number: 1-16
+    tags: playfield_active
+  s_spinner:
+    number: 1-17
+    tags: playfield_active
+  s_ctr_rght_rubber:
+    number: 1-18
+    tags: playfield_active
+  s_jkpot_rollover:
+    number: 1-19
+    tags: playfield_active
+  s_below_kickout_rubber:
+    number: 1-20
+    tags: playfield_active
+  s_top_drop_rubber:
+    number: 1-21
+    tags: playfield_active
+  s_drop_trgt_1s:
+    number: 1-24
+    tags: playfield_active
+  s_drop_trgt_2h:
+    number: 1-25
+    tags: playfield_active
+  s_drop_trgt_3o:
+    number: 1-26
+    tags: playfield_active
+  s_drop_trgt_4o:
+    number: 1-27
+    tags: playfield_active
+  s_drop_trgt_5t:
+    number: 1-28
+    tags: playfield_active
+  s_drop_trgt_6e:
+    number: 1-29
+    tags: playfield_active
+  s_drop_trgt_7r:
+    number: 1-30
+    tags: playfield_active
+  s_drop_bank_miss:
+    number: 1-31
+    tags: playfield_active
 
-    s_btm_lft_sling:
-        number: 3-8
-        tags: playfield_active
-    s_lft_flipper:
-        number: 3-9
-    s_trough:
-        number: 3-10
-    s_rght_flipper:
-        number: 3-11
-    s_btm_lft_inln_rollover:
-        number: 3-16
-        tags: playfield_active
-    s_btm_lft_outln_rollover:
-        number: 3-17
-        tags: playfield_active
-    s_ctr_low_rollover:
-        number: 3-18
-        tags: playfield_active
-    s_btm_rght_rubber:
-        number: 3-19
-        tags: playfield_active
-    s_btm_rght_low_rubber:
-        number: 3-20
-        tags: playfield_active
+  s_btm_lft_sling:
+    number: 3-8
+    tags: playfield_active
+  s_lft_flipper:
+    number: 3-9
+  s_trough:
+    number: 3-10
+  s_rght_flipper:
+    number: 3-11
+  s_btm_lft_inln_rollover:
+    number: 3-16
+    tags: playfield_active
+  s_btm_lft_outln_rollover:
+    number: 3-17
+    tags: playfield_active
+  s_ctr_low_rollover:
+    number: 3-18
+    tags: playfield_active
+  s_btm_rght_rubber:
+    number: 3-19
+    tags: playfield_active
+  s_btm_rght_low_rubber:
+    number: 3-20
+    tags: playfield_active
 
-    s_slam_tilt:
-        number: 3-24
-    s_tilt:
-        number: 3-25
-    s_coin_drop:
-        number: 3-26
-    s_start:
-        number: 3-27
-        tags: start
+  s_slam_tilt:
+    number: 3-24
+  s_tilt:
+    number: 3-25
+  s_coin_drop:
+    number: 3-26
+  s_start:
+    number: 3-27
+    tags: start
 
 coils:
-    c_upper_lft_pop: 
-        number: 0-12
-        pulse_ms: 24
-    c_upper_ctr_pop: 
-        number: 0-13
-        pulse_ms: 16
-    c_drop_bank: 
-        number: 0-14
-        pulse_ms: 32
+  c_upper_lft_pop:
+    number: 0-12
+    pulse_ms: 24
+  c_upper_ctr_pop:
+    number: 0-13
+    pulse_ms: 16
+  c_drop_bank:
+    number: 0-14
+    pulse_ms: 32  
 
-    c_kickout_hole: 
-        number: 1-4
-        pulse_ms: 32
-    c_btm_low_pop: 
-        number: 1-5
-        pulse_ms: 16
-    c_btm_up_pop: 
-        number: 1-6
-        pulse_ms: 16
+  c_kickout_hole:
+    number: 1-4
+    pulse_ms: 32
+  c_btm_low_pop:
+    number: 1-5
+    pulse_ms: 16
+  c_btm_up_pop:
+    number: 1-6
+    pulse_ms: 16  
 
-    c_btm_lft_sling: 
-        number: 3-4
-        pulse_ms: 16
-    c_lft_flipper: 
-        number: 3-5
-        pulse_ms: 32
-        hold_power: 4
-    c_trough_eject: 
-        number: 3-6
-        pulse_ms: 16
-    c_rght_flipper: 
-        number: 3-7
-        pulse_ms: 32
-        hold_power: 4
+  c_btm_lft_sling:
+    number: 3-4
+    pulse_ms: 16
+  c_lft_flipper:
+    number: 3-5
+    pulse_ms: 32
+    hold_power: 4
+  c_trough_eject:
+    number: 3-6
+    pulse_ms: 16
+  c_rght_flipper:
+    number: 3-7
+    pulse_ms: 32
+    hold_power: 4   
 
 matrix_lights:
-    l_spinner:
-        number: 0-0
-    l_jkpot:
-        number: 0-1
-    l_4x:
-        number: 0-2
-    l_5x:
-        number: 0-3
-    l_2x:
-        number: 0-4
-    l_3x:
-        number: 0-5
-    l_ko_pick_job:
-        number: 0-6
-    l_ko_duel:
-        number: 0-7
+  l_spinner:
+    number: 0-0
+  l_jkpot:
+    number: 0-1
+  l_4x:
+    number: 0-2
+  l_5x:
+    number: 0-3
+  l_2x:
+    number: 0-4
+  l_3x:
+    number: 0-5
+  l_ko_pick_job:
+    number: 0-6
+  l_ko_duel:
+    number: 0-7 
 
-    l_inln_rght:
-        number: 0-8
-    l_inln_ctr:
-        number: 0-9
-    l_inln_lft:
-        number: 0-10
-    l_pop_upctr:
-        number: 0-11
-    l_pop_uplft:
-        number: 0-12
-    l_roll_rght:
-        number: 0-13
-    l_roll_ctr:
-        number: 0-14
-    l_roll_lft:
-        number: 0-15
+  l_inln_rght:
+    number: 0-8
+  l_inln_ctr:
+    number: 0-9
+  l_inln_lft:
+    number: 0-10
+  l_pop_upctr:
+    number: 0-11
+  l_pop_uplft:
+    number: 0-12
+  l_roll_rght:
+    number: 0-13
+  l_roll_ctr:
+    number: 0-14
+  l_roll_lft:
+    number: 0-15
 
-    l_dt_7:
-        number: 1-0
-    l_dt_6:
-        number: 1-1
-    l_dt_5:
-        number: 1-2
-    l_dt_4:
-        number: 1-3
-    l_dt_3:
-        number: 1-4
-    l_dt_2:
-        number: 1-5
-    l_dt_1:
-        number: 1-6
+  l_dt_7:
+    number: 1-0
+  l_dt_6:
+    number: 1-1
+  l_dt_5:
+    number: 1-2
+  l_dt_4:
+    number: 1-3
+  l_dt_3:
+    number: 1-4
+  l_dt_2:
+    number: 1-5
+  l_dt_1:
+    number: 1-6 
 
-    l_lft_outln:
-        number: 2-0
-    l_lft_inln:
-        number: 2-1
-    l_mode_posse:
-        number: 2-2
-    l_mode_hustlejive:
-        number: 2-3
-    l_mode_trgtprac:
-        number: 2-4
-    l_mode_chkhide:
-        number: 2-5
-    l_mode_sniper:
-        number: 2-6
-    l_mode_sharpe:
-        number: 2-7
+  l_lft_outln:
+    number: 2-0
+  l_lft_inln:
+    number: 2-1
+  l_mode_posse:
+    number: 2-2
+  l_mode_hustlejive:
+    number: 2-3
+  l_mode_trgtprac:
+    number: 2-4
+  l_mode_chkhide:
+    number: 2-5
+  l_mode_sniper:
+    number: 2-6
+  l_mode_sharpe:
+    number: 2-7 
 
-    l_mode_ridehelp:
-        number: 2-8
-    l_mode_duel:
-        number: 2-9
-    l_mode_barfght:
-        number: 2-10
-    l_mode_killall:
-        number: 2-11
-    l_mode_trkbndt:
-        number: 2-12
+  l_mode_ridehelp:
+    number: 2-8
+  l_mode_duel:
+    number: 2-9
+  l_mode_barfght:
+    number: 2-10
+  l_mode_killall:
+    number: 2-11
+  l_mode_trkbndt:
+    number: 2-12
 
-    l_shoot_again:
-        number: 3-0
-    l_pop_btmup:
-        number: 3-1
-    l_pop_btmlow:
-        number: 3-2
-    l_marshal:
-        number: 3-3
-    l_sheriff:
-        number: 3-4
-    l_deputy:
-        number: 3-5
-    l_rookie:
-        number: 3-6
+  l_shoot_again:
+    number: 3-0
+  l_pop_btmup:
+    number: 3-1
+  l_pop_btmlow:
+    number: 3-2
+  l_marshal:
+    number: 3-3
+  l_sheriff:
+    number: 3-4
+  l_deputy:
+    number: 3-5
+  l_rookie:
+    number: 3-6 
 
 flippers:
-    left_flipper:
-        main_coil: c_lft_flipper
-        activation_switch: s_lft_flipper
-    right_flipper:
-        main_coil: c_rght_flipper
-        activation_switch: s_rght_flipper
+  left_flipper:
+    main_coil: c_lft_flipper
+    activation_switch: s_lft_flipper
+  right_flipper:
+    main_coil: c_rght_flipper
+    activation_switch: s_rght_flipper
 
 ball_devices:
-    bd_drain:
-        ball_switches: s_trough
-        entrance_count_delay: 300ms
-        eject_coil: c_trough_eject
-        tags: trough, home, drain, ball_add_live
-        debug: yes
-    bd_kickout_hole:
-        ball_switches: s_kickout_hole
-        entrance_count_delay: 300ms
-        eject_coil: c_kickout_hole
-        debug: yes
+  bd_drain:
+    ball_switches: s_trough
+    entrance_count_delay: 300ms
+    eject_coil: c_trough_eject
+    tags: trough, home, drain, ball_add_live
+    debug: true
+  bd_kickout_hole:
+    ball_switches: s_kickout_hole
+    entrance_count_delay: 300ms
+    eject_coil: c_kickout_hole
+    debug: true
 
 autofire_coils:
   btm_lft_sling:
@@ -352,80 +352,119 @@ autofire_coils:
 shots:
   shot_sharpe_s:
     switch: s_upper_lft_rollover
-    light: l_inln_lft
+    show_tokens:
+      light: l_inln_lft
   shot_sharpe_h:
     switch: s_upper_ctr_rollover
-    light: l_inln_ctr
+    show_tokens:
+      light: l_inln_ctr
   shot_sharpe_a:
     switch: s_upper_rght_rollover
-    light: l_inln_rght
+    show_tokens:
+      light: l_inln_rght
   shot_sharpe_r:
     switch: s_upper_ctr_lft_rollover
-    light: l_roll_lft
+    show_tokens:
+      light: l_roll_lft
   shot_sharpe_p:
     switch: s_upper_ctr_ctr_rollover
-    light: l_roll_ctr
+    show_tokens:
+      light: l_roll_ctr
   shot_sharpe_e:
     switch: s_upper_ctr_rght_rollover
-    light: l_roll_rght
+    show_tokens:
+      light: l_roll_rght
 
 shot_groups:
   sharpe_lanes:
-    shots: shot_sharpe_s, shot_sharpe_h, shot_sharpe_a, shot_sharpe_r, shot_sharpe_p, shot_sharpe_e
+    shots: shot_sharpe_s, shot_sharpe_h, shot_sharpe_a, shot_sharpe_r, shot_sharpe_p,
+      shot_sharpe_e
 
-virtual_platform_start_active_switches:
-    s_trough
+virtual_platform_start_active_switches: s_trough
 
 keyboard:
-    z:
-        switch: s_lft_flipper
-    /:
-        switch: s_rght_flipper
-    s:
-        switch: s_start
-    d:
-        switch: s_trough
-        toggle: true
-    1:
-        switch: s_upper_lft_rollover
-    2:
-        switch: s_upper_ctr_rollover
-    3:
-        switch: s_upper_rght_rollover
-    4:
-        switch: s_upper_ctr_lft_rollover
-    5:
-        switch: s_upper_ctr_ctr_rollover
-    6:
-        switch: s_upper_ctr_rght_rollover
+  z:
+    switch: s_lft_flipper
+  /:
+    switch: s_rght_flipper
+  s:
+    switch: s_start
+  d:
+    switch: s_trough
+    toggle: true
+  1:
+    switch: s_upper_lft_rollover
+  2:
+    switch: s_upper_ctr_rollover
+  3:
+    switch: s_upper_rght_rollover
+  4:
+    switch: s_upper_ctr_lft_rollover
+  5:
+    switch: s_upper_ctr_ctr_rollover
+  6:
+    switch: s_upper_ctr_rght_rollover
 
 window:
-    title: SharpeShooter III
-    width: 1280
-    height: 1024
+  title: SharpeShooter III
+  width: 1280
+  height: 1024
 
-Fonts:
-    old_disp:
-        file: LCDM2N__.TTF
+widget_styles:
+  old_disp:
+    font_name: LCDM2N__
 
+  default:
+    font_name: Quadrit
+    font_size: 10
+    adjust_top: 2
+    adjust_bottom: 3
+  space title huge:
+    font_name: DEADJIM
+    font_size: 29
+    antialias: true
+    adjust_top: 3
+    adjust_bottom: 3
+  space title:
+    font_name: DEADJIM
+    font_size: 21
+    antialias: true
+    adjust_top: 2
+    adjust_bottom: 3
+  medium:
+    font_name: pixelmix
+    font_size: 8
+    adjust_top: 1
+    adjust_bottom: 1
+  small:
+    font_name: smallest_pixel-7
+    font_size: 9
+    adjust_top: 2
+    adjust_bottom: 3
+  tall title:
+    font_name: big_noodle_titling
+    font_size: 20
 sound_system:
-    buffer: 512
-    frequency: 44100
-    channels: 1
-    initial_volume: 1
-    volume_steps: 20
-    tracks:
-        voice:
-            volume: 1
-            priority: 2
-            simultaneous_sounds: 1
-            preload: no
-        sfx:
-            volume: 1
-            priority: 1
-            preload: no
-            simultaneous_sounds: 3
-    stream:
-        name: music
-        priority: 0
-
+  buffer: 2048  # previous value was 512
+  frequency: 44100
+  channels: 1
+  master_volume: 1
+  tracks:
+    voice:
+      volume: 1
+      priority: 2
+      simultaneous_sounds: 1
+      preload: false
+    sfx:
+      volume: 1
+      priority: 1
+      preload: false
+      simultaneous_sounds: 3
+    music:
+      volume: 0.5
+      simultaneous_sounds: 1
+  enabled: true
+displays:
+  window:
+    height: 1024
+    width: 1280

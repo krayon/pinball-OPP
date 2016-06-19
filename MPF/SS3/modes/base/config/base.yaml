@@ -1,4 +1,4 @@
-#config_version=3
+#config_version=4
 
 #
 #===============================================================================
@@ -54,53 +54,8 @@ mode:
 
 slide_player:
   mode_base_started:
-    - type: image
-      image: sal_guy
-      slide_priority: 10
-    - type: text
-      text: "%player1|score%"
-      font: old_disp
-      number_grouping: true
-      # Currently setting min digits to 10 since there is no right justification
-      min_digits: 10
-      x: 56
-      y: 768
-      color: ee9900
-      size: 64
-    - type: text
-      text: "%player2|score%"
-      font: old_disp
-      number_grouping: true
-      min_digits: 10
-      x: 800
-      y: 768
-      color: ee9900
-      size: 64
-    - type: text
-      text: "%player3|score%"
-      font: old_disp
-      number_grouping: true
-      min_digits: 10
-      x: 56
-      y: 912
-      color: ee9900
-      size: 64
-    - type: text
-      text: "%player4|score%"
-      font: old_disp
-      number_grouping: true
-      min_digits: 10
-      x: 800
-      y: 912
-      color: ee9900
-      size: 64
-
-#sound_player:
-#  init_mode:
-    # HRS:  This should play good bad and ugly
-    #sound: Rookie
-    #start_events: mode_base_started
-
+    slide_1:
+      priority: 10
 scoring:
   sharpe_lanes_default_unlit_hit:
     score: 5
@@ -115,3 +70,59 @@ shot_groups:
     rotate_right_events: right_flipper_active
     reset_events:
       sharpe_lanes_default_lit_complete: 1s
+slides:
+  slide_1:
+  - type: image
+    image: sal_guy
+  - type: text
+    text: (player1|score)
+    style: old_disp
+    number_grouping: true
+      # Currently setting min digits to 10 since there is no right justification
+    min_digits: 10
+    x: left+56
+    y: top-768
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player2|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-768
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player3|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+56
+    y: top-912
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player4|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-912
+    color: ee9900
+    font_size: 64
+
+    anchor_x: left
+    anchor_y: top
+#sound_player:
+#  init_mode:
+    # HRS:  This should play good bad and ugly
+    #sound: Rookie
+    #start_events: mode_base_started
+

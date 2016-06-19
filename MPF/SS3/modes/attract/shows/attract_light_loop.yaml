@@ -1,3 +1,4 @@
+#show_version=4
 #
 #===============================================================================
 ## @mainpage
@@ -47,151 +48,133 @@
 #===============================================================================
 
 
-- tocks: 1
+- time: 0
   lights:
     l_shoot_again: ff
-    l_mode_sharpe: 00
-    l_mode_sniper: 00
-    l_mode_trkbndt: 00
-    l_mode_chkhide: 00
-    l_mode_killall: 00
-    l_mode_trgtprac: 00
-    l_mode_barfght: 00
-    l_mode_hustlejive: 00
-    l_mode_duel: 00
-    l_mode_posse: 00
-    l_mode_ridehelp: 00
-    l_rookie: 00
-    l_deputy: 00
-    l_sheriff: 00
-    l_marshal: 00
-    l_dt_1: 00
-    l_dt_2: 00
-    l_dt_3: 00
-    l_dt_4: 00
-    l_dt_5: 00
-    l_dt_6: 00
-    l_dt_7: 00
-    l_ko_duel: 00
-    l_ko_pick_job: 00
-    l_2x: 00
-    l_3x: 00
-    l_4x: 00
-    l_5x: 00
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 1
+    l_mode_sharpe: 0
+    l_mode_sniper: 0
+    l_mode_trkbndt: 0
+    l_mode_chkhide: 0
+    l_mode_killall: 0
+    l_mode_trgtprac: 0
+    l_mode_barfght: 0
+    l_mode_hustlejive: 0
+    l_mode_duel: 0
+    l_mode_posse: 0
+    l_mode_ridehelp: 0
+    l_rookie: 0
+    l_deputy: 0
+    l_sheriff: 0
+    l_marshal: 0
+    l_dt_1: 0
+    l_dt_2: 0
+    l_dt_3: 0
+    l_dt_4: 0
+    l_dt_5: 0
+    l_dt_6: 0
+    l_dt_7: 0
+    l_ko_duel: 0
+    l_ko_pick_job: 0
+    l_2x: 0
+    l_3x: 0
+    l_4x: 0
+    l_5x: 0
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+1'
   lights:
     l_mode_sharpe: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_mode_sniper: ff
     l_mode_trkbndt: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_mode_chkhide: ff
     l_mode_killall: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_mode_trgtprac: ff
     l_mode_barfght: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_mode_hustlejive: ff
     l_mode_duel: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_mode_posse: ff
     l_mode_ridehelp: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_rookie: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_deputy: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_sheriff: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_marshal: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_dt_1: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_1: 00
+    l_dt_1: 0
     l_dt_2: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_2: 00
+    l_dt_2: 0
     l_dt_3: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_3: 00
+    l_dt_3: 0
     l_dt_4: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_4: 00
+    l_dt_4: 0
     l_dt_5: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_5: 00
+    l_dt_5: 0
     l_dt_6: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_6: 00
+    l_dt_6: 0
     l_dt_7: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_7: 00
+    l_dt_7: 0
     l_dt_6: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_6: 00
+    l_dt_6: 0
     l_dt_5: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_5: 00
+    l_dt_5: 0
     l_dt_4: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_4: 00
+    l_dt_4: 0
     l_dt_3: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_3: 00
+    l_dt_3: 0
     l_dt_2: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_2: 00
+    l_dt_2: 0
     l_dt_1: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_dt_1: 00
-- tocks: 1
-  lights:
-    l_dt_1: ff
-    l_dt_2: ff
-    l_dt_3: ff
-    l_dt_4: ff
-    l_dt_5: ff
-    l_dt_6: ff
-    l_dt_7: ff
-- tocks: 1
-  lights:
-    l_dt_1: 00
-    l_dt_2: 00
-    l_dt_3: 00
-    l_dt_4: 00
-    l_dt_5: 00
-    l_dt_6: 00
-    l_dt_7: 00
-- tocks: 5
+    l_dt_1: 0
+- time: '+1'
   lights:
     l_dt_1: ff
     l_dt_2: ff
@@ -200,67 +183,69 @@
     l_dt_5: ff
     l_dt_6: ff
     l_dt_7: ff
-- tocks: 1
+- time: '+1'
+  lights:
+    l_dt_1: 0
+    l_dt_2: 0
+    l_dt_3: 0
+    l_dt_4: 0
+    l_dt_5: 0
+    l_dt_6: 0
+    l_dt_7: 0
+- time: '+5'
+  lights:
+    l_dt_1: ff
+    l_dt_2: ff
+    l_dt_3: ff
+    l_dt_4: ff
+    l_dt_5: ff
+    l_dt_6: ff
+    l_dt_7: ff
+- time: '+1'
   lights:
     l_ko_duel: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_ko_pick_job: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_2x: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_3x: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_4x: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_5x: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_inln_lft: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_inln_ctr: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_inln_rght: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_roll_lft: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_roll_ctr: ff
-- tocks: 1
+- time: '+1'
   lights:
     l_roll_rght: ff
-- tocks: 1
+- time: '+1'
   lights:
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 1
-  lights:
-    l_inln_lft: ff
-    l_inln_ctr: ff
-    l_inln_rght: ff
-    l_roll_lft: ff
-    l_roll_ctr: ff
-    l_roll_rght: ff
-- tocks: 5
-  lights:
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 1
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+1'
   lights:
     l_inln_lft: ff
     l_inln_ctr: ff
@@ -268,15 +253,15 @@
     l_roll_lft: ff
     l_roll_ctr: ff
     l_roll_rght: ff
-- tocks: 5
+- time: '+5'
   lights:
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 1
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+1'
   lights:
     l_inln_lft: ff
     l_inln_ctr: ff
@@ -284,118 +269,60 @@
     l_roll_lft: ff
     l_roll_ctr: ff
     l_roll_rght: ff
-- tocks: 5
+- time: '+5'
   lights:
-    l_shoot_again: 00
-    l_mode_sharpe: 00
-    l_mode_sniper: 00
-    l_mode_trkbndt: 00
-    l_mode_chkhide: 00
-    l_mode_killall: 00
-    l_mode_trgtprac: 00
-    l_mode_barfght: 00
-    l_mode_hustlejive: 00
-    l_mode_duel: 00
-    l_mode_posse: 00
-    l_mode_ridehelp: 00
-    l_rookie: 00
-    l_deputy: 00
-    l_sheriff: 00
-    l_marshal: 00
-    l_dt_1: 00
-    l_dt_2: 00
-    l_dt_3: 00
-    l_dt_4: 00
-    l_dt_5: 00
-    l_dt_6: 00
-    l_dt_7: 00
-    l_ko_duel: 00
-    l_ko_pick_job: 00
-    l_2x: 00
-    l_3x: 00
-    l_4x: 00
-    l_5x: 00
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 5
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+1'
   lights:
-    l_shoot_again: ff
-    l_mode_sharpe: ff
-    l_mode_sniper: ff
-    l_mode_trkbndt: ff
-    l_mode_chkhide: ff
-    l_mode_killall: ff
-    l_mode_trgtprac: ff
-    l_mode_barfght: ff
-    l_mode_hustlejive: ff
-    l_mode_duel: ff
-    l_mode_posse: ff
-    l_mode_ridehelp: ff
-    l_rookie: ff
-    l_deputy: ff
-    l_sheriff: ff
-    l_marshal: ff
-    l_dt_1: ff
-    l_dt_2: ff
-    l_dt_3: ff
-    l_dt_4: ff
-    l_dt_5: ff
-    l_dt_6: ff
-    l_dt_7: ff
-    l_ko_duel: ff
-    l_ko_pick_job: ff
-    l_2x: ff
-    l_3x: ff
-    l_4x: ff
-    l_5x: ff
     l_inln_lft: ff
     l_inln_ctr: ff
     l_inln_rght: ff
     l_roll_lft: ff
     l_roll_ctr: ff
     l_roll_rght: ff
-- tocks: 5
+- time: '+5'
   lights:
-    l_shoot_again: 00
-    l_mode_sharpe: 00
-    l_mode_sniper: 00
-    l_mode_trkbndt: 00
-    l_mode_chkhide: 00
-    l_mode_killall: 00
-    l_mode_trgtprac: 00
-    l_mode_barfght: 00
-    l_mode_hustlejive: 00
-    l_mode_duel: 00
-    l_mode_posse: 00
-    l_mode_ridehelp: 00
-    l_rookie: 00
-    l_deputy: 00
-    l_sheriff: 00
-    l_marshal: 00
-    l_dt_1: 00
-    l_dt_2: 00
-    l_dt_3: 00
-    l_dt_4: 00
-    l_dt_5: 00
-    l_dt_6: 00
-    l_dt_7: 00
-    l_ko_duel: 00
-    l_ko_pick_job: 00
-    l_2x: 00
-    l_3x: 00
-    l_4x: 00
-    l_5x: 00
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 5
+    l_shoot_again: 0
+    l_mode_sharpe: 0
+    l_mode_sniper: 0
+    l_mode_trkbndt: 0
+    l_mode_chkhide: 0
+    l_mode_killall: 0
+    l_mode_trgtprac: 0
+    l_mode_barfght: 0
+    l_mode_hustlejive: 0
+    l_mode_duel: 0
+    l_mode_posse: 0
+    l_mode_ridehelp: 0
+    l_rookie: 0
+    l_deputy: 0
+    l_sheriff: 0
+    l_marshal: 0
+    l_dt_1: 0
+    l_dt_2: 0
+    l_dt_3: 0
+    l_dt_4: 0
+    l_dt_5: 0
+    l_dt_6: 0
+    l_dt_7: 0
+    l_ko_duel: 0
+    l_ko_pick_job: 0
+    l_2x: 0
+    l_3x: 0
+    l_4x: 0
+    l_5x: 0
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+5'
   lights:
     l_shoot_again: ff
     l_mode_sharpe: ff
@@ -432,44 +359,44 @@
     l_roll_lft: ff
     l_roll_ctr: ff
     l_roll_rght: ff
-- tocks: 5
+- time: '+5'
   lights:
-    l_shoot_again: 00
-    l_mode_sharpe: 00
-    l_mode_sniper: 00
-    l_mode_trkbndt: 00
-    l_mode_chkhide: 00
-    l_mode_killall: 00
-    l_mode_trgtprac: 00
-    l_mode_barfght: 00
-    l_mode_hustlejive: 00
-    l_mode_duel: 00
-    l_mode_posse: 00
-    l_mode_ridehelp: 00
-    l_rookie: 00
-    l_deputy: 00
-    l_sheriff: 00
-    l_marshal: 00
-    l_dt_1: 00
-    l_dt_2: 00
-    l_dt_3: 00
-    l_dt_4: 00
-    l_dt_5: 00
-    l_dt_6: 00
-    l_dt_7: 00
-    l_ko_duel: 00
-    l_ko_pick_job: 00
-    l_2x: 00
-    l_3x: 00
-    l_4x: 00
-    l_5x: 00
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
-- tocks: 5
+    l_shoot_again: 0
+    l_mode_sharpe: 0
+    l_mode_sniper: 0
+    l_mode_trkbndt: 0
+    l_mode_chkhide: 0
+    l_mode_killall: 0
+    l_mode_trgtprac: 0
+    l_mode_barfght: 0
+    l_mode_hustlejive: 0
+    l_mode_duel: 0
+    l_mode_posse: 0
+    l_mode_ridehelp: 0
+    l_rookie: 0
+    l_deputy: 0
+    l_sheriff: 0
+    l_marshal: 0
+    l_dt_1: 0
+    l_dt_2: 0
+    l_dt_3: 0
+    l_dt_4: 0
+    l_dt_5: 0
+    l_dt_6: 0
+    l_dt_7: 0
+    l_ko_duel: 0
+    l_ko_pick_job: 0
+    l_2x: 0
+    l_3x: 0
+    l_4x: 0
+    l_5x: 0
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+5'
   lights:
     l_shoot_again: ff
     l_mode_sharpe: ff
@@ -506,40 +433,115 @@
     l_roll_lft: ff
     l_roll_ctr: ff
     l_roll_rght: ff
-- tocks: 5
+- time: '+5'
   lights:
-    l_shoot_again: 00
-    l_mode_sharpe: 00
-    l_mode_sniper: 00
-    l_mode_trkbndt: 00
-    l_mode_chkhide: 00
-    l_mode_killall: 00
-    l_mode_trgtprac: 00
-    l_mode_barfght: 00
-    l_mode_hustlejive: 00
-    l_mode_duel: 00
-    l_mode_posse: 00
-    l_mode_ridehelp: 00
-    l_rookie: 00
-    l_deputy: 00
-    l_sheriff: 00
-    l_marshal: 00
-    l_dt_1: 00
-    l_dt_2: 00
-    l_dt_3: 00
-    l_dt_4: 00
-    l_dt_5: 00
-    l_dt_6: 00
-    l_dt_7: 00
-    l_ko_duel: 00
-    l_ko_pick_job: 00
-    l_2x: 00
-    l_3x: 00
-    l_4x: 00
-    l_5x: 00
-    l_inln_lft: 00
-    l_inln_ctr: 00
-    l_inln_rght: 00
-    l_roll_lft: 00
-    l_roll_ctr: 00
-    l_roll_rght: 00
+    l_shoot_again: 0
+    l_mode_sharpe: 0
+    l_mode_sniper: 0
+    l_mode_trkbndt: 0
+    l_mode_chkhide: 0
+    l_mode_killall: 0
+    l_mode_trgtprac: 0
+    l_mode_barfght: 0
+    l_mode_hustlejive: 0
+    l_mode_duel: 0
+    l_mode_posse: 0
+    l_mode_ridehelp: 0
+    l_rookie: 0
+    l_deputy: 0
+    l_sheriff: 0
+    l_marshal: 0
+    l_dt_1: 0
+    l_dt_2: 0
+    l_dt_3: 0
+    l_dt_4: 0
+    l_dt_5: 0
+    l_dt_6: 0
+    l_dt_7: 0
+    l_ko_duel: 0
+    l_ko_pick_job: 0
+    l_2x: 0
+    l_3x: 0
+    l_4x: 0
+    l_5x: 0
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+5'
+  lights:
+    l_shoot_again: ff
+    l_mode_sharpe: ff
+    l_mode_sniper: ff
+    l_mode_trkbndt: ff
+    l_mode_chkhide: ff
+    l_mode_killall: ff
+    l_mode_trgtprac: ff
+    l_mode_barfght: ff
+    l_mode_hustlejive: ff
+    l_mode_duel: ff
+    l_mode_posse: ff
+    l_mode_ridehelp: ff
+    l_rookie: ff
+    l_deputy: ff
+    l_sheriff: ff
+    l_marshal: ff
+    l_dt_1: ff
+    l_dt_2: ff
+    l_dt_3: ff
+    l_dt_4: ff
+    l_dt_5: ff
+    l_dt_6: ff
+    l_dt_7: ff
+    l_ko_duel: ff
+    l_ko_pick_job: ff
+    l_2x: ff
+    l_3x: ff
+    l_4x: ff
+    l_5x: ff
+    l_inln_lft: ff
+    l_inln_ctr: ff
+    l_inln_rght: ff
+    l_roll_lft: ff
+    l_roll_ctr: ff
+    l_roll_rght: ff
+- time: '+5'
+  lights:
+    l_shoot_again: 0
+    l_mode_sharpe: 0
+    l_mode_sniper: 0
+    l_mode_trkbndt: 0
+    l_mode_chkhide: 0
+    l_mode_killall: 0
+    l_mode_trgtprac: 0
+    l_mode_barfght: 0
+    l_mode_hustlejive: 0
+    l_mode_duel: 0
+    l_mode_posse: 0
+    l_mode_ridehelp: 0
+    l_rookie: 0
+    l_deputy: 0
+    l_sheriff: 0
+    l_marshal: 0
+    l_dt_1: 0
+    l_dt_2: 0
+    l_dt_3: 0
+    l_dt_4: 0
+    l_dt_5: 0
+    l_dt_6: 0
+    l_dt_7: 0
+    l_ko_duel: 0
+    l_ko_pick_job: 0
+    l_2x: 0
+    l_3x: 0
+    l_4x: 0
+    l_5x: 0
+    l_inln_lft: 0
+    l_inln_ctr: 0
+    l_inln_rght: 0
+    l_roll_lft: 0
+    l_roll_ctr: 0
+    l_roll_rght: 0
+- time: '+5'
