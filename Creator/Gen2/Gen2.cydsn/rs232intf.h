@@ -88,6 +88,7 @@ typedef enum
   RS232I_CONFIG_IND_SOL     = 0x14,
   RS232I_CONFIG_IND_INP     = 0x15,
   RS232I_SET_IND_NEO        = 0x16,
+  RS232I_SET_SOL_INPUT      = 0x17,
   RS232I_NUM_CMDS,
   
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
@@ -110,7 +111,7 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
     6,  /* RS232I_CHNG_NEO_COLOR */    4,  /* RS232I_CHNG_NEO_COLOR_TBL */
     97, /* RS232I_SET_NEO_COLOR_TBL */ 5,  /* RS232I_INCAND_CMD */
     4,  /* RS232I_CONFIG_IND_SOL */    2,  /* RS232I_CONFIG_IND_INP */
-    2,  /* RS232I_SET_IND_NEO */
+    2,  /* RS232I_SET_IND_NEO */       2,  /* RS232I_SET_SOL_INPUT */
   }
 #endif
 ;
@@ -131,6 +132,8 @@ typedef enum
 {
   USE_SWITCH                = 0x01,
   AUTO_CLR                  = 0x02,
+  ON_OFF_SOL                = 0x04,
+  DLY_KICK_SOL              = 0x08,
 } __attribute__((packed)) RS232I_CFG_SOL_TYPE_E;
 
 typedef enum
@@ -196,5 +199,12 @@ typedef enum
   INCAND_SET_BLINK_SLOW     = 0x02,
   INCAND_SET_BLINK_FAST     = 0x04,
 } __attribute__((packed)) RS232I_GEN2_INCAND_CMD_E;
+
+typedef enum
+{
+  SOL_INP_SOL_MASK          = 0x0f,
+
+  SOL_INP_CLEAR_SOL         = 0x80,
+} __attribute__((packed)) RS232I_SET_SOL_INP_E;
 
 #endif

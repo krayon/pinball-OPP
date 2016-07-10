@@ -54,6 +54,9 @@
 #include "rs232intf.h"
 #include "stdlintf.h"
 
+/* Set PIONEER_DEBUG to non-zero when debugging with pioneer board */
+#define PIONEER_DEBUG 0
+   
 typedef enum
 {
    NO_ERRORS                  = 0x00,
@@ -62,13 +65,13 @@ typedef enum
    /* OR'd with STDLI_ERR_E so error codes don't conflict */
    ERR_STDL_ERR_MASK          = 0x80,
 } __attribute__((packed)) GEN2G_ERROR_E;
-   
+
 #define GEN2G_CFG_TBL         0x00007e80
 #define GEN2G_FLASH_SECT_SZ   0x80
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
-#define GEN2G_SER_NUM_ADDR    0x00007ffc
 #define GEN2G_APP_TBL_ADDR    0x00007f80
+#define GEN2G_CODE_VERS       0x00010200
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -120,6 +123,8 @@ typedef struct
 {
   U32                   appLen;           /* Length of application */
   U32                   codeVers;         /* Application version */
+  U32                   unused;           /* Should contain CRC */
+  U32                   serNum;
 } APP_START_T;
 
 #ifndef GEN2G_INSTANTIATE
@@ -196,10 +201,11 @@ void incand_init();
 typedef struct
 {
    BOOL                       validCfg;
+   BOOL                       haveNeo;
    GEN2G_ERROR_E              error;
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
-   U8                         ledStatus;      /* If blinking LED is on/fading LED is brighter */
+   U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
    U32                        validSwitch;
    U32                        crcErr;

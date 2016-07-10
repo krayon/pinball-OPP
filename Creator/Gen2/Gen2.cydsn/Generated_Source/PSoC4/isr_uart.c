@@ -26,6 +26,8 @@
 *  Place your includes, defines and code here 
 ********************************************************************************/
 /* `#START isr_uart_intc` */
+   
+void stdlser_port1_isr(void);
 
 /* `#END` */
 
@@ -159,7 +161,7 @@ CY_ISR(isr_uart_Interrupt)
 {
     /*  Place your Interrupt code here. */
     /* `#START isr_uart_Interrupt` */
-
+    stdlser_port1_isr();
     /* `#END` */
 }
 

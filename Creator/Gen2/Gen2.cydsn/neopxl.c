@@ -162,51 +162,56 @@ GEN2G_ERROR_E neo_init(
 {
    U8                *tmp_p;
     
-   /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
+   /* Only initialize if Neo pixels are configured */
    neoInfo.stat = 0;
-   neoInfo.underflow = 0;
-   neoInfo.complUpd = 0;
-   neoInfo.numPixels = numPixels;
-    
-   /* Test for null on commands */
-   neoInfo.pxlCmd_p = malloc(numPixels);
-   if (neoInfo.pxlCmd_p == NULL)
+   if ((gen2g_info.typeWingBrds & (1 << WING_NEO)) != 0)
    {
-      gen2g_info.error = ERR_MALLOC_FAIL;
-      return(ERR_MALLOC_FAIL);
-   }
-    
-   /* If odd, add 1 since odd number of bytes and need integral number of U16s.
-    * If even, add 2 so extra U16 is added to be blank.  Guarantees neopixel
-    * transfers end with data bit low.
-    */
-   if (numPixels & 0x01)
-   {
-      neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 1);
-      neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 1)/sizeof(U16));
-      /* Last U16 SPI transfer has 8 bytes of data, and 8 bits of zeros */
-   }
-   else
-   {
-      neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 2);
-      neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 2)/sizeof(U16));
+      /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
+      gen2g_info.haveNeo = TRUE;
+      neoInfo.underflow = 0;
+      neoInfo.complUpd = 0;
+      neoInfo.numPixels = numPixels;
+       
+      /* Test for null on commands */
+      neoInfo.pxlCmd_p = malloc(numPixels);
+      if (neoInfo.pxlCmd_p == NULL)
+      {
+         gen2g_info.error = ERR_MALLOC_FAIL;
+         return(ERR_MALLOC_FAIL);
+      }
+       
+      /* If odd, add 1 since odd number of bytes and need integral number of U16s.
+       * If even, add 2 so extra U16 is added to be blank.  Guarantees neopixel
+       * transfers end with data bit low.
+       */
+      if (numPixels & 0x01)
+      {
+         neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 1);
+         neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 1)/sizeof(U16));
+         /* Last U16 SPI transfer has 8 bytes of data, and 8 bits of zeros */
+      }
+      else
+      {
+         neoInfo.buf_p = malloc((numPixels * BYTES_PER_PIXEL) + 2);
+         neoInfo.end_p = neoInfo.buf_p + (((numPixels * BYTES_PER_PIXEL) + 2)/sizeof(U16));
+         
+         /* Clear last U16 so last transfers have SPI data low */
+         *(neoInfo.end_p - 1) = 0;
+      }
+      if (neoInfo.buf_p == NULL)
+      {
+         gen2g_info.error = ERR_MALLOC_FAIL;
+         return(ERR_MALLOC_FAIL);
+      }
+      for (tmp_p = neoInfo.pxlCmd_p; tmp_p < neoInfo.pxlCmd_p + numPixels; tmp_p++)
+      {
+         *tmp_p = NEOI_CMD_BLINK_SLOW;
+      }
       
-      /* Clear last U16 so last transfers have SPI data low */
-      *(neoInfo.end_p - 1) = 0;
+      /* Disable the TX SCB interrupt, set the interrupt to occur at 4 words */
+      *(R32 *)SCB1_TX_FIFO_CTRL = 4;
+      *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
    }
-   if (neoInfo.buf_p == NULL)
-   {
-      gen2g_info.error = ERR_MALLOC_FAIL;
-      return(ERR_MALLOC_FAIL);
-   }
-   for (tmp_p = neoInfo.pxlCmd_p; tmp_p < neoInfo.pxlCmd_p + numPixels; tmp_p++)
-   {
-      *tmp_p = NEOI_CMD_BLINK_SLOW;
-   }
-   
-   /* Disable the TX SCB interrupt, set the interrupt to occur at 4 words */
-   *(R32 *)SCB1_TX_FIFO_CTRL = 4;
-   *(R32 *)SCB1_INTR_TX_MASK &= ~INTR_TX_SCB_TRIGGER;
     
    /* Register a 40ms repeating tick function, register FIFO empty if necessary */
    return(NO_ERRORS);
@@ -234,7 +239,7 @@ GEN2G_ERROR_E neo_init(
  */
 void neo_40ms_tick()
 {
-   if (gen2g_info.validCfg)
+   if (gen2g_info.validCfg && gen2g_info.haveNeo)
    {
       if ((neoInfo.stat & (STAT_START_PROC | STAT_XMT_SPI_DATA)) == 0)
       {

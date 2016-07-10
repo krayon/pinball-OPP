@@ -91,7 +91,13 @@ typedef struct
 RS232_GLOB_T                  rs232_glob;
 
 /* Prototypes */
-void digital_set_init_state();
+void digital_set_solenoid_input(
+   RS232I_SET_SOL_INP_E       inputIndex,
+   U8                         solIndex);
+void digital_upd_sol_cfg(
+   U16                        updMask);
+void digital_upd_inp_cfg(
+   U32                        updMask);
 void rs232proc_rx_ser_char(
   void                        *cbParam_p);
 void rs232proc_force_boot_mode(void);
@@ -252,7 +258,7 @@ void rs232proc_task(void)
                      {
                         case RS232I_GET_SER_NUM:
                         {
-                           rs232proc_bswap_copy_dest((U32 *)GEN2G_SER_NUM_ADDR, &txBuf[2]);
+                           rs232proc_bswap_copy_dest((U32 *)(&gen2g_appTbl_p->serNum), &txBuf[2]);
                            rs232_glob.state = RS232_STRIP_CMD;
                            txBuf[6] = 0xff;
                            stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
@@ -284,7 +290,7 @@ void rs232proc_task(void)
                         case RS232I_SET_SER_NUM:
                         {
                            /* Check if serial number is blank, strip cmd */
-                           if (*(U32 *)GEN2G_SER_NUM_ADDR == 0)
+                           if (gen2g_appTbl_p->serNum == 0)
                            {
                               rs232_glob.state = RS232_RCV_DATA_CMD;
                            }
@@ -292,7 +298,7 @@ void rs232proc_task(void)
                            {
                               /* Already set, so respond with serial number */
                               rs232_glob.state = RS232_STRIP_CMD;
-                              rs232proc_bswap_copy_dest((U32 *)GEN2G_SER_NUM_ADDR, &txBuf[2]);
+                              rs232proc_bswap_copy_dest((U32 *)(&gen2g_appTbl_p->serNum), &txBuf[2]);
                               rs232_glob.state = RS232_STRIP_CMD;
                               stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
                               (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 7);
@@ -314,6 +320,7 @@ void rs232proc_task(void)
                         case RS232I_CONFIG_IND_SOL:
                         case RS232I_CONFIG_IND_INP:
                         case RS232I_SET_IND_NEO:
+                        case RS232I_SET_SOL_INPUT:
                         {
                            /* Verify CRC to be sure */
                            rs232_glob.state = RS232_RCV_DATA_CMD;
@@ -420,7 +427,7 @@ void rs232proc_task(void)
                         case RS232I_SET_SER_NUM:
                         {
                            rs232proc_bswap_data_buf((U32 *)&rs232_glob.rxBuf[0], sizeof(U32));
-                           stdlflash_write(&rs232_glob.rxBuf[0], (U8 *)GEN2G_SER_NUM_ADDR, sizeof(U32));
+                           stdlflash_write(&rs232_glob.rxBuf[0], (U8 *)(&gen2g_appTbl_p->serNum), sizeof(U32));
                            break;
                         }
                         case RS232I_RESET:
@@ -431,7 +438,9 @@ void rs232proc_task(void)
                         case RS232I_GO_BOOT:
                         {
                            /* This command resets the processor */
+#if PIONEER_DEBUG == 0
                            Bootloadable_Load();
+#endif
                            break;
                         }
                         case RS232I_CONFIG_SOL:
@@ -443,7 +452,7 @@ void rs232proc_task(void)
                            {
                               *dest_p++ = *src_p++;
                            }
-                           digital_set_init_state();
+                           digital_upd_sol_cfg(0xffff);
                            break;
                         }
                         case RS232I_KICK_SOL:
@@ -464,7 +473,7 @@ void rs232proc_task(void)
                            {
                               *dest_p++ = *src_p++;
                            }
-                           digital_set_init_state();
+                           digital_upd_inp_cfg(0xffffffff);
                            break;
                         }
                         case RS232I_SAVE_CFG:
@@ -583,14 +592,14 @@ void rs232proc_task(void)
                            {
                               *dest_p++ = *src_p++;
                            }
-                           digital_set_init_state();
+                           digital_upd_sol_cfg(1 << rs232_glob.rxBuf[CONFIG_NUM_OFFSET]);
                            break;
                         }
                         case RS232I_CONFIG_IND_INP:
                         {
                            gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxBuf[CONFIG_NUM_OFFSET]] =
                               rs232_glob.rxBuf[CONFIG_DATA_OFFSET];
-                           digital_set_init_state();
+                           digital_upd_inp_cfg(1 << rs232_glob.rxBuf[CONFIG_NUM_OFFSET]);
                            break;
                         }
                         case RS232I_SET_IND_NEO:
@@ -599,6 +608,12 @@ void rs232proc_task(void)
                               (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
                            neo_update_pixel_color(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
                               (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
+                           break;
+                        }
+                        case RS232I_SET_SOL_INPUT:
+                        {
+                           digital_set_solenoid_input(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
+                              rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
                            break;
                         }
                         default:
