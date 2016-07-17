@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.01'
+testVers = '00.00.02'
 
 import sys
 import serial
@@ -107,6 +107,14 @@ solCfg =  [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ],
+            [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x01', '\x01', rs232Intf.CFG_SOL_USE_SWITCH, '\xff', '\x0f', \
+              rs232Intf.CFG_SOL_USE_SWITCH, '\x01', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\xff', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ] ]
 
 # Config color table
@@ -155,6 +163,10 @@ def rcvInvResp():
     data = getSerialData();
     #First byte should be inventory cmd
     index = 1
+    numGen2Brd = 0
+    gen2AddrArr = []
+    currInpData = []
+    currWingCfg = []
     if (data[0] != rs232Intf.INV_CMD):
         return (100)
     while (data[index] != rs232Intf.EOM_CMD):
@@ -168,12 +180,14 @@ def rcvInvResp():
     print "Addr = %s" % [hex(ord(n)) for n in gen2AddrArr]
     return (0)
 
-#send get version cmd
-def sendGetVersCmd():
+#send standard 4 byte command
+def sendStd4ByteCmd(cmd):
     global ser
     cmdArr = []
-    cmdArr.append(gen2AddrArr[0])
-    cmdArr.append(rs232Intf.GET_GET_VERS_CMD)
+    
+    # First address for Gen2 cards is always 0x20
+    cmdArr.append('\x20')
+    cmdArr.append(cmd)
     cmdArr.append('\x00')
     cmdArr.append('\x00')
     cmdArr.append('\x00')
@@ -182,6 +196,10 @@ def sendGetVersCmd():
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
+
+#send get version cmd
+def sendGetVersCmd():
+    sendStd4ByteCmd(rs232Intf.GET_GET_VERS_CMD)
 
 #rcv get version resp
 def rcvGetVersResp(version):
@@ -216,6 +234,73 @@ def rcvGetVersResp(version):
             return (204)
     return (0)
 
+#send get serial number cmd
+def sendSetSerNumCmd(serialNum):
+    global ser
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.SET_SER_NUM_CMD)
+    cmdArr.append(chr((serialNum >> 24) & 0xff))
+    cmdArr.append(chr((serialNum >> 16) & 0xff))
+    cmdArr.append(chr((serialNum >> 8) & 0xff))
+    cmdArr.append(chr(serialNum & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+
+#send get serial number cmd
+def sendGetSerNumCmd():
+    sendStd4ByteCmd(rs232Intf.GET_SER_NUM_CMD)
+
+#rcv get serial number resp
+def rcvGetSerNumResp():
+    global numGen2Brd
+    global gen2AddrArr
+    global currInpData
+    global currWingCfg
+    expectedSerialNum = 123456789
+    data = getSerialData();
+    if (data[0] != gen2AddrArr[0]):
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[0]))
+        print repr(data)
+        return (300)
+    if (data[1] != rs232Intf.GET_SER_NUM_CMD):
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
+        print repr(data)
+        return (301)
+    tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
+    crc8 = calcCrc8(tmpData)
+    if (data[6] != crc8):
+        print "\nBad CRC, Data = %d, expected = %d" % (ord(data[6]),crc8)
+        return (302)
+    if (data[7] != rs232Intf.EOM_CMD):
+        print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
+        return (303)
+    serialNum = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
+    print "Found serial num: %d" % serialNum
+    if (serialNum == 0):
+        sendSetSerNumCmd(expectedSerialNum)
+        retCode = rcvEomResp()
+        if (retCode != 0):
+            print "\n!!! Fail !!! Could not program serial number into card.\n"
+            return (304)
+    elif (serialNum != expectedSerialNum):
+        print "\n!!! Fail !!! Serial number not the expected value.\n"
+        return (305)
+    return (0)
+
+#send reset cmd
+def sendResetCmd():
+    global ser
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.RESET_CMD)
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+
 #Update code, tests go bootloader command
 def TestGoBoot():
     global ser
@@ -240,13 +325,13 @@ def TestGoBoot():
     proc_stdout = process.communicate()[0].strip()
     if not "Device checksum verifies OK." in proc_stdout:
         print "!!! Fail !!! Update code failed.\n"
-        return 100
+        return 400
     # Send inventory command so card "relearns" its address.
     try:
         ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
     except serial.SerialException:
         print "\nCould not open " + port + " after upgrading firmware."
-        return 101
+        return 401
     sendInvCmd()
     rcvInvResp()
     print "GoBoot tested successfully."
@@ -258,21 +343,231 @@ def TestGetVersion(version):
     retCode = rcvGetVersResp(version)
     return retCode
 
+def TestGetSerialNum():
+    print "\nTesting Get Serial Number command."
+    sendGetSerNumCmd()
+    retCode = rcvGetSerNumResp()
+    return retCode
+
+def ResetBoard():
+    global ser
+    sendResetCmd()
+    ser.close()
+    time.sleep(1)
+    # Re-open the serial port.
+    try:
+        ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
+    except serial.SerialException:
+        print "\nCould not open " + port + " when resetting card."
+        return 550
+    sendInvCmd()
+    rcvInvResp()
+    return 0
+
+#Update board with standard configuration
+def TestStoreStdCfg():
+    global ser
+    
+    print "\nStoring standard configuration on the card."
+    ser.close()
+
+    command = "cd ..\Gen2Test & " \
+       "c:\Python27\python.exe Gen2Test.py -port=" + port + " -eraseCfg & " \
+       "c:\Python27\python.exe Gen2Test.py -port=" + port + " -saveCfg -loadCfg=regrCfg"
+    process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
+    proc_stdout = process.communicate()[0].strip()
+    # Re-open the serial port.
+    try:
+        ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
+    except serial.SerialException:
+        print "\nCould not open " + port + " updating configuration."
+        return 500
+    retCode = ResetBoard()
+    if retCode: return retCode
+    print "Store standard configuration successful."
+    return 0
+
+#Verify standard configuration, tests read input cmd, verifies
+#solenoid configuration working for one-shots and PWMs
+def VerifyStdCfg():
+    print "\nVerify standard configuration."
+    print "\nTest input switches for solenoids."
+    print "Verify 0 and 1 act like flippers."
+    print "Verify 2 and 3 act like one-shots."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nStandard configuration for solenoids failed."
+        return 601
+    print "\nTest read input cmd for input switches."
+    print "All inputs are configured in state mode."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        sendReadInpBrdCmd()
+        retCode = rcvReadInpResp()
+        if retCode != 0:
+            print "\nRead input response failed." % count
+            return (retCode)
+        outArr = []
+        outArr.append('\r')
+        for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
+            if (currInpData[0] & (1 << (rs232Intf.NUM_G2_INP_PER_BRD - loop - 1))):
+                outArr.append('1')
+            else:
+                outArr.append('0')
+        sys.stdout.write(''.join(outArr))
+        
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nStandard configuration for inputs failed."
+                retCode = 602
+            else:
+                retCode = 0
+            exitReq = True
+    return retCode
+
+#Test processor can kick solenoids (with no auto clear)
+#Verify on both one-shots and flipper configurations
+def TestProcNoAutoClr():
+    print "\nVerify main processor driving solenoids (no auto clear)."
+    print "\nTurning on flipper 1 'on' for 1 second/'off' for 1 second."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        sendKickSolCmd(0x0020, 0x0020)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(1)
+        sendKickSolCmd(0x0000, 0x0020)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nSolenoid kick command failed for flippers."
+                retCode = 1401
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(1)
+    print "\nOne shot solenoid 3 firing continuously for 1 second/off for 1 second."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        sendKickSolCmd(0x0080, 0x0080)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(1)
+        sendKickSolCmd(0x0000, 0x0080)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nSolenoid kick command failed for one shots."
+                retCode = 1402
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(1)
+    return retCode
+
+#Test processor can kick solenoids (with auto clear)
+#Verify on both one-shots and flipper configurations
+def TestProcAutoClr():
+    # Reconfigure solenoid with auto clear bit set
+    sendCfgIndSolCmd(0x04, 0x03, 0x30, 0x04)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    
+    print "\nVerify main processor driving solenoids (with auto clear)."
+    print "\nTurning on flipper 0 'on', wait 1 second then repeat."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        sendKickSolCmd(0x0010, 0x0010)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(1)
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nSolenoid kick command failed for flippers."
+                retCode = 1501
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(1)
+            
+    # Reconfigure solenoid with auto clear bit set
+    sendCfgIndSolCmd(0x06, 0x03, 0x10, 0x00)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nOne shot solenoid 2 firing once, wait 1 second then repeat."
+    print "Press (y) if working, (n) if not working."
+    
+    exitReq = False
+    while (not exitReq):
+        sendKickSolCmd(0x0040, 0x0040)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(1)
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nSolenoid kick command failed for one shots."
+                retCode = 1502
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(1)
+    return retCode
+
+#Test solenoid configs, verifies configure all solenoids command works.
+#Two solenoids are configured as flippers, one with minimum init kick/PWM,
+#one with maximum init kick/PWM.  Two solenoids are configured as one shots
+#with one having minimum init kick, and one having maximum init kick.
+def TestSolenoidConfig():
+    # Reconfigure all solenoids with single command
+    sendSolCfgCmd(1)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    
+    print "\nVerify solenoid 0 is flipper with minimum (1 ms init kick/min PWM)"
+    print "Verify solenoid 1 is flipper with maximum (255 ms init kick/max PWM)"
+    print "Verify solenoid 2 is one shot with minimum (1 ms) init kick"
+    print "Verify solenoid 3 is one shot with maximum (255 ms) init kick"
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nStandard configuration for solenoids failed."
+        return 1601
+    return 0
+
 #send input cfg cmd
-def sendInpCfgCmd(cardNum):
+def sendInpCfgCmd():
     global ser
     global numGen2Brd
     global gen2AddrArr
-    if (cardNum >= numGen2Brd):
-        return (200)    
     cmdArr = []
-    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(gen2AddrArr[0])
     cmdArr.append(rs232Intf.CFG_INP_CMD)
     for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
         if loadCfg:
-            cmdArr.append(cfgFile.inpCfg[cardNum][loop])
+            cmdArr.append(cfgFile.inpCfg[0][loop])
         else:
-            cmdArr.append(inpCfg[cardNum][loop])
+            cmdArr.append(inpCfg[0][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -283,74 +578,55 @@ def sendInpCfgCmd(cardNum):
 def rcvEomResp():
     data = getSerialData();
     if (data[0] != rs232Intf.EOM_CMD):
-        return (300)
+        return (800)
     return (0)
 
 #send read input board
-def sendReadInpBrdCmd(cardNum):
+def sendReadInpBrdCmd():
     global ser
     global numGen2Brd
     global gen2AddrArr
-    if (cardNum >= numGen2Brd):
-        return (400)
-    cmdArr = []
-    cmdArr.append(gen2AddrArr[cardNum])
-    cmdArr.append(rs232Intf.READ_GEN2_INP_CMD)
-    cmdArr.append('\x00')
-    cmdArr.append('\x00')
-    cmdArr.append('\x00')
-    cmdArr.append('\x00')
-    cmdArr.append(calcCrc8(cmdArr))
-    cmdArr.append(rs232Intf.EOM_CMD)
-    sendCmd = ''.join(cmdArr)
-    ser.write(sendCmd)
+    sendStd4ByteCmd(rs232Intf.READ_GEN2_INP_CMD)
     return (0)
 
 #rcv read input cmd
-def rcvReadInpResp(cardNum):
+def rcvReadInpResp():
     global ser
     global numGen2Brd
     global gen2AddrArr
     global currInpData
     data = getSerialData();
-    if (data[0] != inpAddrArr[cardNum]):
-        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
+    if (data[0] != gen2AddrArr[0]):
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[0]))
         print repr(data)
-        return (500)
+        return (1000)
     if (data[1] != rs232Intf.READ_GEN2_INP_CMD):
         print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
         print repr(data)
-        return (501)
+        return (1001)
     tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
     crc8 = calcCrc8(tmpData)
     if (data[6] != crc8):
         print "\nBad CRC, Data = %d, expected = %d" % (ord(data[6]),crc8)
-        return (502)
+        return (1002)
     if (data[7] != rs232Intf.EOM_CMD):
         print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
-        return (502)
-    currInpData[cardNum] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
+        return (1003)
+    currInpData[0] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
     return (0)
 
 #send sol cfg cmd
-def sendSolCfgCmd(cardNum):
+def sendSolCfgCmd(cfgNum):
     global ser
     global numGen2Brd
     global gen2AddrArr
-    if (cardNum >= numGen2Brd):
-        return (600)    
     cmdArr = []
-    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(gen2AddrArr[0])
     cmdArr.append(rs232Intf.CFG_SOL_CMD)
     for loop in xrange(rs232Intf.NUM_G2_SOL_PER_BRD):
-        if loadCfg:
-            cmdArr.append(cfgFile.solCfg[cardNum][loop * 3])
-            cmdArr.append(cfgFile.solCfg[cardNum][(loop * 3) + 1])
-            cmdArr.append(cfgFile.solCfg[cardNum][(loop * 3) + 2])
-        else:
-            cmdArr.append(solCfg[cardNum][loop * 3])
-            cmdArr.append(solCfg[cardNum][(loop * 3) + 1])
-            cmdArr.append(solCfg[cardNum][(loop * 3) + 2])
+        cmdArr.append(solCfg[cfgNum][loop * 3])
+        cmdArr.append(solCfg[cfgNum][(loop * 3) + 1])
+        cmdArr.append(solCfg[cfgNum][(loop * 3) + 2])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -358,51 +634,36 @@ def sendSolCfgCmd(cardNum):
     return (0)
 
 #send read wing cfg board
-def sendReadWingCfgCmd(cardNum):
-    global ser
-    global numGen2Brd
-    global gen2AddrArr
-    if (cardNum >= gen2AddrArr):
-        return (700)
-    cmdArr = []
-    cmdArr.append(gen2AddrArr[cardNum])
-    cmdArr.append(rs232Intf.GET_GEN2_CFG)
-    cmdArr.append('\x00')
-    cmdArr.append('\x00')
-    cmdArr.append('\x00')
-    cmdArr.append('\x00')
-    cmdArr.append(calcCrc8(cmdArr))
-    cmdArr.append(rs232Intf.EOM_CMD)
-    sendCmd = ''.join(cmdArr)
-    ser.write(sendCmd)
+def sendReadWingCfgCmd():
+    sendStd4ByteCmd(rs232Intf.GET_GEN2_CFG)
     return (0)
 
 #rcv read wing cfg resp
-def rcvReadWingCfgResp(cardNum):
+def rcvReadWingCfgResp():
     global ser
     global gen2AddrArr
     global currSolData
     global currWingCfg
     data = getSerialData();
-    if (data[0] != gen2AddrArr[cardNum]):
-        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
+    if (data[0] != gen2AddrArr[0]):
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[0]))
         print repr(data)
-        return (800)
+        return (1300)
     if (data[1] != rs232Intf.GET_GEN2_CFG):
         print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.GET_GEN2_CFG))
         print repr(data)
-        return (801)
+        return (1301)
     tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
     crc8 = calcCrc8(tmpData)
     if (data[6] != crc8):
         print "\nBad CRC, Data = %d, expected = %d" % (ord(data[6]),crc8)
-        return (802)
+        return (1302)
     if (data[7] != rs232Intf.EOM_CMD):
         print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
-        return (803)
-    currWingCfg[cardNum] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
-    print hex(ord(gen2AddrArr[cardNum])),"WingCfg = 0x{:08x}".format(currWingCfg[cardNum])
-    print hex(ord(gen2AddrArr[cardNum])),
+        return (1303)
+    currWingCfg[0] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
+    print hex(ord(gen2AddrArr[0])),"WingCfg = 0x{:08x}".format(currWingCfg[0])
+    print hex(ord(gen2AddrArr[0])),
     for index in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
         if data[index + 2] == rs232Intf.WING_SOL:
             print "SOL_WING ",
@@ -420,20 +681,18 @@ def rcvReadWingCfgResp(cardNum):
     return (0)
 
 #send wing cfg cmd
-def sendWingCfgCmd(cardNum):
+def sendWingCfgCmd():
     global ser
     global numGen2Brd
     global gen2AddrArr
-    if (cardNum >= numGen2Brd):
-        return (900)    
     cmdArr = []
-    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(gen2AddrArr[0])
     cmdArr.append(rs232Intf.SET_GEN2_CFG)
     for loop in range(rs232Intf.NUM_G2_WING_PER_BRD):
         if loadCfg:
-            cmdArr.append(cfgFile.wingCfg[cardNum][loop])
+            cmdArr.append(cfgFile.wingCfg[0][loop])
         else:
-            cmdArr.append(wingCfg[cardNum][loop])
+            cmdArr.append(wingCfg[0][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -441,20 +700,52 @@ def sendWingCfgCmd(cardNum):
     return (0)
 
 #send color table cfg cmd
-def sendColorCfgCmd(cardNum):
+def sendColorCfgCmd():
     global ser
     global numGen2Brd
     global gen2AddrArr
-    if (cardNum >= numGen2Brd):
-        return (900)    
     cmdArr = []
-    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(gen2AddrArr[0])
     cmdArr.append(rs232Intf.SET_NEO_COLOR_TBL)
     for loop in range((rs232Intf.NUM_COLOR_TBL * 3) + 1):
         if loadCfg:
-            cmdArr.append(cfgFile.colorCfg[cardNum][loop])
+            cmdArr.append(cfgFile.colorCfg[0][loop])
         else:
-            cmdArr.append(colorCfg[cardNum][loop])
+            cmdArr.append(colorCfg[0][loop])
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
+#send kick solenoid cmd
+def sendKickSolCmd(solenoids, mask):
+    global ser
+    global gen2AddrArr
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.KICK_SOL_CMD)
+    cmdArr.append(chr((solenoids >> 8) & 0xff))
+    cmdArr.append(chr(solenoids & 0xff))
+    cmdArr.append(chr((mask >> 8) & 0xff))
+    cmdArr.append(chr(mask & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
+#send cfg individual solenoid cmd
+def sendCfgIndSolCmd(solIndex, cmd, initKick, offHold):
+    global ser
+    global gen2AddrArr
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.CFG_IND_SOL_CMD)
+    cmdArr.append(chr(solIndex))
+    cmdArr.append(chr(cmd))
+    cmdArr.append(chr(initKick))
+    cmdArr.append(chr(offHold))
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -469,10 +760,11 @@ def endTest(error):
     print "\nPress any key to close window"
     ch = msvcrt.getch()
     sys.exit(error)
-
+ 
 #Main code
 end = False
 skipProg = False
+skipSaveStdCfg = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -480,12 +772,15 @@ for arg in sys.argv:
     vers = arg.replace('-vers=','',1)
   elif arg.startswith('-skipProg'):
     skipProg = True
+  elif arg.startswith('-skipSaveStdCfg'):
+    skipSaveStdCfg = True
   elif arg.startswith('-?'):
     print "python RegrTestG2.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
     print "    -vers=version num  Ex. 0.1.1.0"
     print "    -skipProg          Skip programming (used for debugging tests)"
+    print "    -skipSaveStdCfg    Skip saving standard config (used for debugging tests)"
     end = True
 
 if end:
@@ -502,20 +797,21 @@ except serial.SerialException:
 print "Sending inventory cmd"
 sendInvCmd()
 rcvInvResp()
-for index in xrange(numGen2Brd):
-    sendReadWingCfgCmd(index)
-    rcvReadWingCfgResp(index)
-    
+
 # Verify only a single board is attached
 if (numGen2Brd != 1):
     print "Only one board should be attached.  Exiting regression tests."
     sys.exit(2)
     
+#Get the current configuration
+sendReadWingCfgCmd()
+rcvReadWingCfgResp()
+    
 # Verify the board is configured as Neopixel, solenoid, input and incandescent
 if (currWingCfg[0] != 0x06010203):
     print "Regression testing board must have wing board configuration of:"
     print "Neopixel, solenoid, input, incandescent.  Exiting regression tests."
-    sys.exit(2)
+    sys.exit(3)
 
 # Update code to newest version, also verifies go to bootloader command works
 if not skipProg:
@@ -525,7 +821,35 @@ if not skipProg:
 # Verify Get Version command
 retCode = TestGetVersion(vers)
 if retCode != 0: sys.exit(retCode)
-    
+
+# Verify Get Serial Number command
+retCode = TestGetSerialNum()
+if retCode != 0: sys.exit(retCode)
+
+# Program the standard configuration
+# Erases the configuration and stores the standard configuration
+# to the card, and resets the card.  (Verification will happen when
+# a second configuration is stored and saved.)
+if not skipSaveStdCfg:
+    retCode = TestStoreStdCfg()
+    if retCode != 0: sys.exit(retCode)
+else:
+    #Reset the board to get back to the stored configuration so
+    #rerunning regression tests will work
+    ResetBoard()
+
+retCode = VerifyStdCfg()
+if retCode != 0: sys.exit(retCode)
+
+retCode = TestProcNoAutoClr()
+if retCode != 0: sys.exit(retCode)
+
+retCode = TestProcAutoClr()
+if retCode != 0: sys.exit(retCode)
+
+retCode = TestSolenoidConfig()
+if retCode != 0: sys.exit(retCode)
+
 print "\nSuccessful completion."
 print "\nPress any key to close window"
 ch = msvcrt.getch()

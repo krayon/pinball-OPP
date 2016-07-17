@@ -131,7 +131,6 @@ void digital_init(void)
    BOOL                       foundSol = FALSE;
    RS232I_SOL_CFG_T           *solDrvCfg_p;
    RS232I_CFG_INP_TYPE_E      *inpCfg_p;
-   U32                        inpMask = 0;
    U16                        solMask = 0;
 
 #define INPUT_BIT_MASK        0xff   
@@ -176,7 +175,6 @@ void digital_init(void)
             
             /* Set up bit mask of valid inputs */
             dig_info.inpMask |= (INPUT_BIT_MASK << (index << 3));
-            inpMask |= (INPUT_BIT_MASK << (index << 3));
          }
          /* Check if this wing board is a solenoid driver */
          else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_SOL)
@@ -254,7 +252,7 @@ void digital_init(void)
       }
       /* Set up the initial state */
       digital_upd_sol_cfg(solMask);
-      digital_upd_inp_cfg(inpMask);
+      digital_upd_inp_cfg(dig_info.inpMask);
    }
 
 } /* End digital_init */
@@ -674,7 +672,7 @@ void digital_upd_inp_cfg(
    DIG_INP_STATE_T            *inpState_p;
    RS232I_CFG_INP_TYPE_E      *inpCfg_p;
    
-   /* Clear the solenoid state machines */
+   /* Clear the input counts */
    for (index = 0, inpState_p = &dig_info.inpState[0],
       inpCfg_p = &gen2g_info.inpCfg_p->inpCfg[0], currBit = 1;
       index < RS232I_NUM_GEN2_INP;

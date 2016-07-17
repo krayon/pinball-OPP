@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.03'
+testVers = '00.00.04'
 
 import sys
 import serial
@@ -220,7 +220,7 @@ def rcvReadInpResp(cardNum):
     global gen2AddrArr
     global currInpData
     data = getSerialData();
-    if (data[0] != inpAddrArr[cardNum]):
+    if (data[0] != gen2AddrArr[cardNum]):
         print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
         print repr(data)
         return (500)
@@ -454,6 +454,7 @@ elif (saveCfg):
     testNum = 255
     if loadCfg:
         cfgFile = __import__(loadFileName)
+        print "loadFileName = %s" % loadFileName
     if (numGen2Brd == 1):
         #Save config for Gen2 board
         print "Sending wing cfg."
@@ -469,7 +470,12 @@ elif (saveCfg):
         error = rcvEomResp()
         if error: endTest(error)
         if loadCfg:
-            colorTblExists = 'cfgFile.colorCfg' in locals() or 'cfgFile.colorCfg' in globals()
+            try:
+                cfgFile.colorCfg
+            except AttributeError:
+                colorTblExists = False
+            else:
+                colorTblExists = True
             if colorTblExists:
                 print "Sending color table cfg."
                 sendColorCfgCmd(0)
@@ -554,7 +560,4 @@ elif (testNum == 1):
                 print "\nCount = %d" % count
                 exitReq = True
 ser.close()
-print "\nSuccessful completion."
-print "\nPress any key to close window"
-ch = msvcrt.getch()
 sys.exit(0)
