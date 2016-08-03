@@ -47,7 +47,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.02'
+testVers = '00.00.03'
 
 #Public data
 GET_SER_NUM_CMD     = '\x00'
@@ -110,6 +110,7 @@ INCAND_LED_OFF      = '\x03'
 INCAND_BLINK_SLOW   = '\x04'
 INCAND_BLINK_FAST   = '\x05'
 INCAND_BLINK_OFF    = '\x06'
+INCAND_SET_ON_OFF   = '\x07'
 
 INCAND_SET_CMD          = '\x80'
 INCAND_SET_ON           = '\x01'

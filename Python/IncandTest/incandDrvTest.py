@@ -42,7 +42,10 @@
 #
 #===============================================================================
 #
-# Incandescent driver board tests.
+# Incandescent driver board tests.  These boards are not being used anymore
+# and were only for the first generation of the hardware where the incandescent
+# boards were being bit-banged through the parallel port.  As such, these files
+# will be removed.
 #
 #===============================================================================
 
