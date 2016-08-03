@@ -115,3 +115,5 @@ INCAND_SET_CMD          = '\x80'
 INCAND_SET_ON           = '\x01'
 INCAND_SET_BLINK_SLOW   = '\x02'
 INCAND_SET_BLINK_FAST   = '\x04'
+
+SOL_INP_CLEAR_SOL   = '\x80'

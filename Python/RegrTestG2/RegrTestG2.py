@@ -97,19 +97,27 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ], \
+           [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
+             rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
 # Config for solenoid wing board in second position, first two config'd as flippers, second two config'd as one-shots
-solCfg =  [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+solCfg =  [ [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', rs232Intf.CFG_SOL_USE_SWITCH, '\x30', '\x04', \
               rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ],
-            [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
-              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00',
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00' ], \
+            [ '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+              '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
               rs232Intf.CFG_SOL_USE_SWITCH, '\x01', '\x01', rs232Intf.CFG_SOL_USE_SWITCH, '\xff', '\x0f', \
               rs232Intf.CFG_SOL_USE_SWITCH, '\x01', '\x00', rs232Intf.CFG_SOL_USE_SWITCH, '\xff', '\x00', \
               '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
@@ -183,10 +191,11 @@ def rcvInvResp():
 #send standard 4 byte command
 def sendStd4ByteCmd(cmd):
     global ser
+    global gen2AddrArr
     cmdArr = []
     
     # First address for Gen2 cards is always 0x20
-    cmdArr.append('\x20')
+    cmdArr.append(gen2AddrArr[0])
     cmdArr.append(cmd)
     cmdArr.append('\x00')
     cmdArr.append('\x00')
@@ -555,8 +564,159 @@ def TestSolenoidConfig():
         return 1601
     return 0
 
+#Test on/off solenoid configs, verifies on/off configuration bit works.
+def TestOnOffSolConfig():
+    # Reconfigure first solenoid as on/off
+    sendCfgIndSolCmd(0x04, 0x05, 0x30, 0x00)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    
+    print "\nVerify solenoid 0 is fully on when the button is pressed (no flicker)"
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nStandard configuration for solenoids failed."
+        return 1701
+    # Verify processor can drive on/off solenoid
+    print "\nVerify main processor driving on/off solenoid."
+    print "\nTurning solenoid 0 'on' for 1 second/'off' for 1 second."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        sendKickSolCmd(0x0010, 0x0010)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(1)
+        sendKickSolCmd(0x0000, 0x0010)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nSolenoid kick command failed for on/off solenoid."
+                retCode = 1702
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(1)
+    return 0
+
+#Test delay solenoid config, verifies delay configuration bit works.
+def TestDelaySolConfig():
+    # Reconfigure second solenoid with the maximum delay for comparing
+    sendCfgIndSolCmd(0x04, 0x03, 0x30, 0x00)
+    sendCfgIndSolCmd(0x05, 0x0b, 0x30, 0x0f)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    
+    print "\nVerify delay solenoid cmd."
+    print "\nSolenoid 0 has a 0 ms delay and solenoid 1 has a 60 ms delay."
+    print "Solenoids are triggered every second."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        sendKickSolCmd(0x0030, 0x0030)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(1)
+        #Check if exit is requested
+        while msvcrt.kbhit():
+            char = msvcrt.getch()
+            if (char != 'y') and (char != 'Y'):
+                print "\nSolenoid delay command failed."
+                retCode = 1801
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(1)
+    return 0
+
+#Test solenoid input commands.
+def TestSolInputConfig():
+    # Verify configuring first solenoid as not using the input switch works
+    sendCfgIndSolCmd(0x04, 0x02, 0x30, 0x04)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    
+    print "\nVerify first solenoid is not triggered using its input switch."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid switch configuration failed."
+        return 1901
+    # Verify configuring third solenoid as using the input switch, then remove
+    # switch by sending set solenoid input command
+    sendCfgIndSolCmd(0x06, 0x03, 0x30, 0x04)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    sendSetSolInputCmd(0x0a, 0x86)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify third solenoid is not triggered using its input switch."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid switch configuration failed."
+        return 1902
+    # Verify third solenoid can be triggered using first solenoid's input switch
+    sendSetSolInputCmd(0x08, 0x06)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify third solenoid is triggered using the first solenoid input switch."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid switch configuration failed."
+        return 1903
+    # Verify third solenoid can be triggered using first input wing switch
+    sendSetSolInputCmd(0x10, 0x06)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify third solenoid is triggered using the first input switch on wing 2."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid switch configuration failed."
+        return 1904
+    # Verify third solenoid triggers can be removed
+    sendSetSolInputCmd(0x08, 0x80)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    sendSetSolInputCmd(0x10, 0x86)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify third solenoid is not triggered with first solenoid input switch"
+    print "and first input switch on wing 2."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid switch configuration failed."
+        return 1905
+    # Verify two solenoids can be triggered by one input.  Dual wound flipper test
+    sendSetSolInputCmd(0x08, 0x04)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    sendSetSolInputCmd(0x08, 0x06)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    sendCfgIndSolCmd(0x06, 0x01, 0x30, 0x00)
+    sendCfgIndSolCmd(0x04, 0x05, 0x00, 0x00)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify first solenoid (flipper) and third solenoid is triggered with"
+    print "the first flipper input switch."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid switch configuration failed."
+        return 1906
+    return 0
+
 #send input cfg cmd
-def sendInpCfgCmd():
+def sendInpCfgCmd(cfgNum):
     global ser
     global numGen2Brd
     global gen2AddrArr
@@ -565,9 +725,9 @@ def sendInpCfgCmd():
     cmdArr.append(rs232Intf.CFG_INP_CMD)
     for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
         if loadCfg:
-            cmdArr.append(cfgFile.inpCfg[0][loop])
+            cmdArr.append(cfgFile.inpCfg[cfgNum][loop])
         else:
-            cmdArr.append(inpCfg[0][loop])
+            cmdArr.append(inpCfg[cfgNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -752,6 +912,21 @@ def sendCfgIndSolCmd(solIndex, cmd, initKick, offHold):
     ser.write(sendCmd)
     return (0)
 
+#send set solenoid input cmd
+def sendSetSolInputCmd(inpIndex, solIndex):
+    global ser
+    global gen2AddrArr
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.SET_SOL_INPUT_CMD)
+    cmdArr.append(chr(inpIndex))
+    cmdArr.append(chr(solIndex))
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
 def endTest(error):
     global ser
     global errMsg
@@ -848,6 +1023,15 @@ retCode = TestProcAutoClr()
 if retCode != 0: sys.exit(retCode)
 
 retCode = TestSolenoidConfig()
+if retCode != 0: sys.exit(retCode)
+
+retCode = TestOnOffSolConfig()
+if retCode != 0: sys.exit(retCode)
+
+retCode = TestDelaySolConfig()
+if retCode != 0: sys.exit(retCode)
+
+retCode = TestSolInputConfig()
 if retCode != 0: sys.exit(retCode)
 
 print "\nSuccessful completion."

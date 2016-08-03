@@ -71,21 +71,22 @@ typedef struct
    BOOL                       clearRcvd;
    DIG_SOL_STATE_E            solState;
    U8                         offCnt;
-   U8                         cfgIndex;
+   U8                         port;
+   U8                         bit;
    INT                        startMs;
+   U32                        inpBits;
 } DIG_SOL_STATE_T;
 
 typedef struct
 {
-   BOOL                       inpHigh;
-   DIG_SOL_STATE_T            *solState_p;
    INT                        cnt;
 } DIG_INP_STATE_T;
 
 typedef struct
 {
    U32                        inpMask;
-   U32                        oldState;
+   U32                        prevInputs;
+   U32                        filtInputs;
    U32                        stateMask;
    DIG_INP_STATE_T            inpState[RS232I_NUM_GEN2_INP];
    DIG_SOL_STATE_T            solState[RS232I_NUM_GEN2_SOL];
@@ -125,13 +126,12 @@ void digital_upd_inp_cfg(
  */
 void digital_init(void) 
 {
-   DIG_INP_STATE_T            *inpState_p;
    DIG_SOL_STATE_T            *solState_p;
    INT                        index;
    BOOL                       foundSol = FALSE;
-   RS232I_SOL_CFG_T           *solDrvCfg_p;
    RS232I_CFG_INP_TYPE_E      *inpCfg_p;
    U16                        solMask = 0;
+   U8                         data;
 
 #define INPUT_BIT_MASK        0xff   
 #define SOL_INP_BIT_MASK      0x0f  
@@ -139,18 +139,16 @@ void digital_init(void)
    
    if (gen2g_info.inpCfg_p == NULL)
    {
-      for (inpState_p = &dig_info.inpState[0];
-         inpState_p < &dig_info.inpState[RS232I_NUM_GEN2_INP]; inpState_p++)
-      {
-         inpState_p->solState_p = NULL;
-      }
       for (solState_p = &dig_info.solState[0], index = 0;
          index < RS232I_NUM_GEN2_SOL; index++, solState_p++)
       {
          solState_p->solState = SOL_STATE_IDLE;
-         solState_p->cfgIndex = index;
+         solState_p->port = index >> 2;
+         solState_p->bit = 1 << ((index & 0x03) + 4);
+         solState_p->inpBits = 0;
       }
       dig_info.inpMask = 0;
+      dig_info.filtInputs = 0;
      
       /* Set up digital ports, walk through wing boards */
       for (index = 0; index < RS232I_NUM_WING; index++)
@@ -199,9 +197,12 @@ void digital_init(void)
             
             /* Set up bit mask of valid inputs */
             dig_info.inpMask |= (SOL_INP_BIT_MASK << (index << 3));
-            solMask |= (SOL_INP_BIT_MASK << (index << 3));
+            solMask |= (SOL_INP_BIT_MASK << (index << 2));
          }
+         data = stdldigio_read_port(index, 0xff);
+         dig_info.filtInputs |= (data << (index << 3));
       }
+      dig_info.filtInputs &= dig_info.inpMask;
       
       /* Set the location of the configuration data */
       gen2g_info.inpCfg_p = (GEN2G_INP_CFG_T *)gen2g_info.freeCfg_p;
@@ -218,35 +219,11 @@ void digital_init(void)
          if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_SOL)
          {
             /* Configure the inputs for the solenoids */
-            for (solDrvCfg_p = &gen2g_info.solDrvCfg_p->solCfg[index << 2],
-               inpCfg_p = &gen2g_info.inpCfg_p->inpCfg[index << 3],
-               inpState_p = &dig_info.inpState[index << 3],
-               solState_p = &dig_info.solState[index << 2];
-               inpCfg_p < &gen2g_info.inpCfg_p->inpCfg[(index << 3) + 4];
-               solDrvCfg_p++, inpCfg_p++, inpState_p++, solState_p++)
-            {
-               if (solDrvCfg_p->cfg & USE_SWITCH)
-               {
-                  /* HRS:  Change to always send state input, even on solenoids
-                   * *inpCfg_p = FALL_EDGE;
-                   */
-                  *inpCfg_p = STATE_INPUT;
-                  inpState_p->solState_p = solState_p;
-               }
-               else
-               {
-                  *inpCfg_p = STATE_INPUT;
-                  inpState_p->solState_p = NULL;
-               }
-            }
-            /* Configure the outputs to the solenoids as state bits */
-            for (inpCfg_p = &gen2g_info.inpCfg_p->inpCfg[(index << 3) + 4],
-               inpState_p = &dig_info.inpState[(index << 3) + 4];
+            for (inpCfg_p = &gen2g_info.inpCfg_p->inpCfg[index << 3];
                inpCfg_p < &gen2g_info.inpCfg_p->inpCfg[(index << 3) + 8];
-               inpCfg_p++, inpState_p++)
+               inpCfg_p++)
             {
                *inpCfg_p = STATE_INPUT;
-               inpState_p->solState_p = NULL;
             }
          }
       }
@@ -282,7 +259,8 @@ void digital_task(void)
    RS232I_SOL_CFG_T           *solCfg_p;
    U32                        inputs;
    U32                        changedBits;
-   U32                        filtState;
+   U32                        updFilterHi;
+   U32                        updFilterLow;
    INT                        index;
    U8                         data;
    RS232I_CFG_INP_TYPE_E      cfg;
@@ -302,20 +280,15 @@ void digital_task(void)
          inputs = 0;
          for (index = 0, shift = 0; index < RS232I_NUM_WING; index++, shift += 8)
          {
-            /* Grab all 8 bits for both inputs and solenoids so solenoid
-             * drive bits can also be read.
-             */
-            if ((gen2g_info.nvCfgInfo.wingCfg[index] == WING_INP) ||
-               (gen2g_info.nvCfgInfo.wingCfg[index] == WING_SOL))
-            {
-               data = stdldigio_read_port(index, 0xff);
-               inputs |= (data << shift);
-            }
+            data = stdldigio_read_port(index, 0xff);
+            inputs |= (data << shift);
          }
+         inputs &= dig_info.inpMask;
          
          /* See what bits have changed */
-         changedBits = dig_info.oldState ^ inputs;
-         filtState = 0;
+         changedBits = (dig_info.prevInputs ^ inputs) & dig_info.inpMask;
+         updFilterHi = 0;
+         updFilterLow = 0;
          
          /* Perform input processing for both input and solenoid boards */
          for (index = 0, currBit = 1, inpState_p = &dig_info.inpState[0];
@@ -331,77 +304,32 @@ void digital_task(void)
                else
                {
                   inpState_p->cnt++;
-                  solState_p = inpState_p->solState_p;
                   if (inpState_p->cnt == SWITCH_THRESH)
                   {
+                     cfg = gen2g_info.inpCfg_p->inpCfg[index];
                      if (inputs & currBit)
                      {
-                        inpState_p->inpHigh = TRUE;
+                        updFilterHi |= currBit;
+                        dig_info.filtInputs |= currBit;
+                        if (cfg == RISE_EDGE)
+                        {
+                           DisableInterrupts;
+                           gen2g_info.validSwitch |= currBit;
+                           EnableInterrupts;
+                        }
                      }
                      else
                      {
-                        inpState_p->inpHigh = FALSE;
-                     }
-                     cfg = gen2g_info.inpCfg_p->inpCfg[index];
-                     if (((cfg == FALL_EDGE) && ((inputs & currBit) == 0)) ||
-                        ((cfg == RISE_EDGE) && ((inputs & currBit) != 0)))
-                     {
-                        DisableInterrupts;
-                        gen2g_info.validSwitch |= currBit;
-                        EnableInterrupts;
-                     }
-
-                     /* Check if this input is for a solenoid */
-                     if (solState_p != NULL)
-                     {
-                        solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[solState_p->cfgIndex];
-                           
-                        /* If falling edge, and state is idle */
-                        if (((inputs & currBit) == 0) && (solState_p->solState == SOL_STATE_IDLE))
+                        updFilterLow |= currBit;
+                        dig_info.filtInputs &= ~currBit;
+                        if (cfg == FALL_EDGE)
                         {
-                           /* If this is normal solenoid processing */
-                           if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL)) == 0)
-                           {
-                              /* Start the solenoid kick */
-                              solState_p->solState = SOL_INITIAL_KICK;
-                              solState_p->clearRcvd = FALSE;
-                              solState_p->startMs = timer_get_ms_count();
-                              stdldigio_write_port(solState_p->cfgIndex >> 2,
-                                 1 << ((solState_p->cfgIndex & 0x03) + 4),
-                                 1 << ((solState_p->cfgIndex & 0x03) + 4));
-                           }
-                           else if ((solCfg_p->cfg & ON_OFF_SOL) != 0)
-                           {
-                              solState_p->solState = SOL_FULL_ON_SOLENOID;
-                              solState_p->clearRcvd = FALSE;
-                              stdldigio_write_port(solState_p->cfgIndex >> 2,
-                                 1 << ((solState_p->cfgIndex & 0x03) + 4),
-                                 1 << ((solState_p->cfgIndex & 0x03) + 4));
-                           }
-                           else if ((solCfg_p->cfg & DLY_KICK_SOL) != 0)
-                           {
-                              solState_p->solState = SOL_WAIT_BEFORE_KICK;
-                              solState_p->clearRcvd = FALSE;
-                              solState_p->startMs = timer_get_ms_count();
-                           }
-                        }
-                        /* Otherwise if rising edge */
-                        else if ((inputs & currBit) != 0)
-                        {
-                           solState_p->clearRcvd = TRUE;
-                           if (solState_p->solState == SOL_FULL_ON_SOLENOID)
-                           {
-                              solState_p->solState = SOL_STATE_IDLE;
-                              stdldigio_write_port(solState_p->cfgIndex >> 2,
-                                 1 << ((solState_p->cfgIndex & 0x03) + 4), 0);
-                           }
+                           DisableInterrupts;
+                           gen2g_info.validSwitch |= currBit;
+                           EnableInterrupts;
                         }
                      }
                   }
-               }
-               if (inpState_p->inpHigh)
-               {
-                  filtState |= currBit;
                }
             }
          }
@@ -411,9 +339,10 @@ void digital_task(void)
             solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[0];
             index < RS232I_NUM_GEN2_SOL; index++, currBit <<= 1, solState_p++, solCfg_p++)
          {
-            /* Check if processor is requesting a kick */
+            /* Check if processor is requesting a kick, or an input changed */
             if ((solState_p->solState == SOL_STATE_IDLE) &&
-               (gen2g_info.solDrvProcCtl & currBit))
+               ((gen2g_info.solDrvProcCtl & currBit) ||
+               (updFilterLow & solState_p->inpBits)))
             {
                /* Check if processor is kicking normal solenoid */
                if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL)) == 0)
@@ -421,21 +350,22 @@ void digital_task(void)
                   /* Start the solenoid kick */
                   solState_p->solState = SOL_INITIAL_KICK;
                   solState_p->startMs = timer_get_ms_count();
-                  stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4),
-                     1 << ((index & 0x03) + 4));
+                  stdldigio_write_port(solState_p->port, solState_p->bit,
+                     solState_p->bit);
                }
                else if ((solCfg_p->cfg & ON_OFF_SOL) != 0)
                {
                   solState_p->solState = SOL_FULL_ON_SOLENOID;
-                  stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4),
-                     1 << ((index & 0x03) + 4));
+                  stdldigio_write_port(solState_p->port, solState_p->bit,
+                     solState_p->bit);
                }
                else if ((solCfg_p->cfg & DLY_KICK_SOL) != 0)
                {
                   solState_p->solState = SOL_WAIT_BEFORE_KICK;
                   solState_p->startMs = timer_get_ms_count();
                }
-               if (solCfg_p->cfg & AUTO_CLR)
+               if ((solCfg_p->cfg & AUTO_CLR) &&
+                  (gen2g_info.solDrvProcCtl & currBit))
                {
                   gen2g_info.solDrvProcCtl &= ~currBit;
                   solState_p->clearRcvd = TRUE;
@@ -452,7 +382,7 @@ void digital_task(void)
                if (elapsedTimeMs >= solCfg_p->initKick)
                {
                   /* In all cases turn off the solenoid driver */
-                  stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4), 0);
+                  stdldigio_write_port(solState_p->port, solState_p->bit, 0);
 
                   /* If this is a normal solenoid */
                   if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL)) == 0)
@@ -488,7 +418,7 @@ void digital_task(void)
             else if (solState_p->solState == SOL_SUSTAIN_PWM)
             {
                if (((gen2g_info.solDrvProcCtl & currBit) == 0) &&
-                 (((1 << (((index & 0x0c) << 1) + (index & 0x03))) & inputs) != 0))
+                 ((solState_p->inpBits & inputs) != 0))
                {
                   solState_p->clearRcvd = TRUE;
                }
@@ -499,19 +429,19 @@ void digital_task(void)
                   if (elapsedTimeMs > PWM_PERIOD)
                   {
                      /* PWM period is over, clear drive signal */
-                     stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4), 0);
+                     stdldigio_write_port(solState_p->port, solState_p->bit, 0);
                      solState_p->startMs = timer_get_ms_count();
                   }
                   else if (elapsedTimeMs > PWM_PERIOD - (solCfg_p->minOffDuty & DUTY_CYCLE_MASK))
                   {
-                     stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4),
-                        1 << ((index & 0x03) + 4));
+                     stdldigio_write_port(solState_p->port, solState_p->bit,
+                        solState_p->bit);
                   }
                }
                else
                {
                   /* Switch is inactive, turn off drive signal */
-                  stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4), 0);
+                  stdldigio_write_port(solState_p->port, solState_p->bit, 0);
                   solState_p->solState = SOL_STATE_IDLE;
                }
             }
@@ -543,17 +473,27 @@ void digital_task(void)
                   /* Start the solenoid kick */
                   solState_p->solState = SOL_INITIAL_KICK;
                   solState_p->startMs = timer_get_ms_count();
-                  stdldigio_write_port(index >> 2, 1 << ((index & 0x03) + 4),
-                     1 << ((index & 0x03) + 4));
+                  stdldigio_write_port(solState_p->port, solState_p->bit,
+                        solState_p->bit);
+               }
+            }
+            else if (solState_p->solState == SOL_FULL_ON_SOLENOID)
+            {
+               if (((gen2g_info.solDrvProcCtl & currBit) == 0) &&
+                 ((solState_p->inpBits & inputs) != 0))
+               {
+                  /* Switch is inactive, turn off drive signal */
+                  stdldigio_write_port(solState_p->port, solState_p->bit, 0);
+                  solState_p->solState = SOL_STATE_IDLE;
                }
             }
          }
 
          DisableInterrupts;
          gen2g_info.validSwitch = (gen2g_info.validSwitch & ~dig_info.stateMask) |
-            (filtState & dig_info.stateMask);
+            (dig_info.filtInputs & dig_info.stateMask);
          EnableInterrupts;
-         dig_info.oldState = inputs;
+         dig_info.prevInputs = inputs;
       }
    }
 } /* End digital_task */
@@ -584,16 +524,16 @@ void digital_set_solenoid_input(
    U8                         inpIndex,
    RS232I_SET_SOL_INP_E       solIndex)
 {
-   DIG_INP_STATE_T            *inpState_p;
+   DIG_SOL_STATE_T            *solState_p;
 
-   inpState_p = &dig_info.inpState[inpIndex];
+   solState_p = &dig_info.solState[solIndex & SOL_INP_SOL_MASK];
    if ((solIndex & SOL_INP_CLEAR_SOL) == 0)
    {
-      inpState_p->solState_p = &dig_info.solState[solIndex];
+      solState_p->inpBits |= (1 << inpIndex);
    }
    else
    {
-      inpState_p->solState_p = NULL;
+      solState_p->inpBits &= ~(1 << inpIndex);
    }
 } /* End digital_set_solenoid_input */
 
@@ -637,8 +577,12 @@ void digital_upd_sol_cfg(
          if (solDrvCfg_p->cfg & USE_SWITCH)
          {
             inpState_p = &dig_info.inpState[((index & 0x0c) << 1) + (index & 0x03)];
-            inpState_p->solState_p = solState_p;
             inpState_p->cnt = 0;
+            solState_p->inpBits |= (1 << (((index & 0x0c) << 1) + (index & 0x03)));
+         }
+         else
+         {
+            solState_p->inpBits &= ~(1 << (((index & 0x0c) << 1) + (index & 0x03)));
          }
       }
    }
