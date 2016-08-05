@@ -20,7 +20,7 @@
 #               PPP     OOOOOOOO     PPP
 #              PPPPP      OOOO      PPPPP
 #
-# @file:   Gen2Test.py
+# @file:   RegrTestG2.py
 # @author: Hugh Spahr
 # @date:   12/12/2015
 #
@@ -42,11 +42,11 @@
 #
 #===============================================================================
 #
-# Tests for Gen2 cards based off input driver tests.
+# Tests for Gen2 cards.
 #
 #===============================================================================
 
-testVers = '00.00.02'
+testVers = '00.00.03'
 
 import sys
 import serial
@@ -436,6 +436,7 @@ def VerifyStdCfg():
             else:
                 retCode = 0
             exitReq = True
+    print ""
     return retCode
 
 #Test processor can kick solenoids (with no auto clear)
@@ -715,6 +716,141 @@ def TestSolInputConfig():
         return 1906
     return 0
 
+#Test incandescent commands.
+def TestIncandCmds():
+    print "\nVerify all LEDS are blinking slowly on the incandescent board."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDefault incandescent state failed."
+        return 2001
+    # Verify "on" bulbs override blinking.  Test incand "on" cmd
+    sendIncandCmd(0x02, 0x0f000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify first four LEDS are on, rest are blinking slowly."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent cmd override blinking failed."
+        return 2002
+    # Verify bulbs turned "off" go back to blinking.  Test incand "off" cmd
+    sendIncandCmd(0x03, 0x0f000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify all LEDs are blinking slowly."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent cmd off goes back to blinking failed."
+        return 2003
+    # Verify blink off command works.
+    sendIncandCmd(0x06, 0xf0000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify last four LEDs are off."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent cmd blink off failed."
+        return 2004
+    # Verify on command for non-blinking bulbs
+    sendIncandCmd(0x02, 0xc0000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify last two LEDs are on."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent cmd turn on failed."
+        return 2005
+    # Send blink off command for all bulbs.  Test fast blink
+    # to every other bulb
+    sendIncandCmd(0x06, 0xff000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    sendIncandCmd(0x05, 0x55000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify every other bulb starting at first bulb is blinking fast."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent cmd blink fast failed."
+        return 2006
+    # Verify on command overides off and fast blink.  Turn on first
+    # four bulbs
+    sendIncandCmd(0x02, 0x0f000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify first four bulbs are on."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent cmd turn on failed."
+        return 2007
+    # Verify incand set state command works.  Turn off all bulbs
+    sendIncandCmd(0x80, 0xff000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify all bulbs are off."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent set state off failed."
+        return 2008
+    # Verify incand set state to slow blink works for first four bulbs
+    sendIncandCmd(0x82, 0x0f000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify first four bulbs are blinking slowly."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent set state slow blink failed."
+        return 2009
+    # Verify incand set state to fast blink works for last four bulbs
+    sendIncandCmd(0x84, 0xf0000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify last four bulbs are blinking fast."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent set state fast blink failed."
+        return 2010
+    # Verify incand on command over rides blinking
+    sendIncandCmd(0x02, 0xff000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify all bulbs are on."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent on over-riding blinking failed."
+        return 2011
+    # Verify incand on/off all off command clears the blinking state
+    sendIncandCmd(0x07, 0x00000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify all bulbs are off."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent on/off comand clears blinking states."
+        return 2012
+    # Verify incand on/off masked on bulbs works
+    sendIncandCmd(0x07, 0xaa000000)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify every other bulb is on including last bulb."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nIncandescent on/off comand forces bulbs on/off failed."
+        return 2013
+    return 0
+
 #send input cfg cmd
 def sendInpCfgCmd(cfgNum):
     global ser
@@ -927,6 +1063,25 @@ def sendSetSolInputCmd(inpIndex, solIndex):
     ser.write(sendCmd)
     return (0)
 
+#send incandescent cmd
+def sendIncandCmd(subCmd, mask):
+    global ser
+    global gen2AddrArr
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.INCAND_CMD)
+    cmdArr.append(chr(subCmd))
+    cmdArr.append(chr((mask >> 24) & 0xff))
+    cmdArr.append(chr((mask >> 16) & 0xff))
+    cmdArr.append(chr((mask >> 8) & 0xff))
+    cmdArr.append(chr(mask & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
+
 def endTest(error):
     global ser
     global errMsg
@@ -940,6 +1095,8 @@ def endTest(error):
 end = False
 skipProg = False
 skipSaveStdCfg = False
+skipSolTests = False
+skipIncandTests = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -949,6 +1106,10 @@ for arg in sys.argv:
     skipProg = True
   elif arg.startswith('-skipSaveStdCfg'):
     skipSaveStdCfg = True
+  elif arg.startswith('-skipSolTests'):
+    skipSolTests = True
+  elif arg.startswith('-skipIncandTests'):
+    skipIncandTests = True
   elif arg.startswith('-?'):
     print "python RegrTestG2.py [OPTIONS]"
     print "    -?                 Options Help"
@@ -956,6 +1117,8 @@ for arg in sys.argv:
     print "    -vers=version num  Ex. 0.1.1.0"
     print "    -skipProg          Skip programming (used for debugging tests)"
     print "    -skipSaveStdCfg    Skip saving standard config (used for debugging tests)"
+    print "    -skipSolTests      Skip solenoid tests"
+    print "    -skipIncandTests   Skip incandescent tests"
     end = True
 
 if end:
@@ -1016,23 +1179,28 @@ else:
 retCode = VerifyStdCfg()
 if retCode != 0: sys.exit(retCode)
 
-retCode = TestProcNoAutoClr()
-if retCode != 0: sys.exit(retCode)
+if not skipSolTests:
+    retCode = TestProcNoAutoClr()
+    if retCode != 0: sys.exit(retCode)
 
-retCode = TestProcAutoClr()
-if retCode != 0: sys.exit(retCode)
+    retCode = TestProcAutoClr()
+    if retCode != 0: sys.exit(retCode)
 
-retCode = TestSolenoidConfig()
-if retCode != 0: sys.exit(retCode)
+    retCode = TestSolenoidConfig()
+    if retCode != 0: sys.exit(retCode)
 
-retCode = TestOnOffSolConfig()
-if retCode != 0: sys.exit(retCode)
+    retCode = TestOnOffSolConfig()
+    if retCode != 0: sys.exit(retCode)
 
-retCode = TestDelaySolConfig()
-if retCode != 0: sys.exit(retCode)
+    retCode = TestDelaySolConfig()
+    if retCode != 0: sys.exit(retCode)
 
-retCode = TestSolInputConfig()
-if retCode != 0: sys.exit(retCode)
+    retCode = TestSolInputConfig()
+    if retCode != 0: sys.exit(retCode)
+
+if not skipIncandTests:
+    retCode = TestIncandCmds()
+    if retCode != 0: sys.exit(retCode)
 
 print "\nSuccessful completion."
 print "\nPress any key to close window"
