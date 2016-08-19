@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.04'
+testVers = '00.00.05'
 
 import sys
 import serial
@@ -461,14 +461,33 @@ elif (saveCfg):
         sendWingCfgCmd(0)
         error = rcvEomResp()
         if error: endTest(error)
-        print "Sending input cfg."
-        sendInpCfgCmd(0)
-        error = rcvEomResp()
-        if error: endTest(error)
-        print "Sending solenoid cfg."
-        sendSolCfgCmd(0)
-        error = rcvEomResp()
-        if error: endTest(error)
+        #Check if the input table/solenoid table should be filled out
+        sendSolTable = False
+        sendInpTable = False
+        for loop in range(rs232Intf.NUM_G2_WING_PER_BRD):
+            if loadCfg:
+                cfg = cfgFile.wingCfg[0][loop]
+            else:
+                cfg = wingCfg[0][loop]
+            if (cfg == rs232Intf.WING_SOL):
+                sendSolTable = True
+                sendInpTable = True
+            if (cfg == rs232Intf.WING_INP):
+                sendInpTable = True
+        if sendInpTable:
+            print "Sending input cfg."
+            sendInpCfgCmd(0)
+            error = rcvEomResp()
+            if error: endTest(error)
+        else:
+            print "Skipping sending input cfg."
+        if sendSolTable:
+            print "Sending solenoid cfg."
+            sendSolCfgCmd(0)
+            error = rcvEomResp()
+            if error: endTest(error)
+        else:
+            print "Skipping sending solenoid cfg."
         if loadCfg:
             try:
                 cfgFile.colorCfg
