@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.05'
+testVers = '00.00.06'
 
 import sys
 import serial
@@ -83,7 +83,7 @@ CRC8ByteLookup = \
       0xae, 0xa9, 0xa0, 0xa7, 0xb2, 0xb5, 0xbc, 0xbb, 0x96, 0x91, 0x98, 0x9f, 0x8a, 0x8d, 0x84, 0x83, \
       0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb, 0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3 ]
 
-# Config inputs as all state inputs
+# Config of test setup
 wingCfg = [ [ rs232Intf.WING_NEO, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INCAND ] ]
 
 # Config inputs as all state inputs
@@ -152,8 +152,14 @@ def rcvInvResp():
     data = getSerialData();
     #First byte should be inventory cmd
     index = 1
-    if (data[0] != rs232Intf.INV_CMD):
+    if (len(data) == 0):
+        print "No data received.  Are the Tx/Rx jumpers installed?"
         return (100)
+    if (data[0] != rs232Intf.INV_CMD):
+        return (101)
+    if (len(data) < index + 1):
+        print "Could not find EOM."
+        return (102)
     while (data[index] != rs232Intf.EOM_CMD):
         if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_GEN2_CARD)):
             numGen2Brd = numGen2Brd + 1
@@ -161,6 +167,9 @@ def rcvInvResp():
             currInpData.append(0)
             currWingCfg.append(0)
         index = index + 1
+        if (len(data) < index + 1):
+            print "Could not find EOM."
+            return (103)
     print "Found %d Gen2 brds." % numGen2Brd
     print "Addr = %s" % [hex(ord(n)) for n in gen2AddrArr]
     return (0)
@@ -311,19 +320,26 @@ def rcvReadWingCfgResp(cardNum):
     print hex(ord(gen2AddrArr[cardNum])),"WingCfg = 0x{:08x}".format(currWingCfg[cardNum])
     print hex(ord(gen2AddrArr[cardNum])),
     for index in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+        outStr = "W[%d]:" % index
         if data[index + 2] == rs232Intf.WING_SOL:
-            print "SOL_WING ",
+            outStr += "SOL_WING"
         elif data[index + 2] == rs232Intf.WING_INP:
-            print "INP_WING ",
+            outStr += "INP_WING"
         elif data[index + 2] == rs232Intf.WING_INCAND:
-            print "INCAND_WING ",
+            outStr += "INCAND_WING"
         elif data[index + 2] == rs232Intf.WING_SW_MATRIX_OUT:
-            print "SW_MATRIX_OUT_WING ",
+            outStr += "SW_MATRIX_OUT_WING"
         elif data[index + 2] == rs232Intf.WING_SW_MATRIX_IN:
-            print "SW_MATRIX_IN_WING ",
+            outStr += "SW_MATRIX_IN_WING"
         elif data[index + 2] == rs232Intf.WING_NEO:
-            print "NEO_WING ",
-    print ""
+            outStr += "NEO_WING"
+        else:
+            outStr += "Error"
+        if index < rs232Intf.NUM_G2_WING_PER_BRD - 1:
+            outStr += ","
+            print outStr,
+        else:
+            print outStr
     return (0)
 
 #send wing cfg cmd
