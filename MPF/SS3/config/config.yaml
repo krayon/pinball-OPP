@@ -407,9 +407,15 @@ keyboard:
 
 window:
   title: SharpeShooter III
-  width: 1280
-  height: 1024
-
+  width: 640 #HRS:  Should be 1280
+  height: 512 #HRS:  Should be 512
+#  width: 1280
+#  height: 1024
+  resizable: true
+  fullscreen: false
+  borderless: false
+  exit_on_escape: true
+  source_display: window
 widget_styles:
   old_disp:
     font_name: LCDM2N__
@@ -464,7 +470,391 @@ sound_system:
       volume: 0.5
       simultaneous_sounds: 1
   enabled: true
+
+assets:
+  sounds:
+    default:
+       load: on_demand
+    music:
+       track: music
+    sfx:
+       track: sfx
+    voice:
+       track: voice
+
 displays:
   window:
     height: 1024
     width: 1280
+
+slides:
+  mchncfg_empty_slide:
+  - type: image
+    image: sal_empty
+  - type: text
+    text: (player1|score)
+    style: old_disp
+    number_grouping: true
+    # Currently setting min digits to 10 since there is no right justification
+    min_digits: 10
+    x: left+56
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player2|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player3|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+56
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player4|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (number)
+    style: old_disp
+    x: left+640
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (ball)
+    style: old_disp
+    # Currently setting min digits to 2 since there is no right justification
+    min_digits: 2
+    x: left+630
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  mchncfg_girl_slide:
+  - type: image
+    image: sal_girl
+  - type: text
+    text: (player1|score)
+    style: old_disp
+    number_grouping: true
+    # Currently setting min digits to 10 since there is no right justification
+    min_digits: 10
+    x: left+56
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player2|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player3|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+56
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player4|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (number)
+    style: old_disp
+    x: left+640
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (ball)
+    style: old_disp
+    # Currently setting min digits to 2 since there is no right justification
+    min_digits: 2
+    x: left+630
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  mchncfg_guy_slide:
+  - type: image
+    image: sal_guy
+  - type: text
+    text: (player1|score)
+    style: old_disp
+    number_grouping: true
+    # Currently setting min digits to 10 since there is no right justification
+    min_digits: 10
+    x: left+56
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player2|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player3|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+56
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player4|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (number)
+    style: old_disp
+    x: left+640
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (ball)
+    style: old_disp
+    # Currently setting min digits to 2 since there is no right justification
+    min_digits: 2
+    x: left+630
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  mchncfg_guybang_slide:
+  - type: image
+    image: sal_guyBang
+  - type: text
+    text: (player1|score)
+    style: old_disp
+    number_grouping: true
+    # Currently setting min digits to 10 since there is no right justification
+    min_digits: 10
+    x: left+56
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player2|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player3|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+56
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player4|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (number)
+    style: old_disp
+    x: left+640
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (ball)
+    style: old_disp
+    # Currently setting min digits to 2 since there is no right justification
+    min_digits: 2
+    x: left+630
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  mchncfg_guyshot_slide:
+  - type: image
+    image: sal_guyShot
+  - type: text
+    text: (player1|score)
+    style: old_disp
+    number_grouping: true
+    # Currently setting min digits to 10 since there is no right justification
+    min_digits: 10
+    x: left+56
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player2|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player3|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+56
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (player4|score)
+    style: old_disp
+    number_grouping: true
+    min_digits: 10
+    x: left+800
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (number)
+    style: old_disp
+    x: left+640
+    y: top-768
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top
+  - type: text
+    text: (ball)
+    style: old_disp
+    # Currently setting min digits to 2 since there is no right justification
+    min_digits: 2
+    x: left+630
+    y: top-912
+    z: 1
+    color: ee9900
+    font_size: 64
+    anchor_x: left
+    anchor_y: top

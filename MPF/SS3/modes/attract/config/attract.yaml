@@ -48,12 +48,15 @@
 
 #===============================================================================
 
-show_player:
-  mode_attract_started:
-    attract_disp_loop:
-      loops: -1
-      speed: 1       
+#show_player:
+#  mode_attract_started:
+#    attract_disp_loop:
+#      loops: -1
+#      speed: 1
+#    attract_light_loop: play
+#    attract_sound_loop: play
 
-    attract_light_loop:
-      loops: -1
-      speed: 1
+slide_player:
+  mode_attract_started:
+    mchncfg_girl_slide:
+      priority: 10
