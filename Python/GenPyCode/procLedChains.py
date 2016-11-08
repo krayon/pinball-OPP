@@ -133,7 +133,7 @@ class ProcLedChains:
     #  @return Error number if an error, or zero if no error
     def procAllChains(self, parent):
         # Create the lists to support multiple LED cards
-        ledCard = [[] for _ in range(ProcLedCards.numLedCards)]
+        ledCard = [[] for _ in range(parent.procSimple.numGen2Cards)]
         
         # Copy name
         name = parent.tokens[parent.currToken]
@@ -209,7 +209,7 @@ class ProcLedChains:
             elif tokenType == ProcLedChains.COMMA:
                 if typeProc == ProcLedChains.PROC_MASK:
                     ProcLedChains.outHndl.write("\n        [ ")
-                    for card in xrange(ProcLedCards.numLedCards):
+                    for card in xrange(parent.procSimple.numGen2Cards):
                         if (card != 0):
                             ProcLedChains.outHndl.write(", ")
                         if len(ledCard[card]) == 0:
@@ -223,10 +223,10 @@ class ProcLedChains:
                     parent.currToken += 1
                     typeProc = ProcLedChains.PROC_LED_BIT
                     firstBit = True
-                    ledCard = [[] for _ in range(ProcLedCards.numLedCards)]
+                    ledCard = [[] for _ in range(parent.procSimple.numGen2Cards)]
                 elif  typeProc == ProcLedChains.PROC_LED_BIT:
                     ProcLedChains.outHndl.write("[ ")
-                    for card in xrange(ProcLedCards.numLedCards):
+                    for card in xrange(parent.procSimple.numGen2Cards):
                         if (card != 0):
                             ProcLedChains.outHndl.write(", ")
                         if len(ledCard[card]) == 0:
@@ -239,7 +239,7 @@ class ProcLedChains:
                     ProcLedChains.outHndl.write(" ], ")
                     parent.currToken += 1
                     typeProc = ProcLedChains.PROC_COMMAND
-                    ledCard = [[] for _ in range(ProcLedCards.numLedCards)]
+                    ledCard = [[] for _ in range(parent.procSimple.numGen2Cards)]
                 else:
                     parent.consoleObj.updateConsole("!!! Error !!! Unexpected comma at line num %d." %
                        (parent.lineNumList[parent.currToken]))
@@ -277,7 +277,7 @@ class ProcLedChains:
                         return (1221)
                     else:
                         # HRS:  This could be improved to verify any set bits are in the mask
-                        card = parent.procChains.findBit(parent.tokens[parent.currToken].upper()) >> 16
+                        card = parent.procChains.findBit(parent.tokens[parent.currToken].upper()) >> 24
                         ledCard[card].append("LedBitNames.{0}".format(parent.tokens[parent.currToken].upper()))
                         firstBit = False
                         parent.currToken += 1

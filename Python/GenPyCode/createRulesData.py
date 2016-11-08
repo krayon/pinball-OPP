@@ -49,6 +49,7 @@
 import os
 import time
 from procSimple import ProcSimple
+import rs232Intf
 
 ## Proc Modes class.
 #
@@ -114,21 +115,29 @@ class CreateRulesData:
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
     def invAddrList(self, parent):
-        if (len(ProcSimple.cardInv) == 0):
-            parent.consoleObj.updateConsole("!!! Warning !!! No CARD_ORDER found in rules file.  This is probably an error"
-               " or the most boring pinball machine ever.  Tough to tell.")
+        if (ProcSimple.numGen2Cards == 0):
+            parent.consoleObj.updateConsole("!!! Warning !!! No NUM_GEN2_CARDS found in rules file.  This is probably an error"
+               " or the most boring pinball machine ever!  Tough to tell.")
         else:
             # Write the initial state
             CreateRulesData.outHndl.write("    ## Board inventory list\n")
             CreateRulesData.outHndl.write("    # Used to determine number of solenoid and input boards and order in chain.\n")
-            CreateRulesData.outHndl.write("    INV_ADDR_LIST = [")
+            CreateRulesData.outHndl.write("    INV_ADDR_LIST = [\n")
             firstEntry = True
-            for addr in ProcSimple.cardInv:
-                if not firstEntry:
-                    CreateRulesData.outHndl.write(", ")
-                firstEntry = False
-                CreateRulesData.outHndl.write("0x{0:02x}".format(addr))
-            CreateRulesData.outHndl.write("]\n\n")
+            for cardIndex in xrange(ProcSimple.numGen2Cards):
+                CreateRulesData.outHndl.write("        [ ");
+                for wingIndex in xrange(ProcSimple.NUM_WING_CARDS):
+                    if (ProcSimple.cardWingInv[cardIndex][wingIndex] == rs232Intf.WING_SOL):
+                        CreateRulesData.outHndl.write("rs232Intf.WING_SOL")
+                    elif (ProcSimple.cardWingInv[cardIndex][wingIndex] == rs232Intf.WING_INCAND):
+                        CreateRulesData.outHndl.write("rs232Intf.WING_INCAND")
+                    else:
+                        CreateRulesData.outHndl.write("rs232Intf.WING_INP")
+                    if (wingIndex != ProcSimple.NUM_WING_CARDS - 1):
+                        CreateRulesData.outHndl.write(", ")
+                if (cardIndex != ProcSimple.numGen2Cards - 1):
+                    CreateRulesData.outHndl.write(" ],\n")
+            CreateRulesData.outHndl.write(" ] ]\n\n")
     
     ## Create input scores
     #

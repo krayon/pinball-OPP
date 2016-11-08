@@ -49,6 +49,7 @@
 import os
 import time
 from procChains import ProcChains
+import rs232Intf
 
 ## Proc Input Cards class.
 #
@@ -71,9 +72,10 @@ class ProcInpCards():
         ProcInpCards.pinNum = []
         ProcInpCards.flagStr = []
         ProcInpCards.desc = []
+        ProcInpCards.hasInpWingMask = 0
 
         # Constants
-        ProcInpCards.NUM_INP_BITS = 16
+        ProcInpCards.NUM_INP_BITS = 32
         
     ## Process section
     #
@@ -91,14 +93,8 @@ class ProcInpCards():
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (301)
         parent.currToken += 1
-        if not parent.helpFuncs.isInt(parent.tokens[parent.currToken]):
-            parent.consoleObj.updateConsole("!!! Error !!! Expected number of input cards, read %s, at line num %d." %
-               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (302)
-        ProcInpCards.numInpCards = parent.helpFuncs.out
-        for _ in xrange(ProcInpCards.numInpCards):
+        for _ in xrange(parent.procSimple.numGen2Cards):
             ProcInpCards.inpCfgBits.append(0)
-        parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
@@ -138,13 +134,13 @@ class ProcInpCards():
             parent.consoleObj.updateConsole("!!! Error !!! Input card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (311)
-        # Convert from 1 base to 0 based card num
-        cardNum = parent.helpFuncs.out - 1
-        # Card number is base 1
-        if (cardNum < 0) or (cardNum >= ProcInpCards.numInpCards):
+        # Card num is now 0 based
+        cardNum = parent.helpFuncs.out
+        if (cardNum < 0) or (cardNum >= parent.procSimple.numGen2Cards):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal input card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (312)
+        ProcInpCards.hasInpWingMask |= (1 << cardNum)
         ProcInpCards.cardNum.append(cardNum)
         
         # Verify pin num
@@ -152,9 +148,8 @@ class ProcInpCards():
             parent.consoleObj.updateConsole("!!! Error !!! Input pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
             return (313)
-        # Convert from 1 base to 0 based pin num
-        pinNum = parent.helpFuncs.out - 1
-        # Pin number is base 1
+        # Pin number is now base 0
+        pinNum = parent.helpFuncs.out
         if (pinNum < 0) or (pinNum >= ProcInpCards.NUM_INP_BITS):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal input pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
@@ -223,54 +218,68 @@ class ProcInpCards():
                 outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 outHndl.write(line + "\n")
-        for cardIndex in xrange(ProcInpCards.numInpCards):
+        # Write out the bit name enumerations
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
-                    outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcInpCards.name[self.out].upper(),
-                        ((cardIndex << 16) | (1 << bitIndex))))
+                    offset = bitIndex & 0x07;
+                    wingBrdIndex = (bitIndex & 0x18) >> 3;
+                    # Look for any errors such as wing board being a different type
+                    if ((parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != 0) and (parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != rs232Intf.WING_SOL)):
+                        parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
+                        return (330)
+                    parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INP
+                    outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcInpCards.name[self.out].upper(),
+                        ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))))
                     
         # Write out the bit name strings
         outHndl.write("\n    ## Input board bit names\n")
         outHndl.write("    # Indexed into using the [InpBitNames](@ref inpBitNames.InpBitNames) class\n")
         outHndl.write("    INP_BRD_BIT_NAMES = [ ")
-        for cardIndex in xrange(ProcInpCards.numInpCards):
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if (cardIndex != 0):
                 outHndl.write(",\n        ")
-            outHndl.write("[")
-            for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
-                if (bitIndex != 0):
-                    if ((bitIndex % 4) == 0):
-                        outHndl.write(",\n        ")
+            if (ProcInpCards.hasInpWingMask & (1 << cardIndex) == 0):
+                outHndl.write("[ ]")
+            else:
+                outHndl.write("[")
+                for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
+                    if (bitIndex != 0):
+                        if ((bitIndex % 4) == 0):
+                            outHndl.write(",\n        ")
+                        else:
+                            outHndl.write(", ")
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        outHndl.write(ProcInpCards.desc[self.out])
                     else:
-                        outHndl.write(", ")
-                found = self.findBitIndex(cardIndex, bitIndex)
-                if found:
-                    outHndl.write(ProcInpCards.desc[self.out])
-                else:
-                    outHndl.write("\"Unused\"")
-            outHndl.write("]")
+                        outHndl.write("\"Unused\"")
+                outHndl.write("]")
         outHndl.write(" ]\n\n")
 
         # Write input board configuration
         outHndl.write("    ## Input board configuration\n")
         outHndl.write("    INP_BRD_CFG = [ ")
-        for cardIndex in xrange(ProcInpCards.numInpCards):
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if (cardIndex != 0):
                 outHndl.write(",\n        ")
-            outHndl.write("[")
-            for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
-                if (bitIndex != 0):
-                    if ((bitIndex % 4) == 0):
-                        outHndl.write(",\n        ")
+            if (ProcInpCards.hasInpWingMask & (1 << cardIndex) == 0):
+                outHndl.write("[ ]")
+            else:
+                outHndl.write("[")
+                for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
+                    if (bitIndex != 0):
+                        if ((bitIndex % 4) == 0):
+                            outHndl.write(",\n        ")
+                        else:
+                            outHndl.write(", ")
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        outHndl.write(ProcInpCards.flagStr[self.out])
                     else:
-                        outHndl.write(", ")
-                found = self.findBitIndex(cardIndex, bitIndex)
-                if found:
-                    outHndl.write(ProcInpCards.flagStr[self.out])
-                else:
-                    outHndl.write("rs232Intf.CFG_INP_STATE")
-            outHndl.write("]")
+                        outHndl.write("rs232Intf.CFG_INP_STATE")
+                outHndl.write("]")
         outHndl.write(" ]\n\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: inpBitNames.py file.")

@@ -49,6 +49,7 @@
 import os
 import time
 from procChains import ProcChains
+import rs232Intf
 
 ## Proc Solenoid Cards class.
 #
@@ -64,7 +65,6 @@ class ProcSolCards():
     def __init__(self):
         self.out = 0
         ProcSolCards.hasData = False
-        ProcSolCards.numSolCards = 0
         ProcSolCards.solCfgBits = []
         ProcSolCards.name = []
         ProcSolCards.cardNum = []
@@ -74,9 +74,10 @@ class ProcSolCards():
         ProcSolCards.dutyCycle = []
         ProcSolCards.minOff = []
         ProcSolCards.desc = []
+        ProcSolCards.hasSolWingMask = 0
         
         # Constants
-        ProcSolCards.NUM_SOL_BITS = 8
+        ProcSolCards.NUM_SOL_BITS = 16
 
     ## Process section
     #
@@ -95,14 +96,8 @@ class ProcSolCards():
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (201)
         parent.currToken += 1
-        if not parent.helpFuncs.isInt(parent.tokens[parent.currToken]):
-            parent.consoleObj.updateConsole("!!! Error !!! Expected number of solenoid cards, read %s, at line num %d." %
-               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (202)
-        ProcSolCards.numSolCards = parent.helpFuncs.out
-        for _ in xrange(ProcSolCards.numSolCards):
+        for _ in xrange(parent.procSimple.numGen2Cards):
             ProcSolCards.solCfgBits.append(0)
-        parent.currToken += 1
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
@@ -141,13 +136,13 @@ class ProcSolCards():
             parent.consoleObj.updateConsole("!!! Error !!! Solenoid card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (210)
-        # Convert from 1 base to 0 based card num
-        cardNum = parent.helpFuncs.out - 1
-        # Card number is base 1
-        if (cardNum < 0) or (cardNum >= ProcSolCards.numSolCards):
+        # Card num is now 0 based
+        cardNum = parent.helpFuncs.out
+        if (cardNum < 0) or (cardNum >= parent.procSimple.numGen2Cards):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal solenoid card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (211)
+        ProcSolCards.hasSolWingMask |= (1 << cardNum)
         ProcSolCards.cardNum.append(cardNum)
         
         # Verify pin num
@@ -155,9 +150,8 @@ class ProcSolCards():
             parent.consoleObj.updateConsole("!!! Error !!! Solenoid pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
             return (212)
-        # Convert from 1 base to 0 based pin num
-        pinNum = parent.helpFuncs.out - 1
-        # Pin number is base 1
+        # Pin num is now 0 based
+        pinNum = parent.helpFuncs.out
         if (pinNum < 0) or (pinNum >= ProcSolCards.NUM_SOL_BITS):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal solenoid pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
@@ -266,58 +260,71 @@ class ProcSolCards():
             else:
                 outHndl.write(line + "\n")
         # Write out the bit name enumerations
-        for cardIndex in xrange(ProcSolCards.numSolCards):
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
-                    outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcSolCards.name[self.out].upper(),
-                        ((cardIndex << 16) | (1 << bitIndex))))
+                    offset = bitIndex & 0x03;
+                    wingBrdIndex = (bitIndex & 0x0c) >> 2;
+                    # Look for any errors such as wing board being a different type
+                    if ((parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != 0) and (parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != rs232Intf.WING_SOL)):
+                        parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
+                        return (230)
+                    parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_SOL
+                    outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcSolCards.name[self.out].upper(),
+                        ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))))
 
         # Write out the bit name strings
         outHndl.write("\n    ## Solenoid board bit names\n")
         outHndl.write("    # Indexed into using the [SolBitNames](@ref solBitNames.SolBitNames) class\n")
         outHndl.write("    SOL_BRD_BIT_NAMES = [ ")
-        for cardIndex in xrange(ProcSolCards.numSolCards):
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if (cardIndex != 0):
                 outHndl.write(",\n        ")
-            outHndl.write("[")
-            for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
-                if (bitIndex != 0):
-                    if ((bitIndex % 4) == 0):
-                        outHndl.write(",\n        ")
+            if (ProcSolCards.hasSolWingMask & (1 << cardIndex) == 0):
+                outHndl.write("[ ]")
+            else:
+                outHndl.write("[")
+                for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
+                    if (bitIndex != 0):
+                        if ((bitIndex % 4) == 0):
+                            outHndl.write(",\n        ")
+                        else:
+                            outHndl.write(", ")
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        outHndl.write(ProcSolCards.desc[self.out])
                     else:
-                        outHndl.write(", ")
-                found = self.findBitIndex(cardIndex, bitIndex)
-                if found:
-                    outHndl.write(ProcSolCards.desc[self.out])
-                else:
-                    outHndl.write("\"Unused\"")
-            outHndl.write("]")
+                        outHndl.write("\"Unused\"")
+                outHndl.write("]")
         outHndl.write(" ]\n\n")
 
         # Write solenoid board configuration
         outHndl.write("    ## Solenoid board configuration\n")
         outHndl.write("    # Three bytes for each solenoid being configured\n")
         outHndl.write("    SOL_BRD_CFG = [ ")
-        for cardIndex in xrange(ProcSolCards.numSolCards):
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if (cardIndex != 0):
                 outHndl.write(",\n        ")
-            outHndl.write("[")
-            for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
-                if (bitIndex != 0):
-                    if ((bitIndex % 2) == 0):
-                        outHndl.write(",\n        ")
+            if (ProcSolCards.hasSolWingMask & (1 << cardIndex) == 0):
+                outHndl.write("[ ]")
+            else:
+                outHndl.write("[")
+                for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
+                    if (bitIndex != 0):
+                        if ((bitIndex % 2) == 0):
+                            outHndl.write(",\n        ")
+                        else:
+                            outHndl.write(", ")
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        outHndl.write(ProcSolCards.flagStr[self.out] + ", ")
+                        outHndl.write("'\\x" + hex(ProcSolCards.initKick[self.out])[2:].zfill(2) + "', ")
+                        thirdByte = (ProcSolCards.minOff[self.out] * 16) + ProcSolCards.dutyCycle[self.out]
+                        outHndl.write("'\\x" + hex(thirdByte)[2:].zfill(2) + "'")
                     else:
-                        outHndl.write(", ")
-                found = self.findBitIndex(cardIndex, bitIndex)
-                if found:
-                    outHndl.write(ProcSolCards.flagStr[self.out] + ", ")
-                    outHndl.write("'\\x" + hex(ProcSolCards.initKick[self.out])[2:].zfill(2) + "', ")
-                    thirdByte = (ProcSolCards.minOff[self.out] * 16) + ProcSolCards.dutyCycle[self.out]
-                    outHndl.write("'\\x" + hex(thirdByte)[2:].zfill(2) + "'")
-                else:
-                    outHndl.write("rs232Intf.CFG_SOL_DISABLE, '\\x00', '\\x00'")
-            outHndl.write("]")
+                        outHndl.write("rs232Intf.CFG_SOL_DISABLE, '\\x00', '\\x00'")
+                outHndl.write("]")
         outHndl.write(" ]\n\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: solBitNames.py file.")

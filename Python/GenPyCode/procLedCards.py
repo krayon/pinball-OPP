@@ -49,6 +49,7 @@
 import os
 import time
 from procChains import ProcChains
+import rs232Intf
 
 ## Proc LED Cards class.
 #
@@ -66,13 +67,15 @@ class ProcLedCards():
         self.out = 0
         ProcLedCards.hasData = False
         ProcLedCards.ledCfgBits = []
+        ProcLedCards.ledWingCards = []
         ProcLedCards.name = []
         ProcLedCards.cardNum = []
         ProcLedCards.pinNum = []
         ProcLedCards.desc = []
+        ProcLedCards.hasLedWingMask = 0
         
         # Constants
-        ProcLedCards.NUM_LED_BITS = 8
+        ProcLedCards.NUM_LED_BITS = 32
 
     ## Process section
     #
@@ -90,14 +93,9 @@ class ProcLedCards():
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
             return (401)
         parent.currToken += 1
-        if not parent.helpFuncs.isInt(parent.tokens[parent.currToken]):
-            parent.consoleObj.updateConsole("!!! Error !!! Expected number of LED cards, read %s, at line num %d." %
-               (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (402)
-        ProcLedCards.numLedCards = parent.helpFuncs.out
-        for _ in xrange(ProcLedCards.numLedCards):
+        for _ in xrange(parent.procSimple.numGen2Cards):
             ProcLedCards.ledCfgBits.append(0)
-        parent.currToken += 1
+            ProcLedCards.ledWingCards.append(0)
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
@@ -133,13 +131,13 @@ class ProcLedCards():
             parent.consoleObj.updateConsole("!!! Error !!! LED card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (411)
-        # Convert from 1 base to 0 based card num
-        cardNum = parent.helpFuncs.out - 1
-        # Card number is base 1
-        if (cardNum < 0) or (cardNum >= ProcLedCards.numLedCards):
+        # Card num is now 0 based
+        cardNum = parent.helpFuncs.out
+        if (cardNum < 0) or (cardNum >= parent.procSimple.numGen2Cards):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal LED card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (412)
+        ProcLedCards.hasLedWingMask |= (1 << cardNum)
         ProcLedCards.cardNum.append(cardNum)
         
         # Verify pin num
@@ -147,9 +145,8 @@ class ProcLedCards():
             parent.consoleObj.updateConsole("!!! Error !!! LED pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
             return (413)
-        # Convert from 1 base to 0 based pin num, bit 0 = 0x80, bit 7 = 0x01
-        pinNum = 7 - (parent.helpFuncs.out - 1)
-        # Pin number is base 1
+        # Pin num is now 0 based
+        pinNum = parent.helpFuncs.out
         if (pinNum < 0) or (pinNum >= ProcLedCards.NUM_LED_BITS):
             parent.consoleObj.updateConsole("!!! Error !!! Illegal LED pin num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
@@ -159,6 +156,7 @@ class ProcLedCards():
                (parent.lineNumList[parent.currToken + 2]))
             return (415)
         ProcLedCards.ledCfgBits[cardNum] |= (1 << pinNum)
+        ProcLedCards.ledWingCards[cardNum] |= (1 << ((pinNum & 0x18) >> 3))
         ProcLedCards.pinNum.append(pinNum)
         
         # Grab description
@@ -208,47 +206,53 @@ class ProcLedCards():
                 outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 outHndl.write(line + "\n")
-                
-        # Write out NUM_LED_CARDS
-        outHndl.write("    ## Number of LED boards in the system\n")
-        outHndl.write("    NUM_LED_BRDS = {0}\n\n".format(ProcLedCards.numLedCards))
         
         # Write out LED bit enumeration
-        for cardIndex in xrange(ProcLedCards.numLedCards):
-            allBitsName = "LED{0}_ALL_BITS_MSK".format(cardIndex + 1)
-            outHndl.write("    {0:32} = 0x{1:05x}\n".format( allBitsName,
-                (cardIndex * 0x10000) + 0x00ff))
-            ProcChains.addName(parent.procChains, allBitsName, ProcChains.LED_BIT)
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
+            if ((ProcLedCards.hasLedWingMask & (1 << cardIndex)) != 0):
+                allBitsName = "LED{0}_ALL_BITS_MSK".format(cardIndex)
+                outHndl.write("    {0:32} = 0x{1:08x}\n".format( allBitsName,
+                    (cardIndex * 0x1000000) + 0x00ff + (ProcLedCards.ledWingCards[cardIndex] << 16)))
+                ProcChains.addName(parent.procChains, allBitsName, ProcChains.LED_BIT)
             parent.procChains.ledDict[allBitsName] = (cardIndex * 0x10000) + 0x00ff
             for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
-                    outHndl.write("    {0:32} = 0x{1:05x}\n".format(ProcLedCards.name[self.out].upper(),
-                        ((cardIndex << 16) | (1 << bitIndex))))
+                    offset = bitIndex & 0x07;
+                    wingBrdIndex = (bitIndex & 0x18) >> 3;
+                    # Look for any errors such as wing board being a different type
+                    if ((parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != 0) and (parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != rs232Intf.WING_INCAND)):
+                        parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
+                        return (420)
+                    parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INCAND
+                    outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcLedCards.name[self.out].upper(),
+                        ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))))
                     # Create the LED name dictionary
-                    parent.procChains.ledDict[ProcLedCards.name[self.out].upper()] = ((cardIndex << 16) | (1 << bitIndex))
+                    parent.procChains.ledDict[ProcLedCards.name[self.out].upper()] = ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))
         
-                    
         # Write out the bit name strings
         outHndl.write("\n    ## LED board bit names\n")
         outHndl.write("    # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class\n")
         outHndl.write("    LED_BRD_BIT_NAMES = [ ")
-        for cardIndex in xrange(ProcLedCards.numLedCards):
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if (cardIndex != 0):
                 outHndl.write(",\n        ")
-            outHndl.write("[")
-            for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
-                if (bitIndex != 0):
-                    if ((bitIndex % 4) == 0):
-                        outHndl.write(",\n        ")
+            if (ProcLedCards.hasLedWingMask & (1 << cardIndex) == 0):
+                outHndl.write("[ ]")
+            else:
+                outHndl.write("[")
+                for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
+                    if (bitIndex != 0):
+                        if ((bitIndex % 4) == 0):
+                            outHndl.write(",\n        ")
+                        else:
+                            outHndl.write(", ")
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        outHndl.write(ProcLedCards.desc[self.out])
                     else:
-                        outHndl.write(", ")
-                found = self.findBitIndex(cardIndex, bitIndex)
-                if found:
-                    outHndl.write(ProcLedCards.desc[self.out])
-                else:
-                    outHndl.write("\"Unused\"")
-            outHndl.write("]")
+                        outHndl.write("\"Unused\"")
+                outHndl.write("]")
         outHndl.write(" ]\n\n")
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: ledBitNames.py file.")

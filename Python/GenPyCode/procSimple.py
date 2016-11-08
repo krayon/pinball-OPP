@@ -67,9 +67,11 @@ class ProcSimple():
         ProcSimple.foundInit = False
         ProcSimple.tickTime = 20
         ProcSimple.initMode = ""
-        ProcSimple.cardInv = []
-        ProcSimple.currSol = 0
-        ProcSimple.currInp = 0
+        ProcSimple.cardWingInv = []
+        ProcSimple.numGen2Cards = 0
+
+        # Constants
+        ProcSimple.NUM_WING_CARDS = 4
         
     ## Process section
     #
@@ -106,34 +108,24 @@ class ProcSimple():
                 return (910)
             ProcSimple.tickTime = parent.helpFuncs.out
             parent.currToken += 2
-        elif (parent.tokens[parent.currToken] == "CARD_ORDER"):
-            parent.currToken += 1
-            if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
-                parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
-                   (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
+        elif (parent.tokens[parent.currToken] == "NUM_GEN2_CARDS"):
+            if not parent.helpFuncs.isInt(parent.tokens[parent.currToken + 1]):
+                parent.consoleObj.updateConsole("!!! Error !!! Indexed variable numEntries, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
                 return (920)
-            closeSymb = parent.helpFuncs.findMatch(parent)
-            parent.currToken += 1
-            while parent.currToken < closeSymb:
-                # Ignore all commas
-                if (parent.tokens[parent.currToken] == ","):
-                    pass
-                elif (parent.tokens[parent.currToken] == "INPUT_CARD"):
-                    ProcSimple.cardInv.append((ord)(rs232Intf.CARD_ID_INP_CARD) + ProcSimple.currInp)
-                    ProcSimple.currInp += 1
-                elif (parent.tokens[parent.currToken] == "SOLENOID_CARD"):
-                    ProcSimple.cardInv.append((ord)(rs232Intf.CARD_ID_SOL_CARD) + ProcSimple.currSol)
-                    ProcSimple.currSol += 1
-                else:
-                    parent.consoleObj.updateConsole("!!! Error !!! Expected INPUT_CARD or SOLENOID_CARD, read %s, at line num %d." %
-                       (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-                    return (921)
-                parent.currToken += 1
-            parent.currToken += 1
+            if (ProcSimple.numGen2Cards != 0):
+                parent.consoleObj.updateConsole("!!! Error !!! NUM_GEN2_CARDS previously set, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
+                return (921)
+            ProcSimple.numGen2Cards = parent.helpFuncs.out
+            ProcSimple.cardWingInv = [[0 for x in range(ProcSimple.NUM_WING_CARDS)] for y in range(ProcSimple.numGen2Cards)] 
+            for _ in xrange(ProcSimple.numGen2Cards):
+                ProcSimple.cardWingInv.append(0)
+            parent.currToken += 2
         else:
             print parent.tokens[parent.currToken]
-            parent.consoleObj.updateConsole("!!! SW Error !!! Expected FIRST_MODE or TICK_TIME, read %s, at line num %d." %
+            parent.consoleObj.updateConsole("!!! SW Error !!! Expected FIRST_MODE, TICK_TIME or NUM_GEN2_CARDS, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
-            return (920)
+            return (930)
         return (0)
         
