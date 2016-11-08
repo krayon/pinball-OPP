@@ -226,7 +226,7 @@ class ProcInpCards():
                     offset = bitIndex & 0x07;
                     wingBrdIndex = (bitIndex & 0x18) >> 3;
                     # Look for any errors such as wing board being a different type
-                    if ((parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != 0) and (parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != rs232Intf.WING_SOL)):
+                    if ((parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != 0) and (parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] != rs232Intf.WING_INP)):
                         parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
                         return (330)
                     parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INP
