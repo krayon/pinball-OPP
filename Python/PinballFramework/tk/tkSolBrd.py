@@ -107,7 +107,7 @@ class TkSolBrd():
         self.statLbl.set("0x%02x" % self.dispInpValue)
         tmpLbl.grid(column = 0, row = 3)
 
-        for i in xrange(rs232Intf.NUM_SOL_PER_BRD):
+        for i in xrange(rs232Intf.NUM_SOL_PER_WING):
             TkSolBrd.createBitFrame(self, i)
 
     ## Toggle function
@@ -192,7 +192,7 @@ class TkSolBrd():
     def createBitFrame(self, bit):
         solCardBitFrm = Frame(self.solCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(solCardBitFrm)
-        solCardBitFrm.grid(column = rs232Intf.NUM_SOL_PER_BRD - bit - 1, row = 0)
+        solCardBitFrm.grid(column = rs232Intf.NUM_SOL_PER_WING - bit - 1, row = 0)
         tmpLbl = Label(solCardBitFrm, text="%s" % GameData.SolBitNames.SOL_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         

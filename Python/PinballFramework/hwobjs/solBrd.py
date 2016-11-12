@@ -62,26 +62,51 @@ class SolBrd():
     ## Current data read from card
     currSolData = []
     
+    ## Mask of valid input bits on this card
+    validDataMask = []
+    
+    ## Data remapper
+    dataRemap = []
+        
+    ## Initialize boards
+    #
+    #  Create an instance for each card in the system even if it doesn't
+    #  contain inputs
+    #
+    #  @param  numBrds          [in]   Number of boards in the system
+    def init_boards(self, numBrds):
+        for card in xrange(numBrds):
+            SolBrd.solCfgBitfield.append(0)
+            SolBrd.currSolData.append(0)
+            SolBrd.validDataMask.append(0)
+    
     ## Add input card function
     #
     #  Called to add an input card
     #
     #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Index of the card (0 based)
+    #  @param  wingMask      [in]   Bitmask of solenoid wings on this card
     #  @param  GameData      [in]   Game Data Object reference
     #  @return None
-    def add_card(self, GameData):
-        brdNum = SolBrd.numSolBrd
+    def add_card(self, card, wingMask, GameData):
         SolBrd.numSolBrd += 1
         bitField = 0
-        for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
+        for bit in xrange(rs232Intf.NUM_G2_SOL_PER_BRD):
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
             holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
-            if (GameData.SolBitNames.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
-                (GameData.SolBitNames.SOL_BRD_CFG[brdNum][cmdOffset] == rs232Intf.CFG_SOL_DISABLE) or \
-                (ord(GameData.SolBitNames.SOL_BRD_CFG[brdNum][holdOffset]) != 0):
+            if (GameData.SolBitNames.SOL_BRD_CFG[card][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
+                (GameData.SolBitNames.SOL_BRD_CFG[card][cmdOffset] == rs232Intf.CFG_SOL_DISABLE) or \
+                (ord(GameData.SolBitNames.SOL_BRD_CFG[card][holdOffset]) != 0):
                 bitField |= (1 << bit)
-        SolBrd.solCfgBitfield.append(bitField)
-        SolBrd.currSolData.append(0)
+        inputBitsMask = 0x0f
+        mask = 0
+        for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+            if (wingMask & (1 << wing) != 0):
+                mask |= (inputBitsMask << (wing << 3))
+                SolBrd.dataRemap.append((card << 16) | wing)
+        SolBrd.solCfgBitfield[card] = bitField
+        SolBrd.validDataMask[card] = mask
     
     ## Update the input status.
     #
@@ -93,6 +118,7 @@ class SolBrd():
     #  @param  data          [in]   Data read from hardware card
     #  @return None
     def update_status(self, card, data):
+        data &= SolBrd.validDataMask[card]
         # Invert status bits
         latchData = (SolBrd.currSolData[card] | data) & ~SolBrd.solCfgBitfield[card]
         stateData = (data & SolBrd.solCfgBitfield[card]) ^ SolBrd.solCfgBitfield[card]

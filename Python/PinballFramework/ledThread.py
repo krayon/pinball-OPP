@@ -99,7 +99,7 @@ class LedThread(Thread):
     #  @return CMD_OK
     def init(self, gameData):
         LedThread.GameData = gameData
-        for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
+        for index in xrange(len(LedThread.GameData.RulesData.INV_ADDR_LIST)):
             index = index
             LedThread._prevLedState.append(0)
         return(errIntf.CMD_OK)
@@ -182,10 +182,10 @@ class LedThread(Thread):
         self.blinkOn = not self.blinkOn
         if (self.blinkOn):
             blinkData = LedBrd.currBlinkLeds[::-1]
-            for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
+            for index in xrange(len(LedThread.GameData.RulesData.INV_ADDR_LIST)):
                 ledData[index] |= blinkData[index]
         if (self._pport != None):
-            for index in xrange(LedThread.GameData.LedBitNames.NUM_LED_BRDS):
+            for index in xrange(len(LedThread.GameData.RulesData.INV_ADDR_LIST)):
                 ledData[index] &= 0xff
                 ledData[index] ^= 0xff
             self.updateLights(ledData)

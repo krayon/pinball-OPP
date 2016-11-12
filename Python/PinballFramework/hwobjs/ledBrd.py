@@ -46,9 +46,12 @@
 
 #===============================================================================
 
+import rs232Intf
+
 ## LED board class.
 #  Keep information about the LED board including blinking LEDs and current
 #  status.
+#  @param  numBrds          [in]   Number of boards in the system
 class LedBrd():
     numLedBrds = 0
     
@@ -57,14 +60,39 @@ class LedBrd():
     
     ## Current data output to the LEDs
     currLedData = []
+        
+    ## Mask of valid input bits on this card
+    validIncandMask = []
     
+    ## Data remapper
+    dataRemap = []
+        
+    ## Initialize boards
+    #
+    #  Create an instance for each card in the system even if it doesn't
+    #  contain leds
+    #
+    #  @param  numBrds          [in]   Number of boards in the system
+    def init_boards(self, numBrds):
+        for card in xrange(numBrds):
+            LedBrd.currBlinkLeds.append(0)
+            LedBrd.currLedData.append(0)
+            LedBrd.validIncandMask.append(0)
+        
     ## Add LED card function
     #
     #  Called to add an LED card
     #
     #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Index of the card (0 based)
+    #  @param  wingMask      [in]   Bitmask of incandescent wings on this card
     #  @return None
-    def add_card(self):
+    def add_card(self, card, wingMask):
         LedBrd.numLedBrds += 1
-        LedBrd.currBlinkLeds.append(0)
-        LedBrd.currLedData.append(0)
+        incandBitsMask = 0xff
+        mask = 0
+        for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+            if (wingMask & (1 << wing) != 0):
+                mask |= (incandBitsMask << (wing << 3))
+                LedBrd.dataRemap.append((card << 16) | wing)
+        LedBrd.validIncandMask.append(mask)

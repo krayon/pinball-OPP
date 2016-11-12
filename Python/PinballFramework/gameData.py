@@ -102,7 +102,7 @@ class GameData():
     #Used for switch input processing.  Logical OR of debug data (simSwitchBits)
     #  and Comms data (switchInpData, switchSolData)
     currInpStatus = []
-    currSolStatus = []
+    wingTypes = []
     
     #Timer information
     expiredTimers = []
@@ -143,6 +143,11 @@ class GameData():
     Sounds = None
     States = None
     Timers = None
+
+    #Bitmask of card types on card
+    HAS_INP_WING = 0x01
+    HAS_SOL_WING = 0x02
+    HAS_INCAND_WING = 0x04
     
     ## The constructor.
     def __init__(self, rulesDir):
@@ -218,12 +223,34 @@ class GameData():
     #  @return Can return CMD_OK if good, or CANT_OPEN_COM or error codes
     #     from [getInventory](@ref comms.commHelp.getInventory).
     def init_brd_objs(self):
-        for i in xrange(len(GameData.RulesData.INV_ADDR_LIST)):
-            if ((GameData.RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                InpBrd.add_card(self.inpBrd, GameData)
-                GameData.currInpStatus.append(0)
-            elif ((GameData.RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                SolBrd.add_card(self.solBrd, GameData)
-                GameData.currSolStatus.append(0)
-        for i in xrange(GameData.LedBitNames.NUM_LED_BRDS):
-            LedBrd.add_card(self.ledBrd)
+        InpBrd.init_boards(self.inpBrd, len(GameData.RulesData.INV_ADDR_LIST))
+        SolBrd.init_boards(self.solBrd, len(GameData.RulesData.INV_ADDR_LIST))
+        LedBrd.init_boards(self.ledBrd, len(GameData.RulesData.INV_ADDR_LIST))
+
+        for cardIndex in xrange(len(GameData.RulesData.INV_ADDR_LIST)):
+            wingTypes = 0
+            solWings = 0
+            inpWings = 0
+            ledWings = 0
+            for wingIndex in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                if (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_SOL):
+                    wingTypes |= GameData.HAS_SOL_WING
+                    solWings |= 1 << wingIndex
+                elif (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_INP):
+                    # Check if there is no configuration which indicates it is an empty wing board
+                    if (len(GameData.InpBitNames.INP_BRD_CFG[cardIndex]) != 0):
+                        wingTypes |= GameData.HAS_INP_WING
+                        inpWings |= 1 << wingIndex
+                elif (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_INCAND):
+                    wingTypes |= GameData.HAS_INCAND_WING
+                    ledWings |= 1 << wingIndex
+                else:
+                    print "Found non-supported card " + repr(GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex])
+            if (solWings != 0):
+                SolBrd.add_card(self.solBrd, cardIndex, solWings, GameData)
+            if (inpWings != 0):
+                InpBrd.add_card(self.inpBrd, cardIndex, inpWings, GameData)
+            if (ledWings != 0):
+                LedBrd.add_card(self.ledBrd, cardIndex, ledWings)
+            GameData.wingTypes.append(wingTypes)
+            GameData.currInpStatus.append(0)

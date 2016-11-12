@@ -103,7 +103,7 @@ class TkLedBrd():
         self.statLbl.set("0x%02x" % self.prevLedState)
         tmpLbl.grid(column = 0, row = 2)
 
-        for i in xrange(rs232Intf.NUM_LED_PER_BRD):
+        for i in xrange(rs232Intf.NUM_INCAND_PER_WING):
             TkLedBrd.createBitFrame(self, i)
 
     ## Create Bit Frame function
@@ -116,7 +116,7 @@ class TkLedBrd():
     def createBitFrame(self, bit):
         ledCardBitFrm = Frame(self.ledCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(ledCardBitFrm)
-        ledCardBitFrm.grid(column = rs232Intf.NUM_LED_PER_BRD - bit - 1, row = 0)
+        ledCardBitFrm.grid(column = rs232Intf.NUM_INCAND_PER_WING - bit - 1, row = 0)
         tmpLbl = Label(ledCardBitFrm, text="%s" % GameData.LedBitNames.LED_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0)
         
@@ -138,7 +138,7 @@ class TkLedBrd():
     #  @return None
     def updateLeds(self, data):
         if (self.prevLedState != data):
-            for index in xrange(rs232Intf.NUM_LED_PER_BRD):
+            for index in xrange(rs232Intf.NUM_INCAND_PER_WING):
                 if ((self.prevLedState ^ data) & (1 << index)):
                     if (data & (1 << index)) != 0:
                         self.canvas[index].create_image(48, 40, image=TkLedBrd._ledOnGrnImage)
@@ -154,6 +154,6 @@ class TkLedBrd():
     #  @param  self          [in]   Object reference
     #  @return None
     def removeImages(self):
-        for index in xrange(rs232Intf.NUM_LED_PER_BRD):
+        for index in xrange(rs232Intf.NUM_INCAND_PER_WING):
             self.canvas[index].create_image(48, 40, image="")
                         

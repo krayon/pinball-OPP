@@ -107,7 +107,7 @@ class TkInpBrd():
         tmpLbl.grid(column = 0, row = 3)
 
         #Configure btnCfgBitfield to initial value set by card cfg
-        for i in xrange(rs232Intf.NUM_INP_PER_BRD):
+        for i in xrange(rs232Intf.NUM_INP_PER_WING):
             TkInpBrd.createBitFrame(self, i)
 
     ## Toggle function
@@ -185,7 +185,7 @@ class TkInpBrd():
         if (bit < TkInpBrd.BITS_IN_ROW):
             inpCardBitFrm.grid(column = TkInpBrd.BITS_IN_ROW - bit - 1, row = 0)
         else:
-            inpCardBitFrm.grid(column = rs232Intf.NUM_INP_PER_BRD - bit - 1, row = 1)
+            inpCardBitFrm.grid(column = rs232Intf.NUM_INP_PER_WING - bit - 1, row = 1)
         tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_BIT_NAMES[self.brdNum][bit])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         

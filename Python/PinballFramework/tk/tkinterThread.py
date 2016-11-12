@@ -117,15 +117,18 @@ class TkinterThread(Thread):
         bgndFrm.pack()
         numInpBrd = 0
         numSolBrd = 0
-        for i in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
-            if ((TkinterThread.GameData.RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_INP_CARD)): 
-                GameData.tkInpBrd.append(TkInpBrd(numInpBrd, i, TkinterThread.GameData.RulesData.INV_ADDR_LIST[i], bgndFrm.interior))  # Changed to bgndFrm.interior
-                numInpBrd += 1
-            elif ((TkinterThread.GameData.RulesData.INV_ADDR_LIST[i] & (ord)(rs232Intf.CARD_ID_TYPE_MASK)) == (ord)(rs232Intf.CARD_ID_SOL_CARD)):
-                GameData.tkSolBrd.append(TkSolBrd(numSolBrd, i, TkinterThread.GameData.RulesData.INV_ADDR_LIST[i], bgndFrm.interior))   # Changed to bgndFrm.interior
-                numSolBrd += 1
-        for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
-            GameData.tkLedBrd.append(TkLedBrd(i, numSolBrd + numInpBrd + i + 1, bgndFrm.interior))   # Changed to bgndFrm.interior
+        for card in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
+            for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                if (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INP):
+                    # Check if there is no configuration which indicates it is an empty wing board
+                    if (len(TkinterThread.GameData.InpBitNames.INP_BRD_CFG[card]) != 0):
+                        GameData.tkInpBrd.append(TkInpBrd(card, wing, ord(rs232Intf.CARD_ID_GEN2_CARD) + card, bgndFrm.interior))
+                        numInpBrd += 1
+                elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_SOL):
+                    GameData.tkSolBrd.append(TkSolBrd(card, wing, ord(rs232Intf.CARD_ID_GEN2_CARD) + card, bgndFrm.interior))   # Changed to bgndFrm.interior
+                    numSolBrd += 1
+                elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INCAND):
+                    GameData.tkLedBrd.append(TkLedBrd(card, wing, bgndFrm.interior))
         root.update()
         TkinterThread.doneInit = True
         
@@ -138,14 +141,21 @@ class TkinterThread(Thread):
             ledData = list(LedBrd.currLedData)
             if self.blinkOn:
                 ledBlink = list(LedBrd.currBlinkLeds)
-                for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
+                for i in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
                     ledData[i] |= ledBlink[i]
-            for i in xrange(TkinterThread.GameData.LedBitNames.NUM_LED_BRDS):
+            for i in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
                 GameData.tkLedBrd[i].updateLeds(ledData[i])
             for i in xrange(numSolBrd):
                 GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
             for i in xrange(numInpBrd):
-                GameData.tkInpBrd[i].update_status_field(InpBrd.currInpData[i])
+                print "InputBoards %d" % numInpBrd
+                print "tkInpBrd num %d" % len(GameData.tkInpBrd)
+                print "InpBrd num %d" % len(InpBrd.currInpData)
+                remapCard = InpBrd.dataRemap[i] >> 16
+                print "remapCard %d" % remapCard
+                remapWingShift = (InpBrd.dataRemap[i] & 0xffff) << 3
+                print "remapWingShift %d" % remapWingShift
+                GameData.tkInpBrd[i].update_status_field((InpBrd.currInpData[remapCard] >> remapWingShift) & 0xff)
             dummy_count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)
 

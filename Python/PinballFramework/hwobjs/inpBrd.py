@@ -49,12 +49,10 @@
 import rs232Intf
 
 ## Input board class.
-#  Keep information about the input board including configuration and current
-#  input status.
 class InpBrd():
     numInpBrd = 0
     
-    ## Used for switch input processing.  A '1' means it is a state input bit and
+    ##  Used for switch input processing.  A '1' means it is a state input bit and
     #  the latest value is used.  A '0' means is an edge triggered input, and it
     #  is automatically cleared after being used.
     inpCfgBitfield = []
@@ -62,22 +60,47 @@ class InpBrd():
     ## Current data read from card
     currInpData = []
     
+    ## Mask of valid input bits on this card
+    validDataMask = []
+    
+    ## Data remapper
+    dataRemap = []
+    
+    ## Initialize boards
+    #
+    #  Create an instance for each card in the system even if it doesn't
+    #  contain inputs
+    #
+    #  @param  numBrds          [in]   Number of boards in the system
+    def init_boards(self, numBrds):
+        for card in xrange(numBrds):
+            InpBrd.inpCfgBitfield.append(0)
+            InpBrd.currInpData.append(0)
+            InpBrd.validDataMask.append(0)
+        
     ## Add input card function
     #
     #  Called to add an input card
     #
     #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Index of the card (0 based)
+    #  @param  wingMask      [in]   Bitmask of input wings on this card
     #  @param  GameData      [in]   Game Data Object reference
     #  @return None
-    def add_card(self, GameData):
-        brdNum = InpBrd.numInpBrd
+    def add_card(self, card, wingMask, GameData):
         InpBrd.numInpBrd += 1
         bitField = 0
-        for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
-            if (GameData.InpBitNames.INP_BRD_CFG[brdNum][bit] == rs232Intf.CFG_INP_STATE):
+        for bit in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
+            if (GameData.InpBitNames.INP_BRD_CFG[card][bit] == rs232Intf.CFG_INP_STATE):
                 bitField |= (1 << bit)
-        InpBrd.inpCfgBitfield.append(bitField)
-        InpBrd.currInpData.append(0)
+        inputBitsMask = 0xff
+        mask = 0
+        for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+            if (wingMask & (1 << wing) != 0):
+                mask |= (inputBitsMask << (wing << 3))
+                InpBrd.dataRemap.append((card << 16) | wing)
+        InpBrd.inpCfgBitfield[card] = bitField
+        InpBrd.validDataMask[card] = mask
     
     ## Update the input status.
     #
@@ -89,6 +112,7 @@ class InpBrd():
     #  @param  data          [in]   Data read from hardware card
     #  @return None
     def update_status(self, card, data):
+        data &= InpBrd.validDataMask[card]
         latchData = (InpBrd.currInpData[card] | data) & ~InpBrd.inpCfgBitfield[card]
         stateData = (data & InpBrd.inpCfgBitfield[card]) ^ InpBrd.inpCfgBitfield[card]
         InpBrd.currInpData[card] = latchData | stateData
