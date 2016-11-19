@@ -69,14 +69,13 @@ class TkSolBrd():
     #
     #  @param  self          [in]   Object reference
     #  @param  brdNum        [in]   Solenoid board instance index (base 0)
-    #  @param  brdPos        [in]   Board position in comms chain (base 0)
-    #  @param  addr          [in]   Board address
+    #  @param  wing          [in]   Wing number (base 0)
     #  @param  parentFrm     [in]   Parent frame
     #  @return None
-    def __init__(self, brdNum, brdPos, addr, parentFrm):
+    def __init__(self, brdNum, wing, parentFrm):
         self.brdNum = brdNum
-        self.brdPos = brdPos
-        self.brdAddr = addr
+        self.wing = wing
+        self.brdAddr = brdNum + ord(rs232Intf.CARD_ID_GEN2_CARD)
         self.statLbl = StringVar()
         self.dispInpValue = 0
         self.indBitStatLbl = []
@@ -90,7 +89,7 @@ class TkSolBrd():
         
         #Create main frame
         self.solCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
-        self.solCardFrm.grid(column = 0, row = brdPos + 1)
+        self.solCardFrm.grid(column = 0, row = (brdNum * rs232Intf.NUM_G2_WING_PER_BRD) + wing + 1)
         
         #Create card info frame
         solCardInfoFrm = Frame(self.solCardFrm)
@@ -99,13 +98,15 @@ class TkSolBrd():
         #Add card info
         tmpLbl = Label(solCardInfoFrm, text="Sol Card %d" % (brdNum + 1))
         tmpLbl.grid(column = 0, row = 0)
-        tmpLbl = Label(solCardInfoFrm, text="Addr = 0x%02x" % addr)
+        tmpLbl = Label(solCardInfoFrm, text="Wing Num %d" % wing)
         tmpLbl.grid(column = 0, row = 1)
-        tmpLbl = Label(solCardInfoFrm, text="Status")
+        tmpLbl = Label(solCardInfoFrm, text="Addr = 0x%02x" % self.brdAddr)
         tmpLbl.grid(column = 0, row = 2)
+        tmpLbl = Label(solCardInfoFrm, text="Status")
+        tmpLbl.grid(column = 0, row = 3)
         tmpLbl = Label(solCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
         self.statLbl.set("0x%02x" % self.dispInpValue)
-        tmpLbl.grid(column = 0, row = 3)
+        tmpLbl.grid(column = 0, row = 4)
 
         for i in xrange(rs232Intf.NUM_SOL_PER_WING):
             TkSolBrd.createBitFrame(self, i)
@@ -193,7 +194,7 @@ class TkSolBrd():
         solCardBitFrm = Frame(self.solCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(solCardBitFrm)
         solCardBitFrm.grid(column = rs232Intf.NUM_SOL_PER_WING - bit - 1, row = 0)
-        tmpLbl = Label(solCardBitFrm, text="%s" % GameData.SolBitNames.SOL_BRD_BIT_NAMES[self.brdNum][bit])
+        tmpLbl = Label(solCardBitFrm, text="%s" % GameData.SolBitNames.SOL_BRD_BIT_NAMES[self.brdNum][bit + (self.wing * rs232Intf.NUM_SOL_PER_WING)])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg

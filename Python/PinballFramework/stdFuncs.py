@@ -94,7 +94,7 @@ class StdFuncs():
     #  @return None 
     def Restore_Input_Cfg(self):
         for cardNum in xrange(InpBrd.numInpBrd):
-            for inpIndex in xrange(rs232Intf.NUM_INP_PER_BRD):
+            for inpIndex in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
                 cfgOffs = rs232Intf.CFG_BYTES_PER_INP * inpIndex
                 cfg = StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs]
                 comms.commIntf.updateInp(StdFuncs.GameData.commThread, cardNum, inpIndex, cfg)

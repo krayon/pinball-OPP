@@ -122,10 +122,10 @@ class TkinterThread(Thread):
                 if (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INP):
                     # Check if there is no configuration which indicates it is an empty wing board
                     if (len(TkinterThread.GameData.InpBitNames.INP_BRD_CFG[card]) != 0):
-                        GameData.tkInpBrd.append(TkInpBrd(card, wing, ord(rs232Intf.CARD_ID_GEN2_CARD) + card, bgndFrm.interior))
+                        GameData.tkInpBrd.append(TkInpBrd(card, wing, bgndFrm.interior))
                         numInpBrd += 1
                 elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_SOL):
-                    GameData.tkSolBrd.append(TkSolBrd(card, wing, ord(rs232Intf.CARD_ID_GEN2_CARD) + card, bgndFrm.interior))   # Changed to bgndFrm.interior
+                    GameData.tkSolBrd.append(TkSolBrd(card, wing, bgndFrm.interior))   # Changed to bgndFrm.interior
                     numSolBrd += 1
                 elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INCAND):
                     GameData.tkLedBrd.append(TkLedBrd(card, wing, bgndFrm.interior))
@@ -148,13 +148,8 @@ class TkinterThread(Thread):
             for i in xrange(numSolBrd):
                 GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
             for i in xrange(numInpBrd):
-                print "InputBoards %d" % numInpBrd
-                print "tkInpBrd num %d" % len(GameData.tkInpBrd)
-                print "InpBrd num %d" % len(InpBrd.currInpData)
                 remapCard = InpBrd.dataRemap[i] >> 16
-                print "remapCard %d" % remapCard
                 remapWingShift = (InpBrd.dataRemap[i] & 0xffff) << 3
-                print "remapWingShift %d" % remapWingShift
                 GameData.tkInpBrd[i].update_status_field((InpBrd.currInpData[remapCard] >> remapWingShift) & 0xff)
             dummy_count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)

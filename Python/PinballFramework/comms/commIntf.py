@@ -118,7 +118,7 @@ def sendSolCfg(commThread, brd):
 def updateInp(commThread, brd, inp, cfg):
     if brd > commThread.numInpBrd:
         return errIntf.BAD_INP_BRD_NUM
-    if inp > rs232Intf.NUM_INP_PER_BRD:
+    if inp > rs232Intf.NUM_G2_INP_PER_BRD:
         return errIntf.BAD_INP_NUM
     commThread.inpBrdCfg[brd][rs232Intf.CFG_BYTES_PER_INP * inp] = cfg
     return errIntf.CMD_OK

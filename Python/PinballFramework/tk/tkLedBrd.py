@@ -68,13 +68,14 @@ class TkLedBrd():
     #
     #  @param  self          [in]   Object reference
     #  @param  brdNum        [in]   Input board instance index (base 0)
-    #  @param  frmRow        [in]   Row to display LED board.  (LED boards after input/sol cards)
+    #  @param  wing          [in]   Wing number (base 0)
     #  @param  parentFrm     [in]   Parent frame
     #  @return None
-    def __init__(self, brdNum, frmRow, parentFrm):
+    def __init__(self, brdNum, wing, parentFrm):
         self.brdNum = brdNum
-        self.brdPos = frmRow
+        self.wing = wing
         self.statLbl = StringVar()
+        self.brdAddr = brdNum + ord(rs232Intf.CARD_ID_GEN2_CARD)
         self.prevLedState = 0x00                  #1 is on, 0 is off
         self.bitFrms = []
         self.canvas = []
@@ -88,20 +89,24 @@ class TkLedBrd():
         
         #Create main frame
         self.ledCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
-        self.ledCardFrm.grid(column = 0, row = frmRow)
+        self.ledCardFrm.grid(column = 0, row = (brdNum * rs232Intf.NUM_G2_WING_PER_BRD) + wing + 1)
         
         #Create card info frame
         ledCardInfoFrm = Frame(self.ledCardFrm)
         ledCardInfoFrm.grid(column = 8, row = 0)
         
         #Add card info
-        tmpLbl = Label(ledCardInfoFrm, text="LED Card %d" % (brdNum + 1))
+        tmpLbl = Label(ledCardInfoFrm, text="LED Card %d" % (brdNum))
         tmpLbl.grid(column = 0, row = 0)
-        tmpLbl = Label(ledCardInfoFrm, text="Status")
+        tmpLbl = Label(ledCardInfoFrm, text="Wing Num %d" % wing)
         tmpLbl.grid(column = 0, row = 1)
+        tmpLbl = Label(ledCardInfoFrm, text="Addr = 0x%02x" % self.brdAddr)
+        tmpLbl.grid(column = 0, row = 2)
+        tmpLbl = Label(ledCardInfoFrm, text="Status")
+        tmpLbl.grid(column = 0, row = 3)
         tmpLbl = Label(ledCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
         self.statLbl.set("0x%02x" % self.prevLedState)
-        tmpLbl.grid(column = 0, row = 2)
+        tmpLbl.grid(column = 0, row = 4)
 
         for i in xrange(rs232Intf.NUM_INCAND_PER_WING):
             TkLedBrd.createBitFrame(self, i)

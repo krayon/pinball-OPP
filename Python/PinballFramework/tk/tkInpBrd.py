@@ -69,14 +69,13 @@ class TkInpBrd():
     #
     #  @param  self          [in]   Object reference
     #  @param  brdNum        [in]   Input board instance index (base 0)
-    #  @param  brdPos        [in]   Board position in comms chain (base 0)
-    #  @param  addr          [in]   Board address
+    #  @param  wing          [in]   Wing number (base 0)
     #  @param  parentFrm     [in]   Parent frame
     #  @return None
-    def __init__(self, brdNum, brdPos, addr, parentFrm):
+    def __init__(self, brdNum, wing, parentFrm):
         self.brdNum = brdNum
-        self.brdPos = brdPos
-        self.brdAddr = addr
+        self.wing = wing
+        self.brdAddr = brdNum + ord(rs232Intf.CARD_ID_GEN2_CARD)
         self.statLbl = StringVar()
         self.dispInpValue = 0
         self.indBitStatLbl = []
@@ -89,22 +88,24 @@ class TkInpBrd():
         
         #Create main frame
         self.inpCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
-        self.inpCardFrm.grid(column = 0, row = brdPos + 1)
+        self.inpCardFrm.grid(column = 0, row = (brdNum * rs232Intf.NUM_G2_WING_PER_BRD) + wing + 1)
         
         #Create card info frame
         inpCardInfoFrm = Frame(self.inpCardFrm)
         inpCardInfoFrm.grid(column = TkInpBrd.BITS_IN_ROW, row = 0, columnspan = 2)
         
         #Add card info
-        tmpLbl = Label(inpCardInfoFrm, text="Inp Card %d" % (brdNum + 1))
+        tmpLbl = Label(inpCardInfoFrm, text="Inp Card %d" % brdNum)
         tmpLbl.grid(column = 0, row = 0)
-        tmpLbl = Label(inpCardInfoFrm, text="Addr = 0x%02x" % addr)
+        tmpLbl = Label(inpCardInfoFrm, text="Wing Num %d" % wing)
         tmpLbl.grid(column = 0, row = 1)
-        tmpLbl = Label(inpCardInfoFrm, text="Status")
+        tmpLbl = Label(inpCardInfoFrm, text="Addr = 0x%02x" % self.brdAddr)
         tmpLbl.grid(column = 0, row = 2)
+        tmpLbl = Label(inpCardInfoFrm, text="Status")
+        tmpLbl.grid(column = 0, row = 3)
         tmpLbl = Label(inpCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
         self.statLbl.set("0x%04x" % self.dispInpValue)
-        tmpLbl.grid(column = 0, row = 3)
+        tmpLbl.grid(column = 0, row = 4)
 
         #Configure btnCfgBitfield to initial value set by card cfg
         for i in xrange(rs232Intf.NUM_INP_PER_WING):
@@ -182,11 +183,8 @@ class TkInpBrd():
     def createBitFrame(self, bit):
         inpCardBitFrm = Frame(self.inpCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(inpCardBitFrm)
-        if (bit < TkInpBrd.BITS_IN_ROW):
-            inpCardBitFrm.grid(column = TkInpBrd.BITS_IN_ROW - bit - 1, row = 0)
-        else:
-            inpCardBitFrm.grid(column = rs232Intf.NUM_INP_PER_WING - bit - 1, row = 1)
-        tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_BIT_NAMES[self.brdNum][bit])
+        inpCardBitFrm.grid(column = TkInpBrd.BITS_IN_ROW - bit - 1, row = 0)
+        tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_BIT_NAMES[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg

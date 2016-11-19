@@ -90,6 +90,7 @@ WING_NEO            = '\x06'
 
 NUM_G2_INP_PER_BRD  = 32
 NUM_INP_PER_WING    = 8
+CFG_BYTES_PER_INP   = 1
 CFG_INP_STATE       = '\x00'
 CFG_INP_FALL_EDGE   = '\x01'
 CFG_INP_RISE_EDGE   = '\x02'

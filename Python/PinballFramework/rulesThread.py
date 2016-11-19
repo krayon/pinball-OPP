@@ -100,7 +100,7 @@ class RulesThread(Thread):
     def proc_rules(self):
         #Update the inputs from solenoid and input cards
         for index in xrange(SolBrd.numSolBrd):
-            RulesThread.GameData.currSolStatus[index] = SolBrd.get_status(RulesThread.GameData.solBrd, index)
+            RulesThread.GameData.currInpStatus[index] = SolBrd.get_status(RulesThread.GameData.solBrd, index)
             if RulesThread.GameData.debug:
                 RulesThread.GameData.currSolStatus[index] |= TkSolBrd.get_status(RulesThread.GameData.tkSolBrd[index])
         for index in xrange(InpBrd.numInpBrd):
