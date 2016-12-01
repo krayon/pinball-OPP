@@ -79,9 +79,10 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   input card index and bit position
     #  @return True if set 
     def CheckInpBit(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xffff
-        if ((StdFuncs.GameData.currInpStatus[cardNum] & bitPos) != 0):
+        card = (cardBitPos >> 24) & 0xff
+        wing = (cardBitPos >> 16) & 0xff
+        bitPos = (cardBitPos & 0xff) << (wing << 3)
+        if ((StdFuncs.GameData.currInpStatus[card] & bitPos) != 0):
             return True
         else:
             return False
@@ -93,12 +94,14 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None 
     def Restore_Input_Cfg(self):
-        for cardNum in xrange(InpBrd.numInpBrd):
-            for inpIndex in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
-                cfgOffs = rs232Intf.CFG_BYTES_PER_INP * inpIndex
-                cfg = StdFuncs.GameData.InpBitNames.INP_BRD_CFG[cardNum][cfgOffs]
-                comms.commIntf.updateInp(StdFuncs.GameData.commThread, cardNum, inpIndex, cfg)
-            comms.commIntf.sendInpCfg(StdFuncs.GameData.commThread, cardNum)
+        for cardIndex in xrange(InpBrd.numInpBrd):
+            card = InpBrd.dataRemap[cardIndex] >> 16
+            wing = InpBrd.dataRemap[cardIndex] & 0xffff
+            for inpIndex in xrange(rs232Intf.NUM_INP_PER_WING):
+                cfgOffs = rs232Intf.CFG_BYTES_PER_INP * (inpIndex + (wing * rs232Intf.NUM_INP_PER_WING))
+                cfg = StdFuncs.GameData.InpBitNames.INP_BRD_CFG[card][cfgOffs]
+                comms.commIntf.updateInp(StdFuncs.GameData.commThread, card, cfgOffs, cfg)
+            comms.commIntf.sendInpCfg(StdFuncs.GameData.commThread, card)
         
     ## Check solenoid bit
     #
@@ -138,10 +141,12 @@ class StdFuncs():
     #  @return None 
     def Disable_Solenoids(self):
         cfg = [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00']
-        for cardNum in xrange(SolBrd.numSolBrd):
-            for solIndex in xrange(rs232Intf.NUM_SOL_PER_BRD):
-                comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, solIndex, cfg)
-            comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
+        for cardIndex in xrange(SolBrd.numSolBrd):
+            card = SolBrd.dataRemap[cardIndex] >> 16
+            wing = SolBrd.dataRemap[cardIndex] & 0xffff
+            for solIndex in xrange(rs232Intf.NUM_SOL_PER_WING):
+                comms.commIntf.updateSol(StdFuncs.GameData.commThread, card, (solIndex + (wing * rs232Intf.NUM_SOL_PER_WING)), cfg)
+            comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, card)
     
     ## Enable solenoids
     #
@@ -151,14 +156,16 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None 
     def Enable_Solenoids(self):
-        for cardNum in xrange(SolBrd.numSolBrd):
-            for solIndex in xrange(rs232Intf.NUM_SOL_PER_BRD):
-                cfgOffs = rs232Intf.CFG_BYTES_PER_SOL * solIndex
-                cfg = [StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs],
-                    StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs + 1],
-                    StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[cardNum][cfgOffs + 2]]
-                comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, solIndex, cfg)
-            comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
+        for cardIndex in xrange(SolBrd.numSolBrd):
+            card = SolBrd.dataRemap[cardIndex] >> 16
+            wing = SolBrd.dataRemap[cardIndex] & 0xffff
+            for solIndex in xrange(rs232Intf.NUM_SOL_PER_WING):
+                cfgOffs = rs232Intf.CFG_BYTES_PER_SOL * (solIndex + (wing * rs232Intf.NUM_SOL_PER_WING))
+                cfg = [StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[card][cfgOffs],
+                    StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[card][cfgOffs + 1],
+                    StdFuncs.GameData.SolBitNames.SOL_BRD_CFG[card][cfgOffs + 2]]
+                comms.commIntf.updateSol(StdFuncs.GameData.commThread, card, (solIndex + (wing * rs232Intf.NUM_SOL_PER_WING)), cfg)
+            comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, card)
     
     ## Change solenoid config
     #
@@ -489,12 +496,15 @@ class StdFuncs():
             LedBrd.currLedData[cardNum] &= ~mask
             LedBrd.currLedData[cardNum] |= data
         else:
-            for curr in xrange(len(cardBitPos)):
-                if cardBitPos[curr] != 0:
-                    cardNum = (cardBitPos[curr] >> 16) & 0xf
-                    mask = cardBitPos[curr] & 0xff
-                    LedBrd.currLedData[cardNum] &= ~mask
-                    LedBrd.currLedData[cardNum] |= data[curr]
+            #cardBitPos holds a mask of bits
+            for ledInst in xrange(len(LedBrd.dataRemap)):
+                card = LedBrd.dataRemap[ledInst] >> 16
+                wing = LedBrd.dataRemap[ledInst] & 0xffff
+                wingMask = 0xff << (wing << 3)
+                currMask = cardBitPos[card] & wingMask
+                if (currMask != 0):
+                    LedBrd.currLedData[card] &= ~currMask
+                    LedBrd.currLedData[card] |= (data[card] & currMask)
 
     ## Set a group of LEDs to blink
     #

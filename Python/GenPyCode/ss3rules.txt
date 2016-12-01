@@ -349,7 +349,7 @@ PROCESS_CHAINS
 LED_CHAINS
 {
    #Name                   Processing (Mask, bits, cmd, bits, cmd, ...)
-   LedCh_Attract           {(LED0_ALL_BITS_MSK | LED1_ALL_BITS_MSK | LED2_ALL_BITS_MSK | LED3_ALL_BITS_MSK),   # Grab all LEDs
+   LedCh_Attract           {(LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK),   # Grab all LEDs
                                 # Walk mode LEDs from bottom to top
                                   Led_Shoot_Again, WAIT 100,
                                   Led_Shoot_Again | Led_Mode_Sharpe, WAIT 100,
@@ -509,11 +509,11 @@ LED_CHAINS
                                      Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
                                 # Blink all lights
                                 0, WAIT 500,
-                                LED0_ALL_BITS_MSK | LED1_ALL_BITS_MSK | LED2_ALL_BITS_MSK | LED3_ALL_BITS_MSK, WAIT 500,
+                                LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK, WAIT 500,
                                 0, WAIT 500,
-                                LED0_ALL_BITS_MSK | LED1_ALL_BITS_MSK | LED2_ALL_BITS_MSK | LED3_ALL_BITS_MSK, WAIT 500,
+                                LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK, WAIT 500,
                                 0, WAIT 500,
-                                LED0_ALL_BITS_MSK | LED1_ALL_BITS_MSK | LED2_ALL_BITS_MSK | LED3_ALL_BITS_MSK, WAIT 500,
+                                LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK, WAIT 500,
                                 0, WAIT 500,
                                 0, REPEAT}
    

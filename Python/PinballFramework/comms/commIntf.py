@@ -82,7 +82,7 @@ class CommsState:
 def updateSol(commThread, brd, sol, params):
     if brd > commThread.numSolBrd:
         return errIntf.BAD_SOL_BRD_NUM
-    if sol > rs232Intf.NUM_SOL_PER_BRD:
+    if sol > rs232Intf.NUM_G2_SOL_PER_BRD:
         return errIntf.BAD_SOL_NUM
     if len(params) != rs232Intf.CFG_BYTES_PER_SOL:
         return errIntf.BAD_PARAM_BYTES

@@ -210,11 +210,13 @@ class ProcLedCards():
         # Write out LED bit enumeration
         for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if ((ProcLedCards.hasLedWingMask & (1 << cardIndex)) != 0):
-                allBitsName = "LED{0}_ALL_BITS_MSK".format(cardIndex)
-                outHndl.write("    {0:32} = 0x{1:08x}\n".format( allBitsName,
-                    (cardIndex * 0x1000000) + 0x00ff + (ProcLedCards.ledWingCards[cardIndex] << 16)))
-                ProcChains.addName(parent.procChains, allBitsName, ProcChains.LED_BIT)
-            parent.procChains.ledDict[allBitsName] = (cardIndex * 0x10000) + 0x00ff
+                for wingIndex in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                    if ((ProcLedCards.ledWingCards[cardIndex] & (1 << wingIndex)) != 0):
+                        allBitsName = "LED{0}W{1}_ALL_BITS_MSK".format(cardIndex, wingIndex)
+                        outHndl.write("    {0:32} = 0x{1:08x}\n".format( allBitsName,
+                            (cardIndex * 0x1000000) + (wingIndex << 16) + 0x00ff))
+                        ProcChains.addName(parent.procChains, allBitsName, ProcChains.LED_BIT)
+                        parent.procChains.ledDict[allBitsName] = (cardIndex * 0x1000000) + (wingIndex << 16) + 0x00ff
             for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
@@ -226,9 +228,9 @@ class ProcLedCards():
                         return (420)
                     parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INCAND
                     outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcLedCards.name[self.out].upper(),
-                        ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))))
+                        ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))))
                     # Create the LED name dictionary
-                    parent.procChains.ledDict[ProcLedCards.name[self.out].upper()] = ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))
+                    parent.procChains.ledDict[ProcLedCards.name[self.out].upper()] = ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))
         
         # Write out the bit name strings
         outHndl.write("\n    ## LED board bit names\n")

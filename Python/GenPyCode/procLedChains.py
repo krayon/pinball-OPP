@@ -177,7 +177,7 @@ class ProcLedChains:
                     parent.consoleObj.updateConsole("!!! Error !!! WAIT parameter should be integer, read %s, at line num %d." %
                        (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
                     return (1213)
-                ProcLedChains.outHndl.write(" WAIT, " + parent.tokens[parent.currToken + 1] + "],\n          [ ")
+                ProcLedChains.outHndl.write(" WAIT, " + parent.tokens[parent.currToken + 1] + "],\n          # ")
                 # If any close parenthesis exist eat them
                 parent.currToken += 2
                 while (ProcLedChains.tokenLookup[parent.tokens[parent.currToken]] == ProcLedChains.CLOSE_PAREN):
@@ -208,6 +208,17 @@ class ProcLedChains:
                 typeProc = ProcLedChains.PROC_DONE_CHAIN
             elif tokenType == ProcLedChains.COMMA:
                 if typeProc == ProcLedChains.PROC_MASK:
+                    ProcLedChains.outHndl.write("\n        # ")
+                    for card in xrange(parent.procSimple.numGen2Cards):
+                        if (card != 0):
+                            ProcLedChains.outHndl.write(", ")
+                        if len(ledCard[card]) == 0:
+                            ProcLedChains.outHndl.write("0")
+                        else:
+                            for bit in xrange(len(ledCard[card])):
+                                if (bit != 0):
+                                    ProcLedChains.outHndl.write(" | ")
+                                ProcLedChains.outHndl.write(ledCard[card][bit])
                     ProcLedChains.outHndl.write("\n        [ ")
                     for card in xrange(parent.procSimple.numGen2Cards):
                         if (card != 0):
@@ -215,17 +226,21 @@ class ProcLedChains:
                         if len(ledCard[card]) == 0:
                             ProcLedChains.outHndl.write("0")
                         else:
+                            mask = 0
                             for bit in xrange(len(ledCard[card])):
-                                if (bit != 0):
-                                    ProcLedChains.outHndl.write(" | ")
-                                ProcLedChains.outHndl.write(ledCard[card][bit])
-                    ProcLedChains.outHndl.write(" ],\n        [ [ ")
+                                data = parent.procChains.findBit(ledCard[card][bit])
+                                wing = (data >> 16) & 0xff
+                                dataBits = data & 0xffff
+                                mask |= dataBits << (wing << 3)
+                            maskStr = "0x%08x" % mask
+                            ProcLedChains.outHndl.write(maskStr)
+                    ProcLedChains.outHndl.write(" ],\n        [ # ")
+                    #ProcLedChains.outHndl.write(" ],\n        [ [ ")
                     parent.currToken += 1
                     typeProc = ProcLedChains.PROC_LED_BIT
                     firstBit = True
                     ledCard = [[] for _ in range(parent.procSimple.numGen2Cards)]
                 elif  typeProc == ProcLedChains.PROC_LED_BIT:
-                    ProcLedChains.outHndl.write("[ ")
                     for card in xrange(parent.procSimple.numGen2Cards):
                         if (card != 0):
                             ProcLedChains.outHndl.write(", ")
@@ -236,6 +251,21 @@ class ProcLedChains:
                                 if (bit != 0):
                                     ProcLedChains.outHndl.write(" | ")
                                 ProcLedChains.outHndl.write(ledCard[card][bit])
+                    ProcLedChains.outHndl.write("\n          [ [ ")
+                    for card in xrange(parent.procSimple.numGen2Cards):
+                        if (card != 0):
+                            ProcLedChains.outHndl.write(", ")
+                        if len(ledCard[card]) == 0:
+                            ProcLedChains.outHndl.write("0")
+                        else:
+                            mask = 0
+                            for bit in xrange(len(ledCard[card])):
+                                data = parent.procChains.findBit(ledCard[card][bit])
+                                wing = (data >> 16) & 0xff
+                                dataBits = data & 0xffff
+                                mask |= dataBits << (wing << 3)
+                            maskStr = "0x%08x" % mask
+                            ProcLedChains.outHndl.write(maskStr)
                     ProcLedChains.outHndl.write(" ], ")
                     parent.currToken += 1
                     typeProc = ProcLedChains.PROC_COMMAND
@@ -278,7 +308,7 @@ class ProcLedChains:
                     else:
                         # HRS:  This could be improved to verify any set bits are in the mask
                         card = parent.procChains.findBit(parent.tokens[parent.currToken].upper()) >> 24
-                        ledCard[card].append("LedBitNames.{0}".format(parent.tokens[parent.currToken].upper()))
+                        ledCard[card].append(parent.tokens[parent.currToken].upper())
                         firstBit = False
                         parent.currToken += 1
                 else:

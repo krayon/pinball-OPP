@@ -98,15 +98,28 @@ class RulesThread(Thread):
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_rules(self):
+        #Grab debug info
+        if RulesThread.GameData.debug:
+            debugInpStatus = [0] * RulesThread.GameData.numGen2Brd
+            for index in xrange(len(RulesThread.GameData.tkInpBrd)):
+                card = RulesThread.GameData.tkInpBrd[index].brdNum
+                wingShift = RulesThread.GameData.tkInpBrd[index].wing << 3
+                data = TkInpBrd.get_status(RulesThread.GameData.tkInpBrd[index])
+                debugInpStatus[card] |= (data << wingShift)
+            for index in xrange(len(RulesThread.GameData.tkSolBrd)):
+                card = RulesThread.GameData.tkSolBrd[index].brdNum
+                wingShift = RulesThread.GameData.tkSolBrd[index].wing << 3
+                data = TkSolBrd.get_status(RulesThread.GameData.tkSolBrd[index])
+                debugInpStatus[card] |= (data << wingShift)
         #Update the inputs from solenoid and input cards
-        for index in xrange(SolBrd.numSolBrd):
-            RulesThread.GameData.currInpStatus[index] = SolBrd.get_status(RulesThread.GameData.solBrd, index)
+        for index in xrange(RulesThread.GameData.numGen2Brd):
+            RulesThread.GameData.currInpStatus[index] = 0
+            if (SolBrd.validDataMask[index] != 0):
+                RulesThread.GameData.currInpStatus[index] |= SolBrd.get_status(RulesThread.GameData.solBrd, index)
+            if (InpBrd.validDataMask[index] != 0):
+                RulesThread.GameData.currInpStatus[index] |= InpBrd.get_status(RulesThread.GameData.inpBrd, index)
             if RulesThread.GameData.debug:
-                RulesThread.GameData.currSolStatus[index] |= TkSolBrd.get_status(RulesThread.GameData.tkSolBrd[index])
-        for index in xrange(InpBrd.numInpBrd):
-            RulesThread.GameData.currInpStatus[index] = InpBrd.get_status(RulesThread.GameData.inpBrd, index)
-            if RulesThread.GameData.debug:
-                RulesThread.GameData.currInpStatus[index] |= TkInpBrd.get_status(RulesThread.GameData.tkInpBrd[index])
+                RulesThread.GameData.currInpStatus[index] |= debugInpStatus[index]
         
         #Figure out the correct processing chain
         if (RulesThread.GameData.gameMode != RulesThread.GameData.prevGameMode):

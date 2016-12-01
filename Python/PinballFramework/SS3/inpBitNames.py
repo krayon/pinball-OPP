@@ -59,37 +59,37 @@ class InpBitNames:
     def __init__(self):
         pass
 
-    INP_UPPER_RGHT_ROLLOVER          = 0x00040001
-    INP_UPPER_CTR_ROLLOVER           = 0x00040002
-    INP_UPPER_LFT_ROLLOVER           = 0x00040004
-    INP_UPPER_LFT_TOP_TRGT           = 0x00040008
-    INP_UPPER_LFT_BTM_TRGT           = 0x00040010
-    INP_CTR_RGHT_ROLLOVER            = 0x00040020
-    INP_CTR_CTR_ROLLOVER             = 0x00040040
-    INP_CTR_LFT_ROLLOVER             = 0x00040080
-    INP_UPPER_RUBBER                 = 0x01040001
-    INP_SPINNER                      = 0x01040002
-    INP_CTR_RGHT_RUBBER              = 0x01040004
-    INP_JKPOT_ROLLOVER               = 0x01040008
-    INP_BELOW_KICKOUT_RUBBER         = 0x01040010
-    SOL_TOP_DROP_RUBBER              = 0x01040020
-    INP_DROP_TRGT_1S                 = 0x01080001
-    INP_DROP_TRGT_2H                 = 0x01080002
-    INP_DROP_TRGT_3O                 = 0x01080004
-    INP_DROP_TRGT_4O                 = 0x01080008
-    INP_DROP_TRGT_5T                 = 0x01080010
-    INP_DROP_TRGT_6E                 = 0x01080020
-    INP_DROP_TRGT_7R                 = 0x01080040
-    INP_DROP_BANK_MISS               = 0x01080080
-    INP_BTM_LFT_INLN_ROLLOVER        = 0x03040001
-    INP_BTM_LFT_OUTLN_ROLLOVER       = 0x03040002
-    INP_CTR_LOW_ROLLOVER             = 0x03040004
-    INP_BTM_RGHT_RUBBER              = 0x03040008
-    INP_BTM_RGHT_LOW_RUBBER          = 0x03040010
-    INP_SLAM_TILT                    = 0x03080001
-    INP_TILT                         = 0x03080002
-    INP_COIN_DROP                    = 0x03080004
-    INP_START                        = 0x03080008
+    INP_UPPER_RGHT_ROLLOVER          = 0x00020001
+    INP_UPPER_CTR_ROLLOVER           = 0x00020002
+    INP_UPPER_LFT_ROLLOVER           = 0x00020004
+    INP_UPPER_LFT_TOP_TRGT           = 0x00020008
+    INP_UPPER_LFT_BTM_TRGT           = 0x00020010
+    INP_CTR_RGHT_ROLLOVER            = 0x00020020
+    INP_CTR_CTR_ROLLOVER             = 0x00020040
+    INP_CTR_LFT_ROLLOVER             = 0x00020080
+    INP_UPPER_RUBBER                 = 0x01020001
+    INP_SPINNER                      = 0x01020002
+    INP_CTR_RGHT_RUBBER              = 0x01020004
+    INP_JKPOT_ROLLOVER               = 0x01020008
+    INP_BELOW_KICKOUT_RUBBER         = 0x01020010
+    SOL_TOP_DROP_RUBBER              = 0x01020020
+    INP_DROP_TRGT_1S                 = 0x01030001
+    INP_DROP_TRGT_2H                 = 0x01030002
+    INP_DROP_TRGT_3O                 = 0x01030004
+    INP_DROP_TRGT_4O                 = 0x01030008
+    INP_DROP_TRGT_5T                 = 0x01030010
+    INP_DROP_TRGT_6E                 = 0x01030020
+    INP_DROP_TRGT_7R                 = 0x01030040
+    INP_DROP_BANK_MISS               = 0x01030080
+    INP_BTM_LFT_INLN_ROLLOVER        = 0x03020001
+    INP_BTM_LFT_OUTLN_ROLLOVER       = 0x03020002
+    INP_CTR_LOW_ROLLOVER             = 0x03020004
+    INP_BTM_RGHT_RUBBER              = 0x03020008
+    INP_BTM_RGHT_LOW_RUBBER          = 0x03020010
+    INP_SLAM_TILT                    = 0x03030001
+    INP_TILT                         = 0x03030002
+    INP_COIN_DROP                    = 0x03030004
+    INP_START                        = 0x03030008
 
     ## Input board bit names
     # Indexed into using the [InpBitNames](@ref inpBitNames.InpBitNames) class

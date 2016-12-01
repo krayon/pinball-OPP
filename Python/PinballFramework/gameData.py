@@ -103,6 +103,7 @@ class GameData():
     #  and Comms data (switchInpData, switchSolData)
     currInpStatus = []
     wingTypes = []
+    numGen2Brd = 0
     
     #Timer information
     expiredTimers = []
@@ -254,3 +255,4 @@ class GameData():
                 LedBrd.add_card(self.ledBrd, cardIndex, ledWings)
             GameData.wingTypes.append(wingTypes)
             GameData.currInpStatus.append(0)
+            GameData.numGen2Brd += 1

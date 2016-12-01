@@ -143,8 +143,11 @@ class TkinterThread(Thread):
                 ledBlink = list(LedBrd.currBlinkLeds)
                 for i in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
                     ledData[i] |= ledBlink[i]
-            for i in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
-                GameData.tkLedBrd[i].updateLeds(ledData[i])
+            for ledInst in xrange(len(LedBrd.dataRemap)):
+                card = LedBrd.dataRemap[ledInst] >> 16
+                wingShift = (LedBrd.dataRemap[ledInst] & 0xffff) << 3
+                data = (ledData[card] >> wingShift) & 0xff
+                GameData.tkLedBrd[ledInst].updateLeds(data)
             for i in xrange(numSolBrd):
                 GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
             for i in xrange(numInpBrd):

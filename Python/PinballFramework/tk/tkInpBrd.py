@@ -132,7 +132,7 @@ class TkInpBrd():
         #Else this is a pulsed button, set the bit and it will be auto cleared
         else:
             self.simSwitchBits |= (1 << bit)
-        print "Bits = 0x%04x" % self.simSwitchBits
+        print "Card = %d, Wing = %d, Bits = 0x%02x" % (self.brdNum, self.wing, self.simSwitchBits)
             
     ## Combobox callback function
     #
@@ -188,7 +188,7 @@ class TkInpBrd():
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg
-        if (GameData.InpBitNames.INP_BRD_CFG[self.brdNum][bit] == rs232Intf.CFG_INP_STATE):
+        if (GameData.InpBitNames.INP_BRD_CFG[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)] == rs232Intf.CFG_INP_STATE):
             self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses

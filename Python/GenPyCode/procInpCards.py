@@ -231,7 +231,7 @@ class ProcInpCards():
                         return (330)
                     parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INP
                     outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcInpCards.name[self.out].upper(),
-                        ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))))
+                        ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))))
                     
         # Write out the bit name strings
         outHndl.write("\n    ## Input board bit names\n")

@@ -118,7 +118,7 @@ def getInventory(commThread):
     commThread.ser.write(sendCmd)
     
     #add two extra bytes for command and EOM
-    data = getSerialData(commThread, rs232Intf.MAX_NUM_INP_BRD + rs232Intf.MAX_NUM_SOL_BRD + 2)
+    data = getSerialData(commThread, rs232Intf.MAX_NUM_GEN2_CARD + 2)
 
     #Response must have at least inv command and eom or return INVENTORY_NO_RESP
     if (len(data) < 2):
@@ -166,8 +166,8 @@ def getInventory(commThread):
 
             #add to the config/read cmd if necessary
             if (len(commThread.inpBrdCfg) < commThread.numInpBrd):
-                commThread.inpBrdCfg.append(['\x00' for _ in xrange(16)])
-                for cfgIndx in xrange(16):
+                commThread.inpBrdCfg.append(['\x00' for _ in xrange(rs232Intf.NUM_G2_INP_PER_BRD)])
+                for cfgIndx in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
                     commThread.inpBrdCfg[commThread.numInpBrd - 1][cfgIndx] = GameData.InpBitNames.INP_BRD_CFG[commThread.numInpBrd - 1][cfgIndx]
                 commThread.updateInpBrdCfg |= (1 << (commThread.numInpBrd - 1))
                 commThread.readInpCmd.append(data[index])

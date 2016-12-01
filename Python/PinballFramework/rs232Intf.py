@@ -79,6 +79,7 @@ EOM_CMD             = '\xff'
 
 CARD_ID_TYPE_MASK   = '\xf0'
 CARD_ID_GEN2_CARD   = '\x20'
+MAX_NUM_GEN2_CARD   = 0x20
 
 NUM_G2_WING_PER_BRD = 4
 WING_SOL            = '\x01'

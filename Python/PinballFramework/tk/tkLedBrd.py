@@ -122,7 +122,7 @@ class TkLedBrd():
         ledCardBitFrm = Frame(self.ledCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(ledCardBitFrm)
         ledCardBitFrm.grid(column = rs232Intf.NUM_INCAND_PER_WING - bit - 1, row = 0)
-        tmpLbl = Label(ledCardBitFrm, text="%s" % GameData.LedBitNames.LED_BRD_BIT_NAMES[self.brdNum][bit])
+        tmpLbl = Label(ledCardBitFrm, text="%s" % GameData.LedBitNames.LED_BRD_BIT_NAMES[self.brdNum][bit + (self.wing * rs232Intf.NUM_INCAND_PER_WING)])
         tmpLbl.grid(column = 0, row = 0)
         
         #Graphic of LED on
