@@ -218,6 +218,7 @@ class ProcInpCards():
                 outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:
                 outHndl.write(line + "\n")
+                
         # Write out the bit name enumerations
         for cardIndex in xrange(parent.procSimple.numGen2Cards):
             for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
@@ -230,8 +231,18 @@ class ProcInpCards():
                         parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
                         return (330)
                     parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INP
-                    outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcInpCards.name[self.out].upper(),
+                    outHndl.write("    {0:48} = 0x{1:08x}\n".format(ProcInpCards.name[self.out].upper(),
                         ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))))
+
+        # Write out the bit masks enumerations
+        outHndl.write("\n");
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
+            for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    offset = (bitIndex & 0x1f)
+                    name = ProcInpCards.name[self.out].upper() + "_CRD{0}MSK".format(cardIndex)
+                    outHndl.write("    {0:48} = 0x{1:08x}\n".format(name, (1 << offset)))
                     
         # Write out the bit name strings
         outHndl.write("\n    ## Input board bit names\n")

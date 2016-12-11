@@ -271,8 +271,18 @@ class ProcSolCards():
                         parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
                         return (230)
                     parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_SOL
-                    outHndl.write("    {0:32} = 0x{1:08x}\n".format(ProcSolCards.name[self.out].upper(),
-                        ((cardIndex << 24) | ((1 << wingBrdIndex) << 16) | (1 << offset))))
+                    outHndl.write("    {0:48} = 0x{1:08x}\n".format(ProcSolCards.name[self.out].upper(),
+                        ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))))
+
+        # Write out the bit masks enumerations
+        outHndl.write("\n");
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
+            for bitIndex in xrange(ProcSolCards.NUM_SOL_BITS):
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    offset = ((bitIndex & 0x0c) << 1) | (bitIndex & 0x03)
+                    name = ProcSolCards.name[self.out].upper() + "_CRD{0}MSK".format(cardIndex)
+                    outHndl.write("    {0:48} = 0x{1:08x}\n".format(name, (1 << offset)))
 
         # Write out the bit name strings
         outHndl.write("\n    ## Solenoid board bit names\n")

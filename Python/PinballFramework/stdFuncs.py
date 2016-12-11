@@ -111,9 +111,10 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   solenoid card index and bit position
     #  @return True if set 
     def CheckSolBit(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xffff
-        if ((StdFuncs.GameData.currSolStatus[cardNum] & bitPos) != 0):
+        cardNum = (cardBitPos >> 24) & 0xff
+        wingShift = ((cardBitPos >> 16) & 0xff) << 3
+        bitPos = (cardBitPos & 0xffff) << wingShift
+        if ((StdFuncs.GameData.currInpStatus[cardNum] & bitPos) != 0):
             return True
         else:
             return False
@@ -126,8 +127,9 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   LED card index and bit position
     #  @return True if set 
     def CheckLedBit(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xffff
+        cardNum = (cardBitPos >> 24) & 0xff
+        wingShift = ((cardBitPos >> 16) & 0xff) << 3
+        bitPos = (cardBitPos & 0xffff) << wingShift
         if ((LedBrd.currLedData[cardNum] & bitPos) != 0):
             return True
         else:
@@ -450,15 +452,14 @@ class StdFuncs():
     def Led_On(self, cardBitPos):
         # Accepts a single card, or a list of cards
         if (isinstance( cardBitPos, int )):
-            cardNum = (cardBitPos >> 16) & 0xf
-            bitPos = cardBitPos & 0xff
+            cardNum = (cardBitPos >> 24) & 0xff
+            wingShift = ((cardBitPos >> 16) & 0xff) << 3
+            bitPos = (cardBitPos & 0xffff) << wingShift
             LedBrd.currLedData[cardNum] |= bitPos
         else:
-            for curr in xrange(len(cardBitPos)):
-                if cardBitPos[curr] != 0:
-                    cardNum = (cardBitPos[curr] >> 16) & 0xf
-                    bitPos = cardBitPos[curr] & 0xff
-                    LedBrd.currLedData[cardNum] |= bitPos
+            for card in xrange(len(cardBitPos)):
+                if cardBitPos[card] != 0:
+                    LedBrd.currLedData[card] |= cardBitPos[card]
 
     ## Turn LEDs off
     #
@@ -470,15 +471,14 @@ class StdFuncs():
     def Led_Off(self, cardBitPos):
         # Accepts a single card, or a list of cards
         if (isinstance( cardBitPos, int )):
-            cardNum = (cardBitPos >> 16) & 0xf
-            bitPos = cardBitPos & 0xff
+            cardNum = (cardBitPos >> 24) & 0xff
+            wingShift = ((cardBitPos >> 16) & 0xff) << 3
+            bitPos = (cardBitPos & 0xffff) << wingShift
             LedBrd.currLedData[cardNum] &= ~bitPos
         else:
-            for curr in xrange(len(cardBitPos)):
-                if cardBitPos[curr] != 0:
-                    cardNum = (cardBitPos[curr] >> 16) & 0xf
-                    bitPos = cardBitPos[curr] & 0xff
-                    LedBrd.currLedData[cardNum] &= ~bitPos
+            for card in xrange(len(cardBitPos)):
+                if cardBitPos[card] != 0:
+                    LedBrd.currLedData[card] &= ~cardBitPos[card]
 
     ## Set a group of LEDs to a certain state
     #
@@ -491,20 +491,18 @@ class StdFuncs():
     def Led_Set(self, cardBitPos, data):
         # Accepts a single card, or a list of cards
         if (isinstance( cardBitPos, int )):
-            cardNum = (cardBitPos >> 16) & 0xf
-            mask = cardBitPos & 0xff
+            cardNum = (cardBitPos >> 24) & 0xff
+            wingShift = ((cardBitPos >> 16) & 0xff) << 3
+            mask = (cardBitPos & 0xffff) << wingShift
+            shftedData = (data & 0xffff) << wingShift
             LedBrd.currLedData[cardNum] &= ~mask
             LedBrd.currLedData[cardNum] |= data
         else:
             #cardBitPos holds a mask of bits
-            for ledInst in xrange(len(LedBrd.dataRemap)):
-                card = LedBrd.dataRemap[ledInst] >> 16
-                wing = LedBrd.dataRemap[ledInst] & 0xffff
-                wingMask = 0xff << (wing << 3)
-                currMask = cardBitPos[card] & wingMask
-                if (currMask != 0):
-                    LedBrd.currLedData[card] &= ~currMask
-                    LedBrd.currLedData[card] |= (data[card] & currMask)
+            for card in xrange(len(cardBitPos)):
+                if cardBitPos[card] != 0:
+                    LedBrd.currLedData[card] &= ~cardBitPos[card]
+                    LedBrd.currLedData[card] |= data[card]
 
     ## Set a group of LEDs to blink
     #
@@ -516,15 +514,14 @@ class StdFuncs():
     def Led_Blink_100(self, cardBitPos):
         # Accepts a single card, or a list of cards
         if (isinstance( cardBitPos, int )):
-            cardNum = (cardBitPos >> 16) & 0xf
-            bitPos = cardBitPos & 0xff
+            cardNum = (cardBitPos >> 24) & 0xff
+            wingShift = ((cardBitPos >> 16) & 0xff) << 3
+            bitPos = (cardBitPos & 0xffff) << wingShift
             LedBrd.currBlinkLeds[cardNum] |= bitPos
         else:
-            for curr in xrange(len(cardBitPos)):
-                if cardBitPos[curr] != 0:
-                    cardNum = (cardBitPos[curr] >> 16) & 0xf
-                    bitPos = cardBitPos[curr] & 0xff
-                    LedBrd.currBlinkLeds[cardNum] |= bitPos
+            for card in xrange(len(cardBitPos)):
+                if cardBitPos[card] != 0:
+                    LedBrd.currBlinkLeds[card] |= cardBitPos[card]
         
     ## Turn off blink on a group of LEDs
     #
@@ -536,15 +533,14 @@ class StdFuncs():
     def Led_Blink_Off(self, cardBitPos):
         # Accepts a single card, or a list of cards
         if (isinstance( cardBitPos, int )):
-            cardNum = (cardBitPos >> 16) & 0xf
-            mask = cardBitPos & 0xff
+            cardNum = (cardBitPos >> 24) & 0xff
+            wingShift = ((cardBitPos >> 16) & 0xff) << 3
+            mask = (cardBitPos & 0xffff) << wingShift
             LedBrd.currBlinkLeds[cardNum] &= ~mask
         else:
-            for curr in xrange(len(cardBitPos)):
-                if cardBitPos[curr] != 0:
-                    cardNum = (cardBitPos[curr] >> 16) & 0xf
-                    mask = cardBitPos[curr] & 0xff
-                    LedBrd.currBlinkLeds[cardNum] &= ~mask
+            for card in xrange(len(cardBitPos)):
+                if cardBitPos[card] != 0:
+                    LedBrd.currBlinkLeds[card] &= ~cardBitPos[card]
         
     ## Play a sound
     #
@@ -616,14 +612,9 @@ class StdFuncs():
     #
     #  @param  self          [in]   Object reference
     #  @param  inpScoreArr   [in]   input card score array
-    #  @param  solScoreArr   [in]   solenoid card score array
     #  @return True if set 
-    def AddInputScore(self, inpScoreArr, solScoreArr):
-        for cardNum in xrange(InpBrd.numInpBrd):
-            for bitIndex in xrange(rs232Intf.NUM_INP_PER_BRD):
+    def AddInputScore(self, inpScoreArr):
+        for cardNum in xrange(StdFuncs.GameData.numGen2Brd):
+            for bitIndex in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
                 if ((StdFuncs.GameData.currInpStatus[cardNum] & (1 << bitIndex)) != 0):
                     StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += inpScoreArr[cardNum][bitIndex]
-        for cardNum in xrange(SolBrd.numSolBrd):
-            for bitIndex in xrange(rs232Intf.NUM_SOL_PER_BRD):
-                if ((StdFuncs.GameData.currSolStatus[cardNum] & (1 << bitIndex)) != 0):
-                    StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += solScoreArr[cardNum][bitIndex]

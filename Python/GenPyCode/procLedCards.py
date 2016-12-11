@@ -210,6 +210,7 @@ class ProcLedCards():
         # Write out LED bit enumeration
         for cardIndex in xrange(parent.procSimple.numGen2Cards):
             if ((ProcLedCards.hasLedWingMask & (1 << cardIndex)) != 0):
+                allLedMask = 0
                 for wingIndex in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
                     if ((ProcLedCards.ledWingCards[cardIndex] & (1 << wingIndex)) != 0):
                         allBitsName = "LED{0}W{1}_ALL_BITS_MSK".format(cardIndex, wingIndex)
@@ -217,6 +218,10 @@ class ProcLedCards():
                             (cardIndex * 0x1000000) + (wingIndex << 16) + 0x00ff))
                         ProcChains.addName(parent.procChains, allBitsName, ProcChains.LED_BIT)
                         parent.procChains.ledDict[allBitsName] = (cardIndex * 0x1000000) + (wingIndex << 16) + 0x00ff
+                        allLedMask |= 0xff << (wingIndex << 3)
+                if (allLedMask != 0):
+                    allBitsName = "LED_CRD{0}_LIST_BITS_MSK".format(cardIndex)
+                    outHndl.write("    {0:32} = 0x{1:08x}\n".format(allBitsName, allLedMask))
             for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
                 if found:
