@@ -1,0 +1,234 @@
+Cmp-Mod V01 Created by CvPcb (2013-07-07 BZR 4022)-stable date = 12/22/2016 1:06:57 PM
+
+BeginCmp
+TimeStamp = /585B201E;
+Reference = C1;
+ValeurCmp = CP1;
+IdModule  = 00_c10mm_3.5cm;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B1F1D;
+Reference = C2;
+ValeurCmp = CP1;
+IdModule  = 00_c10mm_3.5cm;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B1F2D;
+Reference = C3;
+ValeurCmp = CP1;
+IdModule  = 00_c10mm_3.5cm;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B4B81;
+Reference = D1;
+ValeurCmp = LED;
+IdModule  = 00_led-5mm;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B37D4;
+Reference = D2;
+ValeurCmp = LED;
+IdModule  = 00_led-5mm;
+EndCmp
+
+BeginCmp
+TimeStamp = /55B18636;
+Reference = P1;
+ValeurCmp = CONN2X3MOLEX;
+IdModule  = 00_th2x3x4.2mm_cheap;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B4149;
+Reference = P2;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B43CC;
+Reference = P3;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B478A;
+Reference = P4;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B413D;
+Reference = P5;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B4472;
+Reference = P6;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B4790;
+Reference = P7;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B2841;
+Reference = P8;
+ValeurCmp = CONN2X3MOLEX;
+IdModule  = 00_th2x3x4.2mm_cheap;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B2E4C;
+Reference = P9;
+ValeurCmp = CONN2X3MOLEX;
+IdModule  = 00_th2x3x4.2mm_cheap;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B560F;
+Reference = P10;
+ValeurCmp = CONN_6;
+IdModule  = 00_th1x6x100-lock;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B3EB6;
+Reference = P11;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /585AC4EF;
+Reference = P12;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /585AC4F6;
+Reference = P13;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /585AC4FD;
+Reference = P14;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-2-56;
+EndCmp
+
+BeginCmp
+TimeStamp = /585C169D;
+Reference = P15;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585C16A3;
+Reference = P16;
+ValeurCmp = TST;
+IdModule  = 00_mtg_hole-18awg;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B2291;
+Reference = Q1;
+ValeurCmp = MOSFET_P;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B1243;
+Reference = Q2;
+ValeurCmp = MOSFET_P;
+IdModule  = 00_to220_vert_gds;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B3284;
+Reference = R1;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B2610;
+Reference = R2;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B4B87;
+Reference = R3;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B5600;
+Reference = R4;
+ValeurCmp = 900K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B454C;
+Reference = R5;
+ValeurCmp = 900K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B37E1;
+Reference = R6;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B5606;
+Reference = R7;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B4552;
+Reference = R8;
+ValeurCmp = 100K;
+IdModule  = R1;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B1E33;
+Reference = TH1;
+ValeurCmp = THERMISTOR;
+IdModule  = 00_th1x2x310;
+EndCmp
+
+BeginCmp
+TimeStamp = /585B1E26;
+Reference = TH2;
+ValeurCmp = THERMISTOR;
+IdModule  = 00_th1x2x310;
+EndCmp
+
+EndListe

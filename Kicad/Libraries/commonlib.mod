@@ -1,9 +1,10 @@
-PCBNEW-LibModule-V1  3/29/2016 9:17:55 PM
+PCBNEW-LibModule-V1  12/22/2016 11:09:59 AM
 # encoding utf-8
 Units mm
 $INDEX
 00_blank
 00_c10mm
+00_c10mm_3.5cm
 00_c12.5mm
 00_c2mm
 00_c7.5mm
@@ -69,6 +70,7 @@ $INDEX
 00_th1x2x200
 00_th1x2x2mm_ra
 00_th1x2x3.96
+00_th1x2x310
 00_th1x2x4.2mm_cheap
 00_th1x2x4.2mm_nopeg
 00_th1x2x5mm
@@ -147,6 +149,38 @@ Of 0 0 0
 Ro 0 0 0
 $EndSHAPE3D
 $EndMODULE 00_c10mm
+$MODULE 00_c10mm_3.5cm
+Po 0 0 0 15 585B32C3 00000000 ~~
+Li 00_c10mm_3.5cm
+Cd Condensateur polarise vertical
+Kw CP
+Sc 0
+AR 
+Op 0 0 0
+T0 0 -15.24 3.12166 2.0447 0 0.3048 N V 21 N "C***"
+T1 0 6.096 3.16992 2.70764 0 0.3048 N V 21 N "C10mm"
+DC 0 0 17.5 0 0.15 21
+$PAD
+Sh "2" C 4.0005 4.0005 0 0 0
+Dr 2.19964 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 5.00126 0
+$EndPAD
+$PAD
+Sh "1" R 4.0005 4.0005 0 0 0
+Dr 2.19964 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -5.00126 0
+$EndPAD
+$SHAPE3D
+Na "discret/c_vert_big.wrl"
+Sc 1 1 1
+Of 0 0 0
+Ro 0 0 0
+$EndSHAPE3D
+$EndMODULE 00_c10mm_3.5cm
 $MODULE 00_c12.5mm
 Po 0 0 0 15 4F9AC701 00000000 ~~
 Li 00_c12.5mm
@@ -3868,6 +3902,33 @@ Ne 2 "GND"
 Po 1.9812 0
 $EndPAD
 $EndMODULE 00_th1x2x3.96
+$MODULE 00_th1x2x310
+Po 0 0 0 15 585BFAD2 00000000 ~~
+Li 00_th1x2x310
+Sc 0
+AR th1x2x100-lock
+Op 0 0 0
+T0 0 -2.032 1.524 1.524 0 0.3048 N V 21 N "TH?"
+T1 0 2.413 1.524 1.524 0 0.3048 N I 21 N "NTC Thermistor"
+DS -11.43 -3.556 -11.43 3.556 0.15 21
+DS -11.43 3.556 11.43 3.556 0.15 21
+DS 11.43 3.556 11.43 -3.556 0.15 21
+DS 11.43 -3.556 -11.43 -3.556 0.15 21
+$PAD
+Sh "1" R 1.778 1.778 0 0 0
+Dr 1.27 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po -3.8227 0
+$EndPAD
+$PAD
+Sh "2" C 1.778 1.778 0 0 0
+Dr 1.27 0 0
+At STD N 00E0FFFF
+Ne 0 ""
+Po 3.8227 0
+$EndPAD
+$EndMODULE 00_th1x2x310
 $MODULE 00_th1x2x4.2mm_cheap
 Po 0 0 0 15 56FB2938 00000000 ~~
 Li 00_th1x2x4.2mm_cheap
