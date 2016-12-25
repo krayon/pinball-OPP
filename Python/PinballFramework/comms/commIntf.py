@@ -80,7 +80,7 @@ class CommsState:
 #  @return Can return CMD_OK if good, or BAD_SOL_BRD_NUM, BAD_SOL_NUM,
 #     BAD_PARAM_BYTES if an error.
 def updateSol(commThread, brd, sol, params):
-    if brd > commThread.numSolBrd:
+    if brd > commThread.numGen2Brd:
         return errIntf.BAD_SOL_BRD_NUM
     if sol > rs232Intf.NUM_G2_SOL_PER_BRD:
         return errIntf.BAD_SOL_NUM
@@ -99,7 +99,7 @@ def updateSol(commThread, brd, sol, params):
 #  @param  brd           [in]   Solenoid board number base 0
 #  @return Can return CMD_OK if good, or BAD_SOL_BRD_NUM if an error.
 def sendSolCfg(commThread, brd):
-    if brd > commThread.numSolBrd:
+    if brd > commThread.numGen2Brd:
         return errIntf.BAD_SOL_BRD_NUM
     commThread.updateSolBrdCfg |= (1 << brd)
     return errIntf.CMD_OK
@@ -116,7 +116,7 @@ def sendSolCfg(commThread, brd):
 #  @return Can return CMD_OK if good, or BAD_INP_BRD_NUM, BAD_INP_NUM
 #     if an error.
 def updateInp(commThread, brd, inp, cfg):
-    if brd > commThread.numInpBrd:
+    if brd > commThread.numGen2Brd:
         return errIntf.BAD_INP_BRD_NUM
     if inp > rs232Intf.NUM_G2_INP_PER_BRD:
         return errIntf.BAD_INP_NUM
@@ -132,7 +132,7 @@ def updateInp(commThread, brd, inp, cfg):
 #  @param  brd           [in]   Solenoid board number base 0
 #  @return Can return CMD_OK if good, or BAD_INP_BRD_NUM if an error.
 def sendInpCfg(commThread, brd):
-    if brd > commThread.numInpBrd:
+    if brd > commThread.numGen2Brd:
         return errIntf.BAD_INP_BRD_NUM
     commThread.updateInpBrdCfg |= (1 << brd)
     return errIntf.CMD_OK
@@ -147,7 +147,7 @@ def sendInpCfg(commThread, brd):
 #  @param  sol           [in]   Solenoid number base 0
 #  @return Can return CMD_OK if good, or BAD_SOL_BRD_NUM if an error.
 def sendSolKick(commThread, brd, sol):
-    if brd > commThread.numSolBrd:
+    if brd > commThread.numGen2Brd:
         return errIntf.BAD_SOL_BRD_NUM
     if sol > ((1 << rs232Intf.NUM_SOL_PER_BRD) - 1):
         return errIntf.BAD_SOL_NUM

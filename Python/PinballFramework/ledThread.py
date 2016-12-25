@@ -53,9 +53,6 @@ from threading import Thread
 from hwobjs.ledBrd import LedBrd
 from globConst import GlobConst
 import time
-import platform
-if platform.release() == "XP":
-    import parallel
 
 ## LED thread class.
 #
@@ -84,10 +81,6 @@ class LedThread(Thread):
         super(LedThread, self).__init__()
         self.blinkOn = False
         self.sleep = 0
-        if platform.release() == "XP":
-            self._pport = parallel.Parallel()
-        else:
-            self._pport = None        
 
     ## Initialize LED hardware
     #
@@ -184,11 +177,6 @@ class LedThread(Thread):
             blinkData = LedBrd.currBlinkLeds[::-1]
             for index in xrange(len(LedThread.GameData.RulesData.INV_ADDR_LIST)):
                 ledData[index] |= blinkData[index]
-        if (self._pport != None):
-            for index in xrange(len(LedThread.GameData.RulesData.INV_ADDR_LIST)):
-                ledData[index] &= 0xff
-                ledData[index] ^= 0xff
-            self.updateLights(ledData)
             
     ## The LED thread
     #
@@ -216,58 +204,3 @@ class LedThread(Thread):
             #Sleep until next LED processing time
             time.sleep(float(GlobConst.LED_SLEEP)/1000.0)
             
-    ## Update lights
-    #
-    #  Update all lights using byte list
-    #
-    #  @param  self          [in]   Object reference
-    #  @param  byteList      [in]   List of bytes to send
-    #  @return None 
-    def updateLights(self, byteList):
-        for data in byteList:
-            self.sendByte(data)
-        self.endWrite()
-
-    ## Send byte
-    #
-    #  Bit banging the parallel port control/data lines to send a byte
-    #
-    #  @param  self          [in]   Object reference
-    #  @param  data          [in]   Byte to send
-    #  @return None 
-    def sendByte(self, data):
-        for i in xrange(8):
-            if (data & (1 << i) != 0):
-                #Data bit is set, so clear it
-                dataOut = LedThread._DATA
-            else:
-                #Data bit is clear, so set it
-                dataOut = 0
-            #Set the data up, clock is low, and latch is low
-            self._pport.setData(dataOut)
-            if (self.sleep != 0):
-                time.sleep(self.sleep)
-            #Clock the data bit in
-            self._pport.setData(dataOut | LedThread._CLK)
-            if (self.sleep != 0):
-                time.sleep(self.sleep)
-
-    ## End write
-    #
-    #  End the write and latch the data
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None 
-    def endWrite(self):
-        #Bring the clock low, data doesn't matter, latch remains low
-        self._pport.setData(0)
-        if (self.sleep != 0):
-            time.sleep(self.sleep)
-        #Bring the latch high
-        self._pport.setData(LedThread._LATCH)
-        if (self.sleep != 0):
-            time.sleep(self.sleep)
-        #Bring the latch low to end the cycle
-        self._pport.setData(0)
-        if (self.sleep != 0):
-            time.sleep(self.sleep)

@@ -100,6 +100,64 @@ def rcvEomResp(commThread):
         return (True)
     return (False)
 
+## Send get Gen2 wing config
+#
+#  @param  cardNum    [in]   Index of the card
+#  @return True if error
+def sendReadWingCfgCmd(cardNum):
+    cmdArr = []
+    cmdArr.append(commThread.addrArr[cardNum])
+    cmdArr.append(rs232Intf.GET_GEN2_CFG)
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    commThread.ser.write(sendCmd)
+
+## Rcv Gen2 wing config responses
+#
+#  @param  cardNum    [in]   Index of the card
+#  @return True if error
+def rcvReadWingCfgResp(cardNum):
+    data = getSerialData();
+    if (data[0] != commThread.gen2AddrArr[cardNum]):
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
+        print repr(data)
+        return (True)
+    if (data[1] != rs232Intf.GET_GEN2_CFG):
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.GET_GEN2_CFG))
+        print repr(data)
+        return (True)
+    tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
+    crc8 = calcCrc8(tmpData)
+    if (data[6] != crc8):
+        print "\nBad CRC, Data = %d, expected = %d" % (ord(data[6]),crc8)
+        return (True)
+    if (data[7] != rs232Intf.EOM_CMD):
+        print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
+        return (True)
+    commThread.currWingCfg.append((ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5]))
+
+    # Verify wings match configuration
+    bad = False
+    hasSol = False
+    hasInp = False
+    for index in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+        if (data[index + 2] != GameData.RulesData.INV_ADDR_LIST[cardNum][index]):
+            print "\nBad brd %d wing %d cfg, Data = 0x%02x, expected = 0x%02x" % (cardNum, index, data[index + 2], GameData.RulesData.INV_ADDR_LIST[cardNum][index])
+            bad = true;
+        if (data[index + 2] == rs232Intf.WING_SOL):
+            hasSol = True
+        if ((data[index + 2] == rs232Intf.WING_INP) or (data[index + 2] == rs232Intf.WING_SOL)):
+            hasInp = True
+    commThread.hasSol.append(hasSol)
+    commThread.hasInp.append(hasInp)
+    if bad:
+         return (True)
+
 ## Get inventory
 #
 #  Grab the inventory and make sure a valid response was received.  Verify
@@ -133,55 +191,21 @@ def getInventory(commThread):
 
     #Reset variables so function can be run more than once.
     #  Note:  Config of boards is not reset
-    commThread.numSolBrd = 0
-    commThread.solAddrArr = []
-    commThread.currSolData = []
-    commThread.solKickVal = []
-    commThread.numInpBrd = 0
-    commThread.inpAddrArr = []
+    commThread.numGen2Brd = 0
+    commThread.gen2AddrArr = []
+    commThread.currWingCfg = []
+    commThread.hasSol = []
+    commThread.hasInp = []
     commThread.currInpData = []
-    
+    commThread.solKickVal = []
+
+    #Calculate number of cards reported in the system    
     added = False
     while (data[index] != rs232Intf.EOM_CMD):
-        if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_SOL_CARD)):
-            commThread.numSolBrd += 1
-            commThread.solAddrArr.append(data[index])
-            commThread.currSolData.append(0)
-            commThread.solKickVal.append(0)
-
-            #add to the config/read cmd if necessary
-            if (len(commThread.solBrdCfg) < commThread.numSolBrd):
-                commThread.solBrdCfg.append(['\x00' for _ in xrange(24)])
-                for cfgIndx in xrange(24):
-                    commThread.solBrdCfg[commThread.numSolBrd - 1][cfgIndx] = GameData.SolBitNames.SOL_BRD_CFG[commThread.numSolBrd - 1][cfgIndx]
-                commThread.updateSolBrdCfg |= (1 << (commThread.numSolBrd - 1))
-                commThread.readInpCmd.append(data[index])
-                commThread.readInpCmd.append(rs232Intf.READ_SOL_INP_CMD)
-                commThread.readInpCmd.append('\x00')
-                added = True
-        elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
-            commThread.numInpBrd += 1
-            commThread.inpAddrArr.append(data[index])
-            commThread.currInpData.append(0)
-
-            #add to the config/read cmd if necessary
-            if (len(commThread.inpBrdCfg) < commThread.numInpBrd):
-                commThread.inpBrdCfg.append(['\x00' for _ in xrange(rs232Intf.NUM_G2_INP_PER_BRD)])
-                for cfgIndx in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
-                    commThread.inpBrdCfg[commThread.numInpBrd - 1][cfgIndx] = GameData.InpBitNames.INP_BRD_CFG[commThread.numInpBrd - 1][cfgIndx]
-                commThread.updateInpBrdCfg |= (1 << (commThread.numInpBrd - 1))
-                commThread.readInpCmd.append(data[index])
-                commThread.readInpCmd.append(rs232Intf.READ_INP_BRD_CMD)
-                commThread.readInpCmd.append('\x00')
-                commThread.readInpCmd.append('\x00')
-                added = True
-        index += 1
-    if added:
-        commThread.readInpCmd.append(rs232Intf.EOM_CMD)
-        commThread.readInpStr = ''.join(commThread.readInpCmd)
-    if (index + 1 != len(data)):
-        return (errIntf.EXTRA_INFO_RCVD)
-    
+        if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_GEN2_CARD)):
+            commThread.numGen2Brd += 1
+            commThread.gen2AddrArr.append(data[index])
+            
     #Store off the response removing command and EOM
     commThread.invResp = list(data[1:-1])
     
@@ -190,12 +214,43 @@ def getInventory(commThread):
         print "Bad Num Cards.  Expected = %d, Found = %d" % \
             (len(GameData.RulesData.INV_ADDR_LIST), len(commThread.invResp))
         return (errIntf.BAD_NUM_CARDS)
-    for i in xrange(len(commThread.invResp)):
-        if (ord(commThread.invResp[i]) != GameData.RulesData.INV_ADDR_LIST[i]):
-            print "Inv match fail.  Expected = 0x%02x, Rcvd = 0x%02x, index = %d" % \
-                (GameData.RulesData.INV_ADDR_LIST[i], ord(commThread.invResp[i]), i)
+
+    #Send to the command to get Gen2Cfg for all the cards
+    for index in xrange(commThread.numGen2Brd):
+        sendReadWingCfgCmd(index)
+        error = rcvReadWingCfgResp(index)
+        if error:
             return (errIntf.INV_MATCH_FAIL)
-        
+
+    # Create configuration and input command strings
+    for index in xrange(commThread.numGen2Brd):
+        # Create input and kick values even if no solenoids. Allows
+        # single index to be used which is qualified wih hasSol or hasInp
+        commThread.currInpData.append(0)
+        commThread.solKickVal.append(0)
+        if (commThread.hasSol[index]):
+            commThread.solBrdCfg.append(['\x00' for _ in xrange(rs232Intf.NUM_G2_SOL_PER_BRD * rs232Intf.CFG_BYTES_PER_SOL)])
+            for cfgIndx in xrange(rs232Intf.NUM_G2_SOL_PER_BRD * rs232Intf.CFG_BYTES_PER_SOL):
+                commThread.solBrdCfg[index][cfgIndx] = GameData.SolBitNames.SOL_BRD_CFG[index][cfgIndx]
+            commThread.updateSolBrdCfg |= (1 << index)
+        else:
+            commThread.solBrdCfg.append([])
+        if (commThread.hasInp[index]):
+            commThread.inpBrdCfg.append(['\x00' for _ in xrange(rs232Intf.NUM_G2_INP_PER_BRD * rs232Intf.CFG_BYTES_PER_INP)])
+            for cfgIndx in xrange(rs232Intf.NUM_G2_INP_PER_BRD * rs232Intf.CFG_BYTES_PER_INP):
+                commThread.inpBrdCfg[index][cfgIndx] = GameData.InpBitNames.INP_BRD_CFG[index][cfgIndx]
+            commThread.updateInpBrdCfg |= (1 << (index - 1))
+            cmdArr = []
+            cmdArr.append(commThread.gen2AddrArr[index])
+            cmdArr.append(rs232Intf.READ_GEN2_INP_CMD)
+            cmdArr.append('\x00')
+            cmdArr.append('\x00')
+            cmdArr.append('\x00')
+            cmdArr.append('\x00')
+            cmdArr.append(calcCrc8(cmdArr))
+            commThread.readInpCmd = commThread.readInpCmd + cmdArr
+    commThread.readInpCmd.append(rs232Intf.EOM_CMD)
+    commThread.readInpStr = ''.join(commThread.readInpCmd)
     return (errIntf.CMD_OK)
 
 ## Create Cfg Arrays
@@ -211,6 +266,9 @@ def createCfgArr(commThread):
         commThread.solKickVal.append(0)
     for index in xrange(len(GameData.InpBitNames.INP_BRD_CFG)):
         commThread.inpBrdCfg.append(GameData.InpBitNames.INP_BRD_CFG[index])
+    commThread.numGen2Brd = GameData.numGen2Brd
+    for index in xrange(GameData.numGen2Brd):
+        commThread.gen2AddrArr.append(chr(ord(rs232Intf.CARD_ID_GEN2_CARD) + index))
 
 ## Send configuration
 #
@@ -223,19 +281,18 @@ def createCfgArr(commThread):
 def sendConfig(commThread, solBrd, index):
     cmdArr = []
     if solBrd:
-        addr = commThread.solAddrArr[index]
-        cmdArr.append(addr)
+        cmdArr.append(commThread.gen2AddrArr[index])
         cmdArr.append(rs232Intf.CFG_SOL_CMD)
-        for loop in xrange(rs232Intf.NUM_SOL_PER_BRD):
+        for loop in xrange(rs232Intf.NUM_G2_SOL_PER_BRD):
             cmdArr.append(commThread.solBrdCfg[index][loop * 3])
             cmdArr.append(commThread.solBrdCfg[index][(loop * 3) + 1])
             cmdArr.append(commThread.solBrdCfg[index][(loop * 3) + 2])
     else:
-        addr = commThread.inpAddrArr[index]
-        cmdArr.append(addr)
+        cmdArr.append(commThread.gen2AddrArr[index])
         cmdArr.append(rs232Intf.CFG_INP_CMD)
-        for loop in xrange(rs232Intf.NUM_INP_PER_BRD):
+        for loop in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
             cmdArr.append(commThread.inpBrdCfg[index][loop])
+    cmdArr.append(calcCrc8(cmdArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     commThread.ser.write(sendCmd)
@@ -257,19 +314,24 @@ def sendConfig(commThread, solBrd, index):
 def readInputs(commThread):
     commThread.ser.write(commThread.readInpStr)
     data = getSerialData(commThread, len(commThread.readInpStr))
-    if (len(data) == len(commThread.readInpStr)):
+    intData = [ord(i) for i in data]
+    if (len(intData) == len(commThread.readInpStr)):
         index = 0
-        while index < len(data):
-            boardIndex = ord(data[index]) & 0x0f
-            if ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_SOL_CARD)):
-                if data[index + 1] == rs232Intf.READ_SOL_INP_CMD:
-                    SolBrd.update_status(GameData.solBrd, boardIndex, ord(data[index + 2]))
-                    index += 3
-            elif ((ord(data[index]) & ord(rs232Intf.CARD_ID_TYPE_MASK)) == ord(rs232Intf.CARD_ID_INP_CARD)):
-                if data[index + 1] == rs232Intf.READ_INP_BRD_CMD:
-                    status = (ord(data[index + 2]) << 8) | ord(data[index + 3])
-                    InpBrd.update_status(GameData.inpBrd, boardIndex, status)
-                    index += 4
+        while index < len(intData):
+            boardIndex = intData[index] & 0x01f
+            if data[index + 1] == rs232Intf.READ_GEN2_INP_CMD:
+                rcvCmd = data[index: index + 6]
+                crc = calcCrc8(rcvCmd)
+                if (crc != data[index + 6]):
+                    print "Bad CRC input response:  Rcv'd 0x02x, Expected 0x02x" % (intData[index + 6], ord(crc))
+                else:
+                    status = (ord(data[index + 2]) << 24) | (ord(data[index + 3]) << 16) | (ord(data[index + 4]) << 8) | ord(data[index + 5])
+                    commThread.currInpData[boardIndex] = status
+                    if (commThread.hasSol[boardIndex]):
+                        SolBrd.update_status(GameData.solBrd, boardIndex, status)
+                    if (commThread.hasInp[boardIndex]):
+                        InpBrd.update_status(GameData.inpBrd, boardIndex, status)
+                index += 7
             else:
                 index +=1
     else:
@@ -285,7 +347,7 @@ def readInputs(commThread):
 def sendKick(commThread, solBrd):
     cmdArr = []
     clearArr = []
-    addr = commThread.solAddrArr[solBrd]
+    addr = commThread.gen2AddrArr[solBrd]
     cmdArr.append(addr)
     clearArr.append(addr)
     cmdArr.append(rs232Intf.KICK_SOL_CMD)
@@ -293,11 +355,17 @@ def sendKick(commThread, solBrd):
     value = commThread.solKickVal[solBrd]
     commThread.solKickVal[solBrd] = 0
     # Value
-    cmdArr.append(chr(value))
+    cmdArr.append(chr((value >> 8) & 0xff))
+    clearArr.append(chr(0))
+    cmdArr.append(chr(value & 0xff))
     clearArr.append(chr(0))
     # Mask
-    cmdArr.append(chr(value))
-    clearArr.append(chr(value))
+    cmdArr.append(chr((value >> 8) & 0xff))
+    clearArr.append(chr((value >> 8) & 0xff))
+    cmdArr.append(chr(value & 0xff))
+    clearArr.append(chr(value & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    clearArr.append(calcCrc8(clearArr))
     cmdArr.append(rs232Intf.EOM_CMD)
     clearArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
@@ -319,3 +387,88 @@ def sendKick(commThread, solBrd):
         print "Kick error, Addr = 0x%02x" % addr
         return (errIntf.KICK_BAD_RESP)
     return (errIntf.CMD_OK)
+
+## Send LED on
+#
+#  Send an LED on command
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  card          [in]   Card that contains LEDs
+#  @param  mask          [in]   Mask of bits to turn on
+#  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
+def sendLedOn(commThread, card, mask):
+    cmdArr = []
+    cmdArr.append(commThread.gen2AddrArr[card])
+    cmdArr.append(rs232Intf.INCAND_CMD)
+    cmdArr.append(rs232Intf.INCAND_LED_ON)
+    cmdArr.append(chr((mask >> 24) & 0xff))
+    cmdArr.append(chr((mask >> 16) & 0xff))
+    cmdArr.append(chr((mask >> 8) & 0xff))
+    cmdArr.append(chr(mask & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    sendCmd = ''.join(cmdArr)
+    commThread.pendCmds += sendCmd
+
+## Send LED off
+#
+#  Send an LED off command
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  card          [in]   Card that contains LEDs
+#  @param  mask          [in]   Mask of bits to turn on
+#  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
+def sendLedOff(commThread, card, mask):
+    cmdArr = []
+    cmdArr.append(commThread.gen2AddrArr[card])
+    cmdArr.append(rs232Intf.INCAND_CMD)
+    cmdArr.append(rs232Intf.INCAND_LED_OFF)
+    cmdArr.append(chr((mask >> 24) & 0xff))
+    cmdArr.append(chr((mask >> 16) & 0xff))
+    cmdArr.append(chr((mask >> 8) & 0xff))
+    cmdArr.append(chr(mask & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    sendCmd = ''.join(cmdArr)
+    commThread.pendCmds += sendCmd
+
+## Send LED blink on
+#
+#  Send an LED blink on command
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  card          [in]   Card that contains LEDs
+#  @param  mask          [in]   Mask of bits to turn on
+#  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
+def sendLedOn(commThread, card, mask):
+    cmdArr = []
+    cmdArr.append(commThread.gen2AddrArr[card])
+    cmdArr.append(rs232Intf.INCAND_CMD)
+    cmdArr.append(rs232Intf.INCAND_BLINK_FAST)
+    cmdArr.append(chr((mask >> 24) & 0xff))
+    cmdArr.append(chr((mask >> 16) & 0xff))
+    cmdArr.append(chr((mask >> 8) & 0xff))
+    cmdArr.append(chr(mask & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    sendCmd = ''.join(cmdArr)
+    commThread.pendCmds += sendCmd
+
+## Send LED blink off
+#
+#  Send an LED blink off command
+#
+#  @param  commThread    [in]   Comm thread object
+#  @param  card          [in]   Card that contains LEDs
+#  @param  mask          [in]   Mask of bits to turn on
+#  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
+def sendLedOff(commThread, card, mask):
+    cmdArr = []
+    cmdArr.append(commThread.gen2AddrArr[card])
+    cmdArr.append(rs232Intf.INCAND_CMD)
+    cmdArr.append(rs232Intf.INCAND_BLINK_OFF)
+    cmdArr.append(chr((mask >> 24) & 0xff))
+    cmdArr.append(chr((mask >> 16) & 0xff))
+    cmdArr.append(chr((mask >> 8) & 0xff))
+    cmdArr.append(chr(mask & 0xff))
+    cmdArr.append(calcCrc8(cmdArr))
+    sendCmd = ''.join(cmdArr)
+    commThread.pendCmds += sendCmd
+

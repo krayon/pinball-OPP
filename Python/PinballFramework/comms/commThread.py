@@ -74,8 +74,20 @@ class CommThread(Thread):
         super(CommThread, self).__init__()
         
         #Data that is shared with the interface file
-        ## Number of solenoid boards
-        self.numSolBrd = 0
+        ## Number of Gen2 boards
+        self.numGen2Brd = 0
+        
+        ## Gen2 board addresses
+        self.gen2AddrArr = []
+                
+        ## Gen2 wing configurations
+        self.currWingCfg = []
+        
+        ## True if has a solenoid configuration
+        self.hasSol = []
+        
+        ## True if has an input configuration
+        self.hasInp = []
         
         ## Bitmask to request update cfg for solenoid brd
         self.updateSolBrdCfg = 0
@@ -86,14 +98,8 @@ class CommThread(Thread):
         ## Solenoid board configurations
         self.solBrdCfg = []
         
-        ## Solenoid board addresses
-        self.solAddrArr = []
-        
         ## Solenoid kick value
         self.solKickVal = []
-        
-        ## Number of input boards
-        self.numInpBrd = 0
         
         ## Bitmask to request update cfg for input brd
         self.updateInpBrdCfg = 0
@@ -101,14 +107,8 @@ class CommThread(Thread):
         ## Input board configurations
         self.inpBrdCfg = []
         
-        ## Input board addresses
-        self.inpAddrArr = []
-        
         ## Rcvd switch data from input boards
-        self.switchInpData = []
-        
-        ## Rcvd switch data from solenoid boards
-        self.switchSolData = []
+        self.currInpData = []
         
         ## Serial port object
         self.ser = None
@@ -118,6 +118,9 @@ class CommThread(Thread):
 
         ## Read inputs cmd array
         self.readInpCmd = []
+        
+        ## Pending commands array
+        self.pendCmds = []
         
         ## Read inputs str
         self.readInpStr = []
@@ -134,7 +137,7 @@ class CommThread(Thread):
     def init(self, portId):
         if (portId != ""):
             try:
-                self.ser=serial.Serial(portId, baudrate=19200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
+                self.ser=serial.Serial(portId, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
             except serial.SerialException:
                 GameData.commState = CommsState.COMM_ERROR_OCC
                 print "Can't open COM port: %s" % portId
@@ -187,6 +190,13 @@ class CommThread(Thread):
                 if ((self.kickSolBrd & (1 << board)) != 0):
                     self.kickSolBrd &= ~(1 << board)
                     commHelp.sendKick(self, board)
+        if (len(self.pendCmds) != 0):
+            sendCmd = self.pendCmds + str(rs232Intf.EOM_CMD)
+            self.pendCmds = []
+            commThread.ser.write(sendCmd)
+            error = rcvEomResp(commThread)
+            if error:
+                print "Send pend cmd error: %s" % ":".join("{:02x}".format(ord(c)) for c in sendCmd)
         commHelp.readInputs(self)
         
     

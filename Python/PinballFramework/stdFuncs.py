@@ -456,10 +456,12 @@ class StdFuncs():
             wingShift = ((cardBitPos >> 16) & 0xff) << 3
             bitPos = (cardBitPos & 0xffff) << wingShift
             LedBrd.currLedData[cardNum] |= bitPos
+            comms.commHelp.sendLedOn(StdFuncs.GameData.commThread, cardNum, bitPos)
         else:
             for card in xrange(len(cardBitPos)):
                 if cardBitPos[card] != 0:
                     LedBrd.currLedData[card] |= cardBitPos[card]
+                    comms.commHelp.sendLedOn(StdFuncs.GameData.commThread, card, cardBitPos[card])
 
     ## Turn LEDs off
     #
@@ -475,10 +477,12 @@ class StdFuncs():
             wingShift = ((cardBitPos >> 16) & 0xff) << 3
             bitPos = (cardBitPos & 0xffff) << wingShift
             LedBrd.currLedData[cardNum] &= ~bitPos
+            comms.commHelp.sendLedOff(StdFuncs.GameData.commThread, cardNum, bitPos)
         else:
             for card in xrange(len(cardBitPos)):
                 if cardBitPos[card] != 0:
                     LedBrd.currLedData[card] &= ~cardBitPos[card]
+                    comms.commHelp.sendLedOff(StdFuncs.GameData.commThread, card, cardBitPos[card])
 
     ## Set a group of LEDs to a certain state
     #
@@ -497,13 +501,17 @@ class StdFuncs():
             shftedData = (data & 0xffff) << wingShift
             LedBrd.currLedData[cardNum] &= ~mask
             LedBrd.currLedData[cardNum] |= data
+            comms.commHelp.sendLedOn(StdFuncs.GameData.commThread, cardNum, data)
+            comms.commHelp.sendLedOff(StdFuncs.GameData.commThread, cardNum, mask ^ data)
         else:
             #cardBitPos holds a mask of bits
             for card in xrange(len(cardBitPos)):
                 if cardBitPos[card] != 0:
                     LedBrd.currLedData[card] &= ~cardBitPos[card]
                     LedBrd.currLedData[card] |= data[card]
-
+                    comms.commHelp.sendLedOn(StdFuncs.GameData.commThread, card, data[card])
+                    comms.commHelp.sendLedOff(StdFuncs.GameData.commThread, card, cardBitPos[card] ^ data[card])
+  
     ## Set a group of LEDs to blink
     #
     #  Set a group of LEDs to blink rapidly
@@ -518,10 +526,12 @@ class StdFuncs():
             wingShift = ((cardBitPos >> 16) & 0xff) << 3
             bitPos = (cardBitPos & 0xffff) << wingShift
             LedBrd.currBlinkLeds[cardNum] |= bitPos
+            comms.commHelp.sendLedBlinkOn(StdFuncs.GameData.commThread, cardNum, bitPos)
         else:
             for card in xrange(len(cardBitPos)):
                 if cardBitPos[card] != 0:
                     LedBrd.currBlinkLeds[card] |= cardBitPos[card]
+                    comms.commHelp.sendLedBlinkOn(StdFuncs.GameData.commThread, card, cardBitPos[card])
         
     ## Turn off blink on a group of LEDs
     #
@@ -537,10 +547,12 @@ class StdFuncs():
             wingShift = ((cardBitPos >> 16) & 0xff) << 3
             mask = (cardBitPos & 0xffff) << wingShift
             LedBrd.currBlinkLeds[cardNum] &= ~mask
+            comms.commHelp.sendLedBlinkOff(StdFuncs.GameData.commThread, cardNum, mask)
         else:
             for card in xrange(len(cardBitPos)):
                 if cardBitPos[card] != 0:
                     LedBrd.currBlinkLeds[card] &= ~cardBitPos[card]
+                    comms.commHelp.sendLedBlinkOff(StdFuncs.GameData.commThread, card, cardBitPos[card])
         
     ## Play a sound
     #
