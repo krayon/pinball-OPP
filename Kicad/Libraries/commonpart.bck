@@ -1,4 +1,4 @@
-EESchema-DOCLIB  Version 2.0  Date: 12/21/2016 6:53:08 PM
+EESchema-DOCLIB  Version 2.0  Date: 12/29/2016 9:45:18 AM
 #
 $CMP 39SF0X0
 D Flash, 128Kx8, 256Kx8, 512Kx8
@@ -8,6 +8,11 @@ $ENDCMP
 $CMP BRIDGE
 D Pont de Diodes
 K Pont Diode
+$ENDCMP
+#
+$CMP CONN1x16
+D Symbole general de connexion
+K CONN
 $ENDCMP
 #
 $CMP CONN1X18
@@ -24,6 +29,11 @@ K CONN
 $ENDCMP
 #
 $CMP CONN2X7
+K CONN
+$ENDCMP
+#
+$CMP CONN_15
+D Symbole general de connexion
 K CONN
 $ENDCMP
 #
