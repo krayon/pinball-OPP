@@ -59,7 +59,10 @@ class SolBrd():
     #  is automatically cleared after being used.
     solCfgBitfield = []
     
-    ## Current data read from card
+    ## Last data read from card
+    lastData = []
+    
+    ## Current including latched and state data
     currSolData = []
     
     ## Mask of valid input bits on this card
@@ -78,6 +81,7 @@ class SolBrd():
         for card in xrange(numBrds):
             SolBrd.solCfgBitfield.append(0)
             SolBrd.currSolData.append(0)
+            SolBrd.lastData.append(0)
             SolBrd.validDataMask.append(0)
     
     ## Add input card function
@@ -98,7 +102,9 @@ class SolBrd():
             if (GameData.SolBitNames.SOL_BRD_CFG[card][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
                 (GameData.SolBitNames.SOL_BRD_CFG[card][cmdOffset] == rs232Intf.CFG_SOL_DISABLE) or \
                 (ord(GameData.SolBitNames.SOL_BRD_CFG[card][holdOffset]) != 0):
-                bitField |= (1 << bit)
+                wing = (bit & 0x0c) >> 2
+                if (wingMask & (1 << wing) != 0):
+                    bitField |= ((1 << (bit & 0x3)) << (wing << 3))
         inputBitsMask = 0x0f
         mask = 0
         for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
@@ -123,6 +129,7 @@ class SolBrd():
         latchData = (SolBrd.currSolData[card] | data) & ~SolBrd.solCfgBitfield[card]
         stateData = (data & SolBrd.solCfgBitfield[card]) ^ SolBrd.solCfgBitfield[card]
         SolBrd.currSolData[card] = latchData | stateData
+        SolBrd.lastData[card] = data
         
     ## Get input status
     #

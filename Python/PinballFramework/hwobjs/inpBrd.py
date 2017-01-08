@@ -57,6 +57,9 @@ class InpBrd():
     #  is automatically cleared after being used.
     inpCfgBitfield = []
     
+    ## Last data read from card
+    lastData = []
+    
     ## Current data read from card
     currInpData = []
     
@@ -76,6 +79,7 @@ class InpBrd():
         for card in xrange(numBrds):
             InpBrd.inpCfgBitfield.append(0)
             InpBrd.currInpData.append(0)
+            InpBrd.lastData.append(0)
             InpBrd.validDataMask.append(0)
         
     ## Add input card function
@@ -116,6 +120,7 @@ class InpBrd():
         latchData = (InpBrd.currInpData[card] | data) & ~InpBrd.inpCfgBitfield[card]
         stateData = (data & InpBrd.inpCfgBitfield[card]) ^ InpBrd.inpCfgBitfield[card]
         InpBrd.currInpData[card] = latchData | stateData
+        InpBrd.lastData[card] = data
         
     ## Get input status
     #

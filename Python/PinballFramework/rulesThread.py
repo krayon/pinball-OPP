@@ -115,9 +115,11 @@ class RulesThread(Thread):
         for index in xrange(RulesThread.GameData.numGen2Brd):
             RulesThread.GameData.currInpStatus[index] = 0
             if (SolBrd.validDataMask[index] != 0):
-                RulesThread.GameData.currInpStatus[index] |= SolBrd.get_status(RulesThread.GameData.solBrd, index)
+                data = SolBrd.get_status(RulesThread.GameData.solBrd, index) & SolBrd.validDataMask[index]
+                RulesThread.GameData.currInpStatus[index] |= data
             if (InpBrd.validDataMask[index] != 0):
-                RulesThread.GameData.currInpStatus[index] |= InpBrd.get_status(RulesThread.GameData.inpBrd, index)
+                data = InpBrd.get_status(RulesThread.GameData.inpBrd, index) & InpBrd.validDataMask[index]
+                RulesThread.GameData.currInpStatus[index] |= data
             if RulesThread.GameData.debug:
                 RulesThread.GameData.currInpStatus[index] |= debugInpStatus[index]
         

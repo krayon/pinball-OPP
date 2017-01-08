@@ -149,7 +149,7 @@ def sendInpCfg(commThread, brd):
 def sendSolKick(commThread, brd, sol):
     if brd > commThread.numGen2Brd:
         return errIntf.BAD_SOL_BRD_NUM
-    if sol > ((1 << rs232Intf.NUM_SOL_PER_BRD) - 1):
+    if sol > ((1 << rs232Intf.NUM_G2_SOL_PER_BRD) - 1):
         return errIntf.BAD_SOL_NUM
     commThread.solKickVal[brd] |= sol
     commThread.kickSolBrd |= (1 << brd)

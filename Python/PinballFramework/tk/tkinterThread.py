@@ -115,18 +115,18 @@ class TkinterThread(Thread):
         bgndFrm = VerticalScrolledFrame(root)
         cmdFrm = TkCmdFrm(bgndFrm.interior)  # Changed to bgndFrm.interior
         bgndFrm.pack()
-        numInpBrd = 0
-        numSolBrd = 0
+        numInpWing = 0
+        numSolWing = 0
         for card in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
             for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
                 if (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INP):
                     # Check if there is no configuration which indicates it is an empty wing board
                     if (len(TkinterThread.GameData.InpBitNames.INP_BRD_CFG[card]) != 0):
                         GameData.tkInpBrd.append(TkInpBrd(card, wing, bgndFrm.interior))
-                        numInpBrd += 1
+                        numInpWing += 1
                 elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_SOL):
                     GameData.tkSolBrd.append(TkSolBrd(card, wing, bgndFrm.interior))   # Changed to bgndFrm.interior
-                    numSolBrd += 1
+                    numSolWing += 1
                 elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INCAND):
                     GameData.tkLedBrd.append(TkLedBrd(card, wing, bgndFrm.interior))
         root.update()
@@ -148,12 +148,14 @@ class TkinterThread(Thread):
                 wingShift = (LedBrd.dataRemap[ledInst] & 0xffff) << 3
                 data = (ledData[card] >> wingShift) & 0xff
                 GameData.tkLedBrd[ledInst].updateLeds(data)
-            for i in xrange(numSolBrd):
-                GameData.tkSolBrd[i].update_status_field(SolBrd.currSolData[i])
-            for i in xrange(numInpBrd):
+            for i in xrange(numSolWing):
+                remapCard = SolBrd.dataRemap[i] >> 16
+                remapWingShift = (SolBrd.dataRemap[i] & 0xffff) << 3
+                GameData.tkSolBrd[i].update_status_field((SolBrd.lastData[remapCard] >> remapWingShift) & 0x0f)
+            for i in xrange(numInpWing):
                 remapCard = InpBrd.dataRemap[i] >> 16
                 remapWingShift = (InpBrd.dataRemap[i] & 0xffff) << 3
-                GameData.tkInpBrd[i].update_status_field((InpBrd.currInpData[remapCard] >> remapWingShift) & 0xff)
+                GameData.tkInpBrd[i].update_status_field((InpBrd.lastData[remapCard] >> remapWingShift) & 0xff)
             dummy_count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)
 

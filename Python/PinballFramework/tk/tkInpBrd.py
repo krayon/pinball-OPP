@@ -104,7 +104,7 @@ class TkInpBrd():
         tmpLbl = Label(inpCardInfoFrm, text="Status")
         tmpLbl.grid(column = 0, row = 3)
         tmpLbl = Label(inpCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
-        self.statLbl.set("0x%04x" % self.dispInpValue)
+        self.statLbl.set("0x%02x" % self.dispInpValue)
         tmpLbl.grid(column = 0, row = 4)
 
         #Configure btnCfgBitfield to initial value set by card cfg

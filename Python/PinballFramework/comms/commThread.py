@@ -119,8 +119,8 @@ class CommThread(Thread):
         ## Read inputs cmd array
         self.readInpCmd = []
         
-        ## Pending commands array
-        self.pendCmds = []
+        ## Pending commands string
+        self.pendCmds = ""
         
         ## Read inputs str
         self.readInpStr = []
@@ -192,9 +192,9 @@ class CommThread(Thread):
                     commHelp.sendKick(self, board)
         if (len(self.pendCmds) != 0):
             sendCmd = self.pendCmds + str(rs232Intf.EOM_CMD)
-            self.pendCmds = []
-            commThread.ser.write(sendCmd)
-            error = rcvEomResp(commThread)
+            self.pendCmds = ""
+            self.ser.write(sendCmd)
+            error = commHelp.rcvEomResp(self)
             if error:
                 print "Send pend cmd error: %s" % ":".join("{:02x}".format(ord(c)) for c in sendCmd)
         commHelp.readInputs(self)

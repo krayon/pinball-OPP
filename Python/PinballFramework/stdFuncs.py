@@ -629,4 +629,5 @@ class StdFuncs():
         for cardNum in xrange(StdFuncs.GameData.numGen2Brd):
             for bitIndex in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
                 if ((StdFuncs.GameData.currInpStatus[cardNum] & (1 << bitIndex)) != 0):
+                    print "card = %d, bit = %d" % (cardNum, bitIndex)
                     StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += inpScoreArr[cardNum][bitIndex]

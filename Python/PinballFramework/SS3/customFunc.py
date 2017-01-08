@@ -217,7 +217,7 @@ class CustomFunc:
         CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER4] = True
 
         # Turn off all the LEDs from attract mode
-        CustomFunc.GameData.StdFuncs.Led_Off([LED_CRD0_LIST_BITS_MSK, LED_CRD1_LIST_BITS_MSK, LED_CRD2_LIST_BITS_MSK, LED_CRD3_LIST_BITS_MSK])
+        CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
                 
     ## Init attract mode
     #
@@ -226,6 +226,10 @@ class CustomFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def init_attract_mode(self):
+        # Turn off the blinking on all the LEDs (cleanup from previous mode)
+        CustomFunc.GameData.StdFuncs.Led_Blink_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
+        CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
+        
         logging.info('Machine state:  Attract_mode')
         self.attractStart = time.time()
 
@@ -338,8 +342,8 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Restore_Solenoid_Cfg(SolBitNames.SOL_BTM_LFT_SLING)
 
         # Turn off the blinking on all the LEDs (cleanup from previous mode)
-        CustomFunc.GameData.StdFuncs.Led_Blink_Off([LED_CRD0_LIST_BITS_MSK, LED_CRD1_LIST_BITS_MSK, LED_CRD2_LIST_BITS_MSK, LED_CRD3_LIST_BITS_MSK])
-        CustomFunc.GameData.StdFuncs.Led_Off([LED_CRD0_LIST_BITS_MSK, LED_CRD1_LIST_BITS_MSK, LED_CRD2_LIST_BITS_MSK, LED_CRD3_LIST_BITS_MSK])
+        CustomFunc.GameData.StdFuncs.Led_Blink_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
+        CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
                 
         # In easy mode inlanes are retained for next ball, mode completes on ball end.
         # self.compInlanes[plyr] are kept up to date during play, so don't need to store here
@@ -1328,7 +1332,7 @@ class CustomFunc:
         # Check if jackpot mode is done
         if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_JACKPOT_TIMER)):
             CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
-            CustomFunc.GameData.StdFuncs.Led_Off([LED_CRD0_LIST_BITS_MSK, LED_CRD1_LIST_BITS_MSK, LED_CRD2_LIST_BITS_MSK, LED_CRD3_LIST_BITS_MSK])
+            CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
             
             # Check if completed all modes at this level
             if ((self.compModes[plyr] & CustomFunc.ALL_MODES_MASK) == CustomFunc.ALL_MODES_MASK):

@@ -96,7 +96,7 @@ class TkSolBrd():
         solCardInfoFrm.grid(column = 8, row = 0)
         
         #Add card info
-        tmpLbl = Label(solCardInfoFrm, text="Sol Card %d" % (brdNum + 1))
+        tmpLbl = Label(solCardInfoFrm, text="Sol Card %d" % brdNum)
         tmpLbl.grid(column = 0, row = 0)
         tmpLbl = Label(solCardInfoFrm, text="Wing Num %d" % wing)
         tmpLbl.grid(column = 0, row = 1)
@@ -105,7 +105,7 @@ class TkSolBrd():
         tmpLbl = Label(solCardInfoFrm, text="Status")
         tmpLbl.grid(column = 0, row = 3)
         tmpLbl = Label(solCardInfoFrm, textvariable=self.statLbl, relief=SUNKEN)
-        self.statLbl.set("0x%02x" % self.dispInpValue)
+        self.statLbl.set("0x%01x" % self.dispInpValue)
         tmpLbl.grid(column = 0, row = 4)
 
         for i in xrange(rs232Intf.NUM_SOL_PER_WING):
@@ -194,11 +194,12 @@ class TkSolBrd():
         solCardBitFrm = Frame(self.solCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(solCardBitFrm)
         solCardBitFrm.grid(column = rs232Intf.NUM_SOL_PER_WING - bit - 1, row = 0)
-        tmpLbl = Label(solCardBitFrm, text="%s" % GameData.SolBitNames.SOL_BRD_BIT_NAMES[self.brdNum][bit + (self.wing * rs232Intf.NUM_SOL_PER_WING)])
+        brdBitPos = bit + (self.wing * rs232Intf.NUM_SOL_PER_WING)
+        tmpLbl = Label(solCardBitFrm, text="%s" % GameData.SolBitNames.SOL_BRD_BIT_NAMES[self.brdNum][brdBitPos])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg
-        cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
+        cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * brdBitPos
         holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
         if (GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
                (ord(GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][holdOffset]) != 0):
@@ -261,4 +262,4 @@ class TkSolBrd():
     def update_status_field(self, data):
         if (self.dispInpValue != data):
             self.dispInpValue = data
-            self.statLbl.set("0x%02x" % self.dispInpValue)
+            self.statLbl.set("0x%01x" % self.dispInpValue)
