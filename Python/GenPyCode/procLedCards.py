@@ -237,6 +237,16 @@ class ProcLedCards():
                     # Create the LED name dictionary
                     parent.procChains.ledDict[ProcLedCards.name[self.out].upper()] = ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))
         
+        # Write out the bit masks enumerations
+        outHndl.write("\n");
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
+            for bitIndex in xrange(ProcLedCards.NUM_LED_BITS):
+                found = self.findBitIndex(cardIndex, bitIndex)
+                if found:
+                    offset = (bitIndex & 0x1f)
+                    name = ProcLedCards.name[self.out].upper() + "_CRD{0}MSK".format(cardIndex)
+                    outHndl.write("    {0:48} = 0x{1:08x}\n".format(name, (1 << offset)))
+
         # Write out the bit name strings
         outHndl.write("\n    ## LED board bit names\n")
         outHndl.write("    # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class\n")

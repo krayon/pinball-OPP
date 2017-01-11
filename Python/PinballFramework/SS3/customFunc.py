@@ -123,11 +123,13 @@ class CustomFunc:
     
     tilted = False
     
-    CONST_ALL_INLANES = LedBitNames.LED_INLN_RGHT | LedBitNames.LED_INLN_CTR | LedBitNames.LED_INLN_LFT | LedBitNames.LED_ROLL_RGHT | LedBitNames.LED_ROLL_CTR | LedBitNames.LED_ROLL_LFT
-    CONST_ALL_DROPS = LedBitNames.LED_DT_1 | LedBitNames.LED_DT_2 | LedBitNames.LED_DT_3 | LedBitNames.LED_DT_4 | LedBitNames.LED_DT_5 | LedBitNames.LED_DT_6 | LedBitNames.LED_DT_7
-    CONST_ALL_MODES = LedBitNames.LED_MODE_POSSE | LedBitNames.LED_MODE_HUSTLEJIVE | LedBitNames.LED_MODE_TRGTPRAC | LedBitNames.LED_MODE_CHKHIDE | \
-            LedBitNames.LED_MODE_SNIPER | LedBitNames.LED_MODE_SHARPE | LedBitNames.LED_MODE_TRKBNDT | LedBitNames.LED_MODE_KILLALL | \
-            LedBitNames.LED_MODE_BARFGHT | LedBitNames.LED_MODE_DUEL | LedBitNames.LED_MODE_RIDEHELP
+    CONST_ALL_INLANES = LedBitNames.LED_INLN_RGHT_CRD0MSK | LedBitNames.LED_INLN_CTR_CRD0MSK | LedBitNames.LED_INLN_LFT_CRD0MSK | \
+	LedBitNames.LED_ROLL_RGHT_CRD0MSK | LedBitNames.LED_ROLL_CTR_CRD0MSK | LedBitNames.LED_ROLL_LFT_CRD0MSK
+    CONST_ALL_DROPS = LedBitNames.LED_DT_1_CRD1MSK | LedBitNames.LED_DT_2_CRD1MSK | LedBitNames.LED_DT_3_CRD1MSK | LedBitNames.LED_DT_4_CRD1MSK | \
+	LedBitNames.LED_DT_5_CRD1MSK | LedBitNames.LED_DT_6_CRD1MSK | LedBitNames.LED_DT_7_CRD1MSK
+    CONST_ALL_MODES = LedBitNames.LED_MODE_POSSE_CRD2MSK | LedBitNames.LED_MODE_HUSTLEJIVE_CRD2MSK | LedBitNames.LED_MODE_TRGTPRAC_CRD2MSK | LedBitNames.LED_MODE_CHKHIDE_CRD2MSK | \
+        LedBitNames.LED_MODE_SNIPER_CRD2MSK | LedBitNames.LED_MODE_SHARPE_CRD2MSK | LedBitNames.LED_MODE_RIDEHELP_CRD2MSK | LedBitNames.LED_MODE_DUEL_CRD2MSK | \
+        LedBitNames.LED_MODE_BARFGHT_CRD2MSK | LedBitNames.LED_MODE_KILLALL_CRD2MSK | LED_MODE_TRKBNDT_CRD2MSK
     
     ## Initialize CustomFunc class
     #
@@ -397,13 +399,13 @@ class CustomFunc:
             
             # If easy, rotate allows rotate between both levels
             if (self.level[plyr] == CustomFunc.LEVEL_EASY):
-                leds = ((self.compInlanes[plyr] << 1) & 0xc6) | ((self.compInlanes[plyr] & 0x80) >> 7) | ((self.compInlanes[plyr] & 0x04) << 3)
+                leds = ((self.compInlanes[plyr] >> 1) & 0x6300) | ((self.compInlanes[plyr] & 0x100) << 7) | ((self.compInlanes[plyr] & 0x2000) >> 3)
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, leds])
                 self.compInlanes[plyr] = leds
-                
+
             # Can only rotate within the row
             elif (self.level[plyr] == CustomFunc.LEVEL_MED):
-                leds = ((self.compInlanes[plyr] << 1) & 0xc6) | ((self.compInlanes[plyr] & 0x80) >> 2) | ((self.compInlanes[plyr] & 0x04) >> 2)
+                leds = ((self.compInlanes[plyr] >> 1) & 0x6300) | ((self.compInlanes[plyr] & 0x100) << 2) | ((self.compInlanes[plyr] & 0x2000) << 2)
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, leds])
                 self.compInlanes[plyr] = leds
                 
@@ -459,13 +461,13 @@ class CustomFunc:
             
             # If easy, rotate allows rotate between both levels
             if (self.level[plyr] == CustomFunc.LEVEL_EASY):
-                leds = ((self.compInlanes[plyr] >> 1) & 0x63) | ((self.compInlanes[plyr] & 0x20) >> 3) | ((self.compInlanes[plyr] & 0x01) << 7)
+                leds = ((self.compInlanes[plyr] << 1) & 0x6300) | ((self.compInlanes[plyr] & 0x400) << 3) | ((self.compInlanes[plyr] & 0x8000) >> 7)
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, leds])
                 self.compInlanes[plyr] = leds
                 
             # Can only rotate within the row
             elif (self.level[plyr] == CustomFunc.LEVEL_MED):
-                leds = ((self.compInlanes[plyr] >> 1) & 0x63) | ((self.compInlanes[plyr] & 0x20) << 2) | ((self.compInlanes[plyr] & 0x01) << 2)
+                leds = ((self.compInlanes[plyr] << 1) & 0x6300) | ((self.compInlanes[plyr] & 0x400) >> 2) | ((self.compInlanes[plyr] & 0x8000) >> 2)
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [0, leds])
                 self.compInlanes[plyr] = leds
                 

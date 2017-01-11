@@ -111,6 +111,50 @@ class LedBitNames:
     LED_DEPUTY                       = 0x03000020
     LED_ROOKIE                       = 0x03000040
 
+    LED_SPINNER_CRD0MSK                              = 0x00000001
+    LED_JKPOT_CRD0MSK                                = 0x00000002
+    LED_4X_CRD0MSK                                   = 0x00000004
+    LED_5X_CRD0MSK                                   = 0x00000008
+    LED_2X_CRD0MSK                                   = 0x00000010
+    LED_3X_CRD0MSK                                   = 0x00000020
+    LED_KO_PICK_JOB_CRD0MSK                          = 0x00000040
+    LED_KO_DUEL_CRD0MSK                              = 0x00000080
+    LED_INLN_RGHT_CRD0MSK                            = 0x00000100
+    LED_INLN_CTR_CRD0MSK                             = 0x00000200
+    LED_INLN_LFT_CRD0MSK                             = 0x00000400
+    LED_POP_UPCTR_CRD0MSK                            = 0x00000800
+    LED_POP_UPLFT_CRD0MSK                            = 0x00001000
+    LED_ROLL_RGHT_CRD0MSK                            = 0x00002000
+    LED_ROLL_CTR_CRD0MSK                             = 0x00004000
+    LED_ROLL_LFT_CRD0MSK                             = 0x00008000
+    LED_DT_7_CRD1MSK                                 = 0x00000001
+    LED_DT_6_CRD1MSK                                 = 0x00000002
+    LED_DT_5_CRD1MSK                                 = 0x00000004
+    LED_DT_4_CRD1MSK                                 = 0x00000008
+    LED_DT_3_CRD1MSK                                 = 0x00000010
+    LED_DT_2_CRD1MSK                                 = 0x00000020
+    LED_DT_1_CRD1MSK                                 = 0x00000040
+    LED_LFT_OUTLN_CRD2MSK                            = 0x00000001
+    LED_LFT_INLN_CRD2MSK                             = 0x00000002
+    LED_MODE_POSSE_CRD2MSK                           = 0x00000004
+    LED_MODE_HUSTLEJIVE_CRD2MSK                      = 0x00000008
+    LED_MODE_TRGTPRAC_CRD2MSK                        = 0x00000010
+    LED_MODE_CHKHIDE_CRD2MSK                         = 0x00000020
+    LED_MODE_SNIPER_CRD2MSK                          = 0x00000040
+    LED_MODE_SHARPE_CRD2MSK                          = 0x00000080
+    LED_MODE_RIDEHELP_CRD2MSK                        = 0x00000100
+    LED_MODE_DUEL_CRD2MSK                            = 0x00000200
+    LED_MODE_BARFGHT_CRD2MSK                         = 0x00000400
+    LED_MODE_KILLALL_CRD2MSK                         = 0x00000800
+    LED_MODE_TRKBNDT_CRD2MSK                         = 0x00001000
+    LED_SHOOT_AGAIN_CRD3MSK                          = 0x00000001
+    LED_POP_BTMUP_CRD3MSK                            = 0x00000002
+    LED_POP_BTMLOW_CRD3MSK                           = 0x00000004
+    LED_MARSHAL_CRD3MSK                              = 0x00000008
+    LED_SHERIFF_CRD3MSK                              = 0x00000010
+    LED_DEPUTY_CRD3MSK                               = 0x00000020
+    LED_ROOKIE_CRD3MSK                               = 0x00000040
+
     ## LED board bit names
     # Indexed into using the [LedBitNames](@ref ledBitNames.LedBitNames) class
     LED_BRD_BIT_NAMES = [ ["Spinner", "Jkpot", "Spin4x", "Spin5x",
