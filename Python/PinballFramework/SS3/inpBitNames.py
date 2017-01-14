@@ -64,9 +64,9 @@ class InpBitNames:
     INP_UPPER_LFT_ROLLOVER                           = 0x00020004
     INP_UPPER_LFT_TOP_TRGT                           = 0x00020008
     INP_UPPER_LFT_BTM_TRGT                           = 0x00020010
-    INP_CTR_RGHT_ROLLOVER                            = 0x00020020
+    INP_CTR_LFT_ROLLOVER                             = 0x00020020
     INP_CTR_CTR_ROLLOVER                             = 0x00020040
-    INP_CTR_LFT_ROLLOVER                             = 0x00020080
+    INP_CTR_RGHT_ROLLOVER                            = 0x00020080
     INP_UPPER_RUBBER                                 = 0x01020001
     INP_SPINNER                                      = 0x01020002
     INP_CTR_RGHT_RUBBER                              = 0x01020004
@@ -96,9 +96,9 @@ class InpBitNames:
     INP_UPPER_LFT_ROLLOVER_CRD0MSK                   = 0x00040000
     INP_UPPER_LFT_TOP_TRGT_CRD0MSK                   = 0x00080000
     INP_UPPER_LFT_BTM_TRGT_CRD0MSK                   = 0x00100000
-    INP_CTR_RGHT_ROLLOVER_CRD0MSK                    = 0x00200000
+    INP_CTR_LFT_ROLLOVER_CRD0MSK                     = 0x00200000
     INP_CTR_CTR_ROLLOVER_CRD0MSK                     = 0x00400000
-    INP_CTR_LFT_ROLLOVER_CRD0MSK                     = 0x00800000
+    INP_CTR_RGHT_ROLLOVER_CRD0MSK                    = 0x00800000
     INP_UPPER_RUBBER_CRD1MSK                         = 0x00010000
     INP_SPINNER_CRD1MSK                              = 0x00020000
     INP_CTR_RGHT_RUBBER_CRD1MSK                      = 0x00040000

@@ -126,7 +126,7 @@ class SolBrd():
     def update_status(self, card, data):
         data &= SolBrd.validDataMask[card]
         # Invert status bits
-        latchData = (SolBrd.currSolData[card] | data) & ~SolBrd.solCfgBitfield[card]
+        latchData = (((SolBrd.lastData[card] ^ data) & ~data) | SolBrd.currSolData[card]) & ~SolBrd.solCfgBitfield[card]
         stateData = (data & SolBrd.solCfgBitfield[card]) ^ SolBrd.solCfgBitfield[card]
         SolBrd.currSolData[card] = latchData | stateData
         SolBrd.lastData[card] = data

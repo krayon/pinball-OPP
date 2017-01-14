@@ -71,9 +71,9 @@ INPUT_CARDS
    Inp_Upper_Lft_Rollover     0     18    FALL_EDGE            "UpLftRoll"
    Inp_Upper_Lft_Top_Trgt     0     19    FALL_EDGE            "UpLftTopTrgt"
    Inp_Upper_Lft_Btm_Trgt     0     20    FALL_EDGE            "UpLftBtmTrgt"
-   Inp_Ctr_Rght_Rollover      0     21    FALL_EDGE            "CtrRghtRoll"
+   Inp_Ctr_Lft_Rollover       0     21    FALL_EDGE            "CtrLftRoll"
    Inp_Ctr_Ctr_Rollover       0     22    FALL_EDGE            "CtrCtrRoll"
-   Inp_Ctr_Lft_Rollover       0     23    FALL_EDGE            "CtrLftRoll"
+   Inp_Ctr_Rght_Rollover      0     23    FALL_EDGE            "CtrRghtRoll"
    
    Inp_Upper_Rubber           1     16    FALL_EDGE            "UpRbr"
    Inp_Spinner                1     17    FALL_EDGE            "Spinner"            

@@ -213,8 +213,9 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   solenoid card index and bit position
     #  @return None 
     def Kick(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xffff
+        cardNum = (cardBitPos >> 24) & 0xff
+        wing = (cardBitPos >> 16) & 0xf
+        bitPos = (cardBitPos & 0xffff) << (wing << 2)
         comms.commIntf.sendSolKick(StdFuncs.GameData.commThread, cardNum, bitPos)
 
     ## Updates Complete
@@ -629,5 +630,4 @@ class StdFuncs():
         for cardNum in xrange(StdFuncs.GameData.numGen2Brd):
             for bitIndex in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
                 if ((StdFuncs.GameData.currInpStatus[cardNum] & (1 << bitIndex)) != 0):
-                    print "card = %d, bit = %d" % (cardNum, bitIndex)
                     StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += inpScoreArr[cardNum][bitIndex]

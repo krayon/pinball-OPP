@@ -393,6 +393,7 @@ def sendKick(commThread, solBrd):
     sendCmd = ''.join(cmdArr)
     clearCmd = ''.join(clearArr)
     commThread.ser.write(sendCmd)
+    print "KickSol card = %d, value = 0x%04x" % (solBrd, value)
     
     # Kick command, just return EOM.
     error = rcvEomResp(commThread)
@@ -417,18 +418,12 @@ def sendKick(commThread, solBrd):
 #  @param  commThread    [in]   Comm thread object
 #  @param  card          [in]   Card that contains LEDs
 #  @param  mask          [in]   Mask of bits to turn on
-#  @param  highSide      [in]   True if high side LED drivers
 #  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
-def sendLedOn(commThread, card, mask, highSide = False):
+def sendLedOn(commThread, card, mask):
     cmdArr = []
     cmdArr.append(commThread.gen2AddrArr[card])
     cmdArr.append(rs232Intf.INCAND_CMD)
-    if highSide:
-        # For high side drivers, everything is reversed.  0 turns
-        # the LED on
-        cmdArr.append(rs232Intf.INCAND_LED_OFF)
-    else:
-        cmdArr.append(rs232Intf.INCAND_LED_ON)
+    cmdArr.append(rs232Intf.INCAND_LED_ON)
     cmdArr.append(chr((mask >> 24) & 0xff))
     cmdArr.append(chr((mask >> 16) & 0xff))
     cmdArr.append(chr((mask >> 8) & 0xff))
@@ -444,18 +439,12 @@ def sendLedOn(commThread, card, mask, highSide = False):
 #  @param  commThread    [in]   Comm thread object
 #  @param  card          [in]   Card that contains LEDs
 #  @param  mask          [in]   Mask of bits to turn on
-#  @param  highSide      [in]   True if high side LED drivers
 #  @return Can return CMD_OK if good, or KICK_BAD_RESP if an error
-def sendLedOff(commThread, card, mask, highSide = False):
+def sendLedOff(commThread, card, mask):
     cmdArr = []
     cmdArr.append(commThread.gen2AddrArr[card])
     cmdArr.append(rs232Intf.INCAND_CMD)
-    if highSide:
-        # For high side drivers, everything is reversed.  0 turns
-        # the LED on
-        cmdArr.append(rs232Intf.INCAND_LED_ON)
-    else:
-        cmdArr.append(rs232Intf.INCAND_LED_OFF)
+    cmdArr.append(rs232Intf.INCAND_LED_OFF)
     cmdArr.append(chr((mask >> 24) & 0xff))
     cmdArr.append(chr((mask >> 16) & 0xff))
     cmdArr.append(chr((mask >> 8) & 0xff))
