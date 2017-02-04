@@ -20,6 +20,7 @@
 #include <CyLib.h>
 #include <isr_spi.h>
 
+
 #if !defined(isr_spi__REMOVED) /* Check for removal by optimization */
 
 /*******************************************************************************
@@ -158,6 +159,10 @@ void isr_spi_Stop(void)
 *******************************************************************************/
 CY_ISR(isr_spi_Interrupt)
 {
+    #ifdef isr_spi_INTERRUPT_INTERRUPT_CALLBACK
+        isr_spi_Interrupt_InterruptCallback();
+    #endif /* isr_spi_INTERRUPT_INTERRUPT_CALLBACK */ 
+
     /*  Place your Interrupt code here. */
     /* `#START isr_spi_Interrupt` */
     neo_fifo_trigger_isr();

@@ -20,6 +20,7 @@
 #include <CyLib.h>
 #include <isr_uart.h>
 
+
 #if !defined(isr_uart__REMOVED) /* Check for removal by optimization */
 
 /*******************************************************************************
@@ -159,6 +160,10 @@ void isr_uart_Stop(void)
 *******************************************************************************/
 CY_ISR(isr_uart_Interrupt)
 {
+    #ifdef isr_uart_INTERRUPT_INTERRUPT_CALLBACK
+        isr_uart_Interrupt_InterruptCallback();
+    #endif /* isr_uart_INTERRUPT_INTERRUPT_CALLBACK */ 
+
     /*  Place your Interrupt code here. */
     /* `#START isr_uart_Interrupt` */
     stdlser_port1_isr();

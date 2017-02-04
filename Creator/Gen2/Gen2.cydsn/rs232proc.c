@@ -71,6 +71,7 @@ typedef enum
    RS232_RCV_DATA_CMD         = 0x04,  /* Also strips the data */
    RS232_INVENTORY_CMD        = 0x05,  /* Special case since unknown length */
    RS232_NEO_COLOR_TBL        = 0x06,  /* Special case goes directly into memory */
+   RS232_UPGRADE_OTHER_BRD    = 0x07,  /* Upgrade another brd, watch for ending cmd */
 } RS232_STATE_E;
 
 typedef struct
@@ -197,6 +198,7 @@ void rs232proc_task(void)
 #define INCAND_MASK_OFFSET    1
 #define CONFIG_NUM_OFFSET     0
 #define CONFIG_DATA_OFFSET    1
+#define BOOT_MAX_XFER_SIZE    64
   
    /* Check if received a char */
    if (rs232_glob.rcvChar)
@@ -321,6 +323,7 @@ void rs232proc_task(void)
                         case RS232I_CONFIG_IND_INP:
                         case RS232I_SET_IND_NEO:
                         case RS232I_SET_SOL_INPUT:
+                        case RS232I_UPGRADE_OTHER_BRD:
                         {
                            /* Verify CRC to be sure */
                            rs232_glob.state = RS232_RCV_DATA_CMD;
@@ -616,6 +619,12 @@ void rs232proc_task(void)
                               rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
                            break;
                         }
+                        case RS232I_UPGRADE_OTHER_BRD:
+                        {
+                           rs232_glob.state = RS232_UPGRADE_OTHER_BRD;
+                           rs232_glob.currIndex = 0;
+                           break;
+                        }
                         default:
                         {
                            /* Invalid cmd for RS232_RCV_DATA_CMD, send EOM */
@@ -632,7 +641,10 @@ void rs232proc_task(void)
                   }
                   
                   /* Whole command has been received */
-                  rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+                  if (rs232_glob.state != RS232_UPGRADE_OTHER_BRD)
+                  {
+                     rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+                  }
                }
                break;
             }
@@ -698,6 +710,23 @@ void rs232proc_task(void)
                   
                   /* Whole command has been passed on, now wait for next cmd */
                   rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+               }
+               break;
+            }
+            case RS232_UPGRADE_OTHER_BRD:
+            {
+               if (data == RS232I_EOM)
+               {
+                  rs232_glob.currIndex++;
+               }
+               else
+               {
+                  rs232_glob.currIndex = 0;
+               }
+               (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &data, 1);
+               if (rs232_glob.currIndex >= BOOT_MAX_XFER_SIZE + 1)
+               {
+                  ResetProc;
                }
                break;
             }

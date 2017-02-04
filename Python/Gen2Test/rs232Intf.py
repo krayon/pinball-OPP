@@ -73,6 +73,7 @@ CFG_IND_SOL_CMD     = '\x14'
 CFG_IND_INP_CMD     = '\x15'
 SET_IND_NEO_CMD     = '\x16'
 SET_SOL_INPUT_CMD   = '\x17'
+PASS_THRU_CMD       = '\x18'
 
 INV_CMD             = '\xf0'
 EOM_CMD             = '\xff'
@@ -112,9 +113,11 @@ INCAND_BLINK_FAST   = '\x05'
 INCAND_BLINK_OFF    = '\x06'
 INCAND_SET_ON_OFF   = '\x07'
 
-INCAND_SET_CMD          = '\x80'
-INCAND_SET_ON           = '\x01'
-INCAND_SET_BLINK_SLOW   = '\x02'
-INCAND_SET_BLINK_FAST   = '\x04'
+INCAND_SET_CMD              = '\x80'
+INCAND_SET_ON               = '\x01'
+INCAND_SET_BLINK_SLOW       = '\x02'
+INCAND_SET_BLINK_FAST       = '\x04'
 
 SOL_INP_CLEAR_SOL   = '\x80'
+
+NUM_CHARS_CLEAR_PASSTHRU = 65
