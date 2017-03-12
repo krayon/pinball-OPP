@@ -90,6 +90,7 @@ WING_INCAND         = '\x03'
 WING_SW_MATRIX_OUT  = '\x04'
 WING_SW_MATRIX_IN   = '\x05'
 WING_NEO            = '\x06'
+WING_HI_SIDE_INCAND = '\x07'
 
 NUM_G2_INP_PER_BRD  = 32
 CFG_INP_STATE       = '\x00'
