@@ -656,6 +656,7 @@ void rs232proc_task(void)
                   if (rs232_glob.myAddr == MAX_U8)
                   {
                      rs232_glob.myAddr = CARD_ID_GEN2_CARD;
+                     gen2g_info.firstCard = TRUE;
                   }
                   else
                   {
@@ -665,6 +666,12 @@ void rs232proc_task(void)
                   txBuf[1] = RS232I_EOM;
                   (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 2);
                   rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+                  
+                  if (gen2g_info.firstCard)
+                  {
+                     /* Start driving the synchronize time line */
+                     stdldigio_config_dig_port(STDLI_DIG_PORT_4 | STDLI_DIG_OUT, GEN2G_SYNCH_OUT, 0);
+                  }
                }
                else if ((data & CARD_ID_TYPE_MASK) == CARD_ID_GEN2_CARD)
                {

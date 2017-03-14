@@ -56,6 +56,8 @@ typedef struct
 {
    BOOL              startProc;
    U8                validMask;
+   U8                invertMask;  /* 1 if wing is high side incand */
+   U8                prevSynch;
    U32               ledOnBitfield;
    U32               ledBlinkSlowBitfield;
    U32               ledBlinkFastBitfield;
@@ -87,6 +89,7 @@ void incand_init()
    
    incandInfo.startProc = FALSE;
    incandInfo.validMask = 0;
+   incandInfo.invertMask = 0;
    incandInfo.ledOnBitfield = 0;
    incandInfo.ledBlinkSlowBitfield = 0;
    incandInfo.ledBlinkFastBitfield = 0;
@@ -95,8 +98,15 @@ void incand_init()
    for (index = 0; index < RS232I_NUM_WING; index++)
    {
       /* Check if this wing board is a incandescent wing board */
-      if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_INCAND)
+      if ((gen2g_info.nvCfgInfo.wingCfg[index] == WING_INCAND) ||
+         (gen2g_info.nvCfgInfo.wingCfg[index] == WING_HI_SIDE_INCAND))
       {
+         /* If high side incandescent wing, invert outputs */
+         if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_HI_SIDE_INCAND)
+         {
+            incandInfo.invertMask |= (1 << index);
+         }
+         
          /* Initial setup blinks all the lights */
          incandInfo.validMask |= (1 << index);
          incandInfo.ledBlinkSlowBitfield |= (0xff << (index << 3));
@@ -159,6 +169,7 @@ void incand_task()
 {
    U32                        ledOut;
    INT                        index;
+   U8                         synch;
    
    if (gen2g_info.validCfg)
    {
@@ -186,9 +197,30 @@ void incand_task()
          {
             if (incandInfo.validMask & (1 << index))
             {
-               stdldigio_write_port(index, 0xff, (U8)((ledOut >> (index << 3)) & 0xff));
+               if (incandInfo.invertMask & (1 << index))
+               {
+                  stdldigio_write_port(index, 0xff, (U8)~((ledOut >> (index << 3)) & 0xff));
+               }
+               else
+               {
+                  stdldigio_write_port(index, 0xff, (U8)((ledOut >> (index << 3)) & 0xff));
+               }
             }
          }
+      }
+      
+      /* Synchronize cards */
+      if (!gen2g_info.firstCard)
+      {
+         synch = stdldigio_read_port(STDLI_DIG_PORT_4, GEN2G_SYNCH_OUT);
+         
+         /* If synch signal changed and new value is set */
+         if ((synch ^ incandInfo.prevSynch) && (synch == GEN2G_SYNCH_OUT))
+         {
+            gen2g_info.ledStateNum = 0;
+            gen2g_info.ledStatus = 0;
+         }
+         incandInfo.prevSynch = synch;
       }
    }
 }

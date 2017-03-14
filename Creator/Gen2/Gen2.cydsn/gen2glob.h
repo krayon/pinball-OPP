@@ -71,13 +71,14 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x00020001
+#define GEN2G_CODE_VERS       0x00020002
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
 #define GEN2G_STAT_BLINK_FAST_ON       0x02
 #define GEN2G_STAT_FADE_FAST_DEC       0x02
 #define GEN2G_MAX_STATE_NUM            32      /* State num goes from 0 - 31 */
+#define GEN2G_SYNCH_OUT                0x04
 
 typedef enum
 {
@@ -173,6 +174,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
       0,                            /* WING_SW_MATRIX_OUT */
       sizeof(GEN2G_SW_MATRIX_CFG_T),/* WING_SW_MATRIX_IN */
       sizeof(GEN2G_NEO_CFG_T),      /* WING_NEO */
+      0,                            /* WING_HI_SIDE_INCAND */
   }
 #endif
 ;
@@ -194,6 +196,7 @@ void incand_init();
       NULL,                         /* WING_SW_MATRIX_OUT */
       NULL,                         /* WING_SW_MATRIX_IN */
       neopxl_init,                  /* WING_NEO */
+      incand_init,                  /* WING_HI_SIDE_INCAND */
   }
 #endif
 ;
@@ -203,6 +206,7 @@ typedef struct
    BOOL                       validCfg;
    BOOL                       haveNeo;
    GEN2G_ERROR_E              error;
+   BOOL                       firstCard;
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
    U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */

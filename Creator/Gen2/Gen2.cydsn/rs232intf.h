@@ -170,6 +170,7 @@ typedef enum
   WING_SW_MATRIX_OUT        = 0x04,
   WING_SW_MATRIX_IN         = 0x05,
   WING_NEO                  = 0x06,
+  WING_HI_SIDE_INCAND       = 0x07,
    
   MAX_WING_TYPES
 } __attribute__((packed)) RS232I_GEN2_WING_TYPE_E;
