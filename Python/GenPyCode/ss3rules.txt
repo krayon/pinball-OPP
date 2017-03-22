@@ -49,17 +49,17 @@ NUM_GEN2_CARDS       4
 SOLENOID_CARDS
 {
    #Name                      Card  I/O   Flags       InitKick    DutyCycle   MinOff    Desc
-   Sol_Upper_Lft_Pop          0     12    USE_SWITCH      24         0        0            "UpLftPop"
-   Sol_Upper_Ctr_Pop          0     13    USE_SWITCH      16         0        0            "UpCtrPop"
-   Sol_Drop_Bank              0     14    USE_SWITCH      32         0        0            "DropBank"
+   Sol_Upper_Lft_Pop          0     12    USE_SWITCH      40         0        0            "UpLftPop"
+   Sol_Upper_Ctr_Pop          0     13    USE_SWITCH      32         0        0            "UpCtrPop"
+   Sol_Drop_Bank              0     14    AUTO_CLR        32         0        0            "DropBank"
 
-   Sol_Kickout_Hole           1     4     AUTO_CLR        32         0        0            "KickOut"
-   Sol_Btm_Low_Pop            1     5     USE_SWITCH      16         0        0            "BtmLowPop"
-   Sol_Btm_Up_Pop             1     6     USE_SWITCH      16         0        0            "BtmUpPop"
+   Sol_Kickout_Hole           1     4     AUTO_CLR        56         0        0            "KickOut"
+   Sol_Btm_Low_Pop            1     5     USE_SWITCH      32         0        0            "BtmLowPop"
+   Sol_Btm_Up_Pop             1     6     USE_SWITCH      32         0        0            "BtmUpPop"
    
-   Sol_Btm_Lft_Sling          3     4     USE_SWITCH      16         0        0            "BtmLftSling"
+   Sol_Btm_Lft_Sling          3     4     USE_SWITCH      32         0        0            "BtmLftSling"
    Sol_Lft_Flipper            3     5     USE_SWITCH      32         4        0            "LftFlip"
-   Sol_Ball_In_Play           3     6     AUTO_CLR        16         0        0            "BallInPlay"
+   Sol_Ball_In_Play           3     6     AUTO_CLR        48         0        0            "BallInPlay"
    Sol_Rght_Flipper           3     7     USE_SWITCH      32         4        0            "RghtFlip"
 }
 

@@ -127,7 +127,8 @@ class TkinterThread(Thread):
                 elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_SOL):
                     GameData.tkSolBrd.append(TkSolBrd(card, wing, bgndFrm.interior))   # Changed to bgndFrm.interior
                     numSolWing += 1
-                elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INCAND):
+                elif ((TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INCAND) or \
+                      (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_HI_SIDE_INCAND)):
                     GameData.tkLedBrd.append(TkLedBrd(card, wing, bgndFrm.interior))
         root.update()
         TkinterThread.doneInit = True

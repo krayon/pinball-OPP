@@ -62,10 +62,10 @@ class RulesData():
     ## Board inventory list
     # Used to determine number of solenoid and input boards and order in chain.
     INV_ADDR_LIST = [
-        [ rs232Intf.WING_INCAND, rs232Intf.WING_INCAND, rs232Intf.WING_INP, rs232Intf.WING_SOL ],
-        [ rs232Intf.WING_INCAND, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INP ],
-        [ rs232Intf.WING_INCAND, rs232Intf.WING_INCAND, rs232Intf.WING_INP, rs232Intf.WING_INP ],
-        [ rs232Intf.WING_INCAND, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INP ] ]
+        [ rs232Intf.WING_HI_SIDE_INCAND, rs232Intf.WING_HI_SIDE_INCAND, rs232Intf.WING_INP, rs232Intf.WING_SOL ],
+        [ rs232Intf.WING_HI_SIDE_INCAND, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INP ],
+        [ rs232Intf.WING_HI_SIDE_INCAND, rs232Intf.WING_HI_SIDE_INCAND, rs232Intf.WING_INP, rs232Intf.WING_INP ],
+        [ rs232Intf.WING_HI_SIDE_INCAND, rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_INP ] ]
 
     ## Initial State
     INIT_MODE = State.MODE_INIT

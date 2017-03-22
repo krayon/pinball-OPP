@@ -242,7 +242,8 @@ class GameData():
                     if (len(GameData.InpBitNames.INP_BRD_CFG[cardIndex]) != 0):
                         wingTypes |= GameData.HAS_INP_WING
                         inpWings |= 1 << wingIndex
-                elif (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_INCAND):
+                elif ((GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_INCAND) or \
+                      (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_HI_SIDE_INCAND)):
                     wingTypes |= GameData.HAS_INCAND_WING
                     ledWings |= 1 << wingIndex
                 else:
