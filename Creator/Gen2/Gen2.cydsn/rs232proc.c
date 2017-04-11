@@ -177,7 +177,7 @@ void rs232proc_init(void)
 void rs232proc_task(void)
 {
    U8                         data;
-   U8                         txBuf[7];
+   U8                         txBuf[12];
    U8                         *src_p;
    U8                         *dest_p;
    UINT                       index;
@@ -347,6 +347,16 @@ void rs232proc_task(void)
                            rs232_glob.state = RS232_NEO_COLOR_TBL;
                            break;
                         }
+                        case RS232I_READ_MATRIX_INP:
+                        {
+                           /* Only state is supported for switch matrices */
+                           rs232proc_copy_dest(&gen2g_info.matrixInp[0], &txBuf[2], RS232I_MATRX_COL);
+                           rs232_glob.state = RS232_STRIP_CMD;
+                           txBuf[10] = 0xff;
+                           stdlser_calc_crc8(&txBuf[10], 10, &txBuf[0]);
+                           (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 11);
+                           break;
+                        }
                         case RS232I_GEN2_UNUSED:
                         default:
                         {
@@ -391,8 +401,9 @@ void rs232proc_task(void)
             case RS232_STRIP_CMD:
             {
                /* The following commands are stripped:  RS232I_GET_SER_NUM,
-                * RS232I_GET_PROD_ID, RS232I_GET_GEN2_CFG, RS232I_GET_VERS, and
-                * RS232I_READ_GEN2_INP.  Responses are sent when first rcv'd.
+                * RS232I_GET_PROD_ID, RS232I_GET_GEN2_CFG, RS232I_GET_VERS,
+                * RS232I_READ_GEN2_INP, and RS232I_READ_MATRIX_INP.
+                * Responses are sent when first rcv'd.
                 */
                rs232_glob.currIndex++;
                if (rs232_glob.currIndex < rs232_glob.cmdLen)

@@ -1,0 +1,561 @@
+#===============================================================================
+#
+#                         OOOO
+#                       OOOOOOOO
+#      PPPPPPPPPPPPP   OOO    OOO   PPPPPPPPPPPPP
+#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#   PPP         PPP   OOO      OOO   PPP         PPP
+#  PPP          PPP   OOO      OOO   PPP          PPP
+#  PPP          PPP   OOO      OOO   PPP          PPP
+#  PPP          PPP   OOO      OOO   PPP          PPP
+#   PPP         PPP   OOO      OOO   PPP         PPP
+#    PPPPPPPPPPPPPP   OOO      OOO   PPPPPPPPPPPPPP
+#     PPPPPPPPPPPPP   OOO      OOO   PPP
+#               PPP   OOO      OOO   PPP
+#               PPP   OOO      OOO   PPP
+#               PPP   OOO      OOO   PPP
+#               PPP    OOO    OOO    PPP
+#               PPP     OOOOOOOO     PPP
+#              PPPPP      OOOO      PPPPP
+#
+# @file:   VHrules.txt
+# @author: Hugh Spahr
+# @date:   4/9/2017
+#
+# @note:   Open Pinball Project
+#          Copyright© 2017, Hugh Spahr
+#
+#  This program is free software: you can redistribute it and/or modify
+#  it under the terms of the GNU General Public License as published by
+#  the Free Software Foundation, either version 3 of the License, or
+#  (at your option) any later version.
+#
+#  This program is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#  GNU General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public License
+#  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#===============================================================================
+#
+# This is a rules file for the Sharp Shooter 3 pinball machine.
+#
+#===============================================================================
+
+NUM_GEN2_CARDS       4
+
+SOLENOID_CARDS
+{
+   #Name                      Card  I/O   Flags       InitKick    DutyCycle   MinOff    Desc
+   Sol_Drop_Bank              2     0     AUTO_CLR        16         0        0            "UpLftPop"
+   Sol_Btm_Pop                2     1     AUTO_CLR        16         0        0            "UpCtrPop"
+   Sol_Lft_Sling              2     2     AUTO_CLR        16         0        0            "DropBank"
+   Sol_Top_Pop                2     3     AUTO_CLR        16         0        0            "UpCtrPop"
+
+   Sol_Lft_Pop                2     4     AUTO_CLR        16         0        0            "KickOut"
+   Sol_Rght_Sling             2     5     AUTO_CLR        16         0        0            "BtmLowPop"
+   Sol_Kickout_Hole           2     6     AUTO_CLR        16         0        0            "KickOut"
+   
+   Sol_Lft_Flipper            3     0     USE_SWITCH      16         4        0            "BtmLftSling"
+   Sol_Outhole                3     1     AUTO_CLR        16         0        0            "LftFlip"
+   Sol_Rght_Flipper           3     2     USE_SWITCH      16         4        0            "BallInPlay"
+}
+
+INPUT_CARDS
+{
+   #Name                      Card  I/O   Type                 Desc
+   Inp_Upper_Rght_Rollover    0     16    FALL_EDGE            "UpRghtRoll"
+   Inp_Upper_Ctr_Rollover     0     17    FALL_EDGE            "UpCtrRoll"
+   Inp_Upper_Lft_Rollover     0     18    FALL_EDGE            "UpLftRoll"
+   Inp_Upper_Lft_Top_Trgt     0     19    FALL_EDGE            "UpLftTopTrgt"
+   Inp_Upper_Lft_Btm_Trgt     0     20    FALL_EDGE            "UpLftBtmTrgt"
+   Inp_Ctr_Rght_Rollover      0     21    FALL_EDGE            "CtrRghtRoll"
+   Inp_Ctr_Ctr_Rollover       0     22    FALL_EDGE            "CtrCtrRoll"
+   Inp_Ctr_Lft_Rollover       0     23    FALL_EDGE            "CtrLftRoll"
+   
+   Inp_Upper_Rubber           1     16    FALL_EDGE            "UpRbr"
+   Inp_Spinner                1     17    FALL_EDGE            "Spinner"            
+   Inp_Ctr_Rght_Rubber        1     18    FALL_EDGE            "CtrRghtRbr"
+   Inp_Jkpot_Rollover         1     19    FALL_EDGE            "JkpotRoll"
+   Inp_Below_Kickout_Rubber   1     20    FALL_EDGE            "BlwKickRbr"
+   Sol_Top_Drop_Rubber        1     21    FALL_EDGE            "TopDropRbr"
+   Inp_Drop_Trgt_1S           1     24    FALL_EDGE            "DrpTrgt1S"
+   Inp_Drop_Trgt_2H           1     25    FALL_EDGE            "DrpTrgt2H"
+   Inp_Drop_Trgt_3O           1     26    FALL_EDGE            "DrpTrgt3O"
+   Inp_Drop_Trgt_4O           1     27    FALL_EDGE            "DrpTrgt4O"
+   Inp_Drop_Trgt_5T           1     28    FALL_EDGE            "DrpTrgt5T"
+   Inp_Drop_Trgt_6E           1     29    FALL_EDGE            "DrpTrgt6E"
+   Inp_Drop_Trgt_7R           1     30    FALL_EDGE            "DrpTrgt7R"
+   Inp_Drop_Bank_Miss         1     31    FALL_EDGE            "DropBnkMiss"
+
+   Inp_Btm_Lft_InLn_Rollover  3     16    FALL_EDGE            "BtmLftInLnRoll"
+   Inp_Btm_Lft_OutLn_Rollover 3     17    FALL_EDGE            "BtmLftOutLnRoll"
+   Inp_Ctr_Low_Rollover       3     18    FALL_EDGE            "CtrLowRoll"
+   Inp_Btm_Rght_Rubber        3     19    FALL_EDGE            "BtmRghtRbr"
+   Inp_Btm_Rght_Low_Rubber    3     20    FALL_EDGE            "BtmRghtLowRbr"
+   Inp_Slam_Tilt              3     24    FALL_EDGE            "SlamTilt"
+   Inp_Tilt                   3     25    FALL_EDGE            "Tilt"
+   Inp_Coin_Drop              3     26    FALL_EDGE            "CoinDrp"   
+   Inp_Start                  3     27    FALL_EDGE            "Start"
+}
+
+LED_CARDS
+{
+   #Name                      Card  I/O      Desc
+   Led_Credit_Ind             0     0        "CreditInd"
+   Led_44K_Bonus              0     3        "44KBonus"
+   Led_1K_Dolly               0     4        "1KDolly"
+   Led_Spcl_Drop_Trgt         0     5        "SpclDropTrgt"
+   Led_N_Saucer               0     6        "NSaucer"
+   Led_Xtra_Ball_Drop         0     7        "XtraBallDrop"
+   Led_N_Center               0     8        "NCenter"
+   Led_SPSA                   0     9        "SPSA"
+   Led_Inln_Lft               0     10       "InlnLft"
+   Led_5x_Bonus               0     11       "5xBonus"
+   Led_A_Saucer               0     12       "ASaucer"
+   Led_Frst_L_Trgt            0     13       "FrstLTrgt"
+   Led_Frst_L_Ctr             0     14       "FrstLCtr"
+   Led_Y_Ctr                  0     16       "YCtr"
+   Led_2x_Bonus               0     17       "2xBonus"
+   Led_T_Ctr                  0     20       "TCtr"
+   Led_Y_Trgt                 0     21       "YTrgt"
+   Led_D_Trgt                 0     22       "DTrgt"
+   Led_T_Saucer               0     23       "TSaucer"
+   Led_D_Ctr                  0     24       "DCtr"
+   Led_Outln_Rght             0     25       "OutlnRght"
+   Led_20K_Drop               0     26       "20KDrop"
+   Led_A_Ctr                  0     27       "ACtr"
+   Led_3x_Bonus               0     28       "3xBonus"
+   Led_Inln_Rght              0     30       "InlnRght"
+   Led_P_Saucer               0     31       "PSaucer"
+   
+   Led_2nd_L_Trgt             1     0        "2ndLTrgt"
+   Led_R_Ctr                  1     1        "RCtr"
+   Led_Outln_Lft              1     2        "OutlnLft"
+   Led_2nd_L_Ctr              1     3        "2ndLCtr"
+   Led_Spcl                   1     4        "Spcl"
+   Led_Spinner                1     6        "Spinner"
+   Led_R_Saucer               1     7        "RSaucer"
+   Led_O_Trgt                 1     8        "OTrgt"
+   Led_22k_Bonus              1     9        "22kBonus"
+   Led_5k_Saucer              1     10       "5kSaucer"
+   Led_Parton_O_Ctr           1     12       "PartnOCtr"
+   Led_P_Ctr                  1     13       "PCtr"
+   Led_Dolly_O_Ctr            1     14       "DollyOCtr"
+   Led_O_Saucer               1     15       "OSaucer"
+}
+
+VARIABLES
+{
+   #Name                      InitVal
+   Var_credits                0
+   Var_partCreditsNum         0
+   Var_partCreditsDenom       2
+   Var_creditsInRow           0
+   Var_extraCredit            4
+   Var_numPlayers             0
+   Var_maxPlayers             4
+   Var_currPlayer             0
+   Var_ballNum                0
+   Var_ballsPerGame           3
+   Var_highScore              10000
+   Var_targets                0
+   Var_kick_retries           0
+   Var_prev_flipper           0
+   Var_tilted                 0
+}
+
+INDEXED_VARIABLES
+{
+   #Name                      NumEntries  InitVals
+   IndVar_score               4           {0  0  0  0}
+   IndVar_InlaneLights        4           {0  0  0  0}
+   IndVar_scoreLvl            4           {0  0  0  0}
+   IndVar_specialLvl          4           {0  0  0  0}
+}
+
+SOUND_CLIPS
+{
+   #Name                           Location
+   Sound_HowdyFolks                "sounds/howdyFolks.wav"
+   Sound_Yall_Come_Back            "sounds/yallComeBack.wav"
+   Sound_Hell_Of_A_Shot            "sounds/hellOfaShotMister.wav"
+   Sound_Nice_Shootin_Tex          "sounds/niceShootinTex.wav"
+   Sound_Ding_Ding                 "sounds/ding_ding.wav"
+   Sound_Wah_Wuh                   "sounds/wah_wuh.wav"
+   Sound_Bring_Josh_Zach           "sounds/BetterBringJoshZach.wav"
+   Sound_Better_Call_Posse         "sounds/BetterCallPosse.wav"
+   Sound_Better_Prac_More          "sounds/BetterPracticeMore.wav"
+   Sound_Breaking_Bottle           "sounds/BreakingBottle.wav"
+   Sound_Check_Mine                "sounds/CheckOutAbandonedMine.wav"
+   Sound_Finish_It                 "sounds/FinishIt.wav"
+   Sound_Flush_Out_Bandits         "sounds/FlushOutBandits.wav"
+   Sound_Got_Em_Cornered           "sounds/GotEmCornered.wav"
+   Sound_Thru_Pass_For_Help        "sounds/GoThruPassForHelp.wav"
+   Sound_Lone_Ranger_Bugle         "sounds/LoneRangerBugle.wav"
+   Sound_Look_House                "sounds/LookAbandonedHouse.wav"
+   Sound_Look_Hideouts             "sounds/LookBanditHideouts.wav"
+   Sound_Bar_Fight                 "sounds/LooksLikeBarFight.wav"
+   Sound_Turkey_Shoot              "sounds/LooksLikeTurkeyShoot.wav"
+   Sound_No_Roger_Sharpe           "sounds/NoRogerSharpe.wav"
+   Sound_Reload                    "sounds/Reload.wav"
+   Sound_Sharpe_Attack             "sounds/SharpeAttack.wav"
+   Sound_Snipers_One_Shot          "sounds/SnipersNeedOneShot.wav"
+   Sound_They_Got_Ya               "sounds/TheyGotYa.wav"
+   Sound_Time_Hustle_Jive          "sounds/TimeForHustleJive.wav"
+   Sound_We_Got_A_Duel             "sounds/WeGotADuel.wav"
+   Sound_Went_Thru_Pass            "sounds/WentThruPass.wav"
+   Sound_Ya_Got_Shot               "sounds/YaGotShot.wav"
+   Sound_Need_Trgt_Practice        "sounds/YallNeedTargetPractice.wav"
+   Sound_Ya_Missed                 "sounds/YaMissed.wav"
+   Sound_You_Got_Him               "sounds/YouGotHim.wav"
+   Sound_Mode_Call_Posse           "sounds/ModeCallPosse.wav"
+   Sound_Mode_Hustle_Jive          "sounds/ModeHustleJive.wav"
+   Sound_Mode_Trgt_Pract           "sounds/ModeTrgtPract.wav"
+   Sound_Mode_Check_Hideouts       "sounds/ModeCheckHideouts.wav"
+   Sound_Mode_Sniper               "sounds/ModeSniper.wav"
+   Sound_Mode_Sharpe_Attack        "sounds/ModeSharpeAttack.wav"
+   Sound_Mode_Track_Bandits        "sounds/ModeTrackBandits.wav"
+   Sound_Mode_Kill_Em_All          "sounds/ModeKillEmAll.wav"
+   Sound_Mode_Bar_Fight            "sounds/ModeBarFight.wav"
+   Sound_Mode_Duel                 "sounds/ModeDuel.wav"
+   Sound_Mode_Ride_For_Help        "sounds/ModeRideForHelp.wav"
+   Sound_Rookie                    "sounds/Rookie.wav"
+   Sound_Deputy                    "sounds/Deputy.wav"
+   Sound_Sheriff                   "sounds/Sheriff.wav"
+   Sound_Marshal                   "sounds/Marshal.wav"
+   Sound_Apache_Kid                "sounds/ApacheKid.wav"
+   Sound_John_Hardin               "sounds/JohnHardin.wav"
+   Sound_Billy_Kid                 "sounds/BillyKid.wav"
+   Sound_Jesse_James               "sounds/JesseJames.wav"
+   Sound_Butch_Cassidy             "sounds/ButchCassidy.wav"
+   Sound_Sundance_Kid              "sounds/SundanceKid.wav"
+   Sound_Geronimo                  "sounds/Geronimo.wav"
+   Sound_Ball_Drain_Banjo          "sounds/ballDrainBanjo.wav"
+   Sound_Ball_Drain_Organ          "sounds/ballDrainOrgan.wav"
+   Sound_Goin_Boot_Hill            "sounds/GoinBootHill.wav"
+   Sound_Bullet                    "sounds/bullet.wav"
+   Sound_Gun_Ricochet              "sounds/gunRichochet.wav"
+   Sound_Done_Job                  "sounds/DoneJob.wav"
+   Sound_Grab_Reward               "sounds/GrabReward.wav"
+   Sound_Fine_Designers            "sounds/FineDesigners.wav"
+   Sound_Last_Time_Preorder        "sounds/LastTimePreOrder.wav"
+   Sound_Skit_B                    "sounds/SkitB.wav"
+   Sound_Horse_Gallop              "sounds/horseGallop.wav"
+   Sound_Horse_Neigh               "sounds/horseNeigh.wav"
+   Sound_Woa_Nelly_Corral          "sounds/WoaNellyCorral.wav"
+}
+
+BGND_CLIPS
+{
+   #Name                           Location
+   Bgnd_GoodBadUgly                "copyrighted/GoodBadUgly.mp3"
+   Bgnd_Aerosmith_SharpShooter     "copyrighted/Aerosmith_Sharpshooter.mp3"
+}
+
+IMAGES
+{
+   #Name                   Location
+   Image_Saloon            "graphics/sal_empty.jpg"         MAIN_SCR
+   Image_Saloon_Girl       "graphics/sal_girl.jpg"          MAIN_SCR
+   Image_Saloon_Guy        "graphics/sal_guy.jpg"           MAIN_SCR
+   Image_Guy_Hit           "graphics/sal_guyShot.jpg"       MAIN_SCR
+   Image_Guy_Shooting      "graphics/sal_guyBang.jpg"       MAIN_SCR
+}
+
+TICK_TIME                  20                            # 20 ms tick timer
+
+TIMERS
+{
+   #Name                   NumMs
+   Timeout_Kickout_Timer   1000                          # 1 second
+   Timeout_Ball_Locate     5000                          # 5 seconds
+   Timeout_Special_Timer   30000                         # 30 seconds
+   Timeout_Reload_Timer    20000                         # 20 second ball save timer
+   Timeout_Retry_Timer     3000                          # Relaunch ball every 3 seconds
+   Timeout_Jackpot_Timer   30000                         # 30 second jackpot timer
+   Timeout_Duel_Timer      60000                         # 60 second duel timer
+   Timeout_General_Timer   10000                         # General timer used during modes
+   Timeout_Gallop          3000                          # 3 second gallop timeout
+   Timeout_Kickout         500                           # .5 second kickout hole timer
+}
+
+PROCESS_CHAINS
+{
+   #Name                   Processing
+   Proc_Tilt               {}
+   
+   Proc_Flipper            {}
+   
+   Proc_Inlane             {}
+   
+   Proc_Targets            {}
+   
+   Proc_Kickout_Hole       {}
+   
+   Proc_Ball_Drain         {}
+                              
+   Proc_Tilt_Init          {}
+   
+   Proc_Tilt_State         {}
+   
+   Proc_Init               {}
+   
+   Proc_Attract_Init       {}
+   
+   Proc_Add_Coin           {}
+   
+   Proc_Press_Start        {}
+   
+   Proc_Start_and_Coin     {}
+   
+   Proc_Init_Game          {}
+   
+   Proc_Start_Game         {}
+   
+   Proc_Start_Ball_Init    {}
+   
+   Proc_Start_Ball_Start   {}
+                              
+   Proc_Skillshot          {}
+   
+   Proc_Normal_Play_Init   {}
+   
+   Proc_Normal_Play        {}
+   
+   Proc_Choose_Mode_Init   {}
+   
+   Proc_Choose_Mode        {}
+   
+   Proc_Mode_Active_Init   {}
+   
+   Proc_Mode_Active        {}
+   
+   Proc_Jpot_Avail_Init    {}
+   
+   Proc_Jpot_Avail         {}
+   
+   Proc_End_Of_Ball        {}
+   
+}
+
+LED_CHAINS
+{
+   #Name                   Processing (Mask, bits, cmd, bits, cmd, ...)
+   LedCh_Attract           {(LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK),   # Grab all LEDs
+                                # Walk mode LEDs from bottom to top
+                                  Led_Shoot_Again, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp, WAIT 100,
+                                  # Walk up the times inserts in center
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal, WAIT 100,
+                                  # Walk through shooter LEDs 
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_2, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_3, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_4, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_5, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_6, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_7, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_6, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_5, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_4, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_3, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_2, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal, WAIT 100,
+                                # Blink shooter
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7, WAIT 500,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal, WAIT 500,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7, WAIT 500,
+                                # Light kickout hole LEDs
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x, WAIT 100,
+                                  # Walk through sharp LEDs 
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x, WAIT 100,
+                                # Blink sharp LEDs
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x, WAIT 100,
+                                  Led_Shoot_Again | Led_Mode_Sharpe | Led_Mode_Sniper | Led_Mode_TrkBndt | Led_Mode_ChkHide | Led_Mode_KillAll | Led_Mode_TrgtPrac | Led_Mode_BarFght | Led_Mode_HustleJive | Led_Mode_Duel | Led_Mode_Posse | Led_Mode_RideHelp |
+                                     Led_Rookie | Led_Deputy | Led_Sheriff | Led_Marshal |
+                                     Led_DT_1 | Led_DT_2 | Led_DT_3 | Led_DT_4 | Led_DT_5 | Led_DT_6 | Led_DT_7 |
+                                     Led_KO_Duel | Led_KO_Pick_Job | Led_2x | Led_3x | Led_4x | Led_5x |
+                                     Led_Inln_Lft | Led_Inln_Ctr | Led_Inln_Rght | Led_Roll_Lft | Led_Roll_Ctr | Led_Roll_Rght, WAIT 500,
+                                # Blink all lights
+                                0, WAIT 500,
+                                LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK, WAIT 500,
+                                0, WAIT 500,
+                                LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK, WAIT 500,
+                                0, WAIT 500,
+                                LED0W0_ALL_BITS_MSK | LED0W1_ALL_BITS_MSK | LED1W0_ALL_BITS_MSK | LED2W0_ALL_BITS_MSK | LED2W1_ALL_BITS_MSK | LED3W0_ALL_BITS_MSK, WAIT 500,
+                                0, WAIT 500,
+                                0, REPEAT}
+   
+   LedCh_Tilt              {(Led_Shoot_Again), 0, END_CHAIN}
+}
+
+SOUND_CHAINS
+{
+   #Name                   Processing (sound, cmd, sound, cmd, ...)
+   SndCh_Attract           { Sound_Yall_Come_Back, WAIT 600000, Sound_HowdyFolks, WAIT 600000, REPEAT}
+}
+
+IMAGE_CHAINS
+{
+   #Name                   Processing (image, cmd, image, cmd, ...)
+   ImageCh_Attract         { Image_Saloon, WAIT 1000, Image_Saloon_Girl, WAIT 1000,
+                             Image_Saloon, WAIT 1000, Image_Saloon_Guy, WAIT 1000, Image_Guy_Shooting, WAIT 1000,
+                             Image_Saloon, WAIT 1000, Image_Saloon_Guy, WAIT 1000, Image_Guy_Hit, WAIT 1000,
+                             REPEAT}
+}
+
+MODES
+{
+   #Name                   Desc            InitChain                  ProcessChain                                       VideoChain
+   #                                              AudioChain                                  LedChain                                       InitScoringNum
+   Mode_Init               "Init"          {(Proc_Init)               ()                                                 ()
+                                                  ()                                          ()                                             ()}
+   Mode_Attract            "Attract"       {(Proc_Attract_Init)       (Proc_Start_and_Coin)                              (ImageCh_Attract)
+                                                  (SndCh_Attract)                             (LedCh_Attract)                                ()}
+   Mode_Init_Game          "InitGame"      {(Proc_Init_Game)          (Proc_Start_Game)                                  ()                        
+                                                  ()                                          ()                                             ()}
+   Mode_Skillshot          "SkillShot"     {()                        (Proc_Skillshot, Proc_Start_and_Coin)              ()                        
+                                                  ()                                          ()                                             ()}
+   Mode_Normal_Play        "NormalPlay"    {(Proc_Normal_Play_Init)   (Proc_Normal_Play)                                 ()
+                                                  ()                                          ()                                             ()}
+   Mode_Choose_Mode        "ChooseMode"    {(Proc_Choose_Mode_Init)   (Proc_Choose_Mode)                                 ()
+                                                  ()                                          ()                                             ()}
+   Mode_Mode_Active        "ModeActive"    {(Proc_Mode_Active_Init)   (Proc_Mode_Active)                                 ()
+                                                  ()                                          ()                                             ()}
+   Mode_Jpot_Avail         "JpotAvail"     {(Proc_Jpot_Avail_Init)    (Proc_Jpot_Avail)                                  ()
+                                                  ()                                          ()                                             ()}
+   Mode_Error              "Error"         {()                        ()                                                 ()
+                                                  ()                                          ()                                             ()}
+   Mode_Tilt               "Tilt"          {(Proc_Tilt_Init)          (Proc_Tilt_State)                                  ()
+                                                  (Sound_Wah_Wuh)                             (LedCh_Tilt)                                   ()}
+   Mode_End_Of_Ball        "EndOfBall"     {(Proc_End_Of_Ball)        ()                                                 ()
+                                                  ()                                          ()                                             ()}
+}
+
+FIRST_MODE                 Mode_Init

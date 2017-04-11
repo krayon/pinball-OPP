@@ -48,6 +48,7 @@
  *===============================================================================
  */
  
+#include <stdlib.h>
 #include "stdtypes.h"
 #include "stdlintf.h"
 #include "rs232intf.h"
@@ -55,6 +56,9 @@
 #include "procdefs.h"         /* for EnableInterrupts macro */
 
 #define STDL_FILE_ID          3
+
+#define NUM_MATRIX_INP        64
+#define NUM_MATRIX_BYTES      8
 
 typedef enum
 {
@@ -84,10 +88,18 @@ typedef struct
 
 typedef struct
 {
+   U8                         index;
+   U8                         prevVal[NUM_MATRIX_BYTES];
+   U8                         cnt[NUM_MATRIX_INP];
+} DIG_INP_MATRIX_T;
+
+typedef struct
+{
    U32                        inpMask;
    U32                        prevInputs;
    U32                        filtInputs;
    U32                        stateMask;
+   DIG_INP_MATRIX_T           *matrix_p;
    DIG_INP_STATE_T            inpState[RS232I_NUM_GEN2_INP];
    DIG_SOL_STATE_T            solState[RS232I_NUM_GEN2_SOL];
 } DIG_GLOB_T;
@@ -199,6 +211,22 @@ void digital_init(void)
             dig_info.inpMask |= (SOL_INP_BIT_MASK << (index << 3));
             solMask |= (SOL_INP_BIT_MASK << (index << 2));
          }
+         /* Check if wing 2 is WING_SW_MATRIX_IN, and wing 3 is WING_SW_MATRIX_OUT */
+         else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_SW_MATRIX_IN)
+         {
+            if (index == 2)
+            {
+               dig_info.matrix_p = malloc(sizeof(DIG_INP_MATRIX_T));
+               dig_info.matrix_p->index = 0;
+               stdldigio_config_dig_port(STDLI_DIG_PORT_2 | STDLI_DIG_PULLDWN, 0xff, 0x01);
+#if PIONEER_DEBUG == 0
+               stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xff, 0);
+#else
+               /* If using the Pioneer debugger, don't change SWDIO/SWDCLK */
+               stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xf3, 0);
+#endif
+            }
+         }
          data = stdldigio_read_port(index, 0xff);
          dig_info.filtInputs |= (data << (index << 3));
       }
@@ -257,18 +285,21 @@ void digital_task(void)
    DIG_INP_STATE_T            *inpState_p;
    DIG_SOL_STATE_T            *solState_p;
    RS232I_SOL_CFG_T           *solCfg_p;
+   U8                         *matrixCnt_p;
    U32                        inputs;
    U32                        changedBits;
    U32                        updFilterHi;
    U32                        updFilterLow;
    INT                        index;
    U8                         data;
+   U8                         chngU8;
    RS232I_CFG_INP_TYPE_E      cfg;
    INT                        shift;
    U32                        currBit;
    INT                        elapsedTimeMs;
 
 #define SWITCH_THRESH         16
+#define MATRIX_THRESH         4
 #define PWM_PERIOD            16
 #define MIN_OFF_INC           0x10
    
@@ -303,7 +334,10 @@ void digital_task(void)
                }
                else
                {
-                  inpState_p->cnt++;
+                  if (inpState_p->cnt <= SWITCH_THRESH)
+                  {
+                     inpState_p->cnt++;
+                  }
                   if (inpState_p->cnt == SWITCH_THRESH)
                   {
                      cfg = gen2g_info.inpCfg_p->inpCfg[index];
@@ -333,8 +367,53 @@ void digital_task(void)
                }
             }
          }
-         
-         /* Perform solenoid processing */
+      }
+
+      if ((gen2g_info.typeWingBrds & (1 << WING_SW_MATRIX_IN)) != 0)
+      {
+         data = stdldigio_read_port(STDLI_DIG_PORT_2, 0xff);
+         chngU8 = data ^ dig_info.matrix_p->prevVal[dig_info.matrix_p->index];
+         dig_info.matrix_p->prevVal[dig_info.matrix_p->index] = data;
+         matrixCnt_p = &dig_info.matrix_p->cnt[dig_info.matrix_p->index * 8];
+         for (index = 0, currBit = 1; index < 8; index++, currBit <<= 1, matrixCnt_p++)
+         {
+            /* If bit has changed, reset count */
+            if ((currBit & chngU8) != 0)
+            {
+               *matrixCnt_p = 0;
+            }
+            else
+            {
+               if (*matrixCnt_p <= MATRIX_THRESH)
+               {
+                  (*matrixCnt_p)++;
+               }
+               /* Just passed the threshold so update data byte */
+               if (*matrixCnt_p == MATRIX_THRESH)
+               {
+                  if (data & currBit)
+                  {
+                     gen2g_info.matrixInp[dig_info.matrix_p->index] |= currBit;
+                  }
+                  else
+                  {
+                     gen2g_info.matrixInp[dig_info.matrix_p->index] &= ~currBit;
+                  }
+               }
+            }
+         }
+         /* Move to next column */
+         dig_info.matrix_p->index++;
+         if (dig_info.matrix_p->index >= RS232I_MATRX_COL)
+         {
+            dig_info.matrix_p->index = 0;
+         }
+         stdldigio_write_port(STDLI_DIG_PORT_3, 0xff, (U8)(1 << dig_info.matrix_p->index));
+      }
+      
+      if ((gen2g_info.typeWingBrds & (1 << WING_SOL)) != 0)
+      {
+        /* Perform solenoid processing */
          for (index = 0, currBit = 1, solState_p = &dig_info.solState[0],
             solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[0];
             index < RS232I_NUM_GEN2_SOL; index++, currBit <<= 1, solState_p++, solCfg_p++)
@@ -488,7 +567,10 @@ void digital_task(void)
                }
             }
          }
+      }
 
+      if ((gen2g_info.typeWingBrds & ((1 << WING_INP) | (1 << WING_SOL))) != 0)
+      {
          DisableInterrupts;
          gen2g_info.validSwitch = (gen2g_info.validSwitch & ~dig_info.stateMask) |
             (dig_info.filtInputs & dig_info.stateMask);

@@ -57,6 +57,7 @@
 #define RS232I_NUM_GEN2_INP 32
 #define RS232I_SZ_COLOR_TBL 32
 #define RS232I_SW_MATRX_INP 64
+#define RS232I_MATRX_COL    8
 
 /* Each command starts with the Card ID except for inventory and EOM.  Next comes the
  *  command, then any data.
@@ -90,6 +91,7 @@ typedef enum
   RS232I_SET_IND_NEO        = 0x16,
   RS232I_SET_SOL_INPUT      = 0x17,
   RS232I_UPGRADE_OTHER_BRD  = 0x18,
+  RS232I_READ_MATRIX_INP    = 0x19,
   RS232I_NUM_CMDS,
   
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
@@ -113,7 +115,7 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
     97, /* RS232I_SET_NEO_COLOR_TBL */ 5,  /* RS232I_INCAND_CMD */
     4,  /* RS232I_CONFIG_IND_SOL */    2,  /* RS232I_CONFIG_IND_INP */
     2,  /* RS232I_SET_IND_NEO */       2,  /* RS232I_SET_SOL_INPUT */
-    0,  /* RS232I_UPGRADE_OTHER_BRD */
+    0,  /* RS232I_UPGRADE_OTHER_BRD */ 8,  /* RS232I_READ_MATRIX_INP */
   }
 #endif
 ;

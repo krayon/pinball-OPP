@@ -46,14 +46,18 @@
 #
 #===============================================================================
 
-testVers = '00.00.07'
+testVers = '00.00.08'
 
 import sys
 import serial
 import array
 import time
 import re
-import msvcrt
+import platform
+windows = False
+if platform.system() == 'Windows':
+    windows = True
+    import msvcrt
 import rs232Intf
 import os
 
@@ -62,11 +66,13 @@ testNum = 255
 data = ""
 NUM_MSGS = 1
 currInpData = []
+matrixInpData = []
 numGen2Brd = 0
 gen2AddrArr = []
 currWingCfg = []
 cardVersion = []
 cardSerNum = []
+hasMatrix = False
 newestVers = "0.0.0.0"
 
 CRC8ByteLookup = \
@@ -152,6 +158,7 @@ def rcvInvResp(append = True):
     global numGen2Brd
     global gen2AddrArr
     global currInpData
+    global matrixInpData
     global currWingCfg
     data = getSerialData();
     #First byte should be inventory cmd
@@ -173,6 +180,7 @@ def rcvInvResp(append = True):
             if (append):
                 currInpData.append(0)
                 currWingCfg.append(0)
+                matrixInpData.append([0,0])
         index = index + 1
         if (len(data) < index + 1):
             print "Could not find EOM."
@@ -259,6 +267,59 @@ def rcvReadInpResp(cardNum):
     currInpData[cardNum] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
     return (0)
 
+#send read matrix command
+def sendReadMatrixCmd(cardNum):
+    global ser
+    global numGen2Brd
+    global gen2AddrArr
+    if (cardNum >= numGen2Brd):
+        return (1500)
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[cardNum])
+    cmdArr.append(rs232Intf.READ_MATRIX_INP_CMD)
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append('\x00')
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
+#rcv read matrix response
+def rcvReadMatrixResp(cardNum):
+    global ser
+    global numGen2Brd
+    global gen2AddrArr
+    global matrixInpData
+    data = getSerialData();
+    if (data[0] != gen2AddrArr[cardNum]):
+        print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
+        print repr(data)
+        return (1600)
+    if (data[1] != rs232Intf.READ_MATRIX_INP_CMD):
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_MATRIX_INP_CMD))
+        print repr(data)
+        return (1601)
+    tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5], data[6], data[7], data[8], data[9] ]
+    crc8 = calcCrc8(tmpData)
+    if (data[10] != crc8):
+        print "\nBad CRC, Data = %d, expected = %d" % (ord(data[10]),crc8)
+        return (1602)
+    if (data[11] != rs232Intf.EOM_CMD):
+        print "\nData = %d, expected = %d" % (ord(data[11]),ord(rs232Intf.EOM_CMD))
+        return (1602)
+    matrixInpData[cardNum][0] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
+    matrixInpData[cardNum][1] = (ord(data[6]) << 24) | (ord(data[7]) << 16) | (ord(data[8]) << 8) | ord(data[9])
+    return (0)
+
+rcvReadMatrixResp
+
 #send sol cfg cmd
 def sendSolCfgCmd(cardNum):
     global ser
@@ -292,8 +353,8 @@ def sendReadWingCfgCmd(cardNum):
 def rcvReadWingCfgResp(cardNum):
     global ser
     global gen2AddrArr
-    global currSolData
     global currWingCfg
+    global hasMatrix
     data = getSerialData();
     if (data[0] != gen2AddrArr[cardNum]):
         print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
@@ -326,6 +387,7 @@ def rcvReadWingCfgResp(cardNum):
             outStr += "SW_MATRIX_OUT_WING"
         elif data[index + 2] == rs232Intf.WING_SW_MATRIX_IN:
             outStr += "SW_MATRIX_IN_WING"
+            hasMatrix = True
         elif data[index + 2] == rs232Intf.WING_NEO:
             outStr += "NEO_WING"
         elif data[index + 2] == rs232Intf.WING_HI_SIDE_INCAND:
@@ -532,8 +594,9 @@ def endTest(error):
     global errMsg
     print "\nError code =", error
     ser.close()
-    print "\nPress any key to close window"
-    ch = msvcrt.getch()
+    if windows:
+        print "\nPress any key to close window"
+        ch = msvcrt.getch()
     sys.exit(error)
 
 #Main code
@@ -562,7 +625,7 @@ for arg in sys.argv:
     print "        Only 1 board can be attached.  Uses wingCfg, solCfg, inpCfg and colorCfg\n"
     print "    -upgrade           upgrade firmware to newest version"
     print "-test=0: Send inventory and verify response 10000 times."
-    print "-test=1: Read first Gen2 inputs continuously.  ('x' exits)"
+    print "-test=1: Read first Gen2 card inputs continuously.  ('x' or ctl-c exits)"
     end = True
   elif arg.startswith('-boot'):
     boot = True
@@ -582,15 +645,17 @@ for arg in sys.argv:
     findNewestImage()
 
 if end:
-    print "\nPress any key to close window"
-    ch = msvcrt.getch()
+    if windows:
+        print "\nPress any key to close window"
+        ch = msvcrt.getch()
     sys.exit(0)
 try:
     ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
 except serial.SerialException:
     print "\nCould not open " + port
-    print "\nPress any key to close window"
-    ch = msvcrt.getch()
+    if windows:
+        print "\nPress any key to close window"
+        ch = msvcrt.getch()
     sys.exit(1)
 print "Sending inventory cmd"
 bad = False
@@ -605,14 +670,16 @@ for index in xrange(numGen2Brd):
         sendGetVersCmd(index)
         error = rcvGetVersResp(index)
         if error != 0:
-            print "\nPress any key to close window"
-            ch = msvcrt.getch()
+            if windows:
+                print "\nPress any key to close window"
+                ch = msvcrt.getch()
             sys.exit(1)
         sendGetSerNumCmd(index)
         error = rcvGetSerNumResp(index)
         if error != 0:
-            print "\nPress any key to close window"
-            ch = msvcrt.getch()
+            if windows:
+                print "\nPress any key to close window"
+                ch = msvcrt.getch()
             sys.exit(1)
 
 if (boot):
@@ -781,6 +848,14 @@ elif (testNum == 1):
         if error:
             print "\nCount = %d" % count
             endTest(error)
+
+        if hasMatrix:
+            sendReadMatrixCmd(0)
+            error = rcvReadMatrixResp(0)
+            if error:
+                print "\nCount = %d" % count
+                endTest(error)
+
         outArr = []
         outArr.append('\r')
         for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
@@ -788,14 +863,28 @@ elif (testNum == 1):
                 outArr.append('1')
             else:
                 outArr.append('0')
+        if hasMatrix:
+            outArr.append(' ')
+            for loop in range(rs232Intf.NUM_G2_MATRIX_INP/2):
+                if (matrixInpData[0][0] & (1 << ((rs232Intf.NUM_G2_MATRIX_INP/2) - loop - 1))):
+                    outArr.append('1')
+                else:
+                    outArr.append('0')
+            for loop in range(rs232Intf.NUM_G2_MATRIX_INP/2):
+                if (matrixInpData[0][1] & (1 << ((rs232Intf.NUM_G2_MATRIX_INP/2) - loop - 1))):
+                    outArr.append('1')
+                else:
+                    outArr.append('0')
+
         sys.stdout.write(''.join(outArr))
         count = count + 1
         
-        #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
-            if ((char == 'x') or (char == 'X')):
-                print "\nCount = %d" % count
-                exitReq = True
+        #Check if exit is requested, if non-windows, must hit ctl-c
+        if windows:
+            while msvcrt.kbhit():
+                char = msvcrt.getch()
+                if ((char == 'x') or (char == 'X')):
+                    print "\nCount = %d" % count
+                    exitReq = True
 ser.close()
 sys.exit(0)

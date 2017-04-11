@@ -71,7 +71,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x00020002
+#define GEN2G_CODE_VERS       0x00020003
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -172,7 +172,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
       sizeof(GEN2G_INP_CFG_T),      /* WING_INP */
       0,                            /* WING_INCAND */
       0,                            /* WING_SW_MATRIX_OUT */
-      sizeof(GEN2G_SW_MATRIX_CFG_T),/* WING_SW_MATRIX_IN */
+      0,                            /* WING_SW_MATRIX_IN */
       sizeof(GEN2G_NEO_CFG_T),      /* WING_NEO */
       0,                            /* WING_HI_SIDE_INCAND */
   }
@@ -194,7 +194,7 @@ void incand_init();
       digital_init,                 /* WING_INP */
       incand_init,                  /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
-      NULL,                         /* WING_SW_MATRIX_IN */
+      digital_init,                 /* WING_SW_MATRIX_IN */
       neopxl_init,                  /* WING_NEO */
       incand_init,                  /* WING_HI_SIDE_INCAND */
   }
@@ -210,6 +210,7 @@ typedef struct
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
    U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */
+   U8                         matrixInp[RS232I_MATRX_COL];
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
    U32                        validSwitch;
    U32                        crcErr;

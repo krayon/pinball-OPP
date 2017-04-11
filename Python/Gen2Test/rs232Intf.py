@@ -74,6 +74,7 @@ CFG_IND_INP_CMD     = '\x15'
 SET_IND_NEO_CMD     = '\x16'
 SET_SOL_INPUT_CMD   = '\x17'
 PASS_THRU_CMD       = '\x18'
+READ_MATRIX_INP_CMD = '\x19'
 
 INV_CMD             = '\xf0'
 EOM_CMD             = '\xff'
@@ -93,6 +94,7 @@ WING_NEO            = '\x06'
 WING_HI_SIDE_INCAND = '\x07'
 
 NUM_G2_INP_PER_BRD  = 32
+NUM_G2_MATRIX_INP   = 64
 CFG_INP_STATE       = '\x00'
 CFG_INP_FALL_EDGE   = '\x01'
 CFG_INP_RISE_EDGE   = '\x02'
