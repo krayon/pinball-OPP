@@ -52,7 +52,7 @@ testVers = '00.00.01'
 import rs232Intf
 
 # Config inputs as all state inputs
-wingCfg = [ [ rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_SW_MATRIX_IN, rs232Intf.WING_SW_MATRIX_OUT ] ]
+wingCfg = [ [ rs232Intf.WING_SOL, rs232Intf.WING_SOL, rs232Intf.WING_SW_MATRIX_IN, rs232Intf.WING_SW_MATRIX_OUT ] ]
 
 # Config inputs as all state inputs
 inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
@@ -65,10 +65,10 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
 # solenoid config
-solCfg  = [ [ rs232Intf.CFG_SOL_ON_OFF_USE_SW, '\x00', '\x00', '\x00', '\x00', '\x00', \
-                rs232Intf.CFG_SOL_ON_OFF_USE_SW, '\x00', '\x00', '\x00', '\x00', '\x00', \
-                '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
-                '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+solCfg  = [ [ rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x05', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x26', \
+                rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x24', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x25', \
+                rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x27', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x23', \
+                rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x17', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x07', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \

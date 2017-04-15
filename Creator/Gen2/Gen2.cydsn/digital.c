@@ -86,12 +86,21 @@ typedef struct
    INT                        cnt;
 } DIG_INP_STATE_T;
 
+#define MATRIX_FIRE_SOL       0x80
+#define MATRIX_SOL_MASK       0x07
+
+typedef struct
+{
+   U8                         cnt;
+   U8                         sol;
+} DIG_MTRX_BIT_INFO_T;
+
 typedef struct
 {
    U8                         index;
    U8                         prevVal[NUM_MATRIX_BYTES];
-   U8                         cnt[NUM_MATRIX_INP];
-} DIG_INP_MATRIX_T;
+   DIG_MTRX_BIT_INFO_T        info[NUM_MATRIX_INP];
+} DIG_MATRIX_DATA_T;
 
 typedef struct
 {
@@ -99,7 +108,7 @@ typedef struct
    U32                        prevInputs;
    U32                        filtInputs;
    U32                        stateMask;
-   DIG_INP_MATRIX_T           *matrix_p;
+   DIG_MATRIX_DATA_T          *matrix_p;
    DIG_INP_STATE_T            inpState[RS232I_NUM_GEN2_INP];
    DIG_SOL_STATE_T            solState[RS232I_NUM_GEN2_SOL];
 } DIG_GLOB_T;
@@ -144,6 +153,8 @@ void digital_init(void)
    RS232I_CFG_INP_TYPE_E      *inpCfg_p;
    U16                        solMask = 0;
    U8                         data;
+   RS232I_SOL_CFG_T           *solCfg_p;
+   U32                        currBit;
 
 #define INPUT_BIT_MASK        0xff   
 #define SOL_INP_BIT_MASK      0x0f  
@@ -216,7 +227,7 @@ void digital_init(void)
          {
             if (index == 2)
             {
-               dig_info.matrix_p = malloc(sizeof(DIG_INP_MATRIX_T));
+               dig_info.matrix_p = malloc(sizeof(DIG_MATRIX_DATA_T));
                dig_info.matrix_p->index = 0;
                stdldigio_config_dig_port(STDLI_DIG_PORT_2 | STDLI_DIG_PULLDWN, 0xff, 0x01);
 #if PIONEER_DEBUG == 0
@@ -255,6 +266,27 @@ void digital_init(void)
             }
          }
       }
+
+      /* If a matrix wing exists, set up the solenoid inputs */
+      if ((gen2g_info.typeWingBrds & (1 << WING_SW_MATRIX_IN)) != 0)
+      {
+         /* Initialize the counts and solenoid info */
+         for (index = 0; index < RS232I_SW_MATRX_INP; index++)
+         {
+            dig_info.matrix_p->info[index].cnt = 0;
+            dig_info.matrix_p->info[index].sol = 0;
+         }
+         /* Set up the solenoids to autofire using the switch matrix */
+         for (index = 0, currBit = 1, solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[0];
+            index < RS232I_NUM_GEN2_SOL; index++, currBit <<= 1, solState_p++, solCfg_p++)
+         {
+            if (solCfg_p->cfg & USE_MATRIX_INP)
+            {
+               dig_info.matrix_p->info[solCfg_p->minOffDuty].sol = MATRIX_FIRE_SOL | index;
+            }
+         }
+      }
+      
       /* Set up the initial state */
       digital_upd_sol_cfg(solMask);
       digital_upd_inp_cfg(dig_info.inpMask);
@@ -285,7 +317,7 @@ void digital_task(void)
    DIG_INP_STATE_T            *inpState_p;
    DIG_SOL_STATE_T            *solState_p;
    RS232I_SOL_CFG_T           *solCfg_p;
-   U8                         *matrixCnt_p;
+   DIG_MTRX_BIT_INFO_T        *matrixBitInfo_p;
    U32                        inputs;
    U32                        changedBits;
    U32                        updFilterHi;
@@ -374,26 +406,31 @@ void digital_task(void)
          data = stdldigio_read_port(STDLI_DIG_PORT_2, 0xff);
          chngU8 = data ^ dig_info.matrix_p->prevVal[dig_info.matrix_p->index];
          dig_info.matrix_p->prevVal[dig_info.matrix_p->index] = data;
-         matrixCnt_p = &dig_info.matrix_p->cnt[dig_info.matrix_p->index * 8];
-         for (index = 0, currBit = 1; index < 8; index++, currBit <<= 1, matrixCnt_p++)
+         matrixBitInfo_p = &dig_info.matrix_p->info[dig_info.matrix_p->index * 8];
+         for (index = 0, currBit = 1; index < 8; index++, currBit <<= 1, matrixBitInfo_p++)
          {
             /* If bit has changed, reset count */
             if ((currBit & chngU8) != 0)
             {
-               *matrixCnt_p = 0;
+               matrixBitInfo_p->cnt = 0;
             }
             else
             {
-               if (*matrixCnt_p <= MATRIX_THRESH)
+               if (matrixBitInfo_p->cnt <= MATRIX_THRESH)
                {
-                  (*matrixCnt_p)++;
+                  matrixBitInfo_p->cnt++;
                }
                /* Just passed the threshold so update data byte */
-               if (*matrixCnt_p == MATRIX_THRESH)
+               if (matrixBitInfo_p->cnt == MATRIX_THRESH)
                {
                   if (data & currBit)
                   {
                      gen2g_info.matrixInp[dig_info.matrix_p->index] |= currBit;
+                     if (matrixBitInfo_p->sol != 0)
+                     {
+                        gen2g_info.solDrvProcCtl |=
+                           (1 << (matrixBitInfo_p->sol & MATRIX_SOL_MASK));
+                     }
                   }
                   else
                   {
@@ -464,7 +501,7 @@ void digital_task(void)
                   stdldigio_write_port(solState_p->port, solState_p->bit, 0);
 
                   /* If this is a normal solenoid */
-                  if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL)) == 0)
+                  if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL | USE_MATRIX_INP)) == 0)
                   {
                      /* See if this has a sustaining PWM */
                      if (solCfg_p->minOffDuty & DUTY_CYCLE_MASK)
@@ -486,7 +523,7 @@ void digital_task(void)
                         solState_p->offCnt = 0;
                      }
                   }
-                  else if ((solCfg_p->cfg & DLY_KICK_SOL) != 0)
+                  else if ((solCfg_p->cfg & (DLY_KICK_SOL | USE_MATRIX_INP)) != 0)
                   {
                      solState_p->solState = SOL_MIN_TIME_OFF;
                      solState_p->offCnt = 0;
@@ -607,15 +644,36 @@ void digital_set_solenoid_input(
    RS232I_SET_SOL_INP_E       solIndex)
 {
    DIG_SOL_STATE_T            *solState_p;
-
-   solState_p = &dig_info.solState[solIndex & SOL_INP_SOL_MASK];
-   if ((solIndex & SOL_INP_CLEAR_SOL) == 0)
+   
+   if (inpIndex < RS232I_NUM_GEN2_INP)
    {
-      solState_p->inpBits |= (1 << inpIndex);
+      solState_p = &dig_info.solState[solIndex & SOL_INP_SOL_MASK];
+      if ((solIndex & SOL_INP_CLEAR_SOL) == 0)
+      {
+         solState_p->inpBits |= (1 << inpIndex);
+      }
+      else
+      {
+         solState_p->inpBits &= ~(1 << inpIndex);
+      }
    }
    else
    {
-      solState_p->inpBits &= ~(1 << inpIndex);
+      /* Inputs 32 to 96 are from the switch matrix, first verify
+       * there is a switch matrix.
+       */
+      if ((gen2g_info.typeWingBrds & (1 << WING_SW_MATRIX_IN)) != 0)
+      {
+         if ((solIndex & SOL_INP_CLEAR_SOL) == 0)
+         {
+            dig_info.matrix_p->info[inpIndex - RS232I_NUM_GEN2_INP].sol = 0;
+         }
+         else
+         {
+            dig_info.matrix_p->info[inpIndex - RS232I_NUM_GEN2_INP].sol =
+               MATRIX_FIRE_SOL | (solIndex & SOL_INP_SOL_MASK);
+         }
+      }
    }
 } /* End digital_set_solenoid_input */
 

@@ -67,15 +67,19 @@ class ProcInpCards():
         ProcInpCards.hasData = False
         ProcInpCards.numInpCards = 0
         ProcInpCards.inpCfgBits = []
+        ProcInpCards.matrixCfgBits = []
         ProcInpCards.name = []
         ProcInpCards.cardNum = []
         ProcInpCards.pinNum = []
         ProcInpCards.flagStr = []
         ProcInpCards.desc = []
         ProcInpCards.hasInpWingMask = 0
+        ProcInpCards.hasMatrixWingMask = 0
 
         # Constants
         ProcInpCards.NUM_INP_BITS = 32
+        ProcInpCards.MIN_MATRIX_INP = 32
+        ProcInpCards.MAX_MATRIX_INP = 95
         
     ## Process section
     #
@@ -95,6 +99,7 @@ class ProcInpCards():
         parent.currToken += 1
         for _ in xrange(parent.procSimple.numGen2Cards):
             ProcInpCards.inpCfgBits.append(0)
+            ProcInpCards.matrixCfgBits.append([0,0])
         if not parent.helpFuncs.isOpenSym(parent.tokens[parent.currToken]):
             parent.consoleObj.updateConsole("!!! Error !!! Expected opening symbol, read %s, at line num %d." %
                (parent.tokens[parent.currToken], parent.lineNumList[parent.currToken]))
@@ -118,8 +123,8 @@ class ProcInpCards():
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
     def procLine(self, parent):
-        VALID_FLAGS = ["STATE_INPUT", "FALL_EDGE", "RISE_EDGE"]
-        GEN_FLAGS = ["rs232Intf.CFG_INP_STATE", "rs232Intf.CFG_INP_FALL_EDGE", "rs232Intf.CFG_INP_RISE_EDGE"]
+        VALID_FLAGS = ["STATE_INPUT", "FALL_EDGE", "RISE_EDGE", "MATRIX"]
+        GEN_FLAGS = ["rs232Intf.CFG_INP_STATE", "rs232Intf.CFG_INP_FALL_EDGE", "rs232Intf.CFG_INP_RISE_EDGE", "Matrix"]
 
         name = parent.tokens[parent.currToken]
         if name in ProcInpCards.name:
@@ -140,7 +145,6 @@ class ProcInpCards():
             parent.consoleObj.updateConsole("!!! Error !!! Illegal input card num, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 1], parent.lineNumList[parent.currToken + 1]))
             return (312)
-        ProcInpCards.hasInpWingMask |= (1 << cardNum)
         ProcInpCards.cardNum.append(cardNum)
         
         # Verify pin num
@@ -150,16 +154,6 @@ class ProcInpCards():
             return (313)
         # Pin number is now base 0
         pinNum = parent.helpFuncs.out
-        if (pinNum < 0) or (pinNum >= ProcInpCards.NUM_INP_BITS):
-            parent.consoleObj.updateConsole("!!! Error !!! Illegal input pin num, read %s, at line num %d." %
-               (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
-            return (314)
-        if (ProcInpCards.inpCfgBits[cardNum] & (1 << pinNum)) != 0: 
-            parent.consoleObj.updateConsole("!!! Error !!! Input pin configured multiple times, at line num %d." %
-               (parent.lineNumList[parent.currToken + 2]))
-            return (315)
-        ProcInpCards.inpCfgBits[cardNum] |= (1 << pinNum)
-        ProcInpCards.pinNum.append(pinNum)
         
         # Verify flagStr
         if not parent.helpFuncs.isValidString(parent.tokens[parent.currToken + 3], VALID_FLAGS):
@@ -168,6 +162,40 @@ class ProcInpCards():
             return (316)
         flagStr = GEN_FLAGS[parent.helpFuncs.out]
         ProcInpCards.flagStr.append(flagStr)
+        
+        # Check if this is a normal input or a matrix input
+        if (flagStr != "Matrix"):
+            # It is a normal input
+            if (pinNum < 0) or (pinNum >= ProcInpCards.NUM_INP_BITS):
+                parent.consoleObj.updateConsole("!!! Error !!! Illegal input pin num, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
+                return (314)
+            if (ProcInpCards.inpCfgBits[cardNum] & (1 << pinNum)) != 0: 
+                parent.consoleObj.updateConsole("!!! Error !!! Input pin configured multiple times, at line num %d." %
+                   (parent.lineNumList[parent.currToken + 2]))
+                return (315)
+            ProcInpCards.inpCfgBits[cardNum] |= (1 << pinNum)
+            ProcInpCards.pinNum.append(pinNum)
+            ProcInpCards.hasInpWingMask |= (1 << cardNum)
+        else:
+            # It is a matrix input
+            if (pinNum < ProcInpCards.MIN_MATRIX_INP) or (pinNum > ProcInpCards.MAX_MATRIX_INP):
+                parent.consoleObj.updateConsole("!!! Error !!! Illegal matrix input pin num, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 2], parent.lineNumList[parent.currToken + 2]))
+                return (316)
+            if (ProcInpCards.inpCfgBits[cardNum] & (1 << pinNum)) != 0: 
+                parent.consoleObj.updateConsole("!!! Error !!! Input pin configured multiple times, at line num %d." %
+                   (parent.lineNumList[parent.currToken + 2]))
+                return (317)
+            ProcInpCards.hasMatrixWingMask |= (1 << cardNum)
+            matrixIndex = pinNum - ProcInpCards.MIN_MATRIX_INP
+            
+            # Break into two 32 bit fields for storing bit mask for matrix
+            if (pinNum - ProcInpCards.MIN_MATRIX_INP > 32):
+                ProcInpCards.matrixCfgBits[cardNum][1] |= (1 << (pinNum - ProcInpCards.MIN_MATRIX_INP - 32))
+            else:
+                ProcInpCards.matrixCfgBits[cardNum][0] |= (1 << (pinNum - ProcInpCards.MIN_MATRIX_INP))
+            ProcInpCards.pinNum.append(pinNum)
         
         # Grab description
         desc = parent.tokens[parent.currToken + 4]
@@ -219,7 +247,7 @@ class ProcInpCards():
             else:
                 outHndl.write(line + "\n")
                 
-        # Write out the bit name enumerations
+        # Write out the bit name enumerations for normal inputs
         for cardIndex in xrange(parent.procSimple.numGen2Cards):
             for bitIndex in xrange(ProcInpCards.NUM_INP_BITS):
                 found = self.findBitIndex(cardIndex, bitIndex)
@@ -233,6 +261,28 @@ class ProcInpCards():
                     parent.procSimple.cardWingInv[cardIndex][wingBrdIndex] = rs232Intf.WING_INP
                     outHndl.write("    {0:48} = 0x{1:08x}\n".format(ProcInpCards.name[self.out].upper(),
                         ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))))
+
+        # Write out the bit name enumerations for matrix inputs
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
+            if (ProcInpCards.hasMatrixWingMask & (1 << cardIndex) != 0):
+                for bitIndex in xrange(ProcInpCards.MIN_MATRIX_INP, ProcInpCards.MAX_MATRIX_INP + 1):
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        offset = bitIndex & 0x07;
+                        # Wing board indices have 0x80 to indicate matrix and byte offset
+                        wingBrdIndex = 0x80 | (((bitIndex - 0x20) & 0x38) >> 3);
+                        # Look for any errors such as wing board being a different type
+                        if ((parent.procSimple.cardWingInv[cardIndex][2] != 0) and (parent.procSimple.cardWingInv[cardIndex][2] != rs232Intf.WING_SW_MATRIX_IN)):
+                            parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
+                            return (331)
+                        # Look for any errors such as wing board being a different type
+                        if ((parent.procSimple.cardWingInv[cardIndex][3] != 0) and (parent.procSimple.cardWingInv[cardIndex][3] != rs232Intf.WING_SW_MATRIX_OUT)):
+                            parent.consoleObj.updateConsole("!!! Error !!! Gen2 wing board previous configured as 0x{0:02x}.".format(ord(parent.procSimple.cardWingInv[cardIndex][wingBrdIndex])))
+                            return (332)
+                        parent.procSimple.cardWingInv[cardIndex][2] = rs232Intf.WING_SW_MATRIX_IN
+                        parent.procSimple.cardWingInv[cardIndex][3] = rs232Intf.WING_SW_MATRIX_OUT
+                        outHndl.write("    {0:48} = 0x{1:08x}\n".format(ProcInpCards.name[self.out].upper(),
+                            ((cardIndex << 24) | (wingBrdIndex << 16) | (1 << offset))))
 
         # Write out the bit masks enumerations
         outHndl.write("\n");
@@ -292,6 +342,32 @@ class ProcInpCards():
                         outHndl.write("rs232Intf.CFG_INP_STATE")
                 outHndl.write("]")
         outHndl.write(" ]\n\n")
+        
+        # Write out the matrix bit name strings
+        outHndl.write("\n    ## Input board matrix bit names\n")
+        outHndl.write("    # Indexed into using the [InpBitNames](@ref inpBitNames.InpBitNames) class\n")
+        outHndl.write("    INP_BRD_MTRX_BIT_NAMES = [ ")
+        for cardIndex in xrange(parent.procSimple.numGen2Cards):
+            if (cardIndex != 0):
+                outHndl.write(",\n        ")
+            if (ProcInpCards.hasMatrixWingMask & (1 << cardIndex) == 0):
+                outHndl.write("[ ]")
+            else:
+                outHndl.write("[")
+                for bitIndex in xrange(ProcInpCards.MIN_MATRIX_INP, ProcInpCards.MAX_MATRIX_INP + 1):
+                    if (bitIndex != ProcInpCards.MIN_MATRIX_INP):
+                        if ((bitIndex % 4) == 0):
+                            outHndl.write(",\n        ")
+                        else:
+                            outHndl.write(", ")
+                    found = self.findBitIndex(cardIndex, bitIndex)
+                    if found:
+                        outHndl.write(ProcInpCards.desc[self.out])
+                    else:
+                        outHndl.write("\"Unused\"")
+                outHndl.write("]")
+        outHndl.write(" ]\n\n")
+
         outHndl.close()
         parent.consoleObj.updateConsole("Completed: inpBitNames.py file.")
         return (0)

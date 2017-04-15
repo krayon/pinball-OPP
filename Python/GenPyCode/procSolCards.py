@@ -108,9 +108,10 @@ class ProcSolCards():
             errVal = self.procLine(parent)
             if errVal:
                 parent.currToken = closeSymb
-        self.createSolBitNames(parent)
+        if errVal == 0:
+            self.createSolBitNames(parent)
         parent.currToken += 1
-        return (0)
+        return (errVal)
 
     ## Process line
     #
@@ -121,11 +122,14 @@ class ProcSolCards():
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
     def procLine(self, parent):
-        VALID_FLAGS = ["USE_SWITCH", "AUTO_CLR"]
-        GEN_FLAGS = ["rs232Intf.CFG_SOL_USE_SWITCH", "rs232Intf.CFG_SOL_AUTO_CLR"]
+        VALID_FLAGS = ["USE_SWITCH", "AUTO_CLR", "USE_MTRX_INP", "ON_OFF_USE_SW"]
+        GEN_FLAGS = ["rs232Intf.CFG_SOL_USE_SWITCH", "rs232Intf.CFG_SOL_AUTO_CLR", \
+            "rs232Intf.CFG_SOL_USE_MTRX_INP", "rs232Intf.CFG_SOL_ON_OFF_USE_SW"]
         MAX_INIT_KICK = 255
         MAX_DUTY_CYCLE = 15
         MAX_MIN_OFF = 7
+        MIN_MATRX_INP = 0
+        MAX_MATRX_INP = 63
 
         name = parent.tokens[parent.currToken]
         ProcSolCards.name.append(name)
@@ -168,7 +172,9 @@ class ProcSolCards():
             parent.consoleObj.updateConsole("!!! Error !!! Solenoid illegal flags, read %s, at line num %d." %
                (parent.tokens[parent.currToken + 3], parent.lineNumList[parent.currToken + 3]))
             return (215)
+        
         flagStr = GEN_FLAGS[parent.helpFuncs.out]
+        inpFlagStr = VALID_FLAGS[parent.helpFuncs.out]
         ProcSolCards.flagStr.append(flagStr)
         
         # Verify init kick
@@ -204,10 +210,17 @@ class ProcSolCards():
             return (220)
         minOff = parent.helpFuncs.out
         # Verify minOff is not out of range
-        if (minOff < 0) or (minOff > MAX_MIN_OFF):
-            parent.consoleObj.updateConsole("!!! Error !!! Illegal minOff value, read %s, at line num %d." %
-               (parent.tokens[parent.currToken + 6], parent.lineNumList[parent.currToken + 6]))
-            return (221)
+        if (inpFlagStr != "USE_MTRX_INP"):
+            if (minOff < 0) or (minOff > MAX_MIN_OFF):
+                parent.consoleObj.updateConsole("!!! Error !!! Illegal minOff value, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 6], parent.lineNumList[parent.currToken + 6]))
+                return (221)
+        else:
+            # It is a matrix input so must be within range
+            if (minOff < MIN_MATRX_INP) or (minOff > MAX_MATRX_INP):
+                parent.consoleObj.updateConsole("!!! Error !!! Illegal minOff (matrix input) value, read %s, at line num %d." %
+                   (parent.tokens[parent.currToken + 6], parent.lineNumList[parent.currToken + 6]))
+                return (222)
         ProcSolCards.minOff.append(minOff)
         
         # Grab description
@@ -330,7 +343,10 @@ class ProcSolCards():
                     if found:
                         outHndl.write(ProcSolCards.flagStr[self.out] + ", ")
                         outHndl.write("'\\x" + hex(ProcSolCards.initKick[self.out])[2:].zfill(2) + "', ")
-                        thirdByte = (ProcSolCards.minOff[self.out] * 16) + ProcSolCards.dutyCycle[self.out]
+                        if (ProcSolCards.flagStr[self.out] != "rs232Intf.CFG_SOL_USE_MTRX_INP"):
+                            thirdByte = (ProcSolCards.minOff[self.out] * 16) + ProcSolCards.dutyCycle[self.out]
+                        else:
+                            thirdByte = ProcSolCards.minOff[self.out]
                         outHndl.write("'\\x" + hex(thirdByte)[2:].zfill(2) + "'")
                     else:
                         outHndl.write("rs232Intf.CFG_SOL_DISABLE, '\\x00', '\\x00'")
