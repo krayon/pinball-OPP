@@ -333,16 +333,16 @@ class ProcModes:
             "",
             "#===============================================================================",
             "",
-            "from rulesFunc import RulesFunc",
-            "from states import State",
-            "from ledChains import LedChains",
-            "from soundChains import SoundChains",
-            "from imageChains import ImageChains",
-            "from sounds import Sounds",
+            "from @dir.rulesFunc import RulesFunc",
+            "from @dir.states import State",
+            "from @dir.ledChains import LedChains",
+            "from @dir.soundChains import SoundChains",
+            "from @dir.imageChains import ImageChains",
+            "from @dir.sounds import Sounds",
             "",
             "## Process chain lists.",
             "#",
-            "#  Contains all the chains that are specific this this set of pinball rules.",
+            "#  Contains all the chains that are specific this set of pinball rules.",
             "class ProcChain():",
             "    def __init__(self):",
             "        pass",
@@ -370,6 +370,8 @@ class ProcModes:
             ProcModes.outHndl.write(line)
         stdHdrHndl.close()
         for line in HDR_COMMENTS:
+            if "@dir." in line:
+                line = line.replace("@dir.", parent.consoleObj.outDir + ".")
             if line.startswith("# @date"):
                 ProcModes.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:

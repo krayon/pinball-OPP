@@ -149,6 +149,7 @@ class GameData():
     HAS_INP_WING = 0x01
     HAS_SOL_WING = 0x02
     HAS_INCAND_WING = 0x04
+    HAS_MATRIX_WING = 0x08
     
     ## The constructor.
     def __init__(self, rulesDir):
@@ -166,6 +167,7 @@ class GameData():
                 importedMode = __import__(currMod)
             except ImportError:
                 failImport = True
+                print "Fatal error:  failed import on %s" % currMod
             if (currMod.endswith("rulesData")):
                 if (not failImport):
                     GameData.RulesData = importedMode.rulesData.RulesData
@@ -246,6 +248,11 @@ class GameData():
                       (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_HI_SIDE_INCAND)):
                     wingTypes |= GameData.HAS_INCAND_WING
                     ledWings |= 1 << wingIndex
+                # Switch matrix wings must be wing 2 is WING_SW_MATRIX_IN and wing 3 is WING_SW_MATRIX_OUT
+                elif ((GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_SW_MATRIX_IN) or \
+                    (GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex] == rs232Intf.WING_SW_MATRIX_OUT)):
+                    wingTypes |= GameData.HAS_MATRIX_WING
+                    inpWings |= InpBrd.HAS_MATRIX
                 else:
                     print "Found non-supported card " + repr(GameData.RulesData.INV_ADDR_LIST[cardIndex][wingIndex])
             if (solWings != 0):

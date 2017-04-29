@@ -131,6 +131,10 @@ class CreateRulesData:
                         CreateRulesData.outHndl.write("rs232Intf.WING_SOL")
                     elif (ProcSimple.cardWingInv[cardIndex][wingIndex] == rs232Intf.WING_INCAND):
                         CreateRulesData.outHndl.write("rs232Intf.WING_INCAND")
+                    elif (ProcSimple.cardWingInv[cardIndex][wingIndex] == rs232Intf.WING_SW_MATRIX_OUT):
+                        CreateRulesData.outHndl.write("rs232Intf.WING_SW_MATRIX_OUT")
+                    elif (ProcSimple.cardWingInv[cardIndex][wingIndex] == rs232Intf.WING_SW_MATRIX_IN):
+                        CreateRulesData.outHndl.write("rs232Intf.WING_SW_MATRIX_IN")
                     else:
                         CreateRulesData.outHndl.write("rs232Intf.WING_INP")
                     if (wingIndex != ProcSimple.NUM_WING_CARDS - 1):
@@ -193,6 +197,7 @@ class CreateRulesData:
             "#===============================================================================",
             "",
             "from states import State",
+            "import rs232Intf",
             "",
             "## Rule data class.",
             "#",

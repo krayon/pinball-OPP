@@ -107,6 +107,10 @@ CFG_SOL_USE_SWITCH  = '\x01'
 CFG_SOL_AUTO_CLR    = '\x02'
 CFG_SOL_ON_OFF      = '\x04'
 CFG_SOL_DLY_KICK    = '\x08'
+CFG_SOL_USE_MTRX_INP= '\x10'
+
+#Note:  Derived from above bits
+CFG_SOL_ON_OFF_USE_SW = '\x05'
 
 NUM_COLOR_TBL       = 32
 

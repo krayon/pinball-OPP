@@ -243,7 +243,7 @@ class ProcSndChains:
             "#  Each sound chain group contains the sound to play, the command, and the",
             "#  parameter to the command.",
             "",
-            "class SoundChains():"
+            "class SoundChains():    # Sound chain commands",
             "    def __init__(self):",
             "        pass",
             "",

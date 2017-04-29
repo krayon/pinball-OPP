@@ -287,18 +287,18 @@ class ProcChains:
             "",
             "#===============================================================================",
             "",
-            "from inpBitNames import InpBitNames",
-            "from solBitNames import SolBitNames",
-            "from ledBitNames import LedBitNames",
-            "from timers import Timers",
-            "from rulesData import RulesData",
-            "from sounds import Sounds",
-            "from bgndSounds import BgndMusic",
-            "from states import State",
-            "from images import Images",
+            "from @dir.inpBitNames import InpBitNames",
+            "from @dir.solBitNames import SolBitNames",
+            "from @dir.ledBitNames import LedBitNames",
+            "from @dir.timers import Timers",
+            "from @dir.rulesData import RulesData",
+            "from @dir.sounds import Sounds",
+            "from @dir.bgndSounds import BgndMusic",
+            "from @dir.states import State",
+            "from @dir.images import Images",
             "",
             "## Rules functions class.",
-            "#  Contains all the rules that are specific this this set of pinball rules.",
+            "#  Contains all the rules that are specific this set of pinball rules.",
             "",
             "class RulesFunc:",
             "    ## Initialize rulesFuncs class",
@@ -319,6 +319,8 @@ class ProcChains:
             ProcChains.outHndl.write(line)
         stdHdrHndl.close()
         for line in HDR_COMMENTS:
+            if "@dir." in line:
+                line = line.replace("@dir.", parent.consoleObj.outDir + ".")
             if line.startswith("# @date"):
                 ProcChains.outHndl.write(line + time.strftime("%m/%d/%Y") + "\n")
             else:

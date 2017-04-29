@@ -52,6 +52,9 @@ import rs232Intf
 class InpBrd():
     numInpBrd = 0
     
+    ## Used to indicate switch matrix is on card
+    HAS_MATRIX = 0x10
+    
     ##  Used for switch input processing.  A '1' means it is a state input bit and
     #  the latest value is used.  A '0' means is an edge triggered input, and it
     #  is automatically cleared after being used.
@@ -94,17 +97,24 @@ class InpBrd():
     def add_card(self, card, wingMask, GameData):
         InpBrd.numInpBrd += 1
         bitField = 0
-        for bit in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
-            if (GameData.InpBitNames.INP_BRD_CFG[card][bit] == rs232Intf.CFG_INP_STATE):
-                bitField |= (1 << bit)
-        inputBitsMask = 0xff
         mask = 0
-        for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
-            if (wingMask & (1 << wing) != 0):
-                mask |= (inputBitsMask << (wing << 3))
-                InpBrd.dataRemap.append((card << 16) | wing)
+        
+        # Check if there are any direct inputs
+        if (wingMask & ((1 << rs232Intf.NUM_G2_WING_PER_BRD) - 1) != 0):
+            for bit in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
+                if (GameData.InpBitNames.INP_BRD_CFG[card][bit] == rs232Intf.CFG_INP_STATE):
+                    bitField |= (1 << bit)
+            inputBitsMask = 0xff
+            for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                if (wingMask & (1 << wing) != 0):
+                    mask |= (inputBitsMask << (wing << 3))
+                    InpBrd.dataRemap.append((card << 16) | wing)
         InpBrd.inpCfgBitfield[card] = bitField
         InpBrd.validDataMask[card] = mask
+        
+        # Check if there is a switch matrix
+        if ((wingMask & InpBrd.HAS_MATRIX) != 0):
+            print "Card %d, found switch matrix" % card
     
     ## Update the input status.
     #
