@@ -350,6 +350,17 @@ def readInputs(commThread):
                         if (commThread.hasInp[boardIndex]):
                             InpBrd.update_status(GameData.inpBrd, boardIndex, status)
                     index += 7
+                elif data[index + 1] == rs232Intf.READ_MATRIX_INP:
+                    rcvCmd = data[index: index + 10]
+                    crc = calcCrc8(rcvCmd)
+                    if (crc != data[index + 10]):
+                        print "Bad CRC input response:  Rcv'd 0x02x, Expected 0x02x" % (intData[index + 10], ord(crc))
+                    else:
+                        for col in xrange(InpBrd.NUM_MATRIX_COLS):
+                            commThread.currMatrixData[boardIndex][col] = data[index + 2 + col]
+                        rcvData = data[index + 2: index + 10]
+                        InpBrd.update_matrix_status(GameData.inpBrd, boardIndex, rcvData)
+                    index += 11
                 else:
                     index += 1
     else:

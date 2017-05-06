@@ -71,8 +71,9 @@ class TkInpBrd():
     #  @param  brdNum        [in]   Input board instance index (base 0)
     #  @param  wing          [in]   Wing number (base 0)
     #  @param  parentFrm     [in]   Parent frame
+    #  @param  wingRow       [in]   Row on parent frame
     #  @return None
-    def __init__(self, brdNum, wing, parentFrm):
+    def __init__(self, brdNum, wing, parentFrm, wingRow):
         self.brdNum = brdNum
         self.wing = wing
         self.brdAddr = brdNum + ord(rs232Intf.CARD_ID_GEN2_CARD)
@@ -88,7 +89,7 @@ class TkInpBrd():
         
         #Create main frame
         self.inpCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
-        self.inpCardFrm.grid(column = 0, row = (brdNum * rs232Intf.NUM_G2_WING_PER_BRD) + wing + 1)
+        self.inpCardFrm.grid(column = 0, row = wingRow)
         
         #Create card info frame
         inpCardInfoFrm = Frame(self.inpCardFrm)
@@ -183,11 +184,21 @@ class TkInpBrd():
         inpCardBitFrm = Frame(self.inpCardFrm, borderwidth = 5, relief=RAISED)
         self.bitFrms.append(inpCardBitFrm)
         inpCardBitFrm.grid(column = TkInpBrd.BITS_IN_ROW - bit - 1, row = 0)
-        tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_BIT_NAMES[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)])
+        matrixInput = False
+        if (self.wing < rs232Intf.NUM_G2_WING_PER_BRD):
+            tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_BIT_NAMES[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)])
+        else:
+            matrixInput = True
+            tmpLbl = Label(inpCardBitFrm, text="%s" % GameData.InpBitNames.INP_BRD_MTRX_BIT_NAMES[self.brdNum][ \
+                bit + ((self.wing - rs232Intf.NUM_G2_WING_PER_BRD) * rs232Intf.NUM_INP_PER_WING)])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
         #Read config and set btnCfg
-        if (GameData.InpBitNames.INP_BRD_CFG[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)] == rs232Intf.CFG_INP_STATE):
+        if not matrixInput:
+            if (GameData.InpBitNames.INP_BRD_CFG[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)] == rs232Intf.CFG_INP_STATE):
+                self.btnCfgBitfield |= (1 << bit)
+        else:
+            # All matrix inputs are state inputs
             self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses

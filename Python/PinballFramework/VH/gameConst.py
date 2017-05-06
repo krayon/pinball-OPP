@@ -85,15 +85,15 @@ class GameConst:
     # Located using actual screen x,y coordinates for center of display.
     # Auto scaled in simulation.  First entry is playerNum, second entry
     # is BallNum/Credits, third entry is player 1 score, fourth entry is
-    # player 2 score, etc. Was 703, 900
-    SCORE_DISP_POS = [[650,800], [650,950], 
-        [271,800], [1011,800], [271,950], [1011,950]]   #Player score positions
+    # player 2 score, etc.
+    SCORE_DISP_POS = [[650,85], [650,235], 
+        [271,85], [1011,85], [271,235], [1011,235]]   #Player score positions
     
     ## Height of score displays
     SCORE_HEIGHT = 100
     
     ## Initial background image
-    INIT_BGND_IMAGE = Images.IMAGE_BACKGROUND
+    INIT_BGND_IMAGE = Images.IMAGE_ATTRACTMODE
 
     ## Input board scoring
     INP_SCORE = [ [ [ 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1 ],     # Normal scoring

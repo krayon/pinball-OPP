@@ -113,23 +113,39 @@ class TkinterThread(Thread):
         root = Tk()
         root.wm_title("Debug Window")
         bgndFrm = VerticalScrolledFrame(root)
-        cmdFrm = TkCmdFrm(bgndFrm.interior)  # Changed to bgndFrm.interior
+        cmdFrm = TkCmdFrm(bgndFrm.interior)
         bgndFrm.pack()
         numInpWing = 0
         numSolWing = 0
+        currFrameRow = 1
         for card in xrange(len(TkinterThread.GameData.RulesData.INV_ADDR_LIST)):
             for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
                 if (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INP):
                     # Check if there is no configuration which indicates it is an empty wing board
                     if (len(TkinterThread.GameData.InpBitNames.INP_BRD_CFG[card]) != 0):
-                        GameData.tkInpBrd.append(TkInpBrd(card, wing, bgndFrm.interior))
+                        GameData.tkInpBrd.append(TkInpBrd(card, wing, bgndFrm.interior, currFrameRow))
+                        currFrameRow += 1
                         numInpWing += 1
+                elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_SW_MATRIX_IN):
+                    # Check if there are any bit names that aren't unused indicating it is valid
+                    if (len(TkinterThread.GameData.InpBitNames.INP_BRD_MTRX_BIT_NAMES[card]) != 0):
+                        validCols = 0
+                        for index in xrange(rs232Intf.NUM_MATRIX_INP):
+                            if (TkinterThread.GameData.InpBitNames.INP_BRD_MTRX_BIT_NAMES[card][index] != "Unused"):
+                                validCols |= (1 << ((index & 0x38) >> 3))
+                        for col in xrange(rs232Intf.NUM_MATRIX_COL):
+                            if (validCols & (1 << col) != 0):
+                                GameData.tkInpBrd.append(TkInpBrd(card, rs232Intf.NUM_G2_WING_PER_BRD + col, bgndFrm.interior, currFrameRow))
+                                currFrameRow += 1
+                                numInpWing += 1
                 elif (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_SOL):
-                    GameData.tkSolBrd.append(TkSolBrd(card, wing, bgndFrm.interior))   # Changed to bgndFrm.interior
+                    GameData.tkSolBrd.append(TkSolBrd(card, wing, bgndFrm.interior, currFrameRow))
+                    currFrameRow += 1
                     numSolWing += 1
                 elif ((TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_INCAND) or \
                       (TkinterThread.GameData.RulesData.INV_ADDR_LIST[card][wing] == rs232Intf.WING_HI_SIDE_INCAND)):
-                    GameData.tkLedBrd.append(TkLedBrd(card, wing, bgndFrm.interior))
+                    GameData.tkLedBrd.append(TkLedBrd(card, wing, bgndFrm.interior, currFrameRow))
+                    currFrameRow += 1
         root.update()
         TkinterThread.doneInit = True
         

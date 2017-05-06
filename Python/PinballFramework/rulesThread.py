@@ -120,6 +120,10 @@ class RulesThread(Thread):
             if (InpBrd.validDataMask[index] != 0):
                 data = InpBrd.get_status(RulesThread.GameData.inpBrd, index) & InpBrd.validDataMask[index]
                 RulesThread.GameData.currInpStatus[index] |= data
+            if InpBrd.hasMatrix[index]:
+                data = InpBrd.get_matrix_status(RulesThread.GameData.inpBrd, index)
+                for col in xrange(InpBrd.NUM_MATRIX_COLS):
+                    RulesThread.GameData.currMatrixStatus[index][col] = data[col]
             if RulesThread.GameData.debug:
                 RulesThread.GameData.currInpStatus[index] |= debugInpStatus[index]
         

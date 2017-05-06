@@ -102,6 +102,7 @@ class GameData():
     #Used for switch input processing.  Logical OR of debug data (simSwitchBits)
     #  and Comms data (switchInpData, switchSolData)
     currInpStatus = []
+    currMatrixStatus = []
     wingTypes = []
     numGen2Brd = 0
     
@@ -263,4 +264,5 @@ class GameData():
                 LedBrd.add_card(self.ledBrd, cardIndex, ledWings)
             GameData.wingTypes.append(wingTypes)
             GameData.currInpStatus.append(0)
+            GameData.currMatrixStatus.append([0 for _ in xrange(InpBrd.NUM_MATRIX_COLS)])
             GameData.numGen2Brd += 1

@@ -70,8 +70,9 @@ class TkLedBrd():
     #  @param  brdNum        [in]   Input board instance index (base 0)
     #  @param  wing          [in]   Wing number (base 0)
     #  @param  parentFrm     [in]   Parent frame
+    #  @param  wingRow       [in]   Row on parent frame
     #  @return None
-    def __init__(self, brdNum, wing, parentFrm):
+    def __init__(self, brdNum, wing, parentFrm, wingRow):
         self.brdNum = brdNum
         self.wing = wing
         self.statLbl = StringVar()
@@ -89,7 +90,7 @@ class TkLedBrd():
         
         #Create main frame
         self.ledCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
-        self.ledCardFrm.grid(column = 0, row = (brdNum * rs232Intf.NUM_G2_WING_PER_BRD) + wing + 1)
+        self.ledCardFrm.grid(column = 0, row = wingRow)
         
         #Create card info frame
         ledCardInfoFrm = Frame(self.ledCardFrm)

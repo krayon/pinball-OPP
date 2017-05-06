@@ -187,6 +187,9 @@ SOUND_CLIPS
    Sound_BadTarget1                "sounds/badTarget1.wav"
    Sound_BadTarget2                "sounds/badTarget2.wav"
    Sound_BallDrainNoGood           "sounds/ballDrainNoGood.wav"
+   Sound_ChooseSinger              "sounds/chooseSinger.wav"
+   Sound_SammyHagar                "sounds/sammyHagar.wav"
+   Sound_DavidLeeRoth              "sounds/davidLeeRoth.wav"
 }
 
 BGND_CLIPS
@@ -218,8 +221,23 @@ BGND_CLIPS
 IMAGES
 {
    #Name                   Location
-   Image_Background        "graphics/background.jpg"        MAIN_SCR
-   Image_Background1       "graphics/background1.jpg"       MAIN_SCR
+   Image_Jump              "graphics/jump.jpg"                  MAIN_SCR
+   Image_YouReallyGotMe    "graphics/you_really_got_me.jpg"     MAIN_SCR
+   Image_Unchained         "graphics/unchained.jpg"             MAIN_SCR
+   Image_Panama            "graphics/panama.jpg"                MAIN_SCR
+   Image_HotForTeacher     "graphics/hot_for_teacher.jpg"       MAIN_SCR
+   Image_DropDeadLegs      "graphics/drop_dead_legs.jpg"        MAIN_SCR
+
+   #Sammy songs for inline targets
+   Image_BestOfBothWorlds  "graphics/best_of_both_worlds.jpg"   MAIN_SCR
+   Image_TopOfTheWorld     "graphics/top_of_the_world.jpg"      MAIN_SCR
+   Image_RightNow          "graphics/right_now.jpg"             MAIN_SCR
+   Image_Poundcake         "graphics/poundcake.jpg"             MAIN_SCR
+   Image_FeelsSoGood       "graphics/feels_so_good.jpg"         MAIN_SCR
+   Image_CaboWabo          "graphics/cabo_wabo.jpg"             MAIN_SCR
+   
+   Image_AttractMode       "graphics/attract_mode.jpg"          MAIN_SCR
+   Image_WizardMode        "graphics/wizard_mode.jpg"           MAIN_SCR
 }
 
 TICK_TIME                  20                            # 20 ms tick timer
@@ -512,13 +530,13 @@ LED_CHAINS
 SOUND_CHAINS
 {
    #Name                   Processing (sound, cmd, sound, cmd, ...)
-   SndCh_Attract           { Sound_HelloBaby, WAIT 600000, Sound_BallDrainNoGood, WAIT 600000, REPEAT}
+   SndCh_Attract           { Sound_HelloBaby, WAIT 600000, Sound_HelloBaby, WAIT 600000, REPEAT}
 }
 
 IMAGE_CHAINS
 {
    #Name                   Processing (image, cmd, image, cmd, ...)
-   ImageCh_Attract         { Image_Background, WAIT 1000, Image_Background1, WAIT 1000,
+   ImageCh_Attract         { Image_AttractMode, WAIT 30000, Image_AttractMode, WAIT 30000,
                              REPEAT}
 }
 

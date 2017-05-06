@@ -71,8 +71,9 @@ class TkSolBrd():
     #  @param  brdNum        [in]   Solenoid board instance index (base 0)
     #  @param  wing          [in]   Wing number (base 0)
     #  @param  parentFrm     [in]   Parent frame
+    #  @param  wingRow       [in]   Row on parent frame
     #  @return None
-    def __init__(self, brdNum, wing, parentFrm):
+    def __init__(self, brdNum, wing, parentFrm, wingRow):
         self.brdNum = brdNum
         self.wing = wing
         self.brdAddr = brdNum + ord(rs232Intf.CARD_ID_GEN2_CARD)
@@ -89,7 +90,7 @@ class TkSolBrd():
         
         #Create main frame
         self.solCardFrm = Frame(parentFrm, borderwidth = 5, relief=RAISED)
-        self.solCardFrm.grid(column = 0, row = (brdNum * rs232Intf.NUM_G2_WING_PER_BRD) + wing + 1)
+        self.solCardFrm.grid(column = 0, row = wingRow)
         
         #Create card info frame
         solCardInfoFrm = Frame(self.solCardFrm)

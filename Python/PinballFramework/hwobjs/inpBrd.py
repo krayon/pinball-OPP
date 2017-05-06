@@ -54,6 +54,12 @@ class InpBrd():
     
     ## Used to indicate switch matrix is on card
     HAS_MATRIX = 0x10
+
+    ## Used as wing number for switch matrices
+    SWITCH_MATRIX_WING = 0x10
+    
+    ## Number of switch matrix columns
+    NUM_MATRIX_COLS = 8
     
     ##  Used for switch input processing.  A '1' means it is a state input bit and
     #  the latest value is used.  A '0' means is an edge triggered input, and it
@@ -72,6 +78,12 @@ class InpBrd():
     ## Data remapper
     dataRemap = []
     
+    ## Has matrix
+    hasMatrix = []
+    
+    ## Current matrix data
+    currMatrixData = []
+    
     ## Initialize boards
     #
     #  Create an instance for each card in the system even if it doesn't
@@ -84,6 +96,8 @@ class InpBrd():
             InpBrd.currInpData.append(0)
             InpBrd.lastData.append(0)
             InpBrd.validDataMask.append(0)
+            InpBrd.currMatrixData.append([0 for _ in xrange(InpBrd.NUM_MATRIX_COLS)])
+            InpBrd.hasMatrix.append(False)
         
     ## Add input card function
     #
@@ -114,7 +128,14 @@ class InpBrd():
         
         # Check if there is a switch matrix
         if ((wingMask & InpBrd.HAS_MATRIX) != 0):
-            print "Card %d, found switch matrix" % card
+            validCols = 0
+            InpBrd.hasMatrix[card] = True;
+            for index in xrange(rs232Intf.NUM_MATRIX_INP):
+                if (GameData.InpBitNames.INP_BRD_MTRX_BIT_NAMES[card][index] != "Unused"):
+                    validCols |= (1 << ((index & 0x38) >> 3))
+            for col in xrange(rs232Intf.NUM_MATRIX_COL):
+                if (validCols & (1 << col) != 0):
+                    InpBrd.dataRemap.append((card << 16) | (InpBrd.SWITCH_MATRIX_WING + col))
     
     ## Update the input status.
     #
@@ -132,6 +153,20 @@ class InpBrd():
         InpBrd.currInpData[card] = latchData | stateData
         InpBrd.lastData[card] = data
         
+    ## Update the matrix input status.
+    #
+    #  Copy the new data into currMatrixData.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Input board instance index (base 0)
+    #  @param  data          [in]   Array of data read from hardware card
+    #  @return None
+    def update_matrix_status(self, card, data):
+        # Check if there is matrix data
+        if InpBrd.hasMatrix[card]:
+            for col in xrange(InpBrd.NUM_MATRIX_COLS):
+                InpBrd.currMatrixData[card][col] = data[col]
+        
     ## Get input status
     #
     #  Grab the stored input status and return it.  Clear all the edge
@@ -145,3 +180,13 @@ class InpBrd():
         data = InpBrd.currInpData[card]
         InpBrd.currInpData[card] &= InpBrd.inpCfgBitfield[card]
         return data
+
+    ## Get matrix input status
+    #
+    #  Grab the stored matrix input status and return it.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  card          [in]   Input board instance index (base 0)
+    #  @return Input matrix status
+    def get_matrix_status(self, card):
+        return InpBrd.currMatrixData[card]

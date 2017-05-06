@@ -97,11 +97,12 @@ class StdFuncs():
         for cardIndex in xrange(InpBrd.numInpBrd):
             card = InpBrd.dataRemap[cardIndex] >> 16
             wing = InpBrd.dataRemap[cardIndex] & 0xffff
-            for inpIndex in xrange(rs232Intf.NUM_INP_PER_WING):
-                cfgOffs = rs232Intf.CFG_BYTES_PER_INP * (inpIndex + (wing * rs232Intf.NUM_INP_PER_WING))
-                cfg = StdFuncs.GameData.InpBitNames.INP_BRD_CFG[card][cfgOffs]
-                comms.commIntf.updateInp(StdFuncs.GameData.commThread, card, cfgOffs, cfg)
-            comms.commIntf.sendInpCfg(StdFuncs.GameData.commThread, card)
+            if ((wing & InpBrd.SWITCH_MATRIX_WING) == 0):
+                for inpIndex in xrange(rs232Intf.NUM_INP_PER_WING):
+                    cfgOffs = rs232Intf.CFG_BYTES_PER_INP * (inpIndex + (wing * rs232Intf.NUM_INP_PER_WING))
+                    cfg = StdFuncs.GameData.InpBitNames.INP_BRD_CFG[card][cfgOffs]
+                    comms.commIntf.updateInp(StdFuncs.GameData.commThread, card, cfgOffs, cfg)
+                comms.commIntf.sendInpCfg(StdFuncs.GameData.commThread, card)
         
     ## Check solenoid bit
     #

@@ -142,14 +142,17 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Init(self):
-        pass
+        RulesFunc.GameData.StdFuncs.Restore_Input_Cfg()
+        RulesFunc.GameData.gameMode = State.MODE_ATTRACT
 
     ## Function Proc_Attract_Init
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Attract_Init(self):
-        pass
+        RulesFunc.GameData.StdFuncs.Disable_Solenoids()
+        RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
+        RulesFunc.CustomFunc.init_attract_mode()
 
     ## Function Proc_Add_Coin
     #
