@@ -217,7 +217,7 @@ class CustomFunc:
         CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER4] = True
 
         # Turn off all the LEDs from attract mode
-        CustomFunc.GameData.StdFuncs.Led_Off([LED_CRD0_LIST_BITS_MSK, LED_CRD1_LIST_BITS_MSK, LED_CRD2_LIST_BITS_MSK, LED_CRD3_LIST_BITS_MSK])
+        CustomFunc.GameData.StdFuncs.Led_Off([LED_CRD0_LIST_BITS_MSK, LED_CRD1_LIST_BITS_MSK])
                 
     ## Init attract mode
     #

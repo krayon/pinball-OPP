@@ -133,7 +133,7 @@ class TkSolBrd():
         #Else this is a pulsed button, set the bit and it will be auto cleared
         else:
             self.simSwitchBits |= (1 << bit)
-        print "Bits = 0x%04x" % self.simSwitchBits
+        print "Card = %d, Wing = %d, Bits = 0x%02x" % (self.brdNum, self.wing, self.simSwitchBits)
 
     ## Pulse a solenoid bit
     #

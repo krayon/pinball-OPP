@@ -83,7 +83,7 @@ class ProcChain():
     PROC_CHAIN = [
         [State.MODE_INIT, [RulesFunc.Proc_Init], [], [], [], [], [] ],
         [State.MODE_ATTRACT, [RulesFunc.Proc_Attract_Init], [RulesFunc.Proc_Start_and_Coin], ImageChains.ImageCh_Attract, SoundChains.SndCh_Attract, LedChains.LedCh_Attract, [] ],
-        [State.MODE_INIT_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game], [], [], [], [] ],
+        [State.MODE_INIT_GAME, [RulesFunc.Proc_Init_Game], [RulesFunc.Proc_Start_Game], ImageChains.ImageCh_StartGame, [], [], [] ],
         [State.MODE_SKILLSHOT, [], [RulesFunc.Proc_Skillshot, RulesFunc.Proc_Start_and_Coin], [], [], [], [] ],
         [State.MODE_NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play], [], [], [], [] ],
         [State.MODE_CHOOSE_MODE, [RulesFunc.Proc_Choose_Mode_Init], [RulesFunc.Proc_Choose_Mode], [], [], [], [] ],

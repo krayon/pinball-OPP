@@ -238,6 +238,8 @@ IMAGES
    
    Image_AttractMode       "graphics/attract_mode.jpg"          MAIN_SCR
    Image_WizardMode        "graphics/wizard_mode.jpg"           MAIN_SCR
+   Image_ChooseDavid       "graphics/chooseDavid.jpg"           MAIN_SCR
+   Image_ChooseSammy       "graphics/chooseSammy.jpg"           MAIN_SCR
 }
 
 TICK_TIME                  20                            # 20 ms tick timer
@@ -538,6 +540,8 @@ IMAGE_CHAINS
    #Name                   Processing (image, cmd, image, cmd, ...)
    ImageCh_Attract         { Image_AttractMode, WAIT 30000, Image_AttractMode, WAIT 30000,
                              REPEAT}
+   ImageCh_StartGame       { Image_ChooseDavid, WAIT 5000, Image_ChooseSammy, WAIT 5000,
+                             REPEAT}
 }
 
 MODES
@@ -548,7 +552,7 @@ MODES
                                                   ()                                          ()                                             ()}
    Mode_Attract            "Attract"       {(Proc_Attract_Init)       (Proc_Start_and_Coin)                              (ImageCh_Attract)
                                                   (SndCh_Attract)                             (LedCh_Attract)                                ()}
-   Mode_Init_Game          "InitGame"      {(Proc_Init_Game)          (Proc_Start_Game)                                  ()                        
+   Mode_Init_Game          "InitGame"      {(Proc_Init_Game)          (Proc_Start_Game)                                  (ImageCh_StartGame)                        
                                                   ()                                          ()                                             ()}
    Mode_Skillshot          "SkillShot"     {()                        (Proc_Skillshot, Proc_Start_and_Coin)              ()                        
                                                   ()                                          ()                                             ()}

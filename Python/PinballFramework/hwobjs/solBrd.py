@@ -79,10 +79,15 @@ class SolBrd():
     #  @param  numBrds          [in]   Number of boards in the system
     def init_boards(self, numBrds):
         for card in xrange(numBrds):
-            SolBrd.solCfgBitfield.append(0)
-            SolBrd.currSolData.append(0)
-            SolBrd.lastData.append(0)
-            SolBrd.validDataMask.append(0)
+            SolBrd.solCfgBitfield.append([])
+            SolBrd.currSolData.append([])
+            SolBrd.lastData.append([])
+            SolBrd.validDataMask.append([])
+            for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                SolBrd.solCfgBitfield[card].append(0)
+                SolBrd.currSolData[card].append(0)
+                SolBrd.lastData[card].append(0)
+                SolBrd.validDataMask[card].append(0)
     
     ## Add input card function
     #
@@ -95,7 +100,6 @@ class SolBrd():
     #  @return None
     def add_card(self, card, wingMask, GameData):
         SolBrd.numSolBrd += 1
-        bitField = 0
         for bit in xrange(rs232Intf.NUM_G2_SOL_PER_BRD):
             cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * bit
             holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
@@ -104,15 +108,11 @@ class SolBrd():
                 (ord(GameData.SolBitNames.SOL_BRD_CFG[card][holdOffset]) != 0):
                 wing = (bit & 0x0c) >> 2
                 if (wingMask & (1 << wing) != 0):
-                    bitField |= ((1 << (bit & 0x3)) << (wing << 3))
-        inputBitsMask = 0x0f
-        mask = 0
+                    SolBrd.solCfgBitfield[card][wing] |= (1 << (bit & 0x3))
         for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
             if (wingMask & (1 << wing) != 0):
-                mask |= (inputBitsMask << (wing << 3))
                 SolBrd.dataRemap.append((card << 16) | wing)
-        SolBrd.solCfgBitfield[card] = bitField
-        SolBrd.validDataMask[card] = mask
+                SolBrd.validDataMask[card][wing] = 0x0f
     
     ## Update the input status.
     #
@@ -121,15 +121,16 @@ class SolBrd():
     #
     #  @param  self          [in]   Object reference
     #  @param  card          [in]   Solenoid board instance index (base 0)
+    #  @param  wing          [in]   Wing number (base 0)
     #  @param  data          [in]   Data read from hardware card
     #  @return None
-    def update_status(self, card, data):
-        data &= SolBrd.validDataMask[card]
+    def update_status(self, card, wing, data):
+        data &= SolBrd.validDataMask[card][wing]
         # Invert status bits
-        latchData = (((SolBrd.lastData[card] ^ data) & ~data) | SolBrd.currSolData[card]) & ~SolBrd.solCfgBitfield[card]
-        stateData = (data & SolBrd.solCfgBitfield[card]) ^ SolBrd.solCfgBitfield[card]
-        SolBrd.currSolData[card] = latchData | stateData
-        SolBrd.lastData[card] = data
+        latchData = (((SolBrd.lastData[card][wing] ^ data) & ~data) | SolBrd.currSolData[card][wing]) & ~SolBrd.solCfgBitfield[card][wing]
+        stateData = (data & SolBrd.solCfgBitfield[card][wing]) ^ SolBrd.solCfgBitfield[card][wing]
+        SolBrd.currSolData[card][wing] = latchData | stateData
+        SolBrd.lastData[card][wing] = data
         
     ## Get input status
     #
@@ -138,10 +139,11 @@ class SolBrd():
     #
     #  @param  self          [in]   Object reference
     #  @param  card          [in]   Input board instance index (base 0)
+    #  @param  wing          [in]   Wing number (base 0)
     #  @return Input card status
-    def get_status(self, card):
+    def get_status(self, card, wing):
         #Clear all the edge triggered bits
-        data = SolBrd.currSolData[card]
-        SolBrd.currSolData[card] &= SolBrd.solCfgBitfield[card]
+        data = SolBrd.currSolData[card][wing]
+        SolBrd.currSolData[card][wing] &= SolBrd.solCfgBitfield[card][wing]
         return data
     

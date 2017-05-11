@@ -167,12 +167,15 @@ class TkinterThread(Thread):
                 GameData.tkLedBrd[ledInst].updateLeds(data)
             for i in xrange(numSolWing):
                 remapCard = SolBrd.dataRemap[i] >> 16
-                remapWingShift = (SolBrd.dataRemap[i] & 0xffff) << 3
-                GameData.tkSolBrd[i].update_status_field((SolBrd.lastData[remapCard] >> remapWingShift) & 0x0f)
+                remapWing = SolBrd.dataRemap[i] & 0xffff
+                GameData.tkSolBrd[i].update_status_field(SolBrd.lastData[remapCard][remapWing] & 0x0f)
             for i in xrange(numInpWing):
                 remapCard = InpBrd.dataRemap[i] >> 16
-                remapWingShift = (InpBrd.dataRemap[i] & 0xffff) << 3
-                GameData.tkInpBrd[i].update_status_field((InpBrd.lastData[remapCard] >> remapWingShift) & 0xff)
+                if (InpBrd.dataRemap[i] & InpBrd.SWITCH_MATRIX_WING) == 0:
+                    remapWing = InpBrd.dataRemap[i] & 0xffff
+                else: 
+                    remapWing = (InpBrd.dataRemap[i] & 0xf) + rs232Intf.NUM_G2_WING_PER_BRD
+                GameData.tkInpBrd[i].update_status_field(InpBrd.lastData[remapCard][remapWing] & 0xff)
             dummy_count += 1
             time.sleep(float(GlobConst.TK_SLEEP)/1000.0)
 

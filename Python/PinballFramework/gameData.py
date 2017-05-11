@@ -102,7 +102,8 @@ class GameData():
     #Used for switch input processing.  Logical OR of debug data (simSwitchBits)
     #  and Comms data (switchInpData, switchSolData)
     currInpStatus = []
-    currMatrixStatus = []
+    currWingInp = []
+    currDebugInp = []
     wingTypes = []
     numGen2Brd = 0
     
@@ -263,6 +264,19 @@ class GameData():
             if (ledWings != 0):
                 LedBrd.add_card(self.ledBrd, cardIndex, ledWings)
             GameData.wingTypes.append(wingTypes)
-            GameData.currInpStatus.append(0)
-            GameData.currMatrixStatus.append([0 for _ in xrange(InpBrd.NUM_MATRIX_COLS)])
+            GameData.currWingInp.append([])
+            GameData.currDebugInp.append([])
+            GameData.currInpStatus.append([])
+
+            # Append bytes for wing inputs, create debug inputs at same time
+            for _ in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                GameData.currWingInp[cardIndex].append(0)
+                GameData.currDebugInp[cardIndex].append(0)
+                GameData.currInpStatus[cardIndex].append(0)
+            if (inpWings & InpBrd.HAS_MATRIX) != 0:
+                # Append bytes for matrix wing inputs
+                for col in xrange(rs232Intf.NUM_MATRIX_COL):
+                    GameData.currWingInp[cardIndex].append(0)
+                    GameData.currDebugInp[cardIndex].append(0)
+                    GameData.currInpStatus[cardIndex].append(0)
             GameData.numGen2Brd += 1

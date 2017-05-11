@@ -100,32 +100,35 @@ class RulesThread(Thread):
     def proc_rules(self):
         #Grab debug info
         if RulesThread.GameData.debug:
-            debugInpStatus = [0] * RulesThread.GameData.numGen2Brd
             for index in xrange(len(RulesThread.GameData.tkInpBrd)):
                 card = RulesThread.GameData.tkInpBrd[index].brdNum
-                wingShift = RulesThread.GameData.tkInpBrd[index].wing << 3
+                wing = RulesThread.GameData.tkInpBrd[index].wing
                 data = TkInpBrd.get_status(RulesThread.GameData.tkInpBrd[index])
-                debugInpStatus[card] |= (data << wingShift)
+                RulesThread.GameData.currDebugInp[card][wing] = data
             for index in xrange(len(RulesThread.GameData.tkSolBrd)):
                 card = RulesThread.GameData.tkSolBrd[index].brdNum
-                wingShift = RulesThread.GameData.tkSolBrd[index].wing << 3
+                wing = RulesThread.GameData.tkSolBrd[index].wing
                 data = TkSolBrd.get_status(RulesThread.GameData.tkSolBrd[index])
-                debugInpStatus[card] |= (data << wingShift)
+                RulesThread.GameData.currDebugInp[card][wing] = data
         #Update the inputs from solenoid and input cards
-        for index in xrange(RulesThread.GameData.numGen2Brd):
-            RulesThread.GameData.currInpStatus[index] = 0
-            if (SolBrd.validDataMask[index] != 0):
-                data = SolBrd.get_status(RulesThread.GameData.solBrd, index) & SolBrd.validDataMask[index]
-                RulesThread.GameData.currInpStatus[index] |= data
-            if (InpBrd.validDataMask[index] != 0):
-                data = InpBrd.get_status(RulesThread.GameData.inpBrd, index) & InpBrd.validDataMask[index]
-                RulesThread.GameData.currInpStatus[index] |= data
-            if InpBrd.hasMatrix[index]:
-                data = InpBrd.get_matrix_status(RulesThread.GameData.inpBrd, index)
-                for col in xrange(InpBrd.NUM_MATRIX_COLS):
-                    RulesThread.GameData.currMatrixStatus[index][col] = data[col]
-            if RulesThread.GameData.debug:
-                RulesThread.GameData.currInpStatus[index] |= debugInpStatus[index]
+        for card in xrange(RulesThread.GameData.numGen2Brd):
+            for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                newData = 0
+                data = SolBrd.get_status(RulesThread.GameData.solBrd, card, wing) & SolBrd.validDataMask[card][wing]
+                newData |= data
+                data = InpBrd.get_status(RulesThread.GameData.inpBrd, card, wing) & InpBrd.validDataMask[card][wing]
+                newData |= data
+                if RulesThread.GameData.debug:
+                    newData |= RulesThread.GameData.currDebugInp[card][wing]
+                RulesThread.GameData.currInpStatus[card][wing] = newData
+            if InpBrd.hasMatrix[card]:
+                for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD, rs232Intf.NUM_G2_WING_PER_BRD + InpBrd.NUM_MATRIX_COLS):
+                    newData = 0
+                    data = InpBrd.get_status(RulesThread.GameData.inpBrd, card, wing) & InpBrd.validDataMask[card][wing]
+                    newData |= data
+                    if RulesThread.GameData.debug:
+                        newData |= RulesThread.GameData.currDebugInp[card][wing]
+                    RulesThread.GameData.currInpStatus[card][wing] = newData
         
         #Figure out the correct processing chain
         if (RulesThread.GameData.gameMode != RulesThread.GameData.prevGameMode):
@@ -247,27 +250,28 @@ class RulesThread(Thread):
                 
     ## Process scoring
     #
-    #  If no sound chain return.  If the sound chain is new, set the index to 0 and
-    #  set updateCmd flag.  Otherwise increment sound chain time and if it is
-    #  longer than the command wait increment the index and set updateCmd flag.
-    #  If updating the command, clear the time, grab the new command.  If it
-    #  is a repeat, move index back to 0.  If it is a wait, update the LEDs and
-    #  grab the new wait time.  If it is the end of the chain, clear the chain.
+    #  Walk through looking for active bits, and add score.
     #
     #  @param  self          [in]   Object reference
     #  @return None 
     def proc_scoring(self):
         if RulesThread.GameData.scoring:
-            for cardNum in xrange(SolBrd.numSolBrd):
-                if RulesThread.GameData.currSolStatus[cardNum] != 0:
-                    for bit in xrange(rs232Intf.NUM_SOL_PER_BRD):
-                        if (RulesThread.GameData.currSolStatus[cardNum] & (1 << bit)) != 0:
-                            RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.SOL_SCORE[RulesThread.GameData.scoreLvl][cardNum][bit]
-            for cardNum in xrange(InpBrd.numInpBrd):
-                if RulesThread.GameData.currInpStatus[cardNum] != 0:
-                    for bit in xrange(rs232Intf.NUM_INP_PER_BRD):
-                        if (RulesThread.GameData.currInpStatus[cardNum] & (1 << bit)) != 0:
-                            RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.INP_SCORE[RulesThread.GameData.scoreLvl][cardNum][bit]
+            for card in xrange(RulesThread.GameData.numGen2Brd):
+                for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD):
+                    if RulesThread.GameData.currSolStatus[card][wing] != 0:
+                        for bit in xrange(rs232Intf.NUM_SOL_PER_WING):
+                            if (RulesThread.GameData.currSolStatus[card][wing] & (1 << bit)) != 0:
+                                RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.SOL_SCORE[RulesThread.GameData.scoreLvl][card][bit + (rs232Intf.NUM_SOL_PER_WING * wing)]
+                    if RulesThread.GameData.currInpStatus[card][wing] != 0:
+                        for bit in xrange(rs232Intf.NUM_INP_PER_WING):
+                            if (RulesThread.GameData.currInpStatus[card][wing] & (1 << bit)) != 0:
+                                RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.INP_SCORE[RulesThread.GameData.scoreLvl][card][bit + (rs232Intf.NUM_INP_PER_WING * wing)]
+                if InpBrd.hasMatrix[card]:
+                    for wing in xrange(rs232Intf.NUM_G2_WING_PER_BRD, rs232Intf.NUM_G2_WING_PER_BRD + InpBrd.NUM_MATRIX_COLS):
+                        if RulesThread.GameData.currInpStatus[card][wing] != 0:
+                            for bit in xrange(rs232Intf.NUM_INP_PER_WING):
+                                if (RulesThread.GameData.currInpStatus[card][wing] & (1 << bit)) != 0:
+                                    RulesThread.GameData.score[RulesThread.GameData.currPlayer] += RulesThread.GameData.GameConst.INP_SCORE[RulesThread.GameData.scoreLvl][card][bit + (rs232Intf.NUM_INP_PER_WING * wing)]
         
     ## The rules thread
     #

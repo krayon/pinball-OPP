@@ -166,28 +166,38 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Press_Start(self):
-        pass
+        if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_CRDT_RST) and (RulesFunc.GameData.ballNum == 0):
+            if (RulesFunc.GameData.gameMode == State.MODE_ATTRACT):
+                RulesFunc.GameData.StdFuncs.StopBgnd()
+                CustomFunc.GameData.gameMode = State.MODE_INIT_GAME
+                RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
+            if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
+                RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
+                RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER1 + RulesFunc.GameData.numPlayers] = False
+                RulesFunc.GameData.numPlayers += 1
+                RulesFunc.GameData.updDisp |= 0x3f
 
     ## Function Proc_Start_and_Coin
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_and_Coin(self):
-        pass
+        self.Proc_Press_Start()
+        RulesFunc.CustomFunc.proc_attract_mode()
 
     ## Function Proc_Init_Game
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Init_Game(self):
-        pass
+        RulesFunc.GameData.StdFuncs.Enable_Solenoids()
 
     ## Function Proc_Start_Game
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_Game(self):
-        pass
+        self.Proc_Press_Start()
 
     ## Function Proc_Start_Ball_Init
     #

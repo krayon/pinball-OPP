@@ -133,6 +133,7 @@ class TkInpBrd():
         #Else this is a pulsed button, set the bit and it will be auto cleared
         else:
             self.simSwitchBits |= (1 << bit)
+        print "Card = %d, Wing = %d, Bits = 0x%02x" % (self.brdNum, self.wing, self.simSwitchBits)
             
     ## Combobox callback function
     #

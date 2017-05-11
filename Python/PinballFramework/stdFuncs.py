@@ -80,9 +80,11 @@ class StdFuncs():
     #  @return True if set 
     def CheckInpBit(self, cardBitPos):
         card = (cardBitPos >> 24) & 0xff
-        wing = (cardBitPos >> 16) & 0xff
-        bitPos = (cardBitPos & 0xff) << (wing << 3)
-        if ((StdFuncs.GameData.currInpStatus[card] & bitPos) != 0):
+        wing = (cardBitPos >> 16) & 0x0f
+        if ((cardBitPos & 0x800000) != 0):
+            wing += rs232Intf.NUM_G2_WING_PER_BRD
+        bitPos = cardBitPos & 0xff
+        if ((StdFuncs.GameData.currInpStatus[card][wing] & bitPos) != 0):
             return True
         else:
             return False
