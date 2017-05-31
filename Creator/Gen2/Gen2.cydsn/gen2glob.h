@@ -210,7 +210,7 @@ typedef struct
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
    U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */
-   U8                         matrixInp[RS232I_MATRX_COL];
+   U8                         matrixInp[RS232I_MATRX_COL]; /* Note:  written in reverse column order to match Bally numbering. */
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
    U32                        validSwitch;
    U32                        crcErr;

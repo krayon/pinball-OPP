@@ -104,6 +104,7 @@ CFG_SOL_USE_MTRX_INP= '\x10'
 
 #Note:  Derived from above bits
 CFG_SOL_ON_OFF_USE_SW = '\x05'
+CFG_SOL_USE_MTRX_AUTO_CLR= '\x12'
 
 NUM_COLOR_TBL       = 32
 

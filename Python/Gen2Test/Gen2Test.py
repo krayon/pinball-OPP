@@ -63,6 +63,7 @@ import os
 
 port = 'COM1'
 testNum = 255
+card = 0
 data = ""
 NUM_MSGS = 1
 currInpData = []
@@ -72,7 +73,7 @@ gen2AddrArr = []
 currWingCfg = []
 cardVersion = []
 cardSerNum = []
-hasMatrix = False
+hasMatrix = []
 newestVers = "0.0.0.0"
 
 CRC8ByteLookup = \
@@ -159,6 +160,8 @@ def rcvInvResp(append = True):
     global gen2AddrArr
     global currInpData
     global matrixInpData
+
+    global hasMatrix
     global currWingCfg
     data = getSerialData();
     #First byte should be inventory cmd
@@ -180,7 +183,8 @@ def rcvInvResp(append = True):
             if (append):
                 currInpData.append(0)
                 currWingCfg.append(0)
-                matrixInpData.append([0,0])
+                hasMatrix.append(False)
+                matrixInpData.append([0,0,0,0,0,0,0,0])
         index = index + 1
         if (len(data) < index + 1):
             print "Could not find EOM."
@@ -314,8 +318,8 @@ def rcvReadMatrixResp(cardNum):
     if (data[11] != rs232Intf.EOM_CMD):
         print "\nData = %d, expected = %d" % (ord(data[11]),ord(rs232Intf.EOM_CMD))
         return (1602)
-    matrixInpData[cardNum][0] = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
-    matrixInpData[cardNum][1] = (ord(data[6]) << 24) | (ord(data[7]) << 16) | (ord(data[8]) << 8) | ord(data[9])
+    for index in xrange(rs232Intf.NUM_G2_MATRIX_INP/8):
+        matrixInpData[cardNum][index] = ord(data[index + 2])
     return (0)
 
 rcvReadMatrixResp
@@ -387,7 +391,7 @@ def rcvReadWingCfgResp(cardNum):
             outStr += "SW_MATRIX_OUT_WING"
         elif data[index + 2] == rs232Intf.WING_SW_MATRIX_IN:
             outStr += "SW_MATRIX_IN_WING"
-            hasMatrix = True
+            hasMatrix[cardNum] = True
         elif data[index + 2] == rs232Intf.WING_NEO:
             outStr += "NEO_WING"
         elif data[index + 2] == rs232Intf.WING_HI_SIDE_INCAND:
@@ -611,11 +615,14 @@ for arg in sys.argv:
     port = arg.replace('-port=','',1)
   elif arg.startswith('-test='):
     testNum = int(arg.replace('-test=','',1))
+  elif arg.startswith('-card='):
+    card = int(arg.replace('-card=','',1))
   elif arg.startswith('-?'):
     print "python Gen2Test.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
     print "    -test=testNum      test number, defaults to 0"
+    print "    -card=cardNum      card number, 0-based, defaults to 0"
     print "    -boot              force a single board into bootloader"
     print "    -saveCfg           save a cfg on a single board."
     print "        Only 1 board can be attached.  Load configuration option must also be set."
@@ -625,7 +632,7 @@ for arg in sys.argv:
     print "        Only 1 board can be attached.  Uses wingCfg, solCfg, inpCfg and colorCfg\n"
     print "    -upgrade           upgrade firmware to newest version"
     print "-test=0: Send inventory and verify response 10000 times."
-    print "-test=1: Read first Gen2 card inputs continuously.  ('x' or ctl-c exits)"
+    print "-test=1: Read card indicated by -card param continuously.  ('x' or ctl-c exits)"
     end = True
   elif arg.startswith('-boot'):
     boot = True
@@ -843,15 +850,15 @@ elif (testNum == 1):
     exitReq = False
     count = 0
     while (not exitReq):
-        sendReadInpBrdCmd(0)
-        error = rcvReadInpResp(0)
+        sendReadInpBrdCmd(card)
+        error = rcvReadInpResp(card)
         if error:
             print "\nCount = %d" % count
             endTest(error)
 
-        if hasMatrix:
-            sendReadMatrixCmd(0)
-            error = rcvReadMatrixResp(0)
+        if hasMatrix[card]:
+            sendReadMatrixCmd(card)
+            error = rcvReadMatrixResp(card)
             if error:
                 print "\nCount = %d" % count
                 endTest(error)
@@ -859,19 +866,17 @@ elif (testNum == 1):
         outArr = []
         outArr.append('\r')
         for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
-            if (currInpData[0] & (1 << (rs232Intf.NUM_G2_INP_PER_BRD - loop - 1))):
+            if (currInpData[card] & (1 << (rs232Intf.NUM_G2_INP_PER_BRD - loop - 1))):
                 outArr.append('1')
             else:
                 outArr.append('0')
-        if hasMatrix:
-            outArr.append(' ')
-            for loop in range(rs232Intf.NUM_G2_MATRIX_INP/2):
-                if (matrixInpData[0][0] & (1 << ((rs232Intf.NUM_G2_MATRIX_INP/2) - loop - 1))):
-                    outArr.append('1')
-                else:
-                    outArr.append('0')
-            for loop in range(rs232Intf.NUM_G2_MATRIX_INP/2):
-                if (matrixInpData[0][1] & (1 << ((rs232Intf.NUM_G2_MATRIX_INP/2) - loop - 1))):
+        if hasMatrix[card]:
+            for loop in range(rs232Intf.NUM_G2_MATRIX_INP):
+                index = loop/8
+                offset = loop & 0x7
+                if (offset == 0):
+                    outArr.append(' ')
+                if (matrixInpData[card][index] & (1 << offset)):
                     outArr.append('1')
                 else:
                     outArr.append('0')

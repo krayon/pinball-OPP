@@ -122,9 +122,10 @@ class ProcSolCards():
     #  @param  parent        [in]   Parent object for logging and tokens
     #  @return Error number if an error, or zero if no error
     def procLine(self, parent):
-        VALID_FLAGS = ["USE_SWITCH", "AUTO_CLR", "USE_MTRX_INP", "ON_OFF_USE_SW"]
+        VALID_FLAGS = ["USE_SWITCH", "AUTO_CLR", "USE_MTRX_INP", "ON_OFF_USE_SW", "USE_MTRX_AUTO_CLR"]
         GEN_FLAGS = ["rs232Intf.CFG_SOL_USE_SWITCH", "rs232Intf.CFG_SOL_AUTO_CLR", \
-            "rs232Intf.CFG_SOL_USE_MTRX_INP", "rs232Intf.CFG_SOL_ON_OFF_USE_SW"]
+            "rs232Intf.CFG_SOL_USE_MTRX_INP", "rs232Intf.CFG_SOL_ON_OFF_USE_SW", \
+            "rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR"]
         MAX_INIT_KICK = 255
         MAX_DUTY_CYCLE = 15
         MAX_MIN_OFF = 7
@@ -210,7 +211,7 @@ class ProcSolCards():
             return (220)
         minOff = parent.helpFuncs.out
         # Verify minOff is not out of range
-        if (inpFlagStr != "USE_MTRX_INP"):
+        if ((inpFlagStr != "USE_MTRX_INP") and (inpFlagStr != "USE_MTRX_AUTO_CLR")):
             if (minOff < 0) or (minOff > MAX_MIN_OFF):
                 parent.consoleObj.updateConsole("!!! Error !!! Illegal minOff value, read %s, at line num %d." %
                    (parent.tokens[parent.currToken + 6], parent.lineNumList[parent.currToken + 6]))

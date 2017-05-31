@@ -57,9 +57,6 @@
 
 #define STDL_FILE_ID          3
 
-#define NUM_MATRIX_INP        64
-#define NUM_MATRIX_BYTES      8
-
 typedef enum
 {
    SOL_STATE_IDLE             = 0x00,
@@ -98,8 +95,8 @@ typedef struct
 typedef struct
 {
    U8                         index;
-   U8                         prevVal[NUM_MATRIX_BYTES];
-   DIG_MTRX_BIT_INFO_T        info[NUM_MATRIX_INP];
+   U8                         prevVal[RS232I_SW_MATRX_INP/8];
+   DIG_MTRX_BIT_INFO_T        info[RS232I_SW_MATRX_INP];
 } DIG_MATRIX_DATA_T;
 
 typedef struct
@@ -154,7 +151,6 @@ void digital_init(void)
    U16                        solMask = 0;
    U8                         data;
    RS232I_SOL_CFG_T           *solCfg_p;
-   U32                        currBit;
 
 #define INPUT_BIT_MASK        0xff   
 #define SOL_INP_BIT_MASK      0x0f  
@@ -231,10 +227,10 @@ void digital_init(void)
                dig_info.matrix_p->index = 0;
                stdldigio_config_dig_port(STDLI_DIG_PORT_2 | STDLI_DIG_PULLDWN, 0xff, 0x01);
 #if PIONEER_DEBUG == 0
-               stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xff, 0);
+               stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xff, 0x00);
 #else
                /* If using the Pioneer debugger, don't change SWDIO/SWDCLK */
-               stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xf3, 0);
+               stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xf3, 0x00);
 #endif
             }
          }
@@ -277,8 +273,8 @@ void digital_init(void)
             dig_info.matrix_p->info[index].sol = 0;
          }
          /* Set up the solenoids to autofire using the switch matrix */
-         for (index = 0, currBit = 1, solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[0];
-            index < RS232I_NUM_GEN2_SOL; index++, currBit <<= 1, solState_p++, solCfg_p++)
+         for (index = 0, solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[0];
+            index < RS232I_NUM_GEN2_SOL; index++, solCfg_p++)
          {
             if (solCfg_p->cfg & USE_MATRIX_INP)
             {
@@ -445,7 +441,10 @@ void digital_task(void)
          {
             dig_info.matrix_p->index = 0;
          }
-         stdldigio_write_port(STDLI_DIG_PORT_3, 0xff, (U8)(1 << dig_info.matrix_p->index));
+         
+         /* Reverse column numbering to match Bally documentation */
+         stdldigio_write_port(STDLI_DIG_PORT_3, 0xff,
+            (U8)(1 << (RS232I_MATRX_COL - 1 - dig_info.matrix_p->index)));
       }
       
       if ((gen2g_info.typeWingBrds & (1 << WING_SOL)) != 0)

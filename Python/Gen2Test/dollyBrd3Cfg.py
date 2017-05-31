@@ -65,8 +65,8 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
 # solenoid config
-solCfg  = [ [ rs232Intf.CFG_SOL_ON_OFF_USE_SW, '\x00', '\x00', '\x00', '\x00', '\x00', \
-                rs232Intf.CFG_SOL_ON_OFF_USE_SW, '\x00', '\x00', '\x00', '\x00', '\x00', \
+solCfg  = [ [ rs232Intf.CFG_SOL_ON_OFF_USE_SW, '\x00', '\x00', rs232Intf.CFG_SOL_ON_OFF_USE_SW, '\x00', '\x00', \
+                rs232Intf.CFG_SOL_USE_SWITCH, '\x10', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \

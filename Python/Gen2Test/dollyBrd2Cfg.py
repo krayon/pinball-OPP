@@ -64,11 +64,11 @@ inpCfg = [ [ rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, \
              rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE, rs232Intf.CFG_INP_STATE ] ]
 
-# solenoid config
-solCfg  = [ [ rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x05', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x26', \
-                rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x24', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x25', \
-                rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x27', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x23', \
-                rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x17', rs232Intf.CFG_SOL_USE_MTRX_INP, '\x10', '\x07', \
+# solenoid config 
+solCfg  = [ [ rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x40', '\x03', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x10', '\x23', \
+                rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x21', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x22', \
+                rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x20', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x10', '\x10', \
+                rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x10', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x20', '\x24', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
                 '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
