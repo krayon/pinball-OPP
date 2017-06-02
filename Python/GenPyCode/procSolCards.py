@@ -344,7 +344,8 @@ class ProcSolCards():
                     if found:
                         outHndl.write(ProcSolCards.flagStr[self.out] + ", ")
                         outHndl.write("'\\x" + hex(ProcSolCards.initKick[self.out])[2:].zfill(2) + "', ")
-                        if (ProcSolCards.flagStr[self.out] != "rs232Intf.CFG_SOL_USE_MTRX_INP"):
+                        if (ProcSolCards.flagStr[self.out] != "rs232Intf.CFG_SOL_USE_MTRX_INP") and \
+                            (ProcSolCards.flagStr[self.out] != "rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR"):
                             thirdByte = (ProcSolCards.minOff[self.out] * 16) + ProcSolCards.dutyCycle[self.out]
                         else:
                             thirdByte = ProcSolCards.minOff[self.out]

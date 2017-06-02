@@ -283,9 +283,15 @@ PROCESS_CHAINS
    
    Proc_Attract_Init       {}
    
+   Proc_Attract_Mode       {}
+   
+   Proc_Init_Game_Init     {}
+   
+   Proc_Init_Game_Mode     {}
+   
    Proc_Add_Coin           {}
    
-   Proc_Press_Start        {}
+   Proc_Add_Player         {}
    
    Proc_Start_and_Coin     {}
    
@@ -533,7 +539,7 @@ LED_CHAINS
 SOUND_CHAINS
 {
    #Name                   Processing (sound, cmd, sound, cmd, ...)
-   SndCh_Attract           { Sound_HelloBaby, WAIT 600000, Sound_HelloBaby, WAIT 600000, REPEAT}
+   SndCh_Attract           { Sound_HelloBaby, WAIT 600000, REPEAT}
 }
 
 IMAGE_CHAINS
@@ -553,7 +559,7 @@ MODES
                                                   ()                                          ()                                             ()}
    Mode_Attract            "Attract"       {(Proc_Attract_Init)       (Proc_Start_and_Coin)                              (ImageCh_Attract)
                                                   (SndCh_Attract)                             (LedCh_Attract)                                ()}
-   Mode_Init_Game          "InitGame"      {(Proc_Init_Game)          (Proc_Start_Game)                                  (ImageCh_StartGame)                        
+   Mode_Init_Game          "InitGame"      {(Proc_Init_Game)          (Proc_Add_Player)                                  (ImageCh_StartGame)                        
                                                   ()                                          ()                                             ()}
    Mode_Skillshot          "SkillShot"     {()                        (Proc_Skillshot, Proc_Start_and_Coin)              ()                        
                                                   ()                                          ()                                             ()}

@@ -202,8 +202,12 @@ class TkSolBrd():
         #Read config and set btnCfg
         cmdOffset = rs232Intf.CFG_BYTES_PER_SOL * brdBitPos
         holdOffset = cmdOffset + rs232Intf.DUTY_CYCLE_OFFSET
-        if (GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_AUTO_CLR) or \
-               (ord(GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][holdOffset]) != 0):
+        if (GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_ON_OFF_USE_SW) or \
+               (GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] == rs232Intf.CFG_SOL_ON_OFF) or \
+               (((GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] != rs232Intf.CFG_SOL_USE_MTRX_INP) and
+               (GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][cmdOffset] != rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR)) and
+               (ord(GameData.SolBitNames.SOL_BRD_CFG[self.brdNum][holdOffset]) != 0)):
+            # Show button as toggle
             self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses

@@ -194,13 +194,10 @@ class TkInpBrd():
                 bit + ((self.wing - rs232Intf.NUM_G2_WING_PER_BRD) * rs232Intf.NUM_INP_PER_WING)])
         tmpLbl.grid(column = 0, row = 0, columnspan = 2)
         
-        #Read config and set btnCfg
+        #Read config and set btnCfg, all matrix inputs are set as pulse inputs
         if not matrixInput:
             if (GameData.InpBitNames.INP_BRD_CFG[self.brdNum][bit + (self.wing * rs232Intf.NUM_INP_PER_WING)] == rs232Intf.CFG_INP_STATE):
                 self.btnCfgBitfield |= (1 << bit)
-        else:
-            # All matrix inputs are state inputs
-            self.btnCfgBitfield |= (1 << bit)
         
         #Combobox menu for button presses
         self.indBitOptMenu.append(StringVar())

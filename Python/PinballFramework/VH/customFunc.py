@@ -240,7 +240,8 @@ class CustomFunc:
         # Play song every 20 minutes
         if ((elapsed/60) >= 20):
             self.attractStart = time.time()
-            CustomFunc.GameData.StdFuncs.PlayBgnd(BgndMusic.BGND_AEROSMITH_SHARPSHOOTER | \
+            randomNum = random.randint(BgndMusic.BGND_JUMP, BgndMusic.BGND_ICECREAMMAN)
+            CustomFunc.GameData.StdFuncs.PlayBgnd(randomNum | \
                 CustomFunc.GameData.StdFuncs.BGND_PLAY_ONCE)
 
     ## Start next ball

@@ -154,6 +154,14 @@ class RulesFunc:
         RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
         RulesFunc.CustomFunc.init_attract_mode()
 
+    ## Function Proc_Attract_Mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Attract_Mode(self):
+        self.Proc_Press_Start()
+        RulesFunc.CustomFunc.proc_attract_mode()
+        
     ## Function Proc_Add_Coin
     #
     #  @param  self          [in]   Object reference
@@ -182,22 +190,29 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_and_Coin(self):
-        self.Proc_Press_Start()
+        self.Proc_Add_Player()
         RulesFunc.CustomFunc.proc_attract_mode()
 
-    ## Function Proc_Init_Game
+    ## Function Proc_Init_Game_Init
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Init_Game(self):
+    def Proc_Init_Game_Init(self):
         RulesFunc.GameData.StdFuncs.Enable_Solenoids()
+
+    ## Function Proc_Init_Game_Mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Init_Game_Mode(self):
+        self.Proc_Press_Start()
 
     ## Function Proc_Start_Game
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Proc_Start_Game(self):
-        self.Proc_Press_Start()
+        pass
 
     ## Function Proc_Start_Ball_Init
     #
