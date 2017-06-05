@@ -59,7 +59,7 @@ class State():
     MODE_INIT                        = 0
     MODE_ATTRACT                     = 1
     MODE_INIT_GAME                   = 2
-    MODE_SKILLSHOT                   = 3
+    MODE_STARTBALL                   = 3
     MODE_NORMAL_PLAY                 = 4
     MODE_CHOOSE_MODE                 = 5
     MODE_MODE_ACTIVE                 = 6
@@ -71,7 +71,7 @@ class State():
 
     ## State name strings.
     # Indexed into using [State](@ref states.State) enumeration
-    STATE_STR = [ "Init", "Attract", "InitGame", "SkillShot",
+    STATE_STR = [ "Init", "Attract", "InitGame", "StartBall",
         "NormalPlay", "ChooseMode", "ModeActive", "JpotAvail",
         "Error", "Tilt", "EndOfBall" ]
 

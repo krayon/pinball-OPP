@@ -70,6 +70,10 @@ from VH.customFunc import CustomFunc
 #  Contains all the rules that are specific this this set of pinball rules.
 
 class RulesFunc:
+    LEFT_FLIPPER = 0x01
+    RIGHT_FLIPPER = 0x02
+    prev_flipper = 0
+    
     ## Initialize rulesFuncs class
     #
     #  Initialize rules functions class
@@ -88,12 +92,40 @@ class RulesFunc:
     def Proc_Tilt(self):
         pass
 
-    ## Function Proc_Flipper
+    ## Function Proc_Select_Singer
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Flipper(self):
-        pass
+    def Proc_Select_Singer(self):
+        lftFlip = RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_LFT_FLIPPER)
+        rghtFlip = RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_RGHT_FLIPPER)
+        
+        if (rghtFlip):
+            RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
+        if (lftFlip):
+            RulesFunc.prev_flipper |= self.LEFT_FLIPPER
+        # Selection is made on release of flipper button
+        if ((not rghtFlip) and (not lftFlip) and (RulesFunc.prev_flipper != 0)):
+            if (RulesFunc.prev_flipper & (self.RIGHT_FLIPPER | self.LEFT_FLIPPER) == \
+                (self.RIGHT_FLIPPER | self.LEFT_FLIPPER)):
+                
+                # If singer hasn't been chosen, pick randomly
+                if (RulesFunc.CustomFunc.singer == 0):
+                    if (random.randint(0, 1) == 0):
+                        RulesFunc.CustomFunc.Singer_David()
+                    else:
+                        RulesFunc.CustomFunc.Singer_Sammy()
+                
+                # Move to start ball
+                RulesFunc.GameData.gameMode = State.MODE_STARTBALL
+            else:
+                if (RulesFunc.prev_flipper & self.RIGHT_FLIPPER):
+                    # Singer is Sammy Hagar
+                    RulesFunc.CustomFunc.Singer_Sammy()
+                if (RulesFunc.prev_flipper & self.LEFT_FLIPPER):
+                    # Singer is David Lee Roth
+                    RulesFunc.CustomFunc.Singer_David()
+            RulesFunc.prev_flipper = 0
 
     ## Function Proc_Inlane
     #
@@ -145,22 +177,22 @@ class RulesFunc:
         RulesFunc.GameData.StdFuncs.Restore_Input_Cfg()
         RulesFunc.GameData.gameMode = State.MODE_ATTRACT
 
-    ## Function Proc_Attract_Init
+    ## Function Init_Attract
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Attract_Init(self):
+    def Init_Attract(self):
         RulesFunc.GameData.StdFuncs.Disable_Solenoids()
         RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
-        RulesFunc.CustomFunc.init_attract_mode()
+        RulesFunc.CustomFunc.init_attract()
 
-    ## Function Proc_Attract_Mode
+    ## Function Mode_Attract
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Attract_Mode(self):
+    def Mode_Attract(self):
         self.Proc_Press_Start()
-        RulesFunc.CustomFunc.proc_attract_mode()
+        RulesFunc.CustomFunc.mode_attract()
         
     ## Function Proc_Add_Coin
     #
@@ -177,6 +209,7 @@ class RulesFunc:
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_CRDT_RST) and (RulesFunc.GameData.ballNum == 0):
             if (RulesFunc.GameData.gameMode == State.MODE_ATTRACT):
                 RulesFunc.GameData.StdFuncs.StopBgnd()
+                RulesFunc.CustomFunc.init_game()
                 CustomFunc.GameData.gameMode = State.MODE_INIT_GAME
                 RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
@@ -193,32 +226,33 @@ class RulesFunc:
         self.Proc_Add_Player()
         RulesFunc.CustomFunc.proc_attract_mode()
 
-    ## Function Proc_Init_Game_Init
+    ## Function Init_Init_Game
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Init_Game_Init(self):
+    def Init_Init_Game(self):
         RulesFunc.GameData.StdFuncs.Enable_Solenoids()
 
-    ## Function Proc_Init_Game_Mode
+    ## Function Mode_Init_Game
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Init_Game_Mode(self):
+    def Mode_Init_Game(self):
         self.Proc_Press_Start()
+        self.Proc_Select_Singer()
 
-    ## Function Proc_Start_Game
+    ## Function Init_Start_Ball
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Start_Game(self):
-        pass
+    def Init_Start_Ball(self):
+        RulesFunc.CustomFunc.start_next_ball(RulesFunc.GameData.currPlayer)
 
-    ## Function Proc_Start_Ball_Init
+    ## Function Mode_Start_Ball
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Start_Ball_Init(self):
+    def Mode_Start_Ball(self):
         pass
 
     ## Function Proc_Start_Ball_Start

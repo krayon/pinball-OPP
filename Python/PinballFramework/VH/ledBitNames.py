@@ -86,7 +86,7 @@ class LedBitNames:
     LED_20K_DROP                     = 0x00030004
     LED_ALEX_A                       = 0x00030008
     LED_3X_BONUS                     = 0x00030010
-    LED_INLN_RGHT                    = 0x00030040
+    LED_1984_8                       = 0x00030040
     LED_ROCKER_R1                    = 0x00030080
     LED1W0_ALL_BITS_MSK              = 0x010000ff
     LED1W1_ALL_BITS_MSK              = 0x010100ff

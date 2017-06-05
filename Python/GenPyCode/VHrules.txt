@@ -133,7 +133,7 @@ LED_CARDS
    Led_20K_Drop               0     26       "20KDrop"
    Led_Alex_A                 0     27       "AlexA"
    Led_3x_Bonus               0     28       "3xBonus"
-   Led_Inln_Rght              0     30       "InlnRght"
+   Led_1984_8                 0     30       "1984_8"
    Led_Rocker_R1              0     31       "RockerR1"
    
    Led_David_I                1     0        "DavidI"
@@ -281,9 +281,9 @@ PROCESS_CHAINS
    
    Proc_Init               {}
    
-   Proc_Attract_Init       {}
+   Init_Attract            {}
    
-   Proc_Attract_Mode       {}
+   Mode_Attract            {}
    
    Proc_Init_Game_Init     {}
    
@@ -296,8 +296,6 @@ PROCESS_CHAINS
    Proc_Start_and_Coin     {}
    
    Proc_Init_Game          {}
-   
-   Proc_Start_Game         {}
    
    Proc_Start_Ball_Init    {}
    
@@ -557,11 +555,11 @@ MODES
    #                                              AudioChain                                  LedChain                                       InitScoringNum
    Mode_Init               "Init"          {(Proc_Init)               ()                                                 ()
                                                   ()                                          ()                                             ()}
-   Mode_Attract            "Attract"       {(Proc_Attract_Init)       (Proc_Start_and_Coin)                              (ImageCh_Attract)
+   Mode_Attract            "Attract"       {(Init_Attract)            (Mode_Attract)                                     (ImageCh_Attract)
                                                   (SndCh_Attract)                             (LedCh_Attract)                                ()}
-   Mode_Init_Game          "InitGame"      {(Proc_Init_Game)          (Proc_Add_Player)                                  (ImageCh_StartGame)                        
+   Mode_Init_Game          "InitGame"      {(Init_Init_Game)          (Mode_Init_Game)                                   (ImageCh_StartGame)                        
                                                   ()                                          ()                                             ()}
-   Mode_Skillshot          "SkillShot"     {()                        (Proc_Skillshot, Proc_Start_and_Coin)              ()                        
+   Mode_Startball          "StartBall"     {(Init_Start_Ball)         (Mode_Start_Ball)                                  ()                        
                                                   ()                                          ()                                             ()}
    Mode_Normal_Play        "NormalPlay"    {(Proc_Normal_Play_Init)   (Proc_Normal_Play)                                 ()
                                                   ()                                          ()                                             ()}

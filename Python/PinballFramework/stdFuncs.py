@@ -114,10 +114,10 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   solenoid card index and bit position
     #  @return True if set 
     def CheckSolBit(self, cardBitPos):
-        cardNum = (cardBitPos >> 24) & 0xff
-        wingShift = ((cardBitPos >> 16) & 0xff) << 3
-        bitPos = (cardBitPos & 0xffff) << wingShift
-        if ((StdFuncs.GameData.currInpStatus[cardNum] & bitPos) != 0):
+        card = (cardBitPos >> 24) & 0xff
+        wing = (cardBitPos >> 16) & 0x0f
+        bitPos = cardBitPos & 0xff
+        if ((StdFuncs.GameData.currInpStatus[card][wing] & bitPos) != 0):
             return True
         else:
             return False
