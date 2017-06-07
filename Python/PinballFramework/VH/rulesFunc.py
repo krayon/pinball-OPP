@@ -73,6 +73,10 @@ class RulesFunc:
     LEFT_FLIPPER = 0x01
     RIGHT_FLIPPER = 0x02
     prev_flipper = 0
+
+    WAIT_FOR_BALL_SERVE = 0
+    WAIT_FOR_RUNNIN_CLIP_FINISH = 1
+    init_state = WAIT_FOR_BALL_SERVE
     
     ## Initialize rulesFuncs class
     #
@@ -210,7 +214,7 @@ class RulesFunc:
             if (RulesFunc.GameData.gameMode == State.MODE_ATTRACT):
                 RulesFunc.GameData.StdFuncs.StopBgnd()
                 RulesFunc.CustomFunc.init_game()
-                CustomFunc.GameData.gameMode = State.MODE_INIT_GAME
+                RulesFunc.GameData.gameMode = State.MODE_INIT_GAME
                 RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
@@ -247,41 +251,45 @@ class RulesFunc:
     #  @return None
     def Init_Start_Ball(self):
         RulesFunc.CustomFunc.start_next_ball(RulesFunc.GameData.currPlayer)
+        self.init_state = RulesFunc.WAIT_FOR_BALL_SERVE
 
     ## Function Mode_Start_Ball
     #
     #  @param  self          [in]   Object reference
     #  @return None
     def Mode_Start_Ball(self):
-        pass
+        self.Proc_Timers()
+        
+        # General timer expires and playing running with the devil stereo fade
+        # Reset timer, and when it expires again, play the selected song
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
+            if (self.init_state == RulesFunc.WAIT_FOR_BALL_SERVE):
+                self.init_state = RulesFunc.WAIT_FOR_RUNNIN_CLIP_FINISH
+            
+                # RulesFunc.GameData.StdFuncs.Sounds(Sounds.RUNNING_WITH_DEVIL)
+                RulesFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 3000)
+                RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
+            elif (self.init_state == RulesFunc.WAIT_FOR_RUNNIN_CLIP_FINISH):
+                # Move to normal play mode, start playing the background song
+                RulesFunc.GameData.StdFuncs.PlayBgnd(RulesFunc.CustomFunc.currSong[RulesFunc.GameData.currPlayer])
+                RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
+                
+        RulesFunc.CustomFunc.normal_proc(RulesFunc.GameData.currPlayer)
 
-    ## Function Proc_Start_Ball_Start
+    ## Function Init_Normal_Play
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Start_Ball_Start(self):
-        pass
-
-    ## Function Proc_Skillshot
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Skillshot(self):
-        pass
-
-    ## Function Proc_Normal_Play_Init
-    #
-    #  @param  self          [in]   Object reference
-    #  @return None
-    def Proc_Normal_Play_Init(self):
+    def Init_Normal_Play(self):
         pass
 
     ## Function Proc_Normal_Play
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Normal_Play(self):
-        pass
+    def Mode_Normal_Play(self):
+        self.Proc_Timers()
+        RulesFunc.CustomFunc.normal_proc(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Choose_Mode_Init
     #
@@ -332,3 +340,19 @@ class RulesFunc:
     def Proc_End_Of_Ball(self):
         pass
 
+    ## Function Proc_Timers
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Proc_Timers(self):
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RELOAD_TIMER)):
+            # Stop blinking the reload LED
+            RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_SHOOT_AGAIN)
+        
+        # If the retry timer times out, and the ball is in the drain, serve it again.
+        # If the reload timer is running, restart this timer
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RETRY_TIMER)):
+            if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_OUTHOLE)):
+                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
+                if (RulesFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
+                    RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)

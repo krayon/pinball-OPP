@@ -73,7 +73,7 @@ class InpBitNames:
     MTRX_INP_RGHT_OUTLN                              = 0x02820010
     MTRX_INP_LFT_TRGT                                = 0x02820020
     MTRX_INP_SPINNER                                 = 0x02820080
-    MTRX_INP_D_TRGT                                  = 0x02830001
+    MTRX_INP_D1_TRGT                                 = 0x02830001
     MTRX_INP_A_TRGT                                  = 0x02830002
     MTRX_INP_V_TRGT                                  = 0x02830004
     MTRX_INP_I_TRGT                                  = 0x02830008
@@ -117,7 +117,7 @@ class InpBitNames:
         "Unused", "Unused", "Unused", "Unused",
         "Saucer", "LftOutln", "LftInln", "RghtInln",
         "RghtOutln", "LftTrgt", "Unused", "Spinner",
-        "DTrgt", "ATrgt", "VTrgt", "ITrgt",
+        "D1Trgt", "ATrgt", "VTrgt", "ITrgt",
         "D2Trgt", "Unused", "Unused", "Unused",
         "LftPop", "BtmPop", "TopPop", "LftSling",
         "RghtSling", "PanamaRoll", "Rbnd", "Unused",

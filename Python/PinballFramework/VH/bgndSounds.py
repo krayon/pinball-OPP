@@ -72,11 +72,12 @@ class BgndMusic():
     BGND_GETUP                               = 13
     BGND_GOODENOUGH                          = 14
     BGND_ICECREAMMAN                         = 15
+    BGND_ERUPTION                            = 16
 
     ## Background sound file list
     # Indexed into using the [BgndMusic](@ref bgndSounds.BgndMusic) class
     BGND_MUSIC_FILES = ["copyrighted/Jump.mp3", "copyrighted/YouReallyGotMe.mp3", "copyrighted/Unchained.mp3", "copyrighted/Panama.mp3", "copyrighted/HotForTeacher.mp3", 
         "copyrighted/DropDeadLegs.mp3", "copyrighted/BestOfBothWorlds.mp3", "copyrighted/TopOfTheWorld.mp3", "copyrighted/RightNow.mp3", "copyrighted/Poundcake.mp3", 
         "copyrighted/FeelsSoGood.mp3", "copyrighted/CaboWabo.mp3", "copyrighted/CaliforniaGirls.mp3", "copyrighted/GetUp.mp3", "copyrighted/GoodEnough.mp3", 
-        "copyrighted/IceCreamMan.mp3"]
+        "copyrighted/IceCreamMan.mp3", "copyrighted/Eruption.mp3"]
 

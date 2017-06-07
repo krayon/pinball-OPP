@@ -217,6 +217,7 @@ BGND_CLIPS
    Bgnd_GetUp                      "copyrighted/GetUp.mp3"
    Bgnd_GoodEnough                 "copyrighted/GoodEnough.mp3"
    Bgnd_IceCreamMan                "copyrighted/IceCreamMan.mp3"
+   Bgnd_Eruption                   "copyrighted/Eruption.mp3"
 }
 
 IMAGES
@@ -301,11 +302,9 @@ PROCESS_CHAINS
    
    Proc_Start_Ball_Start   {}
                               
-   Proc_Skillshot          {}
+   Init_Normal_Play        {}
    
-   Proc_Normal_Play_Init   {}
-   
-   Proc_Normal_Play        {}
+   Mode_Normal_Play        {}
    
    Proc_Choose_Mode_Init   {}
    
@@ -561,7 +560,7 @@ MODES
                                                   ()                                          ()                                             ()}
    Mode_Startball          "StartBall"     {(Init_Start_Ball)         (Mode_Start_Ball)                                  ()                        
                                                   ()                                          ()                                             ()}
-   Mode_Normal_Play        "NormalPlay"    {(Proc_Normal_Play_Init)   (Proc_Normal_Play)                                 ()
+   Mode_Normal_Play        "NormalPlay"    {(Init_Normal_Play)        (Mode_Normal_Play)                                 ()
                                                   ()                                          ()                                             ()}
    Mode_Choose_Mode        "ChooseMode"    {(Proc_Choose_Mode_Init)   (Proc_Choose_Mode)                                 ()
                                                   ()                                          ()                                             ()}

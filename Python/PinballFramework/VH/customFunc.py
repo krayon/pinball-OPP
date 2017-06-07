@@ -72,7 +72,8 @@ class CustomFunc:
     STATEPROG_ALEX_COLLECTED = 0x02
     STATEPROG_SAMMY_COLLECTED = 0x04
     STATEPROG_DAVID_COLLECTED = 0x08
-    STATEPROG_JUKEBOX_COLLECTED = 0x10
+    STATEPROG_ROTH_COLLECTED = 0x10
+    STATEPROG_JUKEBOX_COLLECTED = 0x20
     stateProg = [0, 0, 0, 0]
 
     # Used to note big events that happen during a poll cycle (bitfield)
@@ -91,14 +92,24 @@ class CustomFunc:
     LANE_ALL_MASK = 0x0f
     compLanes = [0, 0, 0, 0]
     
+    TRGT_DAVID_D1 = 0x10
+    TRGT_DAVID_A = 0x08
+    TRGT_DAVID_V = 0x04
+    TRGT_DAVID_I = 0x02
+    TRGT_DAVID_D2 = 0x01
+    TRGT_DAVID_ALL_MASK = 0x1f
+    davidTrgts = [0, 0, 0, 0]
+    
     eddieCnt = [0, 0, 0, 0]
+    sammyCnt = [0, 0, 0, 0]
     alexCnt = [0, 0, 0, 0]
+    currSong = [0, 0, 0, 0]
     
     tilted = False
     
-    CONST_DAVID = LedBitNames.LED_DAVID_D1 | LedBitNames.LED_DAVID_A | LedBitNames.LED_DAVID_V | LedBitNames.LED_DAVID_I | LedBitNames.LED_DAVID_D2
-    CONST_ROCKER = LedBitNames.LED_ROCKER_R1 | LedBitNames.LED_ROCKER_O | LedBitNames.LED_ROCKER_C | LedBitNames.LED_ROCKER_K | LedBitNames.LED_ROCKER_E | LedBitNames.LED_ROCKER_R2
-    CONST_1984 = LedBitNames.LED_1984_1 | LedBitNames.LED_1984_9 | LedBitNames.LED_1984_8 | LedBitNames.LED_1984_4
+    CONST_DAVID = [LedBitNames.LED_DAVID_D1_CRD0MSK | LedBitNames.LED_DAVID_V_CRD0MSK | LedBitNames.LED_DAVID_D2_CRD0MSK, LedBitNames.LED_DAVID_A_CRD1MSK | LedBitNames.LED_DAVID_I_CRD1MSK]
+    CONST_ROCKER = [LedBitNames.LED_ROCKER_R1_CRD0MSK | LedBitNames.LED_ROCKER_O_CRD0MSK | LedBitNames.LED_ROCKER_K_CRD0MSK | LedBitNames.LED_ROCKER_R2_CRD0MSK, LedBitNames.LED_ROCKER_C_CRD1MSK | LedBitNames.LED_ROCKER_E_CRD1MSK]
+    CONST_1984 = [LedBitNames.LED_1984_9_CRD0MSK | LedBitNames.LED_1984_8_CRD0MSK | LedBitNames.LED_1984_4_CRD0MSK, LedBitNames.LED_1984_1_CRD1MSK ]
             
     ## Initialize CustomFunc class
     #
@@ -114,8 +125,11 @@ class CustomFunc:
         CustomFunc.tilted = False
         self.stateProg = [CustomFunc.STATEPROG_NONE, CustomFunc.STATEPROG_NONE, CustomFunc.STATEPROG_NONE, CustomFunc.STATEPROG_NONE]
         self.compLanes = [0, 0, 0, 0]
+        self.davidTrgts = [0, 0, 0, 0]
         self.eddieCnt = [0, 0, 0, 0]
+        self.sammyCnt = [0, 0, 0, 0]
         self.alexCnt = [0, 0, 0, 0]
+        self.currSong = [0, 0, 0, 0]
         self.dropTrgtGoal = [0, 0, 0, 0]
         self.selectMode = 0
         self.spinMult = 1
@@ -152,8 +166,11 @@ class CustomFunc:
         self.stateProg = [CustomFunc.STATEPROG_NONE, CustomFunc.STATEPROG_NONE, CustomFunc.STATEPROG_NONE, CustomFunc.STATEPROG_NONE]
         self.selectMode = 0
         self.compLanes = [0, 0, 0, 0]
+        self.davidTrgts = [0, 0, 0, 0]
         self.eddieCnt = [0, 0, 0, 0]
+        self.sammyCnt = [0, 0, 0, 0]
         self.alexCnt = [0, 0, 0, 0]
+        self.currSong = [0, 0, 0, 0]
         self.spinMult = 1
         self.numSpin = 0
         self.tiltActive = False
@@ -207,20 +224,23 @@ class CustomFunc:
     def start_next_ball(self, plyr):
         logging.info('Ball started:  Player = %s, BallNum = %s', plyr + 1, self.GameData.ballNum + 1)
         
-        # Restore Eddie inserts
+        # Restore state
         self.restore_eddie(plyr)
-        
-        # Restore Alex inserts
         self.restore_alex(plyr)
-        
-        # Restore David inserts
         self.restore_david(plyr)
-        
-        # Restore Rocker inserts
         self.restore_rocker(plyr)
-        
-        # Restore 1984 inserts
         self.restore_1984(plyr)
+        
+        # if this is the first ball, figure out the song and display slide
+        if (self.GameData.ballNum == 0):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                # Choose from David Lee Roth songs
+                randomNum = random.randint(BgndMusic.BGND_JUMP, BgndMusic.BGND_DROPDEADLEGS)
+            else:
+                # Choose from Sammy Hagar songs
+                randomNum = random.randint(BgndMusic.BGND_BESTOFBOTHWORLDS, BgndMusic.BGND_CABOWABO)
+            self.currSong[plyr] = randomNum
+        CustomFunc.GameData.StdFuncs.BgndImage(self.currSong[plyr])
         
         # Reset the spinner kickout hole LEDs, 
         self.spinMult = 1
@@ -228,13 +248,16 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
         CustomFunc.GameData.StdFuncs.Enable_Solenoids()
         CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_OUTHOLE)
+        CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_RELOAD_TIMER, 20000) 
         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RELOAD_TIMER)
         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
+        CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 2000) 
+        CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER) 
 
         # Tilt is not active during skill shot to allow nudging
         self.tilted = False
         self.tiltActive = False
-                
+                                    
     ## End ball
     #
     #  End the ball, and reset LEDs
@@ -257,7 +280,41 @@ class CustomFunc:
             
         logging.info('Ball ended:  Player = %s, BallNum = %s, Score = %s', \
             plyr + 1, self.GameData.ballNum + 1, CustomFunc.GameData.score[plyr])
-    
+
+    ## Set lane lights
+    #
+    #  Set the lane lights
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  change        [in]   Lights that changed
+    #  @param  newVal        [in]   New value
+    #  @return None
+    def set_lane_lights(self, change, newVal):
+        turnOn = [0, 0]
+        turnOff = [0, 0]
+        if (change & CustomFunc.LANE_1984_1):
+            if (newVal & CustomFunc.LANE_1984_1):
+                turnOn[1] |= LED_1984_1_CRD1MSK
+            else:
+                turnOff[1] |= LED_1984_1_CRD1MSK
+        if (change & CustomFunc.LANE_1984_9):
+            if (newVal & CustomFunc.LANE_1984_9):
+                turnOn[0] |= LED_1984_9_CRD0MSK
+            else:
+                turnOff[0] |= LED_1984_9_CRD0MSK
+        if (change & CustomFunc.LANE_1984_8):
+            if (newVal & CustomFunc.LANE_1984_8):
+                turnOn[0] |= LED_1984_8_CRD0MSK
+            else:
+                turnOff[0] |= LED_1984_8_CRD0MSK
+        if (change & CustomFunc.LANE_1984_4):
+            if (newVal & CustomFunc.LANE_1984_4):
+                turnOn[0] |= LED_1984_4_CRD0MSK
+            else:
+                turnOff[0] |= LED_1984_4_CRD0MSK
+        CustomFunc.GameData.StdFuncs.Led_On(turnOn)
+        CustomFunc.GameData.StdFuncs.Led_Off(turnOff)
+            
     ## Flipper right rotate
     #
     #  Right rotate the LEDs properly depending on the mode
@@ -266,10 +323,13 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def flipper_right_rotate(self, plyr):
-        mask = [0, CustomFunc.CONST_1984]
-        
         # Rotate 1984, set inserts
-        self.compLanes[plyr] = ((self.compLanes[plyr] << 3) & 0x08) | ((self.compInlanes[plyr] & 0x0e) >> 1)
+        oldVal = self.compLanes[plyr]
+        newVal = ((oldVal << 3) & 0x08) | ((oldVal & 0x0e) >> 1)
+        self.compLanes[plyr] = newVal
+        change = newVal ^ oldVal
+        if (change != 0):
+            self.set_lane_lights(change, newVal)
         
     ## Flipper left rotate
     #
@@ -279,10 +339,13 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def flipper_left_rotate(self, plyr):
-        mask = [0, CustomFunc.CONST_1984]
-        
         # Rotate 1984, set inserts
-        self.compLanes[plyr] = ((self.compLanes[plyr] >> 3) & 0x01) | ((self.compInlanes[plyr] & 0x07) << 1)
+        oldVal = self.compLanes[plyr]
+        newVal = ((oldVal >> 3) & 0x01) | ((oldVal & 0x07) << 1)
+        self.compLanes[plyr] = newVal
+        change = newVal ^ oldVal
+        if (change != 0):
+            self.set_lane_lights(change, newVal)
 
     ## Process inlanes
     #
@@ -330,6 +393,11 @@ class CustomFunc:
         if (self.compLanes[plyr] & CustomFunc.LANE_ALL_MASK) == CustomFunc.LANE_ALL_MASK:
             comp = 1
             self.pollStatus |= CustomFunc.POLLSTAT_1984_COMP
+            
+            # Award 15 second ball save
+            CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_RELOAD_TIMER, 15000) 
+            CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RELOAD_TIMER)
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
         CustomFunc.GameData.score[plyr] += ((unlit * 5) + (lit * 2) + (comp * 25))
         
     ## Process drop targets
@@ -365,7 +433,7 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_spinner(self, plyr):
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.INP_SPINNER):
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SPINNER):
             CustomFunc.GameData.score[plyr] += self.spinMult
             self.numSpin += 1
 
@@ -381,28 +449,32 @@ class CustomFunc:
             if (self.stateProg[plyr] & CustomFunc.STATEPROG_EDDIE_COLLECTED):
                 CustomFunc.GameData.score[plyr] += 50
             else:
-                if (CustomFunc.GameData.eddieCnt[plyr] == 0):
+                if (self.eddieCnt[plyr] == 0):
                     # Collected E1
                     CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_EDDIE_E1)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_D1)
                     CustomFunc.GameData.score[plyr] += 10
-                elif (CustomFunc.GameData.eddieCnt[plyr] == 1):
+                elif (self.eddieCnt[plyr] == 1):
                     # Collected D1
                     CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_EDDIE_D1)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_D2)
                     CustomFunc.GameData.score[plyr] += 20
-                elif (CustomFunc.GameData.eddieCnt[plyr] == 2):
+                elif (self.eddieCnt[plyr] == 2):
                     # Collected D2
                     CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_EDDIE_D2)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_I)
                     CustomFunc.GameData.score[plyr] += 30
-                elif (CustomFunc.GameData.eddieCnt[plyr] == 3):
+                elif (self.eddieCnt[plyr] == 3):
                     # Collected I
                     CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_EDDIE_I)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_E2)
                     CustomFunc.GameData.score[plyr] += 40
-                elif (CustomFunc.GameData.eddieCnt[plyr] == 4):
+                elif (self.eddieCnt[plyr] == 4):
                     # Collected E2
                     CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_EDDIE_E2)
                     CustomFunc.GameData.score[plyr] += 50
                     self.stateProg[plyr] |= CustomFunc.STATEPROG_EDDIE_COLLECTED
-                CustomFunc.GameData.eddieCnt[plyr] += 1
+                self.eddieCnt[plyr] += 1
             
     ## Process Alex
     #
@@ -412,7 +484,7 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_alex(self, plyr):
-        oldCnt = CustomFunc.GameData.alexCnt[plyr]/5
+        oldCnt = self.alexCnt[plyr]/5
         hit = 0
         comp = 1
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_LFT_POP):
@@ -425,19 +497,177 @@ class CustomFunc:
             if (self.stateProg[plyr] & CustomFunc.STATEPROG_ALEX_COLLECTED):
                 CustomFunc.GameData.score[plyr] += (hit * 10)
             else:
-                CustomFunc.GameData.alexCnt[plyr] += hit
+                self.alexCnt[plyr] += hit
                 CustomFunc.GameData.score[plyr] += (hit * 5)
-                if (oldCnt != (CustomFunc.GameData.alexCnt[plyr]/5)):
+                if (oldCnt != (self.alexCnt[plyr]/5)):
                     if (oldCnt == 0):
                         CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ALEX_A)
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_L)
                     elif (oldCnt == 1):
                         CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ALEX_L)
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_E)
                     elif (oldCnt == 2):
                         CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ALEX_E)
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_X)
                     elif (oldCnt == 3):
                         CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ALEX_X)
                         self.stateProg[plyr] |= CustomFunc.STATEPROG_ALEX_COLLECTED
+
+    ## Process David
+    #
+    #  Process David targets
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def proc_david(self, plyr):
+        unlit = 0
+        lit = 0
+        comp = 0
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_D1_TRGT):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                if self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_D1:
+                    lit += 1
+                else:
+                    self.davidTrgts[plyr] |= CustomFunc.TRGT_DAVID_D1
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DAVID_D1)
+                    unlit += 1
+            else:
+                unlit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_A_TRGT):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                if self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_A:
+                    lit += 1
+                else:
+                    self.davidTrgts[plyr] |= CustomFunc.TRGT_DAVID_A
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DAVID_A)
+                    unlit += 1
+            else:
+                unlit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_V_TRGT):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                if self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_V:
+                    lit += 1
+                else:
+                    self.davidTrgts[plyr] |= CustomFunc.TRGT_DAVID_V
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DAVID_V)
+                    unlit += 1
+            else:
+                unlit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_I_TRGT):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                if self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_I:
+                    lit += 1
+                else:
+                    self.davidTrgts[plyr] |= CustomFunc.TRGT_DAVID_I
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DAVID_I)
+                    unlit += 1
+            else:
+                unlit += 1
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_D2_TRGT):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                if self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_D2:
+                    lit += 1
+                else:
+                    self.davidTrgts[plyr] |= CustomFunc.TRGT_DAVID_D2
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_DAVID_D2)
+                    unlit += 1
+            else:
+                unlit += 1
+        if (lit != 0) or (unlit != 0):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                # Add score
+                if (self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED):
+                    CustomFunc.GameData.score[plyr] += ((lit + unlit) * 10)
+                else:
+                    CustomFunc.GameData.score[plyr] += ((lit * 2) + (unlit * 5))
+            else:
+                # Subtract score for hitting wrong targets
+                CustomFunc.GameData.score[plyr] -= ((lit + unlit) * 5)
+                if (CustomFunc.GameData.score[plyr] < 0):
+                    CustomFunc.GameData.score[plyr] = 0
+        if (unlit != 0):
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                # Check if David has been completed
+                if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_ALL_MASK) == CustomFunc.TRGT_DAVID_ALL_MASK:
+                    if (self.stateProg[plyr] & CustomFunc.STATEPROG_ROTH_COLLECTED) == 0:
+                        # First time David has been collected so light Roth
+                        # Turn off David Led's so they blink again
+                        self.stateProg[plyr] |= CustomFunc.STATEPROG_ROTH_COLLECTED
+                        self.davidTrgts[plyr] = 0
+                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROTH)
+                        CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_DAVID)
+                        CustomFunc.GameData.score[plyr] += 25
+                    else:
+                        # David and Roth collected so mark as complete, Sammy can now collected
+                        self.singer[plyr] |= CustomFunc.SNGR_SAMMY
+                        self.stateProg[plyr] |= CustomFunc.STATEPROG_DAVID_COLLECTED
+                        CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.LED_ROCKER_R1)
+                        CustomFunc.GameData.score[plyr] += 50
+
+    ## Process Sammy
+    #
+    #  Process Sammy saucer
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def proc_sammy(self, plyr):
+        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SAUCER):
+            if (self.stateProg[plyr] & CustomFunc.STATEPROG_JUKEBOX_COLLECTED):
+                self.proc_jukebox(plyr)
+            elif (self.singer[plyr] & CustomFunc.SNGR_SAMMY) == 0:
+                CustomFunc.GameData.score[plyr] -= 10
+            else:
+                if (self.sammyCnt[plyr] == 0):
+                    # Collected R1
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R1)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_O)
+                    CustomFunc.GameData.score[plyr] += 10
+                elif (self.sammyCnt[plyr] == 1):
+                    # Collected O
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_O)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_C)
+                    CustomFunc.GameData.score[plyr] += 10
+                elif (self.sammyCnt[plyr] == 2):
+                    # Collected C
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_C)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_K)
+                    CustomFunc.GameData.score[plyr] += 10
+                elif (self.sammyCnt[plyr] == 3):
+                    # Collected K
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_K)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_E)
+                    CustomFunc.GameData.score[plyr] += 10
+                elif (self.sammyCnt[plyr] == 4):
+                    # Collected E
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_E)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_R2)
+                    CustomFunc.GameData.score[plyr] += 10
+                elif (self.sammyCnt[plyr] == 5):
+                    # Collected R2, after collecting Sammy, David can be collected
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R2)
+                    self.singer[plyr] |= CustomFunc.SNGR_DAVID
+                    self.stateProg[plyr] |= CustomFunc.STATEPROG_SAMMY_COLLECTED
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_DAVID)
+                    CustomFunc.GameData.score[plyr] += 50
                     
+                self.sammyCnt[plyr] += 1
+
+    ## Normal processing
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def normal_proc(self, plyr):
+        self.proc_inlanes(plyr)
+        self.proc_drop_targets(plyr)
+        self.proc_spinner(plyr)
+        self.proc_eddie(plyr)
+        self.proc_alex(plyr)
+        self.proc_david(plyr)
+        self.proc_sammy(plyr)
+                
     ## Collect bonus
     #
     #  Collect the bonus
@@ -449,7 +679,6 @@ class CustomFunc:
     #
     #  @note Five orbits, then sink kickout hole.  Future:  Gives two ball multiball.
     def proc_collect_bonus(self, plyr, sound):
-        
         #Hitting kickout hole, collects the bonus
         if not (CustomFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_KICKOUT)):
             logging.info('Collect bonus:  Player = %s, BallNum = %s', plyr + 1, self.GameData.ballNum + 1)
@@ -470,7 +699,7 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_DAVID)
         CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_ROCKER)
         CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_SAMMYHAGAR)
-        CustomFunc.singer[CustomFunc.GameData.currPlayer] = self.SNGR_SAMMY
+        self.singer[CustomFunc.GameData.currPlayer] = self.SNGR_SAMMY
 
     ## Change singer to David Lee Roth
     #
@@ -488,38 +717,103 @@ class CustomFunc:
     #  @param  self          [in]   Object reference
     #  @param  plyr          [in]   Current player
     #  @return None
-    def restore_eddie(self):
-        pass
+    def restore_eddie(self, plyr):
+        if self.eddieCnt[plyr] == 0:
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_E1)
+        elif self.eddieCnt[plyr] == 1:
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_EDDIE_E1)
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_D1)
+        elif self.eddieCnt[plyr] == 2:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_EDDIE_E1_CRD0MSK, LedBitNames.LED_EDDIE_D1_CRD1MSK])
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_D2)
+        elif self.eddieCnt[plyr] == 3:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_EDDIE_E1_CRD0MSK | LedBitNames.LED_EDDIE_D2_CRD0MSK, LedBitNames.LED_EDDIE_D1_CRD1MSK])
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_I)
+        elif self.eddieCnt[plyr] == 4:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_EDDIE_E1_CRD0MSK | LedBitNames.LED_EDDIE_D2_CRD0MSK, LedBitNames.LED_EDDIE_D1_CRD1MSK | LedBitNames.LED_EDDIE_I_CRD1MSK])
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_EDDIE_E2)
+        else:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_EDDIE_E1_CRD0MSK | LedBitNames.LED_EDDIE_D2_CRD0MSK | LedBitNames.LED_EDDIE_E2_CRD0MSK, LedBitNames.LED_EDDIE_D1_CRD1MSK | LedBitNames.LED_EDDIE_I_CRD1MSK])
         
     ## Restore Alex
     #
     #  @param  self          [in]   Object reference
     #  @param  plyr          [in]   Current player
     #  @return None
-    def restore_alex(self):
-        pass
+    def restore_alex(self, plyr):
+        currAlex = self.alexCnt[plyr]/5
+        if currAlex == 0:
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_A)
+        elif currAlex == 1:
+            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ALEX_A)
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_L)
+        elif currAlex == 2:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ALEX_A_CRD0MSK, LedBitNames.LED_ALEX_L_CRD1MSK])
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_E)
+        elif currAlex == 3:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ALEX_A_CRD0MSK | LedBitNames.LED_ALEX_E_CRD0MSK, LedBitNames.LED_ALEX_L_CRD1MSK])
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_X)
+        else:
+            CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ALEX_A_CRD0MSK | LedBitNames.LED_ALEX_E_CRD0MSK | LedBitNames.LED_EDDIE_E2_CRD0MSK, LedBitNames.LED_ALEX_L_CRD1MSK | LedBitNames.LED_ALEX_X_CRD1MSK])
         
     ## Restore David
     #
     #  @param  self          [in]   Object reference
     #  @param  plyr          [in]   Current player
     #  @return None
-    def restore_david(self):
-        pass
-        
+    def restore_david(self, plyr):
+        onBits = [0, 0]
+        if (self.singer[plyr] & self.SNGR_DAVID) and not (self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED):
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_DAVID)
+            if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_D1) != 0:
+                onBits[0] |= LedBitNames.LED_DAVID_D1_CRD0MSK
+            if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_A) != 0:
+                onBits[1] |= LedBitNames.LED_DAVID_A_CRD1MSK
+            if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_V) != 0:
+                onBits[0] |= LedBitNames.LED_DAVID_V_CRD0MSK
+            if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_I) != 0:
+                onBits[1] |= LedBitNames.LED_DAVID_I_CRD1MSK
+            if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_D2) != 0:
+                onBits[0] |= LedBitNames.LED_DAVID_D2_CRD0MSK
+            if (self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED) != 0:
+                onBits[0] |= LedBitNames.LED_ROTH_CRD0MSK
+            CustomFunc.GameData.StdFuncs.Led_On(onBits)
+            
     ## Restore Sammy
     #
     #  @param  self          [in]   Object reference
     #  @param  plyr          [in]   Current player
     #  @return None
-    def restore_rocker(self):
-        pass
+    def restore_rocker(self, plyr):
+        if (self.singer[plyr] & self.SNGR_SAMMY) and not (self.stateProg[plyr] & CustomFunc.STATEPROG_SAMMY_COLLECTED):
+            if self.stateProg[plyr] & CustomFunc.STATEPROG_SAMMY_COLLECTED:
+                CustomFunc.GameData.StdFuncs.Led_On(CustomFunc.CONST_ROCKER)
+            else:
+                if (self.sammyCnt[plyr] == 0):
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_R1)
+                elif (self.sammyCnt[plyr] == 1):
+                    CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R1)
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_O)
+                elif (self.sammyCnt[plyr] == 2):
+                    CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ROCKER_R1_CRD0MSK | LedBitNames.LED_ROCKER_O_CRD0MSK])
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_C)
+                elif (self.sammyCnt[plyr] == 3):
+                    CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ROCKER_R1_CRD0MSK | LedBitNames.LED_ROCKER_O_CRD0MSK, LedBitNames.LED_ROCKER_C_CRD1MSK])
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_K)
+                elif (self.sammyCnt[plyr] == 4):
+                    CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ROCKER_R1_CRD0MSK | LedBitNames.LED_ROCKER_O_CRD0MSK | LedBitNames.LED_ROCKER_K_CRD0MSK, LedBitNames.LED_ROCKER_C_CRD1MSK])
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_E)
+                elif (self.sammyCnt[plyr] == 5):
+                    CustomFunc.GameData.StdFuncs.Led_On([LedBitNames.LED_ROCKER_R1_CRD0MSK | LedBitNames.LED_ROCKER_O_CRD0MSK | LedBitNames.LED_ROCKER_K_CRD0MSK, LedBitNames.LED_ROCKER_C_CRD1MSK | LedBitNames.LED_ROCKER_E_CRD1MSK])
+                    CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_R2)
         
     ## Restore 1984
     #
     #  @param  self          [in]   Object reference
     #  @param  plyr          [in]   Current player
     #  @return None
-    def restore_1984(self):
-        pass
-        
+    def restore_1984(self, plyr):
+        newVal = self.compLanes[plyr]
+        if (newVal != 0):
+            self.set_lane_lights(newVal, newVal)
+            

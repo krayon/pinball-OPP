@@ -85,7 +85,7 @@ class ProcChain():
         [State.MODE_ATTRACT, [RulesFunc.Init_Attract], [RulesFunc.Mode_Attract], ImageChains.ImageCh_Attract, SoundChains.SndCh_Attract, LedChains.LedCh_Attract, [] ],
         [State.MODE_INIT_GAME, [RulesFunc.Init_Init_Game], [RulesFunc.Mode_Init_Game], ImageChains.ImageCh_StartGame, [], [], [] ],
         [State.MODE_STARTBALL, [RulesFunc.Init_Start_Ball], [RulesFunc.Mode_Start_Ball], [], [], [], [] ],
-        [State.MODE_NORMAL_PLAY, [RulesFunc.Proc_Normal_Play_Init], [RulesFunc.Proc_Normal_Play], [], [], [], [] ],
+        [State.MODE_NORMAL_PLAY, [RulesFunc.Init_Normal_Play], [RulesFunc.Mode_Normal_Play], [], [], [], [] ],
         [State.MODE_CHOOSE_MODE, [RulesFunc.Proc_Choose_Mode_Init], [RulesFunc.Proc_Choose_Mode], [], [], [], [] ],
         [State.MODE_MODE_ACTIVE, [RulesFunc.Proc_Mode_Active_Init], [RulesFunc.Proc_Mode_Active], [], [], [], [] ],
         [State.MODE_JPOT_AVAIL, [RulesFunc.Proc_Jpot_Avail_Init], [RulesFunc.Proc_Jpot_Avail], [], [], [], [] ],
