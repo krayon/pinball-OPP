@@ -56,22 +56,20 @@ class State():
     def __init__(self):
         pass
 
-    MODE_INIT                        = 0
-    MODE_ATTRACT                     = 1
-    MODE_INIT_GAME                   = 2
-    MODE_STARTBALL                   = 3
-    MODE_NORMAL_PLAY                 = 4
-    MODE_CHOOSE_MODE                 = 5
-    MODE_MODE_ACTIVE                 = 6
-    MODE_JPOT_AVAIL                  = 7
-    MODE_ERROR                       = 8
-    MODE_TILT                        = 9
-    MODE_END_OF_BALL                 = 10
+    STATE_INIT                       = 0
+    STATE_ATTRACT                    = 1
+    STATE_INIT_GAME                  = 2
+    STATE_STARTBALL                  = 3
+    STATE_NORMAL_PLAY                = 4
+    STATE_JUKEBOX                    = 5
+    STATE_END_BALL                   = 6
+    STATE_ERROR                      = 7
+    STATE_TILT                       = 8
 
 
     ## State name strings.
     # Indexed into using [State](@ref states.State) enumeration
     STATE_STR = [ "Init", "Attract", "InitGame", "StartBall",
-        "NormalPlay", "ChooseMode", "ModeActive", "JpotAvail",
-        "Error", "Tilt", "EndOfBall" ]
+        "NormalPlay", "JukeBox", "EndBall", "Error",
+        "Tilt", ]
 

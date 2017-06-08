@@ -66,10 +66,10 @@ class Timers:
     # @Note Must be contiguous starting from 0 since used as index
     TIMEOUT_KICKOUT_TIMER            =  0
     TIMEOUT_BALL_LOCATE              =  1
-    TIMEOUT_SPECIAL_TIMER            =  2
+    TIMEOUT_PANAMA_TIMER             =  2
     TIMEOUT_RELOAD_TIMER             =  3
     TIMEOUT_RETRY_TIMER              =  4
-    TIMEOUT_JACKPOT_TIMER            =  5
+    TIMEOUT_ERUPTION_TIMER           =  5
     TIMEOUT_DUEL_TIMER               =  6
     TIMEOUT_GENERAL_TIMER            =  7
     TIMEOUT_GALLOP                   =  8
@@ -78,10 +78,10 @@ class Timers:
     timeouts = [
         [TIMEOUT_KICKOUT_TIMER, 1000],
         [TIMEOUT_BALL_LOCATE, 5000],
-        [TIMEOUT_SPECIAL_TIMER, 30000],
+        [TIMEOUT_PANAMA_TIMER, 5000],
         [TIMEOUT_RELOAD_TIMER, 20000],
         [TIMEOUT_RETRY_TIMER, 3000],
-        [TIMEOUT_JACKPOT_TIMER, 30000],
+        [TIMEOUT_ERUPTION_TIMER, 110000],
         [TIMEOUT_DUEL_TIMER, 60000],
         [TIMEOUT_GENERAL_TIMER, 10000],
         [TIMEOUT_GALLOP, 3000],

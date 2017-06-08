@@ -81,15 +81,13 @@ class ProcChain():
     #    - Sixth entry is the LED chain
     #    - Seventh entry is the video chain
     PROC_CHAIN = [
-        [State.MODE_INIT, [RulesFunc.Proc_Init], [], [], [], [], [] ],
-        [State.MODE_ATTRACT, [RulesFunc.Init_Attract], [RulesFunc.Mode_Attract], ImageChains.ImageCh_Attract, SoundChains.SndCh_Attract, LedChains.LedCh_Attract, [] ],
-        [State.MODE_INIT_GAME, [RulesFunc.Init_Init_Game], [RulesFunc.Mode_Init_Game], ImageChains.ImageCh_StartGame, [], [], [] ],
-        [State.MODE_STARTBALL, [RulesFunc.Init_Start_Ball], [RulesFunc.Mode_Start_Ball], [], [], [], [] ],
-        [State.MODE_NORMAL_PLAY, [RulesFunc.Init_Normal_Play], [RulesFunc.Mode_Normal_Play], [], [], [], [] ],
-        [State.MODE_CHOOSE_MODE, [RulesFunc.Proc_Choose_Mode_Init], [RulesFunc.Proc_Choose_Mode], [], [], [], [] ],
-        [State.MODE_MODE_ACTIVE, [RulesFunc.Proc_Mode_Active_Init], [RulesFunc.Proc_Mode_Active], [], [], [], [] ],
-        [State.MODE_JPOT_AVAIL, [RulesFunc.Proc_Jpot_Avail_Init], [RulesFunc.Proc_Jpot_Avail], [], [], [], [] ],
-        [State.MODE_ERROR, [], [], [], [], [], [] ],
-        [State.MODE_TILT, [RulesFunc.Proc_Tilt_Init], [RulesFunc.Proc_Tilt_State], [], Sounds.SOUND_BALLDRAINNOGOOD, LedChains.LedCh_Tilt, [] ],
-        [State.MODE_END_OF_BALL, [RulesFunc.Proc_End_Of_Ball], [], [], [], [], [] ],
+        [State.STATE_INIT, [RulesFunc.Proc_Init], [], [], [], [], [] ],
+        [State.STATE_ATTRACT, [RulesFunc.Init_Attract], [RulesFunc.Mode_Attract], ImageChains.ImageCh_Attract, SoundChains.SndCh_Attract, LedChains.LedCh_Attract, [] ],
+        [State.STATE_INIT_GAME, [RulesFunc.Init_Init_Game], [RulesFunc.Mode_Init_Game], ImageChains.ImageCh_StartGame, [], [], [] ],
+        [State.STATE_STARTBALL, [RulesFunc.Init_Start_Ball], [RulesFunc.Mode_Start_Ball], [], [], [], [] ],
+        [State.STATE_NORMAL_PLAY, [RulesFunc.Init_Normal_Play], [RulesFunc.Mode_Normal_Play], [], [], [], [] ],
+        [State.STATE_JUKEBOX, [RulesFunc.Init_Jukebox], [RulesFunc.Mode_Jukebox], [], [], [], [] ],
+        [State.STATE_END_BALL, [RulesFunc.Init_End_Ball], [RulesFunc.Mode_End_Ball], [], [], [], [] ],
+        [State.STATE_ERROR, [RulesFunc.Init_Error], [RulesFunc.Mode_Error], [], [], [], [] ],
+        [State.STATE_TILT, [RulesFunc.Init_Tilt], [RulesFunc.Mode_Tilt], [], Sounds.SOUND_BALLDRAINNOGOOD, LedChains.LedCh_Tilt, [] ],
     ]

@@ -68,5 +68,5 @@ class RulesData():
         [ rs232Intf.WING_SOL, rs232Intf.WING_INP, rs232Intf.WING_SW_MATRIX_IN, rs232Intf.WING_SW_MATRIX_OUT ] ]
 
     ## Initial State
-    INIT_MODE = State.MODE_INIT
+    INIT_MODE = State.STATE_INIT
 

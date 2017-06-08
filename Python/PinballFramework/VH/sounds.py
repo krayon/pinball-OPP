@@ -63,9 +63,15 @@ class Sounds():
     SOUND_CHOOSESINGER                       = 4
     SOUND_SAMMYHAGAR                         = 5
     SOUND_DAVIDLEEROTH                       = 6
+    SOUND_RUNNIN_DEVIL                       = 7
+    SOUND_GIMME_BREAK                        = 8
+    SOUND_HOT_TEACHER1                       = 9
+    SOUND_HOT_TEACHER2                       = 10
+    SOUND_HOT_TEACHER3                       = 11
 
     ## Sound file list
     # Indexed into using the [Sounds](@ref sounds.Sounds) class
     SND_FILES = ["sounds/helloBaby.wav", "sounds/badTarget1.wav", "sounds/badTarget2.wav", "sounds/ballDrainNoGood.wav", "sounds/chooseSinger.wav", 
-        "sounds/sammyHagar.wav", "sounds/davidLeeRoth.wav"]
+        "sounds/sammyHagar.wav", "sounds/davidLeeRoth.wav", "sounds/runninDevil.wav", "sounds/gimmeBreak.wav", "sounds/hotTeacherDrums1.wav",
+        "sounds/hotTeacherDrums2.wav", "sounds/hotTeacherDrums3.wav"]
 

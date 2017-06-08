@@ -96,6 +96,19 @@ class RulesFunc:
     def Proc_Tilt(self):
         pass
 
+    ## Function Choose_Random_Singer
+    #
+    #  Choose a random singer if one hasn't been selected
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Choose_Random_Singer(self):
+        if (RulesFunc.CustomFunc.singer == 0):
+            if (random.randint(0, 1) == 0):
+                RulesFunc.CustomFunc.Singer_David()
+            else:
+                RulesFunc.CustomFunc.Singer_Sammy()
+    
     ## Function Proc_Select_Singer
     #
     #  @param  self          [in]   Object reference
@@ -114,14 +127,10 @@ class RulesFunc:
                 (self.RIGHT_FLIPPER | self.LEFT_FLIPPER)):
                 
                 # If singer hasn't been chosen, pick randomly
-                if (RulesFunc.CustomFunc.singer == 0):
-                    if (random.randint(0, 1) == 0):
-                        RulesFunc.CustomFunc.Singer_David()
-                    else:
-                        RulesFunc.CustomFunc.Singer_Sammy()
+                self.Choose_Random_Singer()
                 
                 # Move to start ball
-                RulesFunc.GameData.gameMode = State.MODE_STARTBALL
+                RulesFunc.GameData.gameMode = State.STATE_STARTBALL
             else:
                 if (RulesFunc.prev_flipper & self.RIGHT_FLIPPER):
                     # Singer is Sammy Hagar
@@ -130,6 +139,14 @@ class RulesFunc:
                     # Singer is David Lee Roth
                     RulesFunc.CustomFunc.Singer_David()
             RulesFunc.prev_flipper = 0
+            
+        # If general timer times out, automatically select a singer    
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
+            # If singer hasn't been chosen, pick randomly
+            self.Choose_Random_Singer()
+            
+            # Move to start ball
+            RulesFunc.GameData.gameMode = State.STATE_STARTBALL
 
     ## Function Proc_Inlane
     #
@@ -179,7 +196,7 @@ class RulesFunc:
     #  @return None
     def Proc_Init(self):
         RulesFunc.GameData.StdFuncs.Restore_Input_Cfg()
-        RulesFunc.GameData.gameMode = State.MODE_ATTRACT
+        RulesFunc.GameData.gameMode = State.STATE_ATTRACT
 
     ## Function Init_Attract
     #
@@ -211,10 +228,10 @@ class RulesFunc:
     #  @return None
     def Proc_Press_Start(self):
         if RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_CRDT_RST) and (RulesFunc.GameData.ballNum == 0):
-            if (RulesFunc.GameData.gameMode == State.MODE_ATTRACT):
+            if (RulesFunc.GameData.gameMode == State.STATE_ATTRACT):
                 RulesFunc.GameData.StdFuncs.StopBgnd()
                 RulesFunc.CustomFunc.init_game()
-                RulesFunc.GameData.gameMode = State.MODE_INIT_GAME
+                RulesFunc.GameData.gameMode = State.STATE_INIT_GAME
                 RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
@@ -236,6 +253,10 @@ class RulesFunc:
     #  @return None
     def Init_Init_Game(self):
         RulesFunc.GameData.StdFuncs.Enable_Solenoids()
+        
+        # 30 second timer is used in case no selection is made
+        RulesFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 30000)
+        RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
 
     ## Function Mode_Init_Game
     #
@@ -258,21 +279,19 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Mode_Start_Ball(self):
-        self.Proc_Timers()
-        
         # General timer expires and playing running with the devil stereo fade
         # Reset timer, and when it expires again, play the selected song
         if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
             if (self.init_state == RulesFunc.WAIT_FOR_BALL_SERVE):
                 self.init_state = RulesFunc.WAIT_FOR_RUNNIN_CLIP_FINISH
             
-                # RulesFunc.GameData.StdFuncs.Sounds(Sounds.RUNNING_WITH_DEVIL)
-                RulesFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 3000)
+                RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_RUNNIN_DEVIL)
+                RulesFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 8000)
                 RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
             elif (self.init_state == RulesFunc.WAIT_FOR_RUNNIN_CLIP_FINISH):
                 # Move to normal play mode, start playing the background song
                 RulesFunc.GameData.StdFuncs.PlayBgnd(RulesFunc.CustomFunc.currSong[RulesFunc.GameData.currPlayer])
-                RulesFunc.GameData.gameMode = State.MODE_NORMAL_PLAY
+                RulesFunc.GameData.gameMode = State.STATE_NORMAL_PLAY
                 
         RulesFunc.CustomFunc.normal_proc(RulesFunc.GameData.currPlayer)
 
@@ -288,7 +307,6 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Mode_Normal_Play(self):
-        self.Proc_Timers()
         RulesFunc.CustomFunc.normal_proc(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Choose_Mode_Init
@@ -340,19 +358,86 @@ class RulesFunc:
     def Proc_End_Of_Ball(self):
         pass
 
-    ## Function Proc_Timers
+    ## Function Init_Jukebox
     #
     #  @param  self          [in]   Object reference
     #  @return None
-    def Proc_Timers(self):
-        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RELOAD_TIMER)):
-            # Stop blinking the reload LED
-            RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_SHOOT_AGAIN)
-        
-        # If the retry timer times out, and the ball is in the drain, serve it again.
-        # If the reload timer is running, restart this timer
-        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RETRY_TIMER)):
-            if (RulesFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_OUTHOLE)):
-                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
-                if (RulesFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
-                    RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
+    def Init_Jukebox(self):
+        pass
+
+    ## Function Mode_Jukebox
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Mode_Jukebox(self):
+        pass
+
+    ## Function Init_End_Ball
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Init_End_Ball(self):
+        RulesFunc.CustomFunc.end_ball(RulesFunc.GameData.currPlayer)
+        if not RulesFunc.CustomFunc.tilted:
+            RulesFunc.GameData.StdFuncs.Wait(1000)
+        RulesFunc.GameData.scoreLvl = 0
+        RulesFunc.GameData.scoring = False
+        RulesFunc.GameData.currPlayer += 1
+        RulesFunc.GameData.currPlyrDisp += 1
+        if (RulesFunc.GameData.currPlayer >= RulesFunc.GameData.numPlayers):
+            RulesFunc.GameData.currPlayer = 0
+            RulesFunc.GameData.currPlyrDisp = 1
+            RulesFunc.GameData.ballNum += 1
+            if (RulesFunc.GameData.ballNum >= RulesFunc.GameData.GameConst.BALLS_PER_GAME):
+                print "Game over"
+                RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.credits
+                RulesFunc.GameData.StdFuncs.StopBgnd()
+                RulesFunc.GameData.StdFuncs.Wait(5000)
+                RulesFunc.GameData.ballNum = 0
+                RulesFunc.GameData.numPlayers = 0
+                RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER_NUM] = True
+                RulesFunc.GameData.blankDisp[DispConst.DISP_CREDIT_BALL_NUM] = True
+                RulesFunc.GameData.gameMode = State.STATE_ATTRACT
+            else:
+                print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
+                RulesFunc.GameData.creditBallNumDisp = RulesFunc.GameData.ballNum + 1
+                RulesFunc.GameData.gameMode = State.STATE_STARTBALL
+        else:
+            print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
+            RulesFunc.GameData.gameMode = State.STATE_STARTBALL
+    
+    ## Function Mode_End_Ball
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Mode_End_Ball(self):
+        pass
+
+    ## Function Init_Error
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Init_Error(self):
+        pass
+    
+    ## Function Mode_Error
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Mode_Error(self):
+        pass
+
+    ## Function Init_Tilt
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Init_Tilt(self):
+        pass
+    
+    ## Function Mode_Tilt
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def Mode_Tilt(self):
+        pass
+                        

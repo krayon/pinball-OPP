@@ -191,6 +191,11 @@ SOUND_CLIPS
    Sound_ChooseSinger              "sounds/chooseSinger.wav"
    Sound_SammyHagar                "sounds/sammyHagar.wav"
    Sound_DavidLeeRoth              "sounds/davidLeeRoth.wav"
+   Sound_Runnin_Devil              "sounds/runninDevil.wav"
+   Sound_Gimme_Break               "sounds/gimmeBreak.wav"
+   Sound_Hot_Teacher1              "sounds/hotTeacherDrums1.wav"
+   Sound_Hot_Teacher2              "sounds/hotTeacherDrums2.wav"
+   Sound_Hot_Teacher3              "sounds/hotTeacherDrums3.wav"
 }
 
 BGND_CLIPS
@@ -251,10 +256,10 @@ TIMERS
    #Name                   NumMs
    Timeout_Kickout_Timer   1000                          # 1 second
    Timeout_Ball_Locate     5000                          # 5 seconds
-   Timeout_Special_Timer   30000                         # 30 seconds
+   Timeout_Panama_Timer    3000                          # 3 seconds
    Timeout_Reload_Timer    20000                         # 20 second ball save timer
    Timeout_Retry_Timer     3000                          # Relaunch ball every 3 seconds
-   Timeout_Jackpot_Timer   30000                         # 30 second jackpot timer
+   Timeout_Eruption_Timer  110000                        # 110 second timeout for Eruption song to complete
    Timeout_Duel_Timer      60000                         # 60 second duel timer
    Timeout_General_Timer   10000                         # General timer used during modes
    Timeout_Gallop          3000                          # 3 second gallop timeout
@@ -552,28 +557,24 @@ MODES
 {
    #Name                   Desc            InitChain                  ProcessChain                                       VideoChain
    #                                              AudioChain                                  LedChain                                       InitScoringNum
-   Mode_Init               "Init"          {(Proc_Init)               ()                                                 ()
+   State_Init              "Init"          {(Proc_Init)               ()                                                 ()
                                                   ()                                          ()                                             ()}
-   Mode_Attract            "Attract"       {(Init_Attract)            (Mode_Attract)                                     (ImageCh_Attract)
+   State_Attract           "Attract"       {(Init_Attract)            (Mode_Attract)                                     (ImageCh_Attract)
                                                   (SndCh_Attract)                             (LedCh_Attract)                                ()}
-   Mode_Init_Game          "InitGame"      {(Init_Init_Game)          (Mode_Init_Game)                                   (ImageCh_StartGame)                        
+   State_Init_Game         "InitGame"      {(Init_Init_Game)          (Mode_Init_Game)                                   (ImageCh_StartGame)                        
                                                   ()                                          ()                                             ()}
-   Mode_Startball          "StartBall"     {(Init_Start_Ball)         (Mode_Start_Ball)                                  ()                        
+   State_Startball         "StartBall"     {(Init_Start_Ball)         (Mode_Start_Ball)                                  ()                        
                                                   ()                                          ()                                             ()}
-   Mode_Normal_Play        "NormalPlay"    {(Init_Normal_Play)        (Mode_Normal_Play)                                 ()
+   State_Normal_Play       "NormalPlay"    {(Init_Normal_Play)        (Mode_Normal_Play)                                 ()
                                                   ()                                          ()                                             ()}
-   Mode_Choose_Mode        "ChooseMode"    {(Proc_Choose_Mode_Init)   (Proc_Choose_Mode)                                 ()
+   State_Jukebox           "Jukebox"       {(Init_Jukebox)            (Mode_Jukebox)                                     ()
                                                   ()                                          ()                                             ()}
-   Mode_Mode_Active        "ModeActive"    {(Proc_Mode_Active_Init)   (Proc_Mode_Active)                                 ()
+   State_End_Ball          "EndBall"       {(Init_End_Ball)           (Mode_End_Ball)                                    ()
                                                   ()                                          ()                                             ()}
-   Mode_Jpot_Avail         "JpotAvail"     {(Proc_Jpot_Avail_Init)    (Proc_Jpot_Avail)                                  ()
+   State_Error             "Error"         {(Init_Error)              (Mode_Error)                                       ()
                                                   ()                                          ()                                             ()}
-   Mode_Error              "Error"         {()                        ()                                                 ()
-                                                  ()                                          ()                                             ()}
-   Mode_Tilt               "Tilt"          {(Proc_Tilt_Init)          (Proc_Tilt_State)                                  ()
+   State_Tilt              "Tilt"          {(Init_Tilt)               (Mode_Tilt)                                        ()
                                                   (Sound_BallDrainNoGood)                     (LedCh_Tilt)                                   ()}
-   Mode_End_Of_Ball        "EndOfBall"     {(Proc_End_Of_Ball)        ()                                                 ()
-                                                  ()                                          ()                                             ()}
 }
 
-FIRST_MODE                 Mode_Init
+FIRST_MODE                 State_Init
