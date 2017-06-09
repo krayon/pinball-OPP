@@ -130,6 +130,8 @@ class RulesFunc:
                 self.Choose_Random_Singer()
                 
                 # Move to start ball
+                RulesFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_DAVID)
+                RulesFunc.GameData.StdFuncs.Led_Blink_Off(CustomFunc.CONST_ROCKER)
                 RulesFunc.GameData.gameMode = State.STATE_STARTBALL
             else:
                 if (RulesFunc.prev_flipper & self.RIGHT_FLIPPER):
@@ -232,7 +234,6 @@ class RulesFunc:
                 RulesFunc.GameData.StdFuncs.StopBgnd()
                 RulesFunc.CustomFunc.init_game()
                 RulesFunc.GameData.gameMode = State.STATE_INIT_GAME
-                RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
             if (RulesFunc.GameData.numPlayers < RulesFunc.GameData.GameConst.MAX_NUM_PLYRS):
                 RulesFunc.GameData.score[RulesFunc.GameData.numPlayers] = 0
                 RulesFunc.GameData.blankDisp[DispConst.DISP_PLAYER1 + RulesFunc.GameData.numPlayers] = False
@@ -252,6 +253,7 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Init_Init_Game(self):
+        RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
         RulesFunc.GameData.StdFuncs.Enable_Solenoids()
         
         # 30 second timer is used in case no selection is made
@@ -370,7 +372,60 @@ class RulesFunc:
     #  @param  self          [in]   Object reference
     #  @return None
     def Mode_Jukebox(self):
-        pass
+        lftFlip = RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_LFT_FLIPPER)
+        rghtFlip = RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_RGHT_FLIPPER)
+        plyr = RulesFunc.GameData.currPlayer
+        
+        if (rghtFlip):
+            RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
+        if (lftFlip):
+            RulesFunc.prev_flipper |= self.LEFT_FLIPPER
+
+        # Selection is made on release of flipper button
+        if ((not rghtFlip) and (not lftFlip) and (RulesFunc.prev_flipper != 0)):
+            nxtSong = RulesFunc.CustomFunc.currSong[plyr]
+            if (RulesFunc.prev_flipper & (self.RIGHT_FLIPPER | self.LEFT_FLIPPER) == \
+                (self.RIGHT_FLIPPER | self.LEFT_FLIPPER)):
+                
+                # Kick the saucer and go back to normal mode  HRS
+                RulesFunc.GameData.StdFuncs.PlayBgnd(RulesFunc.CustomFunc.currSong[plyr])
+                RulesFunc.CustomFunc.saucer_kick()
+
+                RulesFunc.GameData.gameMode = State.STATE_NORMAL_PLAY
+            else:
+                foundSong = False
+                if (RulesFunc.prev_flipper & self.RIGHT_FLIPPER):
+                    while not foundSong:
+                        nxtSong += 1
+                        nxtBitfield = (1 << nxtSong)
+                        if (nxtBitfield > RulesFunc.CustomFunc.availSongs[plyr]):
+                            nxtSong = BgndMusic.BGND_JUMP
+                            nxtBitfield = (1 << nxtSong)
+                        if (RulesFunc.CustomFunc.availSongs[plyr] & nxtBitfield):
+                            foundSong = True
+                            RulesFunc.CustomFunc.currSong[plyr] = nxtSong
+                            RulesFunc.GameData.StdFuncs.BgndImage(nxtSong)
+                if (RulesFunc.prev_flipper & self.LEFT_FLIPPER):
+                    while not foundSong:
+                        if nxtSong > 0:
+                            nxtSong -= 1
+                            nxtBitfield = (1 << nxtSong)
+                        else:
+                            nxtSong = BgndMusic.BGND_CABOWABO
+                            nxtBitfield = (1 << nxtSong)
+                        if (RulesFunc.CustomFunc.availSongs[plyr] & nxtBitfield):
+                            foundSong = True
+                            RulesFunc.CustomFunc.currSong[plyr] = nxtSong
+                            RulesFunc.GameData.StdFuncs.BgndImage(nxtSong)
+            RulesFunc.prev_flipper = 0
+            
+        # If general timer times out, automatically select a singer    
+        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_GENERAL_TIMER)):
+            # If singer hasn't been chosen, pick randomly
+            self.Choose_Random_Singer()
+            
+            # Move to start ball
+            RulesFunc.GameData.gameMode = State.STATE_STARTBALL
 
     ## Function Init_End_Ball
     #
@@ -404,7 +459,10 @@ class RulesFunc:
                 RulesFunc.GameData.gameMode = State.STATE_STARTBALL
         else:
             print "Player %d, Ball %d" % (RulesFunc.GameData.currPlayer + 1, RulesFunc.GameData.ballNum + 1) 
-            RulesFunc.GameData.gameMode = State.STATE_STARTBALL
+            if (RulesFunc.GameData.ballNum == 0):
+                RulesFunc.GameData.gameMode = State.STATE_INIT_GAME
+            else:
+                RulesFunc.GameData.gameMode = State.STATE_STARTBALL
     
     ## Function Mode_End_Ball
     #

@@ -70,10 +70,9 @@ class Timers:
     TIMEOUT_RELOAD_TIMER             =  3
     TIMEOUT_RETRY_TIMER              =  4
     TIMEOUT_ERUPTION_TIMER           =  5
-    TIMEOUT_DUEL_TIMER               =  6
-    TIMEOUT_GENERAL_TIMER            =  7
-    TIMEOUT_GALLOP                   =  8
-    TIMEOUT_KICKOUT                  =  9
+    TIMEOUT_SAUCER_TIMER             =  6
+    TIMEOUT_SAUCER_RETRY_TIMER       =  7
+    TIMEOUT_GENERAL_TIMER            =  8
 
     timeouts = [
         [TIMEOUT_KICKOUT_TIMER, 1000],
@@ -82,8 +81,7 @@ class Timers:
         [TIMEOUT_RELOAD_TIMER, 20000],
         [TIMEOUT_RETRY_TIMER, 3000],
         [TIMEOUT_ERUPTION_TIMER, 110000],
-        [TIMEOUT_DUEL_TIMER, 60000],
-        [TIMEOUT_GENERAL_TIMER, 10000],
-        [TIMEOUT_GALLOP, 3000],
-        [TIMEOUT_KICKOUT, 500] ]
+        [TIMEOUT_SAUCER_TIMER, 3000],
+        [TIMEOUT_SAUCER_RETRY_TIMER, 500],
+        [TIMEOUT_GENERAL_TIMER, 10000] ]
 

@@ -104,6 +104,7 @@ class CustomFunc:
     sammyCnt = [0, 0, 0, 0]
     alexCnt = [0, 0, 0, 0]
     currSong = [0, 0, 0, 0]
+    availSongs = [0, 0, 0, 0]
     
     tilted = False
 
@@ -112,6 +113,7 @@ class CustomFunc:
     EVENT_JUKEBOX_AVAIL = 0x04
     EVENT_RELOAD_ACTIVE = 0x08
     EVENT_ERUPTION_ACTIVE = 0x10
+    EVENT_SAUCER_ACTIVE = 0x20
     events = 0
     
     CONST_DAVID = [LedBitNames.LED_DAVID_D1_CRD0MSK | LedBitNames.LED_DAVID_V_CRD0MSK | LedBitNames.LED_DAVID_D2_CRD0MSK, LedBitNames.LED_DAVID_A_CRD1MSK | LedBitNames.LED_DAVID_I_CRD1MSK]
@@ -138,6 +140,7 @@ class CustomFunc:
         self.sammyCnt = [0, 0, 0, 0]
         self.alexCnt = [0, 0, 0, 0]
         self.currSong = [0, 0, 0, 0]
+        self.availSongs = [0, 0, 0, 0]
         self.dropTrgtGoal = [0, 0, 0, 0]
         self.selectMode = 0
         self.spinMult = 1
@@ -180,6 +183,7 @@ class CustomFunc:
         self.sammyCnt = [0, 0, 0, 0]
         self.alexCnt = [0, 0, 0, 0]
         self.currSong = [0, 0, 0, 0]
+        self.availSongs = [0, 0, 0, 0]
         self.spinMult = 1
         self.numSpin = 0
         self.tiltActive = False
@@ -245,9 +249,11 @@ class CustomFunc:
             if self.singer[plyr] & CustomFunc.SNGR_DAVID:
                 # Choose from David Lee Roth songs
                 randomNum = random.randint(BgndMusic.BGND_JUMP, BgndMusic.BGND_DROPDEADLEGS)
+                self.availSongs[plyr] = 0x3f
             else:
                 # Choose from Sammy Hagar songs
                 randomNum = random.randint(BgndMusic.BGND_BESTOFBOTHWORLDS, BgndMusic.BGND_CABOWABO)
+                self.availSongs[plyr] = 0xfc0
             self.currSong[plyr] = randomNum
         CustomFunc.GameData.StdFuncs.BgndImage(self.currSong[plyr])
         
@@ -654,7 +660,8 @@ class CustomFunc:
                         CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_DAVID)
                         CustomFunc.GameData.score[plyr] += 25
                     else:
-                        # David and Roth collected so mark as complete, Sammy can now collected
+                        # David and Roth collected so mark as complete
+                        # If all other band members collected, Sammy can now be collected
                         self.stateProg[plyr] |= CustomFunc.STATEPROG_DAVID_COLLECTED
                         self.inc_spin_mult()
                         if (self.stateProg[plyr] & (CustomFunc.STATEPROG_DAVID_COLLECTED | CustomFunc.STATEPROG_EDDIE_COLLECTED | \
@@ -672,52 +679,60 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_sammy(self, plyr):
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SAUCER):
-            if (self.event[plyr] & CustomFunc.EVENT_JUKEBOX_AVAIL):
-                self.proc_jukebox(plyr)
-            else:
-                if (self.singer[plyr] & CustomFunc.SNGR_SAMMY) == 0:
-                    CustomFunc.GameData.score[plyr] -= 10
+        if self.events & CustomFunc.EVENT_SAUCER_ACTIVE:
+            if CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SAUCER_TIMER):
+                self.events &= ~CustomFunc.EVENT_SAUCER_ACTIVE
+            elif CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SAUCER_RETRY_TIMER):
+                if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SAUCER):
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_SAUCER)
+        else:
+            if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SAUCER):
+                if (self.events & CustomFunc.EVENT_JUKEBOX_AVAIL):
+                    self.setup_jukebox(plyr)
                 else:
-                    if (self.sammyCnt[plyr] == 0):
-                        # Collected R1
-                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R1)
-                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_O)
-                        CustomFunc.GameData.score[plyr] += 10
-                    elif (self.sammyCnt[plyr] == 1):
-                        # Collected O
-                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_O)
-                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_C)
-                        CustomFunc.GameData.score[plyr] += 10
-                    elif (self.sammyCnt[plyr] == 2):
-                        # Collected C
-                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_C)
-                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_K)
-                        CustomFunc.GameData.score[plyr] += 10
-                    elif (self.sammyCnt[plyr] == 3):
-                        # Collected K
-                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_K)
-                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_E)
-                        CustomFunc.GameData.score[plyr] += 10
-                    elif (self.sammyCnt[plyr] == 4):
-                        # Collected E
-                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_E)
-                        CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_R2)
-                        CustomFunc.GameData.score[plyr] += 10
-                    elif (self.sammyCnt[plyr] == 5):
-                        # Collected R2, after collecting Sammy, David can be collected
-                        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R2)
-                        self.stateProg[plyr] |= CustomFunc.STATEPROG_SAMMY_COLLECTED
-                        self.inc_spin_mult()
-                        if (self.stateProg[plyr] & (CustomFunc.STATEPROG_SAMMY_COLLECTED | CustomFunc.STATEPROG_EDDIE_COLLECTED | \
-                            CustomFunc.STATEPROG_ALEX_COLLECTED) == (CustomFunc.STATEPROG_SAMMY_COLLECTED | CustomFunc.STATEPROG_EDDIE_COLLECTED | \
-                            CustomFunc.STATEPROG_ALEX_COLLECTED)):
-                            self.singer[plyr] |= CustomFunc.SNGR_DAVID
-                            CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_DAVID)
-                        CustomFunc.GameData.score[plyr] += 50
-                        
-                    self.sammyCnt[plyr] += 1
-                self.kick_saucer() # HRS
+                    if (self.singer[plyr] & CustomFunc.SNGR_SAMMY) == 0:
+                        CustomFunc.GameData.score[plyr] -= 10
+                    else:
+                        if (self.sammyCnt[plyr] == 0):
+                            # Collected R1
+                            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R1)
+                            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_O)
+                            CustomFunc.GameData.score[plyr] += 10
+                        elif (self.sammyCnt[plyr] == 1):
+                            # Collected O
+                            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_O)
+                            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_C)
+                            CustomFunc.GameData.score[plyr] += 10
+                        elif (self.sammyCnt[plyr] == 2):
+                            # Collected C
+                            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_C)
+                            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_K)
+                            CustomFunc.GameData.score[plyr] += 10
+                        elif (self.sammyCnt[plyr] == 3):
+                            # Collected K
+                            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_K)
+                            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_E)
+                            CustomFunc.GameData.score[plyr] += 10
+                        elif (self.sammyCnt[plyr] == 4):
+                            # Collected E
+                            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_E)
+                            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ROCKER_R2)
+                            CustomFunc.GameData.score[plyr] += 10
+                        elif (self.sammyCnt[plyr] == 5):
+                            # Collected R2, after collecting Sammy, David can be collected
+                            # if all other band members have been collected
+                            CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ROCKER_R2)
+                            self.stateProg[plyr] |= CustomFunc.STATEPROG_SAMMY_COLLECTED
+                            self.inc_spin_mult()
+                            if (self.stateProg[plyr] & (CustomFunc.STATEPROG_SAMMY_COLLECTED | CustomFunc.STATEPROG_EDDIE_COLLECTED | \
+                                CustomFunc.STATEPROG_ALEX_COLLECTED) == (CustomFunc.STATEPROG_SAMMY_COLLECTED | CustomFunc.STATEPROG_EDDIE_COLLECTED | \
+                                CustomFunc.STATEPROG_ALEX_COLLECTED)):
+                                self.singer[plyr] |= CustomFunc.SNGR_DAVID
+                                CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_DAVID)
+                            CustomFunc.GameData.score[plyr] += 50
+                            
+                        self.sammyCnt[plyr] += 1
+                    self.saucer_kick()
 
     ## Process Panama
     #
@@ -769,6 +784,17 @@ class CustomFunc:
                 # Move to end ball mode
                 CustomFunc.GameData.gameMode = State.STATE_END_BALL
             
+    ## Process bumper
+    #
+    #  Process bumper
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def proc_bumper(self, plyr):
+        if (CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_REBND)):
+            CustomFunc.GameData.score[plyr] += 1
+    
     ## Normal processing
     #
     #  @param  self          [in]   Object reference
@@ -783,6 +809,7 @@ class CustomFunc:
         self.proc_david(plyr)
         self.proc_sammy(plyr)
         self.proc_drain(plyr)
+        self.proc_bumper(plyr)
                 
     ## Change singer to Sammy
     #
@@ -924,6 +951,31 @@ class CustomFunc:
         elif (self.spinMult == 4):
             CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_4X_BONUS)
 
-    def proc_jukebox(self, plyr):
+    ## Set up jukebox mode
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  plyr          [in]   Current player
+    #  @return None
+    def setup_jukebox(self, plyr):
+        # Update songs collected if David or Sammy have been collected
+        if self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED:
+            self.availSongs[plyr] |= 0x3f
+        if self.stateProg[plyr] & CustomFunc.STATEPROG_SAMMY_COLLECTED:
+            self.availSongs[plyr] |= 0xfc0
+    
         self.stateProg[plyr] |= CustomFunc.STATEPROG_JUKEBOX_COLLECTED
+
         self.inc_spin_mult()
+        CustomFunc.GameData.StdFuncs.StopBgnd()
+        CustomFunc.GameData.gameMode = State.STATE_JUKEBOX
+
+    ## Saucer kick
+    #
+    #  @param  self          [in]   Object reference
+    #  @return None
+    def saucer_kick(self):
+        self.events |= CustomFunc.EVENT_SAUCER_ACTIVE
+        CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_SAUCER)
+        CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_SAUCER_TIMER) 
+        CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_SAUCER_RETRY_TIMER) 
+        

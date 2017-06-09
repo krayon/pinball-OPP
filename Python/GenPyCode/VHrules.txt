@@ -256,14 +256,13 @@ TIMERS
    #Name                   NumMs
    Timeout_Kickout_Timer   1000                          # 1 second
    Timeout_Ball_Locate     5000                          # 5 seconds
-   Timeout_Panama_Timer    3000                          # 3 seconds
+   Timeout_Panama_Timer    5000                          # 5 seconds
    Timeout_Reload_Timer    20000                         # 20 second ball save timer
    Timeout_Retry_Timer     3000                          # Relaunch ball every 3 seconds
    Timeout_Eruption_Timer  110000                        # 110 second timeout for Eruption song to complete
-   Timeout_Duel_Timer      60000                         # 60 second duel timer
+   Timeout_Saucer_Timer    3000                          # 3 second for saucer retries
+   Timeout_Saucer_Retry_Timer 500                        # .5 second retry timer
    Timeout_General_Timer   10000                         # General timer used during modes
-   Timeout_Gallop          3000                          # 3 second gallop timeout
-   Timeout_Kickout         500                           # .5 second kickout hole timer
 }
 
 PROCESS_CHAINS
