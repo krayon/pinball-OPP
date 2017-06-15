@@ -114,6 +114,7 @@ class CustomFunc:
     EVENT_RELOAD_ACTIVE = 0x08
     EVENT_ERUPTION_ACTIVE = 0x10
     EVENT_SAUCER_ACTIVE = 0x20
+    EVENT_DROP_COMPLETE = 0x40
     events = 0
     
     CONST_DAVID = [LedBitNames.LED_DAVID_D1_CRD0MSK | LedBitNames.LED_DAVID_V_CRD0MSK | LedBitNames.LED_DAVID_D2_CRD0MSK, LedBitNames.LED_DAVID_A_CRD1MSK | LedBitNames.LED_DAVID_I_CRD1MSK]
@@ -263,6 +264,7 @@ class CustomFunc:
         self.events = 0
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_SHOOT_AGAIN)
         CustomFunc.GameData.StdFuncs.Enable_Solenoids()
+        CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
         CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_OUTHOLE)
         self.events |= self.EVENT_RELOAD_ACTIVE
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_RELOAD_TIMER, 20000) 
@@ -426,6 +428,9 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_drop_targets(self, plyr):
+        if (self.events & EVENT_DROP_COMPLETE) and CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_DROP_TRGT_TIMER):
+            self.events &= ~EVENT_DROP_COMPLETE
+            CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
         hit = 0
         comp = 1
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_1ST):
@@ -441,6 +446,8 @@ class CustomFunc:
             hit += 10
             comp += 1
             self.pollStatus |= CustomFunc.POLLSTAT_INLINE_COMP
+            self.events |= EVENT_DROP_COMPLETE
+            CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_DROP_TRGT_TIMER) 
         CustomFunc.GameData.score[plyr] += (hit * 5)
         
     ## Process spinner

@@ -263,6 +263,7 @@ TIMERS
    Timeout_Saucer_Timer    3000                          # 3 second for saucer retries
    Timeout_Saucer_Retry_Timer 500                        # .5 second retry timer
    Timeout_General_Timer   10000                         # General timer used during modes
+   Timeout_Drop_Trgt_Timer 2000                          # Timer used to reset drop targets
 }
 
 PROCESS_CHAINS
