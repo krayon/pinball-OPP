@@ -65,8 +65,8 @@ class SolBitNames:
     SOL_TOP_POP                                      = 0x02000008
     SOL_LFT_POP                                      = 0x02010001
     SOL_SAUCER                                       = 0x02010002
-    SOL_RGHT_SLING                                   = 0x02010004
-    SOL_OUTHOLE                                      = 0x02010008
+    SOL_OUTHOLE                                      = 0x02010004
+    SOL_RGHT_SLING                                   = 0x02010008
     SOL_LFT_FLIPPER                                  = 0x03000001
     SOL_RGHT_FLIPPER                                 = 0x03000002
     SOL_KNOCKER                                      = 0x03000004
@@ -77,8 +77,8 @@ class SolBitNames:
     SOL_TOP_POP_CRD2MSK                              = 0x00000008
     SOL_LFT_POP_CRD2MSK                              = 0x00000100
     SOL_SAUCER_CRD2MSK                               = 0x00000200
-    SOL_RGHT_SLING_CRD2MSK                           = 0x00000400
-    SOL_OUTHOLE_CRD2MSK                              = 0x00000800
+    SOL_OUTHOLE_CRD2MSK                              = 0x00000400
+    SOL_RGHT_SLING_CRD2MSK                           = 0x00000800
     SOL_LFT_FLIPPER_CRD3MSK                          = 0x00000001
     SOL_RGHT_FLIPPER_CRD3MSK                         = 0x00000002
     SOL_KNOCKER_CRD3MSK                              = 0x00000004
@@ -88,7 +88,7 @@ class SolBitNames:
     SOL_BRD_BIT_NAMES = [ [ ],
         [ ],
         ["DropBank", "LftSling", "BtmPop", "TopPop",
-        "LftPop", "Saucer", "RghtSling", "Outhole",
+        "LftPop", "Saucer", "Outhole", "RghtSling",
         "Unused", "Unused", "Unused", "Unused",
         "Unused", "Unused", "Unused", "Unused"],
         ["LftFlip", "RghtFlip", "Knocker", "Unused",
@@ -100,10 +100,10 @@ class SolBitNames:
     # Three bytes for each solenoid being configured
     SOL_BRD_CFG = [ [ ],
         [ ],
-        [rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x40', '\x03', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x10', '\x23',
+        [rs232Intf.CFG_SOL_AUTO_CLR, '\x38', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x23',
         rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x21', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x22',
-        rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x20', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x10', '\x10',
-        rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x10', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x20', '\x24',
+        rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x20', rs232Intf.CFG_SOL_AUTO_CLR, '\x20', '\x00',
+        rs232Intf.CFG_SOL_AUTO_CLR, '\x18', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x24',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',

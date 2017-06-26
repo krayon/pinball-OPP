@@ -132,7 +132,7 @@ class InpBrd():
                 if (GameData.InpBitNames.INP_BRD_MTRX_BIT_NAMES[card][index] != "Unused"):
                     validCols |= (1 << ((index & 0x38) >> 3))
             for col in xrange(rs232Intf.NUM_MATRIX_COL):
-                InpBrd.inpCfgBitfield[card].append(0xff)
+                InpBrd.inpCfgBitfield[card].append(0)
                 InpBrd.currInpData[card].append(0)
                 InpBrd.lastData[card].append(0)
                 InpBrd.validDataMask[card].append(0xff)
@@ -150,10 +150,19 @@ class InpBrd():
     #  @param  data          [in]   Data read from hardware card
     #  @return None
     def update_status(self, card, wing, data):
-        data &= InpBrd.validDataMask[card][wing]
-        latchData = (InpBrd.currInpData[card][wing] | data) & ~InpBrd.inpCfgBitfield[card][wing]
-        stateData = (data & InpBrd.inpCfgBitfield[card][wing]) ^ InpBrd.inpCfgBitfield[card][wing]
-        InpBrd.currInpData[card][wing] = latchData | stateData
+        # If normal wing inputs
+        if (wing < rs232Intf.NUM_G2_WING_PER_BRD):
+            data &= InpBrd.validDataMask[card][wing]
+            latchData = (InpBrd.currInpData[card][wing] | data) & ~InpBrd.inpCfgBitfield[card][wing]
+            # If state inputs swap sense (active high vs active low)
+            stateData = (data & InpBrd.inpCfgBitfield[card][wing]) ^ InpBrd.inpCfgBitfield[card][wing]
+            InpBrd.currInpData[card][wing] = latchData | stateData
+            InpBrd.lastData[card][wing] = data
+        # Otherwise this is a switch matrix
+        else:
+            # Only report on rising edge transitions since matrices
+            # are always state
+            InpBrd.currInpData[card][wing] |= (data ^ InpBrd.lastData[card][wing]) & ~InpBrd.lastData[card][wing]
         InpBrd.lastData[card][wing] = data
         
     ## Get input status

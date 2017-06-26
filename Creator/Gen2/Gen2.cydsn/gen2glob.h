@@ -71,7 +71,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x00020004
+#define GEN2G_CODE_VERS       0x00020005
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -211,6 +211,7 @@ typedef struct
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
    U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */
    U8                         matrixInp[RS232I_MATRX_COL]; /* Note:  written in reverse column order to match Bally numbering. */
+   U8                         matrixPrev[RS232I_MATRX_COL];
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */
    U32                        validSwitch;
    U32                        crcErr;

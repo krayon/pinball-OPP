@@ -95,7 +95,6 @@ typedef struct
 typedef struct
 {
    U8                         index;
-   U8                         prevVal[RS232I_SW_MATRX_INP/8];
    DIG_MTRX_BIT_INFO_T        info[RS232I_SW_MATRX_INP];
 } DIG_MATRIX_DATA_T;
 
@@ -400,8 +399,8 @@ void digital_task(void)
       if ((gen2g_info.typeWingBrds & (1 << WING_SW_MATRIX_IN)) != 0)
       {
          data = stdldigio_read_port(STDLI_DIG_PORT_2, 0xff);
-         chngU8 = data ^ dig_info.matrix_p->prevVal[dig_info.matrix_p->index];
-         dig_info.matrix_p->prevVal[dig_info.matrix_p->index] = data;
+         chngU8 = data ^ gen2g_info.matrixPrev[dig_info.matrix_p->index];
+         gen2g_info.matrixPrev[dig_info.matrix_p->index] = data;
          matrixBitInfo_p = &dig_info.matrix_p->info[dig_info.matrix_p->index * 8];
          for (index = 0, currBit = 1; index < 8; index++, currBit <<= 1, matrixBitInfo_p++)
          {
@@ -421,16 +420,15 @@ void digital_task(void)
                {
                   if (data & currBit)
                   {
+                     /* This only sets bits, bits are cleared when main controller
+                      * reads matrix inputs to guarantee a change isn't missed.
+                      */
                      gen2g_info.matrixInp[dig_info.matrix_p->index] |= currBit;
                      if (matrixBitInfo_p->sol != 0)
                      {
                         gen2g_info.solDrvProcCtl |=
                            (1 << (matrixBitInfo_p->sol & MATRIX_SOL_MASK));
                      }
-                  }
-                  else
-                  {
-                     gen2g_info.matrixInp[dig_info.matrix_p->index] &= ~currBit;
                   }
                }
             }
@@ -663,7 +661,7 @@ void digital_set_solenoid_input(
        */
       if ((gen2g_info.typeWingBrds & (1 << WING_SW_MATRIX_IN)) != 0)
       {
-         if ((solIndex & SOL_INP_CLEAR_SOL) == 0)
+         if (solIndex & SOL_INP_CLEAR_SOL)
          {
             dig_info.matrix_p->info[inpIndex - RS232I_NUM_GEN2_INP].sol = 0;
          }

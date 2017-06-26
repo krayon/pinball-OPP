@@ -89,6 +89,26 @@ class StdFuncs():
         else:
             return False
 
+    ## Check matrix input bit state
+    #
+    #  Check if a matrix bit from is currently set.  Matrix
+    #  inputs create a false edge trigger.  This gives the
+    #  raw input value.
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  cardBitPos    [in]   input card index and bit position
+    #  @return True if set 
+    def CheckMatrixInpState(self, cardBitPos):
+        card = (cardBitPos >> 24) & 0xff
+        wing = (cardBitPos >> 16) & 0x0f
+        if ((cardBitPos & 0x800000) != 0):
+            wing += rs232Intf.NUM_G2_WING_PER_BRD
+        bitPos = cardBitPos & 0xff
+        if ((StdFuncs.GameData.inpBrd.lastData[card][wing] & bitPos) != 0):
+            return True
+        else:
+            return False
+
     ## Restore input config
     #
     #  Send a command to restore the original input config
@@ -145,8 +165,9 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None 
     def Disable_Solenoids(self):
-        cfg = [rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00']
-        for cardIndex in xrange(SolBrd.numSolBrd):
+		# Use CFG_SOL_USE_SWITCH so on/off switches are properly disabled
+        cfg = [rs232Intf.CFG_SOL_USE_SWITCH, '\x00', '\x00']
+        for cardIndex in xrange(len(SolBrd.dataRemap)):
             card = SolBrd.dataRemap[cardIndex] >> 16
             wing = SolBrd.dataRemap[cardIndex] & 0xffff
             for solIndex in xrange(rs232Intf.NUM_SOL_PER_WING):
@@ -161,7 +182,7 @@ class StdFuncs():
     #  @param  self          [in]   Object reference
     #  @return None 
     def Enable_Solenoids(self):
-        for cardIndex in xrange(SolBrd.numSolBrd):
+        for cardIndex in xrange(len(SolBrd.dataRemap)):
             card = SolBrd.dataRemap[cardIndex] >> 16
             wing = SolBrd.dataRemap[cardIndex] & 0xffff
             for solIndex in xrange(rs232Intf.NUM_SOL_PER_WING):
@@ -188,6 +209,25 @@ class StdFuncs():
         comms.commIntf.updateSol(StdFuncs.GameData.commThread, cardNum, index, cfg)
         comms.commIntf.sendSolCfg(StdFuncs.GameData.commThread, cardNum)
     
+    ## Update solenoid input
+    #
+    #  Send a command to update the solenoid input.  This can add/remove
+    #  switch matrix inputs on a solenoid
+    #
+    #  @param  self          [in]   Object reference
+    #  @param  cardBitPos    [in]   solenoid card index and bit position
+    #  @param  input         [in]   input number (0-31) for direct inputs, (32-95) for matrix inputs
+    #  @param  enable        [in]   true to enable/false to disable input
+    #  @return None 
+    def Change_Solenoid_Input(self, cardBitPos, input, enable):
+        cardNum = (cardBitPos >> 24) & 0x0f
+        wing = (cardBitPos >> 16) & 0x03
+        bitPos = (cardBitPos & 0xffff) << (wing << 2)
+        sol = 0
+        while (((1 << sol) & bitPos) == 0):
+            sol += 1
+        comms.commHelp.sendUpdInp(StdFuncs.GameData.commThread, cardNum, input, sol, enable)
+
     ## Restore solenoid config
     #
     #  Send a command to restore the original solenoid config
@@ -196,8 +236,9 @@ class StdFuncs():
     #  @param  cardBitPos    [in]   solenoid card index and bit position
     #  @return None 
     def Restore_Solenoid_Cfg(self, cardBitPos):
-        cardNum = (cardBitPos >> 16) & 0xf
-        bitPos = cardBitPos & 0xffff
+        cardNum = (cardBitPos >> 24) & 0x0f
+        wing = (cardBitPos >> 16) & 0x03
+        bitPos = (cardBitPos & 0xffff) << (wing << 2)
         index = 0
         while (((1 << index) & bitPos) == 0):
             index += 1

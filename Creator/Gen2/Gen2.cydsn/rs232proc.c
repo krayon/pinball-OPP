@@ -280,8 +280,6 @@ void rs232proc_task(void)
                         }
                         case RS232I_GET_VERS:
                         {
-                           /* HRS: Debug 
-                           rs232proc_bswap_copy_dest((U32 *)&gen2g_appTbl_p->codeVers, &txBuf[2]); */
                            rs232proc_bswap_copy_dest((U32 *)&appStart.codeVers, &txBuf[2]);
                            rs232_glob.state = RS232_STRIP_CMD;
                            txBuf[6] = 0xff;
@@ -355,6 +353,17 @@ void rs232proc_task(void)
                            txBuf[10] = 0xff;
                            stdlser_calc_crc8(&txBuf[10], 10, &txBuf[0]);
                            (void)stdlser_xmt_data(STDLI_SER_PORT_1, FALSE, &txBuf[0], 11);
+                           
+                           /* Clear bits currently not active.  This means that a bit
+                            * that is active won't be cleared until it is read by the processor.
+                            */
+                           for (index = 0, dest_p = &gen2g_info.matrixInp[0],
+                              src_p = &gen2g_info.matrixPrev[0];
+                              index < RS232I_MATRX_COL;
+                              index++, src_p++, dest_p++)
+                           {
+                              *dest_p &= *src_p; 
+                           }
                            break;
                         }
                         case RS232I_GEN2_UNUSED:

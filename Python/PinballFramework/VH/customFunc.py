@@ -115,6 +115,10 @@ class CustomFunc:
     EVENT_ERUPTION_ACTIVE = 0x10
     EVENT_SAUCER_ACTIVE = 0x20
     EVENT_DROP_COMPLETE = 0x40
+    EVENT_DROP_1ST = 0x100
+    EVENT_DROP_2ND = 0x200
+    EVENT_DROP_3RD = 0x400
+    EVENT_DROP_4TH = 0x800
     events = 0
     
     CONST_DAVID = [LedBitNames.LED_DAVID_D1_CRD0MSK | LedBitNames.LED_DAVID_V_CRD0MSK | LedBitNames.LED_DAVID_D2_CRD0MSK, LedBitNames.LED_DAVID_A_CRD1MSK | LedBitNames.LED_DAVID_I_CRD1MSK]
@@ -266,12 +270,10 @@ class CustomFunc:
         CustomFunc.GameData.StdFuncs.Enable_Solenoids()
         CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
         CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_OUTHOLE)
-        self.events |= self.EVENT_RELOAD_ACTIVE
         CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_RELOAD_TIMER, 20000) 
         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RELOAD_TIMER)
         CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
-        CustomFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 2000) 
-        CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER) 
+        self.events |= self.EVENT_RELOAD_ACTIVE
 
         # Tilt is not active during skill shot to allow nudging
         self.tilted = False
@@ -313,24 +315,24 @@ class CustomFunc:
         turnOff = [0, 0]
         if (change & CustomFunc.LANE_1984_1):
             if (newVal & CustomFunc.LANE_1984_1):
-                turnOn[1] |= LED_1984_1_CRD1MSK
+                turnOn[1] |= LedBitNames.LED_1984_1_CRD1MSK
             else:
-                turnOff[1] |= LED_1984_1_CRD1MSK
+                turnOff[1] |= LedBitNames.LED_1984_1_CRD1MSK
         if (change & CustomFunc.LANE_1984_9):
             if (newVal & CustomFunc.LANE_1984_9):
-                turnOn[0] |= LED_1984_9_CRD0MSK
+                turnOn[0] |= LedBitNames.LED_1984_9_CRD0MSK
             else:
-                turnOff[0] |= LED_1984_9_CRD0MSK
+                turnOff[0] |= LedBitNames.LED_1984_9_CRD0MSK
         if (change & CustomFunc.LANE_1984_8):
             if (newVal & CustomFunc.LANE_1984_8):
-                turnOn[0] |= LED_1984_8_CRD0MSK
+                turnOn[0] |= LedBitNames.LED_1984_8_CRD0MSK
             else:
-                turnOff[0] |= LED_1984_8_CRD0MSK
+                turnOff[0] |= LedBitNames.LED_1984_8_CRD0MSK
         if (change & CustomFunc.LANE_1984_4):
             if (newVal & CustomFunc.LANE_1984_4):
-                turnOn[0] |= LED_1984_4_CRD0MSK
+                turnOn[0] |= LedBitNames.LED_1984_4_CRD0MSK
             else:
-                turnOff[0] |= LED_1984_4_CRD0MSK
+                turnOff[0] |= LedBitNames.LED_1984_4_CRD0MSK
         CustomFunc.GameData.StdFuncs.Led_On(turnOn)
         CustomFunc.GameData.StdFuncs.Led_Off(turnOff)
             
@@ -377,6 +379,7 @@ class CustomFunc:
         unlit = 0
         lit = 0
         comp = 0
+
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_LFT_OUTLN):
             if (self.compLanes[plyr] & CustomFunc.LANE_1984_1) == 0:
                 # Unlit 1984 lane hit
@@ -412,6 +415,8 @@ class CustomFunc:
         if (self.compLanes[plyr] & CustomFunc.LANE_ALL_MASK) == CustomFunc.LANE_ALL_MASK:
             comp = 1
             self.pollStatus |= CustomFunc.POLLSTAT_1984_COMP
+            self.compLanes[plyr] &= ~CustomFunc.LANE_ALL_MASK
+            CustomFunc.GameData.StdFuncs.Led_Off(CustomFunc.CONST_1984)
             
             # Award 15 second ball save
             self.events |= self.EVENT_RELOAD_ACTIVE
@@ -428,25 +433,29 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_drop_targets(self, plyr):
-        if (self.events & EVENT_DROP_COMPLETE) and CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_DROP_TRGT_TIMER):
-            self.events &= ~EVENT_DROP_COMPLETE
+        if (self.events & CustomFunc.EVENT_DROP_COMPLETE) and CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_DROP_TRGT_TIMER):
+            self.events &= ~(CustomFunc.EVENT_DROP_1ST | CustomFunc.EVENT_DROP_2ND | CustomFunc.EVENT_DROP_3RD | CustomFunc.EVENT_DROP_4TH | CustomFunc.EVENT_DROP_COMPLETE)
             CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_DROP_BANK)
         hit = 0
         comp = 1
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_1ST):
+        if ((self.events & CustomFunc.EVENT_DROP_1ST) == 0) and CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_1ST):
             hit += 1
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_2X):
+            self.events |= CustomFunc.EVENT_DROP_1ST
+        if ((self.events & CustomFunc.EVENT_DROP_2ND) == 0) and CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_2X):
             hit += 2
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_3X):
+            self.events |= CustomFunc.EVENT_DROP_2ND
+        if ((self.events & CustomFunc.EVENT_DROP_3RD) == 0) and CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_3X):
             hit += 3
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_5X):
+            self.events |= CustomFunc.EVENT_DROP_3RD
+        if ((self.events & CustomFunc.EVENT_DROP_4TH) == 0) and CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_DROP_TRGT_5X):
             hit += 5
+            self.events |= CustomFunc.EVENT_DROP_4TH
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SUPER_STAR_TRGT):
             print "Drops Complete!!"
             hit += 10
             comp += 1
             self.pollStatus |= CustomFunc.POLLSTAT_INLINE_COMP
-            self.events |= EVENT_DROP_COMPLETE
+            self.events |= CustomFunc.EVENT_DROP_COMPLETE
             CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_DROP_TRGT_TIMER) 
         CustomFunc.GameData.score[plyr] += (hit * 5)
         
@@ -458,7 +467,7 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_spinner(self, plyr):
-        if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SPINNER):
+        if CustomFunc.GameData.StdFuncs.CheckMatrixInpState(InpBitNames.MTRX_INP_SPINNER):
             CustomFunc.GameData.score[plyr] += self.spinMult
             self.numSpin += 1
 
@@ -690,10 +699,11 @@ class CustomFunc:
             if CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SAUCER_TIMER):
                 self.events &= ~CustomFunc.EVENT_SAUCER_ACTIVE
             elif CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SAUCER_RETRY_TIMER):
-                if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SAUCER):
+                CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_SAUCER_RETRY_TIMER)
+                if CustomFunc.GameData.StdFuncs.CheckMatrixInpState(InpBitNames.MTRX_INP_SAUCER):
                     CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_SAUCER)
         else:
-            if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_SAUCER):
+            if CustomFunc.GameData.StdFuncs.CheckMatrixInpState(InpBitNames.MTRX_INP_SAUCER):
                 if (self.events & CustomFunc.EVENT_JUKEBOX_AVAIL):
                     self.setup_jukebox(plyr)
                 else:
@@ -751,7 +761,7 @@ class CustomFunc:
     def proc_panama(self, plyr):
         if (self.events & CustomFunc.EVENT_PANAMA):
             if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_PANAMA_TIMER)):
-                CustomFunc.GameData.StdFuncs.Led_Blink_Off([LED_RGHT_HDLGHT_CRD0MSK, LED_LFT_HDLGHT_CRD1MSK])
+                CustomFunc.GameData.StdFuncs.Led_Blink_Off([LedBitNames.LED_RGHT_HDLGHT_CRD0MSK, LedBitNames.LED_LFT_HDLGHT_CRD1MSK])
             self.events &= ~CustomFunc.EVENT_PANAMA
         
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_PANAMA_ROLL):
@@ -762,7 +772,7 @@ class CustomFunc:
             
             # Play Panama sound clip and blink car lights, HRS
             # CustomFunc.GameData.StdFuncs.Sounds(Sounds.PANAMA)
-            CustomFunc.GameData.StdFuncs.Led_Blink_100([LED_RGHT_HDLGHT_CRD0MSK, LED_LFT_HDLGHT_CRD1MSK])
+            CustomFunc.GameData.StdFuncs.Led_Blink_100([LedBitNames.LED_RGHT_HDLGHT_CRD0MSK, LedBitNames.LED_LFT_HDLGHT_CRD1MSK])
 
     ## Process drain
     #
@@ -778,16 +788,15 @@ class CustomFunc:
                 self.events &= ~self.EVENT_RELOAD_ACTIVE
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_SHOOT_AGAIN)
         
-        # If the retry timer times out, and the ball is in the drain, serve it again,
-        # then restart timeout retry
-        if (CustomFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
+			# If the retry timer times out, and the ball is in the drain, serve it again,
+			# then restart timeout retry
             if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RETRY_TIMER)):
-                if (CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_OUTHOLE)):
-                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
-                    CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
+                CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
+                if (CustomFunc.GameData.StdFuncs.CheckMatrixInpState(InpBitNames.MTRX_INP_OUTHOLE)):
+                    CustomFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_OUTHOLE)
                     CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_GIMME_BREAK)
         else:
-            if (CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_OUTHOLE)):
+            if (CustomFunc.GameData.StdFuncs.CheckMatrixInpState(InpBitNames.MTRX_INP_OUTHOLE)):
                 # Move to end ball mode
                 CustomFunc.GameData.gameMode = State.STATE_END_BALL
             
@@ -808,15 +817,47 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def normal_proc(self, plyr):
+        score =  CustomFunc.GameData.score[plyr]
         self.proc_inlanes(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "inlane score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_drop_targets(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "drop score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_spinner(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "spinner score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_eddie(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "eddie score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_alex(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "alex score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_david(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "david score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_sammy(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "sammy score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_drain(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "drain score"
+            score =  CustomFunc.GameData.score[plyr]
         self.proc_bumper(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "bumper score"
+            score =  CustomFunc.GameData.score[plyr]
+        self.proc_panama(plyr)
+        if (score != CustomFunc.GameData.score[plyr]):
+            print "panama score"
+            score =  CustomFunc.GameData.score[plyr]
                 
     ## Change singer to Sammy
     #
@@ -891,7 +932,7 @@ class CustomFunc:
     #  @return None
     def restore_david(self, plyr):
         onBits = [0, 0]
-        if (self.singer[plyr] & self.SNGR_DAVID) and not (self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED):
+        if (self.singer[plyr] & self.SNGR_DAVID):
             CustomFunc.GameData.StdFuncs.Led_Blink_100(CustomFunc.CONST_DAVID)
             if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_D1) != 0:
                 onBits[0] |= LedBitNames.LED_DAVID_D1_CRD0MSK
@@ -903,8 +944,11 @@ class CustomFunc:
                 onBits[1] |= LedBitNames.LED_DAVID_I_CRD1MSK
             if (self.davidTrgts[plyr] & CustomFunc.TRGT_DAVID_D2) != 0:
                 onBits[0] |= LedBitNames.LED_DAVID_D2_CRD0MSK
-            if (self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED) != 0:
+            if (self.stateProg[plyr] & CustomFunc.STATEPROG_ROTH_COLLECTED) != 0:
                 onBits[0] |= LedBitNames.LED_ROTH_CRD0MSK
+            if (self.stateProg[plyr] & CustomFunc.STATEPROG_DAVID_COLLECTED) != 0:
+                onBits[0] |= (LedBitNames.LED_DAVID_D1_CRD0MSK | LedBitNames.LED_DAVID_V_CRD0MSK | LedBitNames.LED_DAVID_D2_CRD0MSK | LedBitNames.LED_ROTH_CRD0MSK)
+                onBits[1] |= (LedBitNames.LED_DAVID_A_CRD1MSK | LedBitNames.LED_DAVID_I_CRD1MSK)
             CustomFunc.GameData.StdFuncs.Led_On(onBits)
             
     ## Restore Sammy
