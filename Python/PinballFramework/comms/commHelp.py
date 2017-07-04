@@ -364,7 +364,7 @@ def readInputs(commThread):
                 index += 1
             elif((index + 1) < len(intData)):
                 boardIndex = intData[index] & 0x01f
-                if data[index + 1] == rs232Intf.READ_GEN2_INP_CMD:
+                if (data[index + 1] == rs232Intf.READ_GEN2_INP_CMD) and ((index + 6) < len(intData)):
                     rcvCmd = data[index: index + 6]
                     crc = calcCrc8(rcvCmd)
                     if (len(data) < index + 6):
@@ -380,7 +380,7 @@ def readInputs(commThread):
                             if (commThread.hasInp[boardIndex]):
                                 InpBrd.update_status(GameData.inpBrd, boardIndex, wing, ord(data[index + (rs232Intf.NUM_G2_WING_PER_BRD - wing - 1) + 2]))
                     index += 7
-                elif data[index + 1] == rs232Intf.READ_MATRIX_INP:
+                elif (data[index + 1] == rs232Intf.READ_MATRIX_INP) and ((index + 10) < len(intData)):
                     rcvCmd = data[index: index + 10]
                     crc = calcCrc8(rcvCmd)
                     if (crc != data[index + 10]):
@@ -390,7 +390,9 @@ def readInputs(commThread):
                             InpBrd.update_status(GameData.inpBrd, boardIndex, rs232Intf.NUM_G2_WING_PER_BRD + col, ord(data[index + col + 2]))
                     index += 11
                 else:
-                    index += 1
+                    print "Bad data received.  Clearing buffer"
+                    data = getSerialData(commThread, 255)
+                    index = len(intData)
             else:
                 index += 1
     else:
