@@ -118,9 +118,9 @@ class RulesFunc:
         rghtFlip = RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_RGHT_FLIPPER)
     
         if rghtFlip and (RulesFunc.prev_flipper & self.RIGHT_FLIPPER == 0):
-            RulesFunc.CustomFunc.Singer_Sammy()
+            RulesFunc.CustomFunc.flipper_right_rotate(RulesFunc.GameData.currPlayer)
         if lftFlip and (RulesFunc.prev_flipper & self.LEFT_FLIPPER == 0):
-            RulesFunc.CustomFunc.Singer_Sammy()
+            RulesFunc.CustomFunc.flipper_left_rotate(RulesFunc.GameData.currPlayer)
         if (rghtFlip):
             RulesFunc.prev_flipper |= self.RIGHT_FLIPPER
         else:
@@ -280,6 +280,10 @@ class RulesFunc:
         RulesFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSESINGER)
         RulesFunc.GameData.StdFuncs.Enable_Solenoids()
         
+        # Turn off all the LEDs from attract mode
+        RulesFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK])
+        RulesFunc.GameData.StdFuncs.Led_Blink_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK])
+        
         # 30 second timer is used in case no selection is made
         RulesFunc.GameData.StdFuncs.TimerUpdate(Timers.TIMEOUT_GENERAL_TIMER, 30000)
         RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_GENERAL_TIMER)
@@ -337,6 +341,7 @@ class RulesFunc:
     #  @return None
     def Mode_Normal_Play(self):
         self.Proc_Press_Start()
+        self.Proc_Flipper()
         RulesFunc.CustomFunc.normal_proc(RulesFunc.GameData.currPlayer)
 
     ## Function Proc_Choose_Mode_Init
@@ -421,6 +426,7 @@ class RulesFunc:
                 RulesFunc.GameData.StdFuncs.PlayBgnd(RulesFunc.CustomFunc.currSong[plyr])
                 RulesFunc.CustomFunc.saucer_kick()
 
+                RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_BLW_SAUCER)
                 RulesFunc.GameData.gameMode = State.STATE_NORMAL_PLAY
             else:
                 foundSong = False

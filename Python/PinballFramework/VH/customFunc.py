@@ -204,8 +204,6 @@ class CustomFunc:
         CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER3] = True
         CustomFunc.GameData.blankDisp[DispConst.DISP_PLAYER4] = True
 
-        # Turn off all the LEDs from attract mode
-        CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK])
                 
     ## Init attract mode
     #
@@ -456,6 +454,8 @@ class CustomFunc:
             comp += 1
             self.pollStatus |= CustomFunc.POLLSTAT_INLINE_COMP
             self.events |= CustomFunc.EVENT_DROP_COMPLETE
+            self.events |= CustomFunc.EVENT_JUKEBOX_AVAIL
+            CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_BLW_SAUCER)
             CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_DROP_TRGT_TIMER) 
         CustomFunc.GameData.score[plyr] += (hit * 5)
         
@@ -469,7 +469,9 @@ class CustomFunc:
     def proc_spinner(self, plyr):
         if CustomFunc.GameData.StdFuncs.CheckMatrixInpState(InpBitNames.MTRX_INP_SPINNER):
             CustomFunc.GameData.score[plyr] += self.spinMult
-            self.numSpin += 1
+            # double jukebox scores if spinner collected
+            if ((self.stateProg[plyr] & CustomFunc.STATEPROG_JUKEBOX_COLLECTED) != 0):
+                CustomFunc.GameData.score[plyr] += self.spinMult
 
     ## Process Eddie
     #
@@ -545,7 +547,7 @@ class CustomFunc:
     #  @param  plyr          [in]   Current player
     #  @return None
     def proc_alex(self, plyr):
-        oldCnt = self.alexCnt[plyr]/5
+        oldCnt = self.alexCnt[plyr]/10
         hit = 0
         comp = 1
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_LFT_POP):
@@ -563,7 +565,7 @@ class CustomFunc:
             else:
                 self.alexCnt[plyr] += hit
                 CustomFunc.GameData.score[plyr] += (hit * 5)
-                if (oldCnt != (self.alexCnt[plyr]/5)):
+                if (oldCnt != (self.alexCnt[plyr]/10)):
                     if (oldCnt == 0):
                         CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_ALEX_A)
                         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_ALEX_L)
@@ -762,7 +764,7 @@ class CustomFunc:
         if (self.events & CustomFunc.EVENT_PANAMA):
             if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_PANAMA_TIMER)):
                 CustomFunc.GameData.StdFuncs.Led_Blink_Off([LedBitNames.LED_RGHT_HDLGHT_CRD0MSK, LedBitNames.LED_LFT_HDLGHT_CRD1MSK])
-            self.events &= ~CustomFunc.EVENT_PANAMA
+                self.events &= ~CustomFunc.EVENT_PANAMA
         
         if CustomFunc.GameData.StdFuncs.CheckInpBit(InpBitNames.MTRX_INP_PANAMA_ROLL):
             CustomFunc.GameData.score[plyr] += 20
@@ -770,8 +772,8 @@ class CustomFunc:
             
             CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_PANAMA_TIMER) 
             
-            # Play Panama sound clip and blink car lights, HRS
-            # CustomFunc.GameData.StdFuncs.Sounds(Sounds.PANAMA)
+            # Play Panama sound clip and blink car lights,
+            CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_PANAMA)
             CustomFunc.GameData.StdFuncs.Led_Blink_100([LedBitNames.LED_RGHT_HDLGHT_CRD0MSK, LedBitNames.LED_LFT_HDLGHT_CRD1MSK])
 
     ## Process drain
@@ -1013,11 +1015,20 @@ class CustomFunc:
             self.availSongs[plyr] |= 0x3f
         if self.stateProg[plyr] & CustomFunc.STATEPROG_SAMMY_COLLECTED:
             self.availSongs[plyr] |= 0xfc0
+        # If no singers have been collected, only allow current singer songs
+        if self.availSongs[plyr] == 0:
+            if self.singer[plyr] & CustomFunc.SNGR_DAVID:
+                self.availSongs[plyr] |= 0x3f
+            else:
+                self.availSongs[plyr] |= 0xfc0
     
+        self.events &= ~CustomFunc.EVENT_JUKEBOX_AVAIL
         self.stateProg[plyr] |= CustomFunc.STATEPROG_JUKEBOX_COLLECTED
-
+        
         self.inc_spin_mult()
+        CustomFunc.GameData.StdFuncs.Led_On(LedBitNames.LED_SPINNER)
         CustomFunc.GameData.StdFuncs.StopBgnd()
+        CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_CHOOSE_JUKEBOX)
         CustomFunc.GameData.gameMode = State.STATE_JUKEBOX
 
     ## Saucer kick

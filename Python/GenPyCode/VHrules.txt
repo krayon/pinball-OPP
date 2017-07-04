@@ -196,6 +196,8 @@ SOUND_CLIPS
    Sound_Hot_Teacher1              "sounds/hotTeacherDrums1.wav"
    Sound_Hot_Teacher2              "sounds/hotTeacherDrums2.wav"
    Sound_Hot_Teacher3              "sounds/hotTeacherDrums3.wav"
+   Sound_Panama                    "sounds/panama.wav"
+   Sound_Choose_Jukebox            "sounds/chooseJukebox.wav"
 }
 
 BGND_CLIPS

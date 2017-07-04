@@ -100,10 +100,10 @@ class SolBitNames:
     # Three bytes for each solenoid being configured
     SOL_BRD_CFG = [ [ ],
         [ ],
-        [rs232Intf.CFG_SOL_AUTO_CLR, '\x38', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x23',
+        [rs232Intf.CFG_SOL_AUTO_CLR, '\x38', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x14', '\x23',
         rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x21', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x22',
         rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x20', rs232Intf.CFG_SOL_AUTO_CLR, '\x20', '\x00',
-        rs232Intf.CFG_SOL_AUTO_CLR, '\x18', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x18', '\x24',
+        rs232Intf.CFG_SOL_AUTO_CLR, '\x18', '\x00', rs232Intf.CFG_SOL_USE_MTRX_AUTO_CLR, '\x14', '\x24',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
         rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00', rs232Intf.CFG_SOL_DISABLE, '\x00', '\x00',
