@@ -673,5 +673,7 @@ class StdFuncs():
     def AddInputScore(self, inpScoreArr):
         for cardNum in xrange(StdFuncs.GameData.numGen2Brd):
             for bitIndex in xrange(rs232Intf.NUM_G2_INP_PER_BRD):
-                if ((StdFuncs.GameData.currInpStatus[cardNum] & (1 << bitIndex)) != 0):
+                wing = bitIndex >> 3
+                currBit = bitIndex & 0x07
+                if ((StdFuncs.GameData.currInpStatus[cardNum][wing] & (1 << currBit)) != 0):
                     StdFuncs.GameData.score[StdFuncs.GameData.currPlayer] += inpScoreArr[cardNum][bitIndex]

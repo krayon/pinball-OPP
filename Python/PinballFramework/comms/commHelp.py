@@ -362,13 +362,15 @@ def readInputs(commThread):
         while index < len(intData):
             if data[index] == rs232Intf.EOM_CMD:
                 index += 1
-            else:
+            elif((index + 1) < len(intData)):
                 boardIndex = intData[index] & 0x01f
                 if data[index + 1] == rs232Intf.READ_GEN2_INP_CMD:
                     rcvCmd = data[index: index + 6]
                     crc = calcCrc8(rcvCmd)
-                    if (crc != data[index + 6]):
-                        print "Bad CRC input response:  Rcv'd 0x02x, Expected 0x02x" % (intData[index + 6], ord(crc))
+                    if (len(data) < index + 6):
+                        print "Incorrect read input length:  Rcv'd data len %d, Expected %d" % (len(data), index + 6)
+                    elif (crc != data[index + 6]):
+                        print "Bad CRC input response:  Rcv'd 0x%02x, Expected 0x%02x" % (intData[index + 6], ord(crc))
                     else:
                         status = (ord(data[index + 2]) << 24) | (ord(data[index + 3]) << 16) | (ord(data[index + 4]) << 8) | ord(data[index + 5])
                         commThread.currInpData[boardIndex] = status
@@ -389,6 +391,8 @@ def readInputs(commThread):
                     index += 11
                 else:
                     index += 1
+            else:
+                index += 1
     else:
         print "Bad read input response."
 #    outStr = ""

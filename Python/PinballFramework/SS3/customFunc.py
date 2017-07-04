@@ -278,29 +278,30 @@ class CustomFunc:
     
         # Set the inlanes if easy or medium
         if (self.level[plyr] == CustomFunc.LEVEL_EASY) or (self.level[plyr] == CustomFunc.LEVEL_MED):
-            if ((self.compInlanes[plyr] & LedBitNames.LED_INLN_CTR & 0xffff) == LedBitNames.LED_INLN_CTR & 0xffff):
+            if ((self.compInlanes[plyr] & LedBitNames.LED_INLN_CTR_CRD0MSK) == LedBitNames.LED_INLN_CTR_CRD0MSK):
                 # The center inlane is already complete.  Move that bit to another position if possible
-                if ((self.compInlanes[plyr] & LedBitNames.LED_INLN_RGHT) == 0):
-                    self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
-                    self.compInlanes[plyr] |= LedBitNames.LED_INLN_RGHT
-                elif ((self.compInlanes[plyr] & LedBitNames.LED_INLN_LFT) == 0):
-                    self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
-                    self.compInlanes[plyr] |= LedBitNames.LED_INLN_LFT
+                if ((self.compInlanes[plyr] & LedBitNames.LED_INLN_RGHT_CRD0MSK) == 0):
+                    self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR_CRD0MSK
+                    self.compInlanes[plyr] |= LedBitNames.LED_INLN_RGHT_CRD0MSK
+                elif ((self.compInlanes[plyr] & LedBitNames.LED_INLN_LFT_CRD0MSK) == 0):
+                    self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR_CRD0MSK
+                    self.compInlanes[plyr] |= LedBitNames.LED_INLN_LFT_CRD0MSK
                 elif (self.level[plyr] == CustomFunc.LEVEL_EASY):
                     # On easy, can rotate between both levels so find clear one on the lower rollovers.
-                    if ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_RGHT) == 0):
-                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
-                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_RGHT
-                    elif ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_CTR) == 0):
-                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
-                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_CTR
-                    elif ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_LFT) == 0):
-                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR
-                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_LFT
+                    if ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_RGHT_CRD0MSK) == 0):
+                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR_CRD0MSK
+                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_RGHT_CRD0MSK
+                    elif ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_CTR_CRD0MSK) == 0):
+                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR_CRD0MSK
+                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_CTR_CRD0MSK
+                    elif ((self.compInlanes[plyr] & LedBitNames.LED_ROLL_LFT_CRD0MSK) == 0):
+                        self.compInlanes[plyr] &= ~LedBitNames.LED_INLN_CTR_CRD0MSK
+                        self.compInlanes[plyr] |= LedBitNames.LED_ROLL_LFT_CRD0MSK
                      
-            CustomFunc.GameData.StdFuncs.Led_On(0x10000 | self.compInlanes[plyr])
+            CustomFunc.GameData.StdFuncs.Led_On([self.compInlanes[plyr]])
         else:
             self.compInlanes[plyr] = 0
+        self.totDrops = 0
 
         # Blink the skill shot
         CustomFunc.GameData.StdFuncs.Led_Blink_100(LedBitNames.LED_INLN_CTR)
@@ -461,13 +462,13 @@ class CustomFunc:
             
             # If easy, rotate allows rotate between both levels
             if (self.level[plyr] == CustomFunc.LEVEL_EASY):
-                leds = ((self.compInlanes[plyr] << 1) & 0x6300) | ((self.compInlanes[plyr] & 0x400) << 3) | ((self.compInlanes[plyr] & 0x8000) >> 7)
+                leds = ((self.compInlanes[plyr] << 1) & 0xc600) | ((self.compInlanes[plyr] & 0x400) << 3) | ((self.compInlanes[plyr] & 0x8000) >> 7)
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [leds])
                 self.compInlanes[plyr] = leds
                 
             # Can only rotate within the row
             elif (self.level[plyr] == CustomFunc.LEVEL_MED):
-                leds = ((self.compInlanes[plyr] << 1) & 0x6300) | ((self.compInlanes[plyr] & 0x400) >> 2) | ((self.compInlanes[plyr] & 0x8000) >> 2)
+                leds = ((self.compInlanes[plyr] << 1) & 0xc600) | ((self.compInlanes[plyr] & 0x400) >> 2) | ((self.compInlanes[plyr] & 0x8000) >> 2)
                 CustomFunc.GameData.StdFuncs.Led_Set(mask, [leds])
                 self.compInlanes[plyr] = leds
                 
@@ -1082,14 +1083,14 @@ class CustomFunc:
             moveNextMode = True
             
         # If any other switches get hit, move to normal mode
-        if ((CustomFunc.GameData.currInpStatus[0] & (InpBitNames.INP_UPPER_LFT_ROLLOVER_CRD0MSK | InpBitNames.INP_UPPER_RGHT_ROLLOVER_CRD0MSK | \
-                InpBitNames.INP_UPPER_LFT_TOP_TRGT_CRD0MSK | InpBitNames.INP_UPPER_LFT_BTM_TRGT_CRD0MSK )) != 0) or \
-           ((CustomFunc.GameData.currInpStatus[1] & (InpBitNames.INP_SPINNER_CRD1MSK | InpBitNames.INP_JKPOT_ROLLOVER_CRD1MSK | \
-                InpBitNames.INP_BELOW_KICKOUT_RUBBER_CRD1MSK | InpBitNames.INP_DROP_BANK_MISS_CRD1MSK | \
-                InpBitNames.INP_DROP_TRGT_1S_CRD1MSK | InpBitNames.INP_DROP_TRGT_2H_CRD1MSK | InpBitNames.INP_DROP_TRGT_3O_CRD1MSK | InpBitNames.INP_DROP_TRGT_4O_CRD1MSK | \
-                InpBitNames.INP_DROP_TRGT_5T_CRD1MSK | InpBitNames.INP_DROP_TRGT_6E_CRD1MSK | InpBitNames.INP_DROP_TRGT_7R_CRD1MSK)) != 0) or \
-           ((CustomFunc.GameData.currInpStatus[3] & (InpBitNames.INP_BTM_LFT_INLN_ROLLOVER_CRD3MSK | InpBitNames.INP_BTM_LFT_OUTLN_ROLLOVER_CRD3MSK | \
-                InpBitNames.INP_CTR_LOW_ROLLOVER_CRD3MSK | InpBitNames.INP_BTM_RGHT_RUBBER_CRD3MSK | InpBitNames.INP_BTM_RGHT_LOW_RUBBER_CRD3MSK)) != 0):                                     
+        if ((CustomFunc.GameData.currInpStatus[0][2] & (InpBitNames.INP_UPPER_LFT_ROLLOVER | InpBitNames.INP_UPPER_RGHT_ROLLOVER | \
+                InpBitNames.INP_UPPER_LFT_TOP_TRGT | InpBitNames.INP_UPPER_LFT_BTM_TRGT )) != 0) or \
+           ((CustomFunc.GameData.currInpStatus[1][2] & (InpBitNames.INP_SPINNER | InpBitNames.INP_JKPOT_ROLLOVER | \
+                InpBitNames.INP_BELOW_KICKOUT_RUBBER | InpBitNames.SOL_TOP_DROP_RUBBER)) != 0) or  \
+           ((CustomFunc.GameData.currInpStatus[1][3] & (InpBitNames.INP_DROP_TRGT_1S | InpBitNames.INP_DROP_TRGT_2H | InpBitNames.INP_DROP_TRGT_3O | InpBitNames.INP_DROP_TRGT_4O | \
+                InpBitNames.INP_DROP_TRGT_5T | InpBitNames.INP_DROP_TRGT_6E | InpBitNames.INP_DROP_TRGT_7R)) != 0) or \
+           ((CustomFunc.GameData.currInpStatus[3][2] & (InpBitNames.INP_BTM_LFT_INLN_ROLLOVER | InpBitNames.INP_BTM_LFT_OUTLN_ROLLOVER | \
+                InpBitNames.INP_CTR_LOW_ROLLOVER | InpBitNames.INP_BTM_RGHT_RUBBER | InpBitNames.INP_BTM_RGHT_LOW_RUBBER)) != 0):                                     
             moveNextMode = True
         
         # Depending on the level depends on the mode we move into
@@ -1327,7 +1328,6 @@ class CustomFunc:
         # Check if jackpot mode is done
         if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_JACKPOT_TIMER)):
             CustomFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_JKPOT)
-            CustomFunc.GameData.StdFuncs.Led_Off([LedBitNames.LED_CRD0_LIST_BITS_MSK, LedBitNames.LED_CRD1_LIST_BITS_MSK, LedBitNames.LED_CRD2_LIST_BITS_MSK, LedBitNames.LED_CRD3_LIST_BITS_MSK])
             
             # Check if completed all modes at this level
             if ((self.compModes[plyr] & CustomFunc.ALL_MODES_MASK) == CustomFunc.ALL_MODES_MASK):

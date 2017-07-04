@@ -147,14 +147,14 @@ class RulesFunc:
         if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RELOAD_TIMER)):
             # Stop blinking the reload LED
             RulesFunc.GameData.StdFuncs.Led_Blink_Off(LedBitNames.LED_SHOOT_AGAIN)
-        
-        # If the retry timer times out, and the ball is in the drain, serve it again.
-        # If the reload timer is running, restart this timer
-        if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RETRY_TIMER)):
-            if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
-                RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
-                if (RulesFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
-                    RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
+
+        # If reload timer is running, check if retry time has timed out.  If
+        # so check if ball is in drain and kick it.  Reset the retry timer		
+        elif (RulesFunc.GameData.StdFuncs.TimerRunning(Timers.TIMEOUT_RELOAD_TIMER)):
+            if (RulesFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_RETRY_TIMER)):
+                if (RulesFunc.GameData.StdFuncs.CheckSolBit(SolBitNames.SOL_BALL_IN_PLAY)):
+                    RulesFunc.GameData.StdFuncs.Kick(SolBitNames.SOL_BALL_IN_PLAY)
+                RulesFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_RETRY_TIMER)
 
     ## Function Proc_Tilt_Init
     #
