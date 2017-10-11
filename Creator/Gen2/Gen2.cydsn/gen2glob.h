@@ -61,6 +61,8 @@ typedef enum
 {
    NO_ERRORS                  = 0x00,
    ERR_MALLOC_FAIL            = 0x01,
+   ERR_SW_MATRIX_WING_BAD_LOC = 0x02,
+   ERR_NEO_WING_BAD_LOC       = 0x03,
    
    /* OR'd with STDLI_ERR_E so error codes don't conflict */
    ERR_STDL_ERR_MASK          = 0x80,
@@ -71,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x00020005
+#define GEN2G_CODE_VERS       0x00020006
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01

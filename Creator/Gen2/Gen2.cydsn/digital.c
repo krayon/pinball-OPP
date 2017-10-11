@@ -151,9 +151,11 @@ void digital_init(void)
    U8                         data;
    RS232I_SOL_CFG_T           *solCfg_p;
 
-#define INPUT_BIT_MASK        0xff   
+#define INPUT_BIT_MASK        0xff
+#define NEO_INP_BIT_MASK      0xfe
+#define NEO_OUTP_BIT_MASK     0x01
 #define SOL_INP_BIT_MASK      0x0f  
-#define SOL_OUTP_BIT_MASK     0xf0  
+#define SOL_OUTP_BIT_MASK     0xf0
    
    if (gen2g_info.inpCfg_p == NULL)
    {
@@ -217,10 +219,12 @@ void digital_init(void)
             dig_info.inpMask |= (SOL_INP_BIT_MASK << (index << 3));
             solMask |= (SOL_INP_BIT_MASK << (index << 2));
          }
-         /* Check if wing 2 is WING_SW_MATRIX_IN, and wing 3 is WING_SW_MATRIX_OUT */
+         /* Check if wing 2 is WING_SW_MATRIX_IN, and wing 3 is WING_SW_MATRIX_OUT.
+          *   Other positions are not allowed.
+          */
          else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_SW_MATRIX_IN)
          {
-            if (index == 2)
+            if ((index == 2) && (gen2g_info.nvCfgInfo.wingCfg[3] == WING_SW_MATRIX_OUT))
             {
                dig_info.matrix_p = malloc(sizeof(DIG_MATRIX_DATA_T));
                dig_info.matrix_p->index = 0;
@@ -232,7 +236,25 @@ void digital_init(void)
                stdldigio_config_dig_port(STDLI_DIG_PORT_3 | STDLI_DIG_OUT, 0xf3, 0x00);
 #endif
             }
+            else
+            {
+               gen2g_info.error = ERR_SW_MATRIX_WING_BAD_LOC;
+            }
          }
+         /* NEO wing must be wing 2 */
+         else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_NEO)
+         {
+            if (index == 2)
+            {
+               stdldigio_config_dig_port(STDLI_DIG_PORT_2 | STDLI_DIG_PULLUP, NEO_INP_BIT_MASK, 0);
+               dig_info.inpMask |= (NEO_INP_BIT_MASK << (STDLI_DIG_PORT_2 << 3));
+               stdldigio_config_dig_port(STDLI_DIG_PORT_2 | STDLI_DIG_OUT, NEO_OUTP_BIT_MASK, 0x00);
+            }
+            else
+            {
+               gen2g_info.error = ERR_NEO_WING_BAD_LOC;
+            }
+         }    
          data = stdldigio_read_port(index, 0xff);
          dig_info.filtInputs |= (data << (index << 3));
       }

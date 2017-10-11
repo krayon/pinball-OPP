@@ -54,7 +54,6 @@
 #include "neointf.h"
 #include "stdlintf.h"
 
-
 /* HRS:  Debug */
 void debug_save_nv_cfg();
 
@@ -76,22 +75,17 @@ void incand_task(void);
 
 int main()
 {
-   CyGlobalIntEnable; /* Enable global interrupts. */
-
    appStart.codeVers = GEN2G_CODE_VERS;
    
-/* Used for forcing the standard configuration onto the board.  If this is left on,
- * the programmed configuration will always be overwritten.
- */
+   /* Used for forcing the standard configuration onto the board.  If this is left on,
+    * the programmed configuration will always be overwritten.
+    */
 #if 0
    debug_save_nv_cfg();
 #endif
    
-   Clock_Start();
-   Clock_1_Start();
+   TickClock_Start();
    PWM_Start();
-   PWM_1_Start();
-   SPI_1_Start();
    UART_1_Start();
 
    main_copy_flash_to_ram();
@@ -104,12 +98,9 @@ int main()
    gen2g_info.error = neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
    timer_init();
 
-   /* SPI interrupt is only used for neopixel boards */
-   if (gen2g_info.haveNeo)
-   {
-      isr_spi_Start();
-   }
    isr_uart_Start();
+
+   CyGlobalIntEnable; /* Enable global interrupts. */
 
    for(;;)
    {

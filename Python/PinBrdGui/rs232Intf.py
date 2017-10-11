@@ -51,8 +51,8 @@
 # HRS:  This should all be converted to just use bytes instead of strings
 GET_SER_NUM_CMD     = '\x00'
 GET_PROD_ID_CMD     = '\x01'
-GET_GET_VERS_CMD    = '\x02'
-GET_SET_SER_NUM_CMD = '\x03'
+GET_VERS_CMD        = '\x02'
+SET_SER_NUM_CMD     = '\x03'
 RESET_CMD           = '\x04'
 GO_BOOT_CMD         = '\x05'
 CFG_SOL_CMD         = '\x06'

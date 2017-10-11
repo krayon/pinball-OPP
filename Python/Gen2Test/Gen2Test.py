@@ -463,7 +463,7 @@ def findNewestImage():
 
 #send get version command
 def sendGetVersCmd(cardNum):
-    return (send4ByteDataCmd(cardNum, rs232Intf.GET_GET_VERS_CMD))
+    return (send4ByteDataCmd(cardNum, rs232Intf.GET_VERS_CMD))
 
 #send serial number command
 def sendGetSerNumCmd(cardNum):
@@ -480,7 +480,7 @@ def rcvGetVersResp(cardNum):
         print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[cardNum]))
         print repr(data)
         return (1000)
-    if (data[1] != rs232Intf.GET_GET_VERS_CMD):
+    if (data[1] != rs232Intf.GET_VERS_CMD):
         print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
         print repr(data)
         return (1001)

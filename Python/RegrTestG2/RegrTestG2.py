@@ -208,7 +208,7 @@ def sendStd4ByteCmd(cmd):
 
 #send get version cmd
 def sendGetVersCmd():
-    sendStd4ByteCmd(rs232Intf.GET_GET_VERS_CMD)
+    sendStd4ByteCmd(rs232Intf.GET_VERS_CMD)
 
 #rcv get version resp
 def rcvGetVersResp(version):
@@ -221,7 +221,7 @@ def rcvGetVersResp(version):
         print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[0]))
         print repr(data)
         return (200)
-    if (data[1] != rs232Intf.GET_GET_VERS_CMD):
+    if (data[1] != rs232Intf.GET_VERS_CMD):
         print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
         print repr(data)
         return (201)
