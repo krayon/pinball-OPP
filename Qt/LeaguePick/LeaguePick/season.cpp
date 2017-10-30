@@ -1,0 +1,289 @@
+#include "logfile.h"
+
+#include "season.h"
+#include "player.h"
+
+#include <QFile>
+#include <QTextStream>
+#include <QMessageBox>
+
+#include <string>
+#include <sstream>
+#include <iomanip>
+
+const QString Season::_seasonFileName = "season.txt";
+std::vector<Season::SeasonInfo> Season::_seasonVect;
+bool Season::changesMade = false;
+int Season::maxUid = 0;
+
+Season::Season()
+{
+
+}
+
+std::vector<Season::SeasonInfo> Season::read()
+{
+    QFile file(_seasonFileName);
+
+    if (!file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QString errorStr("Season file could not be opened for reading.");
+
+        LogFile::write(errorStr);
+        QMessageBox::warning(nullptr, "Season File", errorStr);
+        return (_seasonVect);
+    }
+
+    QTextStream in(&file);
+    while (!in.atEnd())
+    {
+        QString line(in.readLine());
+        std::stringstream lineStrStream(line.toStdString());
+        std::string field;
+        std::vector<std::string> fieldVect;
+        std::vector<std::string> bfVect;
+        SeasonInfo currSeason;
+        std::stringstream bfStrStream;
+
+        while(std::getline(lineStrStream, field, '$'))
+        {
+           fieldVect.push_back(field);
+        }
+
+        // If no fields, just ignore this line
+        if (fieldVect.size() == 0)
+        {
+            break;
+        }
+
+        // Check if there are enough fields
+        if (fieldVect.size() != _NUM_COLUMNS)
+        {
+            QString errorStr("Season file line does not contain enough fields!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Season File Field error", errorStr);
+            exit(-1);
+        }
+
+        try
+        {
+            currSeason.uid = stoi(fieldVect[_UID_IDX], nullptr);
+            if (currSeason.uid > maxUid)
+            {
+                maxUid = currSeason.uid;
+            }
+        }
+        catch (...)
+        {
+            QString errorStr("Could not convert unique ID!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Season File UID convert error", errorStr);
+            exit(-1);
+        }
+
+        currSeason.seasonName = QString::fromStdString(fieldVect[_SEASON_NAME_IDX]);
+
+        bfStrStream.str(fieldVect[_PLAYER_BF_IDX]);
+        while (std::getline(bfStrStream, field, ','))
+        {
+           bfVect.push_back(field);
+        }
+        try
+        {
+            for(auto const& value: bfVect)
+            {
+                currSeason.playerBF.push_back(stoi(value, nullptr, 16));
+            }
+        }
+        catch (...)
+        {
+            QString errorStr("Could not convert player bitfield!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::warning(nullptr, "Season File player bitfield convert error", errorStr);
+        }
+
+        bfVect.clear();
+        bfStrStream.clear();
+        bfStrStream.str(fieldVect[_PAID_BF_IDX]);
+        while (std::getline(bfStrStream, field, ','))
+        {
+           bfVect.push_back(field);
+        }
+        try
+        {
+            for(auto const& value: bfVect)
+            {
+                currSeason.paidBF.push_back(stoi(value, nullptr, 16));
+            }
+        }
+        catch (...)
+        {
+            QString errorStr("Could not convert paid bitfield!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::warning(nullptr, "Season File paid bitfield convert error", errorStr);
+        }
+
+        _seasonVect.push_back(currSeason);
+
+    }
+    file.close();
+    return (_seasonVect);
+}
+
+void Season::write()
+{
+    QFile file(_seasonFileName);
+
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        QString errorStr("Season file could not be opened for writing.");
+
+        LogFile::write(errorStr);
+        QMessageBox::critical(nullptr, "Player File", errorStr);
+        return;
+    }
+
+    QTextStream outTxtStream(&file);
+    for (auto &iter : _seasonVect)
+    {
+        outTxtStream << iter.uid << "$" << iter.seasonName << "$";
+        for (int index = 0; index < (Player::numRows())/32 + 1; index++)
+        {
+            if (index != 0)
+            {
+                outTxtStream << ",";
+            }
+            outTxtStream << QString("0x%1").arg(iter.playerBF[index], 8, 16, QChar('0'));
+        }
+        outTxtStream << "$";
+        for (int index = 0; index < (Player::numRows())/32 + 1; index++)
+        {
+            if (index != 0)
+            {
+                outTxtStream << ",";
+            }
+            outTxtStream << QString("0x%1").arg(iter.paidBF[index], 8, 16, QChar('0'));
+        }
+        outTxtStream << "$" << endl;
+    }
+    file.close();
+}
+
+bool Season::addSeason(QString seasonName)
+{
+    SeasonInfo currSeason;
+
+    if (seasonName == "")
+    {
+        QMessageBox::warning(nullptr, "Season Name", "Season name must be filled out.");
+        return false;
+    }
+
+    maxUid++;
+    currSeason.uid = maxUid;
+    currSeason.seasonName = seasonName;
+    for (int index = 0; index < (Player::numRows())/32 + 1; index++)
+    {
+        currSeason.paidBF.push_back(0);
+        currSeason.playerBF.push_back(0);
+    }
+
+    _seasonVect.push_back(currSeason);
+
+    changesMade = true;
+    return true;
+}
+
+int Season::getUID(QString seasonName)
+{
+    for (auto &iter : _seasonVect)
+    {
+        if (seasonName == iter.seasonName)
+        {
+            return iter.uid;
+        }
+    }
+
+    QString errorStr("Season name UID not found.  Software failure.");
+
+    LogFile::write(errorStr);
+    QMessageBox::critical(nullptr, "Software fail", errorStr);
+    exit(-1);
+}
+
+void Season::updateName(int seasonUid, QString seasonName)
+{
+    for (auto &iter : _seasonVect)
+    {
+        if (seasonUid == iter.uid)
+        {
+            iter.seasonName = seasonName;
+            changesMade = true;
+            return;
+        }
+    }
+}
+
+bool Season::isActPlyr(int seasonUid, int plyrUid)
+{
+    int bit = plyrUid & 0x1f;
+    int index = plyrUid >> 5;
+
+    return ((_seasonVect[seasonUid].playerBF[index] & (1 << bit)) ? true: false);
+}
+
+bool Season::isPaid(int seasonUid, int plyrUid)
+{
+    int bit = plyrUid & 0x1f;
+    int index = plyrUid >> 5;
+
+    return ((_seasonVect[seasonUid].paidBF[index] & (1 << bit)) ? true: false);
+}
+
+void Season::setActPlyr(int seasonUid, int plyrUid, bool flag)
+{
+    int bit = plyrUid & 0x1f;
+    int index = plyrUid >> 5;
+
+    if (flag)
+    {
+        _seasonVect[seasonUid].playerBF[index] |= (1 << bit);
+    }
+    else
+    {
+        _seasonVect[seasonUid].playerBF[index] &= ~(1 << bit);
+    }
+    changesMade = true;
+}
+
+void Season::setPaid(int seasonUid, int plyrUid, bool flag)
+{
+    int bit = plyrUid & 0x1f;
+    int index = plyrUid >> 5;
+
+    if (flag)
+    {
+        _seasonVect[seasonUid].paidBF[index] |= (1 << bit);
+    }
+    else
+    {
+        _seasonVect[seasonUid].paidBF[index] &= ~(1 << bit);
+    }
+    changesMade = true;
+}
+
+void Season::addPlyr()
+{
+    if ((unsigned)(Player::numRows()/32 + 1) > _seasonVect[0].playerBF.size())
+    {
+        for (auto &iter : _seasonVect)
+        {
+            iter.playerBF.push_back(0);
+            iter.paidBF.push_back(0);
+        }
+    }
+}
