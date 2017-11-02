@@ -13,8 +13,9 @@
 
 const QString Season::_seasonFileName = "season.txt";
 std::vector<Season::SeasonInfo> Season::_seasonVect;
-bool Season::changesMade = false;
-int Season::maxUid = 0;
+bool Season::_changesMade = false;
+int Season::_maxUid = 0;
+int Season::currSeason = 0;
 
 Season::Season()
 {
@@ -42,7 +43,7 @@ std::vector<Season::SeasonInfo> Season::read()
         std::string field;
         std::vector<std::string> fieldVect;
         std::vector<std::string> bfVect;
-        SeasonInfo currSeason;
+        SeasonInfo tmpSeason;
         std::stringstream bfStrStream;
 
         while(std::getline(lineStrStream, field, '$'))
@@ -68,10 +69,10 @@ std::vector<Season::SeasonInfo> Season::read()
 
         try
         {
-            currSeason.uid = stoi(fieldVect[_UID_IDX], nullptr);
-            if (currSeason.uid > maxUid)
+            tmpSeason.uid = stoi(fieldVect[_UID_IDX], nullptr);
+            if (tmpSeason.uid > _maxUid)
             {
-                maxUid = currSeason.uid;
+                _maxUid = tmpSeason.uid;
             }
         }
         catch (...)
@@ -83,7 +84,7 @@ std::vector<Season::SeasonInfo> Season::read()
             exit(-1);
         }
 
-        currSeason.seasonName = QString::fromStdString(fieldVect[_SEASON_NAME_IDX]);
+        tmpSeason.seasonName = QString::fromStdString(fieldVect[_SEASON_NAME_IDX]);
 
         bfStrStream.str(fieldVect[_PLAYER_BF_IDX]);
         while (std::getline(bfStrStream, field, ','))
@@ -94,7 +95,7 @@ std::vector<Season::SeasonInfo> Season::read()
         {
             for(auto const& value: bfVect)
             {
-                currSeason.playerBF.push_back(stoi(value, nullptr, 16));
+                tmpSeason.playerBF.push_back(stoi(value, nullptr, 16));
             }
         }
         catch (...)
@@ -116,7 +117,7 @@ std::vector<Season::SeasonInfo> Season::read()
         {
             for(auto const& value: bfVect)
             {
-                currSeason.paidBF.push_back(stoi(value, nullptr, 16));
+                tmpSeason.paidBF.push_back(stoi(value, nullptr, 16));
             }
         }
         catch (...)
@@ -127,7 +128,7 @@ std::vector<Season::SeasonInfo> Season::read()
             QMessageBox::warning(nullptr, "Season File paid bitfield convert error", errorStr);
         }
 
-        _seasonVect.push_back(currSeason);
+        _seasonVect.push_back(tmpSeason);
 
     }
     file.close();
@@ -136,46 +137,49 @@ std::vector<Season::SeasonInfo> Season::read()
 
 void Season::write()
 {
-    QFile file(_seasonFileName);
-
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    if (_changesMade)
     {
-        QString errorStr("Season file could not be opened for writing.");
+        QFile file(_seasonFileName);
 
-        LogFile::write(errorStr);
-        QMessageBox::critical(nullptr, "Player File", errorStr);
-        return;
-    }
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+        {
+            QString errorStr("Season file could not be opened for writing.");
 
-    QTextStream outTxtStream(&file);
-    for (auto &iter : _seasonVect)
-    {
-        outTxtStream << iter.uid << "$" << iter.seasonName << "$";
-        for (int index = 0; index < (Player::numRows())/32 + 1; index++)
-        {
-            if (index != 0)
-            {
-                outTxtStream << ",";
-            }
-            outTxtStream << QString("0x%1").arg(iter.playerBF[index], 8, 16, QChar('0'));
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Season File", errorStr);
+            return;
         }
-        outTxtStream << "$";
-        for (int index = 0; index < (Player::numRows())/32 + 1; index++)
+
+        QTextStream outTxtStream(&file);
+        for (auto &iter : _seasonVect)
         {
-            if (index != 0)
+            outTxtStream << iter.uid << "$" << iter.seasonName << "$";
+            for (int index = 0; index < (Player::getNumPlyrs())/32 + 1; index++)
             {
-                outTxtStream << ",";
+                if (index != 0)
+                {
+                    outTxtStream << ",";
+                }
+                outTxtStream << QString("0x%1").arg(iter.playerBF[index], 8, 16, QChar('0'));
             }
-            outTxtStream << QString("0x%1").arg(iter.paidBF[index], 8, 16, QChar('0'));
+            outTxtStream << "$";
+            for (int index = 0; index < (Player::getNumPlyrs())/32 + 1; index++)
+            {
+                if (index != 0)
+                {
+                    outTxtStream << ",";
+                }
+                outTxtStream << QString("0x%1").arg(iter.paidBF[index], 8, 16, QChar('0'));
+            }
+            outTxtStream << "$" << endl;
         }
-        outTxtStream << "$" << endl;
+        file.close();
     }
-    file.close();
 }
 
 bool Season::addSeason(QString seasonName)
 {
-    SeasonInfo currSeason;
+    SeasonInfo tmpSeason;
 
     if (seasonName == "")
     {
@@ -183,18 +187,17 @@ bool Season::addSeason(QString seasonName)
         return false;
     }
 
-    maxUid++;
-    currSeason.uid = maxUid;
-    currSeason.seasonName = seasonName;
-    for (int index = 0; index < (Player::numRows())/32 + 1; index++)
+    tmpSeason.uid = _maxUid++;
+    tmpSeason.seasonName = seasonName;
+    for (int index = 0; index < (Player::getNumPlyrs())/32 + 1; index++)
     {
-        currSeason.paidBF.push_back(0);
-        currSeason.playerBF.push_back(0);
+        tmpSeason.paidBF.push_back(0);
+        tmpSeason.playerBF.push_back(0);
     }
 
-    _seasonVect.push_back(currSeason);
+    _seasonVect.push_back(tmpSeason);
 
-    changesMade = true;
+    _changesMade = true;
     return true;
 }
 
@@ -222,7 +225,7 @@ void Season::updateName(int seasonUid, QString seasonName)
         if (seasonUid == iter.uid)
         {
             iter.seasonName = seasonName;
-            changesMade = true;
+            _changesMade = true;
             return;
         }
     }
@@ -230,18 +233,26 @@ void Season::updateName(int seasonUid, QString seasonName)
 
 bool Season::isActPlyr(int seasonUid, int plyrUid)
 {
-    int bit = plyrUid & 0x1f;
-    int index = plyrUid >> 5;
+    if (_seasonVect.size() != 0)
+    {
+        int bit = plyrUid & 0x1f;
+        int index = plyrUid >> 5;
 
-    return ((_seasonVect[seasonUid].playerBF[index] & (1 << bit)) ? true: false);
+        return ((_seasonVect[seasonUid].playerBF[index] & (1 << bit)) ? true: false);
+    }
+    return (false);
 }
 
 bool Season::isPaid(int seasonUid, int plyrUid)
 {
-    int bit = plyrUid & 0x1f;
-    int index = plyrUid >> 5;
+    if (_seasonVect.size() != 0)
+    {
+        int bit = plyrUid & 0x1f;
+        int index = plyrUid >> 5;
 
-    return ((_seasonVect[seasonUid].paidBF[index] & (1 << bit)) ? true: false);
+        return ((_seasonVect[seasonUid].paidBF[index] & (1 << bit)) ? true: false);
+    }
+    return (false);
 }
 
 void Season::setActPlyr(int seasonUid, int plyrUid, bool flag)
@@ -257,7 +268,7 @@ void Season::setActPlyr(int seasonUid, int plyrUid, bool flag)
     {
         _seasonVect[seasonUid].playerBF[index] &= ~(1 << bit);
     }
-    changesMade = true;
+    _changesMade = true;
 }
 
 void Season::setPaid(int seasonUid, int plyrUid, bool flag)
@@ -273,17 +284,38 @@ void Season::setPaid(int seasonUid, int plyrUid, bool flag)
     {
         _seasonVect[seasonUid].paidBF[index] &= ~(1 << bit);
     }
-    changesMade = true;
+    _changesMade = true;
 }
 
 void Season::addPlyr()
 {
-    if ((unsigned)(Player::numRows()/32 + 1) > _seasonVect[0].playerBF.size())
+    // If just starting, no season will be configured
+    if (_seasonVect.size() != 0)
     {
-        for (auto &iter : _seasonVect)
+        if ((unsigned)(Player::getNumPlyrs()/32 + 1) > _seasonVect[0].playerBF.size())
         {
-            iter.playerBF.push_back(0);
-            iter.paidBF.push_back(0);
+            for (auto &iter : _seasonVect)
+            {
+                iter.playerBF.push_back(0);
+                iter.paidBF.push_back(0);
+            }
         }
     }
+}
+
+std::vector<int> Season::getActPlyrLst()
+{
+    std::vector<int> actPlyrLst;
+
+    for (auto &iter : _seasonVect[currSeason].playerBF)
+    {
+        for (int index = 0; index < 32; index++)
+        {
+            if ((iter & (1 << index)) != 0)
+            {
+                actPlyrLst.push_back(index);
+            }
+        }
+    }
+    return (actPlyrLst);
 }

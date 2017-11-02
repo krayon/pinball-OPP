@@ -20,14 +20,18 @@ class Player
         Player();
         static void read();
         static void write();
-        static int numColumns();
-        static int numRows();
-        static QVariant cell(int row, int column);
-        static void updCell(int row, int column, QString data);
+        static int getNumPlyrs();
+        static QString getLastName(int plyrUid);
+        static QString getFirstName(int plyrUid);
+        static QString getEmail(int plyrUid);
+        static QString getPhone(int plyrUid);
+        static void setLastName(int plyrUid, QString data);
+        static void setFirstName(int plyrUid, QString data);
+        static void setEmail(int plyrUid, QString data);
+        static void setPhone(int plyrUid, QString data);
         static bool addPlayer(QString lastName, QString firstName, QString phoneNum,
             QString email);
 
-        static bool changesMade;
 
         static const int _UID_IDX = 0;
         static const int _LAST_NAME_IDX = 1;
@@ -38,7 +42,8 @@ class Player
 
     private:
         static const QString _plyrFileName;
-        static int _maxUid;
+        static bool _changesMade;
+        static int _numPlyrs;
 
         static std::vector<Player::PlayerInfo> _plyrVect;
 };

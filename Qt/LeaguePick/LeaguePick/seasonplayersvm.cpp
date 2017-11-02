@@ -4,15 +4,16 @@
 
 #include "season.h"
 
+#include "mainwindow.h"
+
 const QStringList SeasonPlayersVM::_labelList = {"Last Name", "First Name", "Paid", "Playing Season"};
 bool SeasonPlayersVM::_hide = false;
 std::vector<SeasonPlayersVM::SeasonPlyrInfo> SeasonPlayersVM::_seasonVect;
-int SeasonPlayersVM::_currSeason;
 
 SeasonPlayersVM::SeasonPlayersVM(QObject *parent)
     :QAbstractTableModel(parent)
 {
-    for (int index = 0; index < Player::numRows(); index++)
+    for (int index = 0; index < Player::getNumPlyrs(); index++)
     {
         SeasonPlyrInfo info;
 
@@ -28,11 +29,11 @@ int SeasonPlayersVM::rowCount(const QModelIndex &parent) const
     if (_hide)
     {
         // Some lesser count of rows
-        return Player::numRows();
+        return Player::getNumPlyrs();
     }
     else
     {
-        return Player::numRows();
+        return Player::getNumPlyrs();
     }
 }
 
@@ -48,15 +49,15 @@ QVariant SeasonPlayersVM::data(const QModelIndex &index, int role) const
     {
         case Qt::DisplayRole:
         {
-            if (index.column() == _LAST_NAME_IDX) return Player::cell(index.row(), Player::_LAST_NAME_IDX);
-            if (index.column() == _FIRST_NAME_IDX) return Player::cell(index.row(), Player::_FIRST_NAME_IDX);
+            if (index.column() == _LAST_NAME_IDX) return Player::getLastName(index.row());
+            if (index.column() == _FIRST_NAME_IDX) return Player::getFirstName(index.row());
             if (index.column() == _PAID_IDX)
             {
-                return (Season::isPaid(_currSeason, index.row()) ? QString("t") : QString("f"));
+                return (Season::isPaid(Season::currSeason, index.row()) ? QString("t") : QString("f"));
             }
             if (index.column() == _IN_SEASON_IDX)
             {
-                return (Season::isActPlyr(_currSeason, index.row()) ? QString("t") : QString("f"));
+                return (Season::isActPlyr(Season::currSeason, index.row()) ? QString("t") : QString("f"));
             }
             break;
         }
@@ -64,11 +65,11 @@ QVariant SeasonPlayersVM::data(const QModelIndex &index, int role) const
         {
             if (index.column() == _PAID_IDX)
             {
-                return (Season::isPaid(_currSeason, index.row()) ? Qt::Checked : Qt::Unchecked);
+                return (Season::isPaid(Season::currSeason, index.row()) ? Qt::Checked : Qt::Unchecked);
             }
             if (index.column() == _IN_SEASON_IDX)
             {
-                return (Season::isActPlyr(_currSeason, index.row()) ? Qt::Checked : Qt::Unchecked);
+                return (Season::isActPlyr(Season::currSeason, index.row()) ? Qt::Checked : Qt::Unchecked);
             }
             break;
         }
@@ -121,13 +122,13 @@ bool SeasonPlayersVM::setData(const QModelIndex & index, const QVariant & value,
             else
             {
                 // If paid, player must also be playing the season
-                Season::setActPlyr(_currSeason, index.row(), true);
+                Season::setActPlyr(Season::currSeason, index.row(), true);
                 emit dataChanged(createIndex(index.row(), _IN_SEASON_IDX), createIndex(index.row(), _IN_SEASON_IDX));
                 update = true;
             }
             if (update)
             {
-                Season::setPaid(_currSeason, index.row(), (value.toBool() ? true: false));
+                Season::setPaid(Season::currSeason, index.row(), (value.toBool() ? true: false));
             }
         }
         if (index.column() == _IN_SEASON_IDX)
@@ -136,7 +137,7 @@ bool SeasonPlayersVM::setData(const QModelIndex & index, const QVariant & value,
             if (value.toBool() == false)
             {
                 // Check if paid is marked
-                if (Season::isPaid(_currSeason, index.row()) == true)
+                if (Season::isPaid(Season::currSeason, index.row()) == true)
                 {
                     QMessageBox::warning(nullptr, "Removing Player from Season",
                         "Can't remove player from season if paid.");
@@ -152,20 +153,17 @@ bool SeasonPlayersVM::setData(const QModelIndex & index, const QVariant & value,
             }
             if (update)
             {
-                Season::setActPlyr(_currSeason, index.row(), (value.toBool() ? true: false));
+                // Update the model and the create meet VM
+                Season::setActPlyr(Season::currSeason, index.row(), (value.toBool() ? true: false));
+                MainWindow::MainWin_p->updateSeasonPlayerVM();
             }
         }
     }
     return true;
 }
 
-void SeasonPlayersVM::setCurrSeason(int seasonUid)
-{
-    _currSeason = seasonUid;
-}
-
 void SeasonPlayersVM::addRow()
 {
-    beginInsertRows(QModelIndex(), Player::numRows() - 1, Player::numRows() - 1);
+    beginInsertRows(QModelIndex(), Player::getNumPlyrs() - 1, Player::getNumPlyrs() - 1);
     endInsertRows();
 }

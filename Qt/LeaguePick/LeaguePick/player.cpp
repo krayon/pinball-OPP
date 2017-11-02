@@ -11,8 +11,8 @@
 
 const QString Player::_plyrFileName = "player.txt";
 std::vector<Player::PlayerInfo> Player::_plyrVect;
-bool Player::changesMade = false;
-int Player::_maxUid = 0;
+bool Player::_changesMade = false;
+int Player::_numPlyrs = 0;
 
 Player::Player()
 {
@@ -65,10 +65,15 @@ void Player::read()
         try
         {
             currPlyr.uid = stoi(fieldVect[_UID_IDX], nullptr);
-            if (currPlyr.uid > _maxUid)
+            if (currPlyr.uid != _numPlyrs)
             {
-                _maxUid = currPlyr.uid;
+                QString errorStr("Player file UIDs should be contiguous starting at 0!  " + line);
+
+                LogFile::write(errorStr);
+                QMessageBox::critical(nullptr, "Player File UID error", errorStr);
+                exit(-1);
             }
+            _numPlyrs++;
         }
         catch (...)
         {
@@ -112,69 +117,58 @@ void Player::write()
     file.close();
 }
 
-int Player::numColumns()
+int Player::getNumPlyrs()
 {
-    return (_NUM_COLUMNS);
+    return _numPlyrs;
 }
 
-int Player::numRows()
+QString Player::getLastName(int plyrUid)
 {
-    return _plyrVect.size();
+    return (_plyrVect[plyrUid].lastName);
+}
+QString Player::getFirstName(int plyrUid)
+{
+    return (_plyrVect[plyrUid].firstName);
+}
+QString Player::getEmail(int plyrUid)
+{
+    return (_plyrVect[plyrUid].email);
+}
+QString Player::getPhone(int plyrUid)
+{
+    return (_plyrVect[plyrUid].phoneNum);
 }
 
-QVariant Player::cell(int row, int column)
+void Player::setLastName(int plyrUid, QString data)
 {
-    switch(column)
+    if (_plyrVect[plyrUid].lastName != data)
     {
-        case _UID_IDX: return(_plyrVect[row].uid);
-        case _LAST_NAME_IDX: return(_plyrVect[row].lastName);
-        case _FIRST_NAME_IDX: return(_plyrVect[row].firstName);
-        case _EMAIL_IDX: return(_plyrVect[row].email);
-        case _PHONE_NUM_IDX: return(_plyrVect[row].phoneNum);
+        _plyrVect[plyrUid].lastName = data;
+        _changesMade = true;
     }
-    return (QVariant());
 }
-
-void Player::updCell(int row, int column, QString data)
+void Player::setFirstName(int plyrUid, QString data)
 {
-    switch(column)
+    if (_plyrVect[plyrUid].firstName != data)
     {
-        case _LAST_NAME_IDX:
-        {
-            if (_plyrVect[row].lastName != data)
-            {
-                _plyrVect[row].lastName = data;
-                changesMade = true;
-            }
-            break;
-        }
-        case _FIRST_NAME_IDX:
-        {
-            if (_plyrVect[row].firstName != data)
-            {
-                _plyrVect[row].firstName = data;
-                changesMade = true;
-            }
-            break;
-        }
-        case _EMAIL_IDX:
-        {
-            if (_plyrVect[row].email != data)
-            {
-                _plyrVect[row].email = data;
-                changesMade = true;
-            }
-            break;
-        }
-        case _PHONE_NUM_IDX:
-        {
-            if (_plyrVect[row].phoneNum != data)
-            {
-                _plyrVect[row].phoneNum = data;
-                changesMade = true;
-            }
-            break;
-        }
+        _plyrVect[plyrUid].firstName = data;
+        _changesMade = true;
+    }
+}
+void Player::setEmail(int plyrUid, QString data)
+{
+    if (_plyrVect[plyrUid].email != data)
+    {
+        _plyrVect[plyrUid].email = data;
+        _changesMade = true;
+    }
+}
+void Player::setPhone(int plyrUid, QString data)
+{
+    if (_plyrVect[plyrUid].phoneNum != data)
+    {
+        _plyrVect[plyrUid].phoneNum = data;
+        _changesMade = true;
     }
 }
 
@@ -189,8 +183,7 @@ bool Player::addPlayer(QString lastName, QString firstName, QString phoneNum,
         return false;
     }
 
-    _maxUid++;
-    currPlyr.uid = _maxUid;
+    currPlyr.uid = _numPlyrs++;
     currPlyr.lastName = lastName;
     currPlyr.firstName = firstName;
     currPlyr.email = email;
@@ -198,6 +191,6 @@ bool Player::addPlayer(QString lastName, QString firstName, QString phoneNum,
 
     _plyrVect.push_back(currPlyr);
 
-    changesMade = true;
+    _changesMade = true;
     return true;
 }

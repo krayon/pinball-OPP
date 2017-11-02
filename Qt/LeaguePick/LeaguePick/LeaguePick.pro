@@ -33,7 +33,10 @@ SOURCES += \
     player.cpp \
     season.cpp \
     playervm.cpp \
-    seasonplayersvm.cpp
+    seasonplayersvm.cpp \
+    meet.cpp \
+    crtmeetvm.cpp \
+    last.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -41,7 +44,10 @@ HEADERS += \
     player.h \
     season.h \
     playervm.h \
-    seasonplayersvm.h
+    seasonplayersvm.h \
+    meet.h \
+    crtmeetvm.h \
+    last.h
 
 FORMS += \
         mainwindow.ui

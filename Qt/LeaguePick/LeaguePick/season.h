@@ -26,8 +26,9 @@ class Season
         static void setActPlyr(int seasonUid, int plyrUid, bool flag);
         static void setPaid(int seasonUid, int plyrUid, bool flag);
         static void addPlyr();
+        static std::vector<int> getActPlyrLst();
 
-        static bool changesMade;
+        static int currSeason;
 
         static const int _UID_IDX = 0;
         static const int _SEASON_NAME_IDX = 1;
@@ -37,7 +38,8 @@ class Season
 
     private:
         static const QString _seasonFileName;
-        static int maxUid;
+        static bool _changesMade;
+        static int _maxUid;
 
         static std::vector<Season::SeasonInfo> _seasonVect;
 };

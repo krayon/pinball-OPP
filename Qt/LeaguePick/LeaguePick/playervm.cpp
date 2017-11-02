@@ -10,7 +10,7 @@ PlayerVM::PlayerVM(QObject *parent)
 int PlayerVM::rowCount(const QModelIndex &parent) const
 {
     (void)parent;
-    return Player::numRows();
+    return Player::getNumPlyrs();
 }
 
 int PlayerVM::columnCount(const QModelIndex &parent) const
@@ -26,11 +26,11 @@ QVariant PlayerVM::data(const QModelIndex &index, int role) const
         case Qt::DisplayRole:
         case Qt::EditRole:
         {
-            if (index.column() == _UID_IDX) return Player::cell(index.row(), Player::_UID_IDX);
-            if (index.column() == _LAST_NAME_IDX) return Player::cell(index.row(), Player::_LAST_NAME_IDX);
-            if (index.column() == _FIRST_NAME_IDX) return Player::cell(index.row(), Player::_FIRST_NAME_IDX);
-            if (index.column() == _EMAIL_IDX) return Player::cell(index.row(), Player::_EMAIL_IDX);
-            if (index.column() == _PHONE_NUM_IDX) return Player::cell(index.row(), Player::_PHONE_NUM_IDX);
+            if (index.column() == _UID_IDX) return index.row();
+            if (index.column() == _LAST_NAME_IDX) return Player::getLastName(index.row());
+            if (index.column() == _FIRST_NAME_IDX) return Player::getFirstName(index.row());
+            if (index.column() == _EMAIL_IDX) return Player::getEmail(index.row());
+            if (index.column() == _PHONE_NUM_IDX) return Player::getPhone(index.row());
         }
     }
     return (QVariant());
@@ -65,16 +65,16 @@ bool PlayerVM::setData(const QModelIndex & index, const QVariant & value, int ro
     if (role == Qt::EditRole)
     {
         //save value from editor
-        if (index.column() == _LAST_NAME_IDX) Player::updCell(index.row(), Player::_LAST_NAME_IDX, value.toString());
-        if (index.column() == _FIRST_NAME_IDX) Player::updCell(index.row(), Player::_FIRST_NAME_IDX, value.toString());
-        if (index.column() == _EMAIL_IDX) Player::updCell(index.row(), Player::_EMAIL_IDX, value.toString());
-        if (index.column() == _PHONE_NUM_IDX) Player::updCell(index.row(), Player::_PHONE_NUM_IDX, value.toString());
+        if (index.column() == _LAST_NAME_IDX) Player::setLastName(index.row(), value.toString());
+        if (index.column() == _FIRST_NAME_IDX) Player::setFirstName(index.row(), value.toString());
+        if (index.column() == _EMAIL_IDX) Player::setEmail(index.row(), value.toString());
+        if (index.column() == _PHONE_NUM_IDX) Player::setPhone(index.row(), value.toString());
     }
     return true;
 }
 
 void PlayerVM::addRow()
 {
-    beginInsertRows(QModelIndex(), Player::numRows() - 1, Player::numRows() - 1);
+    beginInsertRows(QModelIndex(), Player::getNumPlyrs() - 1, Player::getNumPlyrs() - 1);
     endInsertRows();
 }

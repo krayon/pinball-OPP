@@ -15,6 +15,9 @@ class MainWindow : public QMainWindow
     public:
         explicit MainWindow(QWidget *parent = 0);
         ~MainWindow();
+        void updateSeasonPlayerVM();
+
+        static MainWindow *MainWin_p;
 
     private:
         Ui::MainWindow *ui;
@@ -28,6 +31,12 @@ class MainWindow : public QMainWindow
         void addSeasonPush();
         void editSeasonName();
         void changeCurrSeason();
+        void meetSeasonChngSeason();
+        void meetGrpsChngSeason();
+        void meetGrpsChngMeet();
+        void crtGrpsPush();
+        void changeSeason(int seasonUID);
+
 };
 
 #endif // MAINWINDOW_H

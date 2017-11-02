@@ -1,17 +1,17 @@
-#ifndef SEASONPLAYERSVM_H
-#define SEASONPLAYERSVM_H
+#ifndef CRTMEETVM_H
+#define CRTMEETVM_H
 
 #include "player.h"
 
 #include <QAbstractTableModel>
 #include <vector>
 
-class SeasonPlayersVM : public QAbstractTableModel
+class CrtMeetVM : public QAbstractTableModel
 {
     Q_OBJECT
 
     public:
-        SeasonPlayersVM(QObject *parent);
+        CrtMeetVM(QObject *parent);
         int rowCount(const QModelIndex &parent = QModelIndex()) const;
         int columnCount(const QModelIndex &parent = QModelIndex()) const;
         QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
@@ -19,23 +19,25 @@ class SeasonPlayersVM : public QAbstractTableModel
         Qt::ItemFlags flags(const QModelIndex& index) const;
         void addRow();
         bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
+        void updSeasonPlyr();
 
     private:
-        struct SeasonPlyrInfo
+        struct CrtMeetInfo
         {
-            bool paid;
-            bool inSeason;
+            int playerUid;
+            bool present;
         };
 
         static const QStringList _labelList;
-        static bool _hide;
-        static std::vector<SeasonPlyrInfo> _seasonVect;
+        static std::vector<CrtMeetInfo> _crtMeetVect;
+        static int _currSeason;
 
         static const int _LAST_NAME_IDX = 0;
         static const int _FIRST_NAME_IDX = 1;
-        static const int _PAID_IDX = 2;
-        static const int _IN_SEASON_IDX = 3;
-        static const int _NUM_COLUMNS = 4;
+        static const int _PRESENT_IDX = 2;
+        static const int _NUM_COLUMNS = 3;
+
+        static const int _ILLEGAL_MEET = 1000;
 };
 
-#endif // SEASONPLAYERSVM_H
+#endif // CRTMEETVM_H
