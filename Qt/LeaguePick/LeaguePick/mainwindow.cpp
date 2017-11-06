@@ -7,13 +7,20 @@
 #include <QSortFilterProxyModel>
 #include <QComboBox>
 
-#include "playervm.h"
-#include "seasonplayersvm.h"
-#include "crtmeetvm.h"
+#include <stdlib.h>
+#include <time.h>
+
 #include "player.h"
 #include "season.h"
 #include "last.h"
 #include "meet.h"
+#include "groups.h"
+
+#include "playervm.h"
+#include "seasonplayersvm.h"
+#include "crtmeetvm.h"
+#include "groupsvm.h"
+
 #include "logfile.h"
 
 PlayerVM *plyrVM;
@@ -22,23 +29,13 @@ SeasonPlayersVM *seasonPlyrsVM;
 QSortFilterProxyModel proxySeasonPlyrsVM;
 CrtMeetVM *crtMeetVM;
 QSortFilterProxyModel proxyCrtMeetVM;
+GroupsVM *groupsVM;
+QSortFilterProxyModel proxyGroupsVM;
 MainWindow *MainWindow::MainWin_p = nullptr;
 
 void MainWindow::aboutLeaguePick()
 {
     QMessageBox::information(this, "League Picker", "League Pick v00.00.00.01.");
-}
-
-void MainWindow::playerWindow()
-{
-}
-
-void MainWindow::meetWindow()
-{
-}
-
-void MainWindow::seasonWindow()
-{
 }
 
 void MainWindow::addPlyrPush()
@@ -159,13 +156,23 @@ void MainWindow::crtGrpsPush()
     if (ok)
     {
         int newIndex;
+        std::vector<int> presPlyrVect;
 
         meetUid = Meet::getUID(meetName);
         ui->meetGrpsNameCB->addItem(meetName, meetUid);
         newIndex = ui->meetGrpsNameCB->findText(meetName);
+        ui->meetGrpsNameCB->blockSignals(true);
+        ui->meetGrpsNameCB->setCurrentIndex(newIndex);
+        ui->meetGrpsNameCB->blockSignals(false);
+
         Meet::currMeet = meetUid;
         ui->meetNameEdit->setText("");
         ui->meetGrpsView->reset();
+
+        presPlyrVect = crtMeetVM->getPresentPlyrVect();
+        Groups::createGroups(presPlyrVect);
+        groupsVM->updMeet();
+        proxyGroupsVM.setSourceModel(groupsVM);
     }
 }
 
@@ -177,6 +184,8 @@ void MainWindow::meetGrpsChngMeet()
     if (meetUid != Meet::currMeet)
     {
         Meet::currMeet = meetUid;
+        groupsVM->updMeet();
+        proxyGroupsVM.setSourceModel(groupsVM);
     }
 }
 
@@ -185,7 +194,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     QMenu *helpMenu;
-    QMenu *actionMenu;
     std::vector<Season::SeasonInfo> seasonVect;
     std::vector<Meet::MeetInfo> meetVect;
     int lastSeason;
@@ -193,18 +201,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     MainWin_p = this;
 
-    QAction *aboutLeaguePickAct = new QAction("About League Pick");
-    QAction *playerAct = new QAction("Players");
-    QAction *meetAct = new QAction("Meet");
-    QAction *seasonAct = new QAction("Season");
+    // Initialize random seed using time
+    srand (time(nullptr));
 
-    actionMenu = MainWindow::menuBar()->addMenu("Action");
-    actionMenu->addAction(playerAct);
-    actionMenu->addAction(meetAct);
-    actionMenu->addAction(seasonAct);
-    connect(playerAct, &QAction::triggered, this, &MainWindow::playerWindow);
-    connect(meetAct, &QAction::triggered, this, &MainWindow::meetWindow);
-    connect(seasonAct, &QAction::triggered, this, &MainWindow::seasonWindow);
+    QAction *aboutLeaguePickAct = new QAction("About League Pick");
 
     helpMenu = MainWindow::menuBar()->addMenu("Help");
     helpMenu->addAction(aboutLeaguePickAct);
@@ -252,6 +252,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->meetPlyrView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     connect(ui->createGrpsBtn, &QPushButton::clicked, this, &MainWindow::crtGrpsPush);
 
+    groupsVM = new GroupsVM(this);
+    proxyGroupsVM.setSourceModel(groupsVM);
+
+    ui->meetGrpsView->setModel(&proxyGroupsVM);
+    ui->meetGrpsView->setSortingEnabled(true);
+    ui->meetGrpsView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
     Last::read(lastSeason, lastMeet);
     if ((unsigned)lastSeason >= seasonVect.size())
     {
@@ -279,6 +286,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->meetGrpsNameCB->setCurrentIndex(lastMeet);
     Meet::currMeet = lastMeet;
 
+    // Read the groups data for the season
+    Groups::read();
+    groupsVM = new GroupsVM(this);
+    groupsVM->updMeet();
+    proxyGroupsVM.setSourceModel(groupsVM);
+
     connect(ui->meetGrpsNameCB, &QComboBox::currentTextChanged, this, &MainWindow::meetGrpsChngMeet);
 
 }
@@ -297,6 +310,7 @@ void MainWindow::closeEvent (QCloseEvent *event)
     Season::write();
     Last::write();
     Meet::write();
+    Groups::write();
 }
 
 void MainWindow::updateSeasonPlayerVM()

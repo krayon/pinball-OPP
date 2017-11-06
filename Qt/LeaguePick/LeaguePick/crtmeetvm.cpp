@@ -1,6 +1,7 @@
 #include "crtmeetvm.h"
 
 #include "season.h"
+#include "player.h"
 
 const QStringList CrtMeetVM::_labelList = {"Last Name", "First Name", "Present"};
 std::vector<CrtMeetVM::CrtMeetInfo> CrtMeetVM::_crtMeetVect;
@@ -99,4 +100,18 @@ void CrtMeetVM::updSeasonPlyr()
 
         _crtMeetVect.push_back(tmpMeetInfo);
     }
+}
+
+std::vector<int> CrtMeetVM::getPresentPlyrVect()
+{
+    std::vector<int> presentVect;
+
+    for (auto &iter : _crtMeetVect)
+    {
+        if (iter.present)
+        {
+            presentVect.push_back(iter.playerUid);
+        }
+    }
+    return (presentVect);
 }

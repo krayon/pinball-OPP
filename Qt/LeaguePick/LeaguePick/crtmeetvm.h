@@ -1,8 +1,6 @@
 #ifndef CRTMEETVM_H
 #define CRTMEETVM_H
 
-#include "player.h"
-
 #include <QAbstractTableModel>
 #include <vector>
 
@@ -20,6 +18,7 @@ class CrtMeetVM : public QAbstractTableModel
         void addRow();
         bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
         void updSeasonPlyr();
+        std::vector<int> getPresentPlyrVect();
 
     private:
         struct CrtMeetInfo

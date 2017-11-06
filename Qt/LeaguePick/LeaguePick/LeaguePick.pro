@@ -36,7 +36,9 @@ SOURCES += \
     seasonplayersvm.cpp \
     meet.cpp \
     crtmeetvm.cpp \
-    last.cpp
+    last.cpp \
+    groups.cpp \
+    groupsvm.cpp
 
 HEADERS += \
         mainwindow.h \
@@ -47,7 +49,9 @@ HEADERS += \
     seasonplayersvm.h \
     meet.h \
     crtmeetvm.h \
-    last.h
+    last.h \
+    groups.h \
+    groupsvm.h
 
 FORMS += \
         mainwindow.ui

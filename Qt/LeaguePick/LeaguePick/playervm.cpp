@@ -1,5 +1,7 @@
 #include "playervm.h"
 
+#include "player.h"
+
 const QStringList PlayerVM::_labelList = {"UID", "Last Name", "First Name", "Email", "Phone"};
 
 PlayerVM::PlayerVM(QObject *parent)

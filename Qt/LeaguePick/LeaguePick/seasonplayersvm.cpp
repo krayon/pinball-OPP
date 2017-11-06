@@ -3,6 +3,7 @@
 #include <QMessageBox>
 
 #include "season.h"
+#include "player.h"
 
 #include "mainwindow.h"
 

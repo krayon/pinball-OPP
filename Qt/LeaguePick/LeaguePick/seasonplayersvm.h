@@ -1,8 +1,6 @@
 #ifndef SEASONPLAYERSVM_H
 #define SEASONPLAYERSVM_H
 
-#include "player.h"
-
 #include <QAbstractTableModel>
 #include <vector>
 

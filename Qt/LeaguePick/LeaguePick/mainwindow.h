@@ -23,9 +23,6 @@ class MainWindow : public QMainWindow
         Ui::MainWindow *ui;
 
         void aboutLeaguePick();
-        void playerWindow();
-        void meetWindow();
-        void seasonWindow();
         void closeEvent(QCloseEvent *event);
         void addPlyrPush();
         void addSeasonPush();
