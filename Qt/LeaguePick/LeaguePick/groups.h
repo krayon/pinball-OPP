@@ -10,7 +10,7 @@ class Groups
         struct GroupData
         {
             int groupUid;
-            std::vector<int> playerBF;      // Player bitfield
+            std::vector<unsigned int> playerBF;      // Player bitfield
         };
 
         struct GroupInfo
@@ -23,6 +23,8 @@ class Groups
         static std::vector<Groups::GroupInfo> read();
         static void write();
         static void createGroups(const std::vector<int>& presPlyrVect);
+        static void addLatePlyr(const std::vector<int>& latePlyrVect);
+        static void clearLastGroups();
 
         static const int _MEET_UID_IDX = 0;
         static const int _GRP_UID_IDX = 1;
@@ -30,6 +32,7 @@ class Groups
         static const int _NUM_COLUMNS = 3;
 
         static std::vector<Groups::GroupInfo> _groupVect;
+        static int _num3PlyrGrps;
 
     private:
         struct ChooseGrpData
@@ -53,7 +56,6 @@ class Groups
 
         static QString _groupFileName;
         static bool _changesMade;
-        static int _maxUid;
 
         static std::vector<ChooseGrpData> _chooseGrpData;
 

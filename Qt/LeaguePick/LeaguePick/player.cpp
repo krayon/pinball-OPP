@@ -62,20 +62,10 @@ void Player::read()
             exit(-1);
         }
 
-        try
-        {
-            currPlyr.uid = stoi(fieldVect[_UID_IDX], nullptr);
-            if (currPlyr.uid != _numPlyrs)
-            {
-                QString errorStr("Player file UIDs should be contiguous starting at 0!  " + line);
+        int retCode;
 
-                LogFile::write(errorStr);
-                QMessageBox::critical(nullptr, "Player File UID error", errorStr);
-                exit(-1);
-            }
-            _numPlyrs++;
-        }
-        catch (...)
+        retCode = sscanf(fieldVect[_UID_IDX].c_str(), "%d", &currPlyr.uid);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert unique ID!  " + line);
 
@@ -83,6 +73,15 @@ void Player::read()
             QMessageBox::critical(nullptr, "Player File UID convert error", errorStr);
             exit(-1);
         }
+        if (currPlyr.uid != _numPlyrs)
+        {
+            QString errorStr("Player file UIDs should be contiguous starting at 0!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Player File UID error", errorStr);
+            exit(-1);
+        }
+        _numPlyrs++;
 
         currPlyr.lastName = QString::fromStdString(fieldVect[_LAST_NAME_IDX]);
         currPlyr.firstName = QString::fromStdString(fieldVect[_FIRST_NAME_IDX]);

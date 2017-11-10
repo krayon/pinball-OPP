@@ -67,21 +67,22 @@ std::vector<Season::SeasonInfo> Season::read()
             exit(-1);
         }
 
-        try
-        {
-            tmpSeason.uid = stoi(fieldVect[_UID_IDX], nullptr);
-            if (tmpSeason.uid > _maxUid)
-            {
-                _maxUid = tmpSeason.uid;
-            }
-        }
-        catch (...)
+        int retCode;
+        int tmpVal;
+
+        retCode = sscanf(fieldVect[_UID_IDX].c_str(), "%d", &tmpSeason.uid);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert unique ID!  " + line);
 
             LogFile::write(errorStr);
             QMessageBox::critical(nullptr, "Season File UID convert error", errorStr);
             exit(-1);
+        }
+
+        if (tmpSeason.uid > _maxUid)
+        {
+            _maxUid = tmpSeason.uid;
         }
 
         tmpSeason.seasonName = QString::fromStdString(fieldVect[_SEASON_NAME_IDX]);
@@ -91,19 +92,17 @@ std::vector<Season::SeasonInfo> Season::read()
         {
            bfVect.push_back(field);
         }
-        try
+        for(auto const& value: bfVect)
         {
-            for(auto const& value: bfVect)
+            retCode = sscanf(value.c_str(), "0x%x", &tmpVal);
+            if (retCode != 1)
             {
-                tmpSeason.playerBF.push_back(stoi(value, nullptr, 16));
-            }
-        }
-        catch (...)
-        {
-            QString errorStr("Could not convert player bitfield!  " + line);
+                QString errorStr("Could not convert player bitfield!  " + line);
 
-            LogFile::write(errorStr);
-            QMessageBox::warning(nullptr, "Season File player bitfield convert error", errorStr);
+                LogFile::write(errorStr);
+                QMessageBox::warning(nullptr, "Season File player bitfield convert error", errorStr);
+            }
+            tmpSeason.playerBF.push_back(tmpVal);
         }
 
         bfVect.clear();
@@ -113,19 +112,17 @@ std::vector<Season::SeasonInfo> Season::read()
         {
            bfVect.push_back(field);
         }
-        try
+        for(auto const& value: bfVect)
         {
-            for(auto const& value: bfVect)
+            retCode = sscanf(value.c_str(), "0x%x", &tmpVal);
+            if (retCode != 1)
             {
-                tmpSeason.paidBF.push_back(stoi(value, nullptr, 16));
-            }
-        }
-        catch (...)
-        {
-            QString errorStr("Could not convert paid bitfield!  " + line);
+                QString errorStr("Could not convert paid bitfield!  " + line);
 
-            LogFile::write(errorStr);
-            QMessageBox::warning(nullptr, "Season File paid bitfield convert error", errorStr);
+                LogFile::write(errorStr);
+                QMessageBox::warning(nullptr, "Season File paid bitfield convert error", errorStr);
+            }
+            tmpSeason.paidBF.push_back(tmpVal);
         }
 
         _seasonVect.push_back(tmpSeason);
@@ -187,7 +184,7 @@ bool Season::addSeason(QString seasonName)
         return false;
     }
 
-    tmpSeason.uid = _maxUid++;
+    tmpSeason.uid = ++_maxUid;
     tmpSeason.seasonName = seasonName;
     for (int index = 0; index < (Player::getNumPlyrs())/32 + 1; index++)
     {

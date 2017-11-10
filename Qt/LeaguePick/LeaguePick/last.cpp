@@ -62,11 +62,10 @@ void Last::read(int& season, int& meet)
             exit(-1);
         }
 
-        try
-        {
-            season = stoi(fieldVect[_SEASON_IDX], nullptr);
-        }
-        catch (...)
+        int retCode;
+
+        retCode = sscanf(fieldVect[_SEASON_IDX].c_str(), "%d", &season);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert season ID!  " + line);
 
@@ -75,11 +74,8 @@ void Last::read(int& season, int& meet)
             exit(-1);
         }
 
-        try
-        {
-            meet = stoi(fieldVect[_MEET_IDX], nullptr);
-        }
-        catch (...)
+        retCode = sscanf(fieldVect[_MEET_IDX].c_str(), "%d", &meet);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert meet ID!  " + line);
 

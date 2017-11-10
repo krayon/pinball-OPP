@@ -16,6 +16,7 @@ std::vector<Meet::MeetInfo> Meet::_meetVect;
 int Meet::_numMeets = 0;
 bool Meet::_changesMade = false;
 int Meet::currMeet = 0;
+int Meet::newMeet = 0;
 
 Meet::Meet()
 {
@@ -67,20 +68,10 @@ std::vector<Meet::MeetInfo> Meet::read()
             exit(-1);
         }
 
-        try
-        {
-            tmpMeet.uid = stoi(fieldVect[_UID_IDX], nullptr);
-            if (tmpMeet.uid != _numMeets)
-            {
-                QString errorStr("Meet file UIDs should be contiguous starting at 0!  " + line);
+        int retCode;
 
-                LogFile::write(errorStr);
-                QMessageBox::critical(nullptr, "Meet File UID error", errorStr);
-                exit(-1);
-            }
-            _numMeets++;
-        }
-        catch (...)
+        retCode = sscanf(fieldVect[_UID_IDX].c_str(), "%d", &tmpMeet.uid);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert unique ID!  " + line);
 
@@ -88,6 +79,15 @@ std::vector<Meet::MeetInfo> Meet::read()
             QMessageBox::critical(nullptr, "Meet File UID convert error", errorStr);
             exit(-1);
         }
+        if (tmpMeet.uid != _numMeets)
+        {
+            QString errorStr("Meet file UIDs should be contiguous starting at 0!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Meet File UID error", errorStr);
+            exit(-1);
+        }
+        _numMeets++;
 
         tmpMeet.meetName = QString::fromStdString(fieldVect[_MEET_NAME_IDX]);
         _meetVect.push_back(tmpMeet);
@@ -159,3 +159,12 @@ int Meet::getUID(QString meetName)
     exit(-1);
 }
 
+void Meet::removeLastMeet()
+{
+    _numMeets--;
+    _meetVect.erase(_meetVect.begin() + _numMeets);
+    if (Meet::currMeet == Meet::newMeet)
+    {
+        Meet::currMeet--;
+    }
+}

@@ -1,6 +1,7 @@
 #include "groups.h"
 #include "season.h"
 #include "player.h"
+#include "meet.h"
 
 #include "logfile.h"
 
@@ -15,8 +16,8 @@
 
 QString Groups::_groupFileName;
 std::vector<Groups::GroupInfo> Groups::_groupVect;
+int Groups::_num3PlyrGrps;
 bool Groups::_changesMade = false;
-int Groups::_maxUid = 0;
 std::vector<Groups::ChooseGrpData> Groups::_chooseGrpData;
 
 Groups::Groups()
@@ -26,7 +27,7 @@ Groups::Groups()
 
 std::vector<Groups::GroupInfo> Groups::read()
 {
-    _maxUid = 0;
+    int maxUid = 0;
     int currGroupUid = 0;
 
     write();
@@ -76,28 +77,11 @@ std::vector<Groups::GroupInfo> Groups::read()
             exit(-1);
         }
 
-        // Convert the meet UID
-        try
-        {
-            meetUid = stoi(fieldVect[_MEET_UID_IDX], nullptr);
-            if (meetUid == _maxUid)
-            {
-                _maxUid++;
-                tmpGrpInfo.meetUid = meetUid ;
-                tmpGrpInfo.grpData.clear();
-                _groupVect.push_back(tmpGrpInfo);
-                currGroupUid = 0;
-            }
-            else if (meetUid != _maxUid - 1)
-            {
-                QString errorStr("Group file line meet UIDs must monotonically increase!  " + line);
+        int retCode;
+        int tmpVal;
 
-                LogFile::write(errorStr);
-                QMessageBox::critical(nullptr, "Group File meet UID error", errorStr);
-                exit(-1);
-            }
-        }
-        catch (...)
+        retCode = sscanf(fieldVect[_MEET_UID_IDX].c_str(), "%d", &meetUid);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert meet unique ID!  " + line);
 
@@ -105,33 +89,47 @@ std::vector<Groups::GroupInfo> Groups::read()
             QMessageBox::critical(nullptr, "Group File meet UID convert error", errorStr);
             exit(-1);
         }
+        if (meetUid == maxUid)
+        {
+            maxUid++;
+            tmpGrpInfo.meetUid = meetUid ;
+            tmpGrpInfo.grpData.clear();
+            _groupVect.push_back(tmpGrpInfo);
+            currGroupUid = 0;
+        }
+        else if (meetUid != maxUid - 1)
+        {
+            QString errorStr("Group file line meet UIDs must monotonically increase!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Group File meet UID error", errorStr);
+            exit(-1);
+        }
 
         // Convert the group UID
-        try
-        {
-            groupUid = stoi(fieldVect[_GRP_UID_IDX], nullptr);
-            if (groupUid == currGroupUid)
-            {
-                currGroupUid++;
-                tmpGrpData.groupUid = groupUid;
-                tmpGrpData.playerBF.clear();
-                _groupVect[meetUid].grpData.push_back(tmpGrpData);
-            }
-            else
-            {
-                QString errorStr("Group file line group UIDs must monotonically increase!  " + line);
-
-                LogFile::write(errorStr);
-                QMessageBox::critical(nullptr, "Group File group UID error", errorStr);
-                exit(-1);
-            }
-        }
-        catch (...)
+        retCode = sscanf(fieldVect[_GRP_UID_IDX].c_str(), "%d", &groupUid);
+        if (retCode != 1)
         {
             QString errorStr("Could not convert group unique ID!  " + line);
 
             LogFile::write(errorStr);
             QMessageBox::critical(nullptr, "Group File group UID convert error", errorStr);
+            exit(-1);
+        }
+        (void)sscanf(fieldVect[_GRP_UID_IDX].c_str(), "%d", &groupUid);
+        if (groupUid == currGroupUid)
+        {
+            currGroupUid++;
+            tmpGrpData.groupUid = groupUid;
+            tmpGrpData.playerBF.clear();
+            _groupVect[meetUid].grpData.push_back(tmpGrpData);
+        }
+        else
+        {
+            QString errorStr("Group file line group UIDs must monotonically increase!  " + line);
+
+            LogFile::write(errorStr);
+            QMessageBox::critical(nullptr, "Group File group UID error", errorStr);
             exit(-1);
         }
 
@@ -141,20 +139,19 @@ std::vector<Groups::GroupInfo> Groups::read()
         {
            bfVect.push_back(field);
         }
-        try
-        {
-            for(auto const& value: bfVect)
-            {
-                _groupVect[meetUid].grpData[groupUid].playerBF.push_back(stoi(value, nullptr, 16));
-            }
-        }
-        catch (...)
-        {
-            QString errorStr("Could not convert player bitfield!  " + line);
 
-            LogFile::write(errorStr);
-            QMessageBox::critical(nullptr, "Group File player bitfield convert error", errorStr);
-            exit(-1);
+        for(auto const& value: bfVect)
+        {
+            retCode = sscanf(value.c_str(), "0x%x", &tmpVal);
+            if (retCode != 1)
+            {
+                QString errorStr("Could not convert player bitfield!  " + line);
+
+                LogFile::write(errorStr);
+                QMessageBox::critical(nullptr, "Group File player bitfield convert error", errorStr);
+                exit(-1);
+            }
+            _groupVect[meetUid].grpData[groupUid].playerBF.push_back(tmpVal);
         }
     }
     file.close();
@@ -234,7 +231,8 @@ void Groups::createGroups(const std::vector<int>& presPlyrVect)
             if (currPlyrIter == oppIter)
             {
                 // You can't play with yourself so mark as max value
-                matchVect.push_back(_MAX_MEETS);
+                int value = _MAX_MEETS;
+                matchVect.push_back(value);
             }
             else
             {
@@ -332,22 +330,22 @@ void Groups::createGroups(const std::vector<int>& presPlyrVect)
     }
     else
     {
-        int num3PlyrGames = (4 - (presPlyrVect.size() % 4)) & 0x03;
-        int num4PlyrGames = (presPlyrVect.size() - (num3PlyrGames * 3))/4;
+        _num3PlyrGrps = (4 - (presPlyrVect.size() % 4)) & 0x03;
+        int num4PlyrGames = (presPlyrVect.size() - (_num3PlyrGrps * 3))/4;
 
         plyrsInGrp.assign(num4PlyrGames, 4);
-        for (int index = 0; index < num3PlyrGames; index++)
+        for (int index = 0; index < _num3PlyrGrps; index++)
         {
             plyrsInGrp.push_back(3);
         }
     }
 
     // start creating games
-    std::vector<std::vector<int>> gameVect;
+    std::vector<std::vector<unsigned int>> gameVect;
 
     for (auto &numPlyrs: plyrsInGrp)
     {
-        std::vector<int> currGameBF;
+        std::vector<unsigned int> currGameBF;
         std::vector<unsigned int> possOppBF;
 
         currGameBF.assign(numBFEntries, 0);
@@ -442,7 +440,7 @@ void Groups::createGroups(const std::vector<int>& presPlyrVect)
     // Add result to the group vector
     GroupInfo tmpGrpInfo;
 
-    tmpGrpInfo.meetUid = _maxUid++;
+    tmpGrpInfo.meetUid = Meet::newMeet;
     tmpGrpInfo.grpData.clear();
     int groupUid = 0;
     for (auto &gameVectIter: gameVect)
@@ -455,6 +453,43 @@ void Groups::createGroups(const std::vector<int>& presPlyrVect)
     }
     _groupVect.push_back(tmpGrpInfo);
     _changesMade = true;
+}
+
+void Groups::addLatePlyr(const std::vector<int>& latePlyrVect)
+{
+    int plyrIndex;
+    int plyrBitMask;
+    int nxtPlyrIndex;
+
+    // Randomly place late player into 3 person group
+    for (auto &plyrIter: latePlyrVect)
+    {
+        plyrIndex = plyrIter >> 5;
+        plyrBitMask = 1 << (plyrIter & 0x1f);
+        nxtPlyrIndex = (rand() % _num3PlyrGrps) + 1;
+
+        // Check from end of list looking for a 3 person group
+        int groupMatch = 0;
+        for (int index = _groupVect[Meet::newMeet].grpData.size() - 1; index >= 0; index--)
+        {
+            if (countBits(_groupVect[Meet::newMeet].grpData[index].playerBF) == 3)
+            {
+                groupMatch++;
+                if (groupMatch == nxtPlyrIndex)
+                {
+                    // Add the late player to this group
+                    _groupVect[Meet::newMeet].grpData[index].playerBF[plyrIndex] |= plyrBitMask;
+                    _num3PlyrGrps--;
+                    break;
+                }
+            }
+        }
+    }
+}
+
+void Groups::clearLastGroups()
+{
+    _groupVect.erase(_groupVect.begin() + Meet::newMeet);
 }
 
 int Groups::countBits(const std::vector<unsigned int>& data)
@@ -506,4 +541,3 @@ int Groups::findBit(const std::vector<unsigned int>& data, int bitInstance)
     QMessageBox::critical(nullptr, "Group File Field error", errorStr);
     exit(-1);
 }
-

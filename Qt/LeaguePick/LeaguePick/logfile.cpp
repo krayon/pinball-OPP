@@ -4,7 +4,7 @@
 #include <QApplication>
 
 const QString LogFile::_logFileName = "log.txt";
-QFile LogFile::_logFile = nullptr;
+QFile LogFile::_logFile;
 bool LogFile::_error = false;
 bool LogFile::_logInit = false;
 QTextStream LogFile::_logTextStream;

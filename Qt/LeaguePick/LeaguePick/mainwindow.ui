@@ -275,14 +275,53 @@
      <widget class="QPushButton" name="createGrpsBtn">
       <property name="geometry">
        <rect>
-        <x>670</x>
+        <x>662</x>
         <y>390</y>
-        <width>93</width>
+        <width>101</width>
         <height>21</height>
        </rect>
       </property>
       <property name="text">
        <string>Create Groups</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="addLatePlyrBtn">
+      <property name="geometry">
+       <rect>
+        <x>552</x>
+        <y>390</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Add Late Player</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="finalizeGrpsBtn">
+      <property name="geometry">
+       <rect>
+        <x>442</x>
+        <y>390</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Finalize Groups</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="clearGrpsBtn">
+      <property name="geometry">
+       <rect>
+        <x>330</x>
+        <y>390</y>
+        <width>101</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Clear Groups</string>
       </property>
      </widget>
     </widget>

@@ -87,11 +87,13 @@ void MainWindow::addSeasonPush()
 void MainWindow::editSeasonName()
 {
     int seasonUID;
+    QString seasonName;
 
-    seasonUID = ui->seasonCB->itemData(ui->seasonCB->currentIndex()).toInt();
-    ui->meetSeasonCB->setItemText(seasonUID, ui->seasonCB->currentText());
-    ui->meetGrpsSeasonCB->setItemText(seasonUID, ui->seasonCB->currentText());
-    Season::updateName(seasonUID, ui->seasonCB->currentText());
+    seasonUID = ui->seasonCB->currentIndex();
+    seasonName = ui->seasonCB->currentText();
+    ui->meetSeasonCB->setItemText(seasonUID, seasonName);
+    ui->meetGrpsSeasonCB->setItemText(seasonUID, seasonName);
+    Season::updateName(seasonUID, seasonName);
 }
 
 void MainWindow::changeSeason(int seasonUID)
@@ -113,12 +115,15 @@ void MainWindow::changeSeason(int seasonUID)
     ui->seasonPlyrView->reset();
     updateSeasonPlayerVM();
 
-    ui->meetGrpsNameCB->clear();
     meetVect = Meet::read();
+    ui->meetGrpsNameCB->clear();
     for (auto &iter : meetVect)
     {
         ui->meetGrpsNameCB->addItem(iter.meetName, iter.uid);
     }
+    Groups::read();
+    groupsVM->updMeet();
+    proxyGroupsVM.setSourceModel(groupsVM);
 }
 
 void MainWindow::changeCurrSeason()
@@ -166,6 +171,7 @@ void MainWindow::crtGrpsPush()
         ui->meetGrpsNameCB->blockSignals(false);
 
         Meet::currMeet = meetUid;
+        Meet::newMeet = meetUid;
         ui->meetNameEdit->setText("");
         ui->meetGrpsView->reset();
 
@@ -173,7 +179,89 @@ void MainWindow::crtGrpsPush()
         Groups::createGroups(presPlyrVect);
         groupsVM->updMeet();
         proxyGroupsVM.setSourceModel(groupsVM);
+
+        ui->createGrpsBtn->setEnabled(false);
+        ui->addLatePlyrBtn->setEnabled(false);
+        ui->finalizeGrpsBtn->setEnabled(true);
+        ui->clearGrpsBtn->setEnabled(true);
+
+        // Can't change seasons or current meeting if creating a meeting
+        ui->createSeasonBtn->setEnabled(false);
+        ui->seasonCB->setEnabled(false);
+        ui->meetSeasonCB->setEnabled(false);
+        ui->meetGrpsSeasonCB->setEnabled(false);
+        ui->meetGrpsNameCB->setEnabled(false);
+
+        // Disable currently present players check boxes by updating VM
+        proxyCrtMeetVM.setSourceModel(crtMeetVM);
     }
+}
+
+void MainWindow::addLatePlyrPush()
+{
+    std::vector<int> latePlyrVect;
+
+    latePlyrVect = crtMeetVM->getLatePlyrVect();
+    Groups::addLatePlyr(latePlyrVect);
+    groupsVM->updMeet();
+    proxyGroupsVM.setSourceModel(groupsVM);
+
+    ui->createGrpsBtn->setEnabled(false);
+    ui->addLatePlyrBtn->setEnabled(false);
+    ui->finalizeGrpsBtn->setEnabled(true);
+    ui->clearGrpsBtn->setEnabled(true);
+
+    // Disable currently present players check boxes by updating VM
+    proxyCrtMeetVM.setSourceModel(crtMeetVM);
+}
+
+void MainWindow::finalizeGrpsPush()
+{
+    ui->createGrpsBtn->setEnabled(true);
+    ui->addLatePlyrBtn->setEnabled(false);
+    ui->finalizeGrpsBtn->setEnabled(false);
+    ui->clearGrpsBtn->setEnabled(false);
+
+    ui->createSeasonBtn->setEnabled(true);
+    ui->seasonCB->setEnabled(true);
+    ui->meetSeasonCB->setEnabled(true);
+    ui->meetGrpsSeasonCB->setEnabled(true);
+    ui->meetGrpsNameCB->setEnabled(true);
+
+    crtMeetVM->clearGroups();
+
+    // Save files
+    Meet::write();
+    Groups::write();
+}
+
+void MainWindow::clearGrpsPush()
+{
+    Groups::clearLastGroups();
+    Meet::removeLastMeet();
+
+    if (Meet::newMeet == ui->meetGrpsNameCB->currentIndex())
+    {
+        ui->meetGrpsNameCB->blockSignals(true);
+        ui->meetGrpsNameCB->setCurrentIndex(Meet::currMeet);
+        ui->meetGrpsNameCB->blockSignals(false);
+        groupsVM->updMeet();
+        proxyGroupsVM.setSourceModel(groupsVM);
+    }
+    ui->meetGrpsNameCB->removeItem(Meet::newMeet);
+
+    crtMeetVM->clearGroups();
+
+    ui->createGrpsBtn->setEnabled(true);
+    ui->addLatePlyrBtn->setEnabled(false);
+    ui->finalizeGrpsBtn->setEnabled(false);
+    ui->clearGrpsBtn->setEnabled(false);
+
+    ui->createSeasonBtn->setEnabled(true);
+    ui->seasonCB->setEnabled(true);
+    ui->meetSeasonCB->setEnabled(true);
+    ui->meetGrpsSeasonCB->setEnabled(true);
+    ui->meetGrpsNameCB->setEnabled(true);
 }
 
 void MainWindow::meetGrpsChngMeet()
@@ -187,6 +275,12 @@ void MainWindow::meetGrpsChngMeet()
         groupsVM->updMeet();
         proxyGroupsVM.setSourceModel(groupsVM);
     }
+}
+
+void MainWindow::updateGrpBtns(bool enaAddLate, bool enaFinalGrps)
+{
+    ui->addLatePlyrBtn->setEnabled(enaAddLate);
+    ui->finalizeGrpsBtn->setEnabled(enaFinalGrps);
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -250,7 +344,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->meetPlyrView->setModel(&proxyCrtMeetVM);
     ui->meetPlyrView->setSortingEnabled(true);
     ui->meetPlyrView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->addLatePlyrBtn->setEnabled(false);
+    ui->finalizeGrpsBtn->setEnabled(false);
+    ui->clearGrpsBtn->setEnabled(false);
     connect(ui->createGrpsBtn, &QPushButton::clicked, this, &MainWindow::crtGrpsPush);
+    connect(ui->addLatePlyrBtn, &QPushButton::clicked, this, &MainWindow::addLatePlyrPush);
+    connect(ui->finalizeGrpsBtn, &QPushButton::clicked, this, &MainWindow::finalizeGrpsPush);
+    connect(ui->clearGrpsBtn, &QPushButton::clicked, this, &MainWindow::clearGrpsPush);
 
     groupsVM = new GroupsVM(this);
     proxyGroupsVM.setSourceModel(groupsVM);
@@ -279,6 +379,7 @@ MainWindow::MainWindow(QWidget *parent) :
     proxyCrtMeetVM.setSourceModel(crtMeetVM);
 
     meetVect = Meet::read();
+    ui->meetGrpsNameCB->clear();
     for (auto &iter : meetVect)
     {
         ui->meetGrpsNameCB->addItem(iter.meetName, iter.uid);

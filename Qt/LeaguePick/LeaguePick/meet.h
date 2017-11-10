@@ -18,8 +18,10 @@ class Meet
         static void write();
         static bool addMeet(QString meetName);
         static int getUID(QString meetName);
+        static void removeLastMeet();
 
         static int currMeet;
+        static int newMeet;
 
         static const int _UID_IDX = 0;
         static const int _MEET_NAME_IDX = 1;

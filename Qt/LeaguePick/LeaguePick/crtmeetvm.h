@@ -19,22 +19,30 @@ class CrtMeetVM : public QAbstractTableModel
         bool setData(const QModelIndex & index, const QVariant & value, int role = Qt::EditRole);
         void updSeasonPlyr();
         std::vector<int> getPresentPlyrVect();
+        std::vector<int> getLatePlyrVect();
+        void clearGroups();
 
     private:
         struct CrtMeetInfo
         {
             int playerUid;
             bool present;
+            bool disabled;
         };
 
         static const QStringList _labelList;
         static std::vector<CrtMeetInfo> _crtMeetVect;
         static int _currSeason;
+        static int _state;
+        static int _addedPlyrs;
 
         static const int _LAST_NAME_IDX = 0;
         static const int _FIRST_NAME_IDX = 1;
         static const int _PRESENT_IDX = 2;
         static const int _NUM_COLUMNS = 3;
+
+        static const int _STATE_NO_GRPS = 0;
+        static const int _STATE_GRPS_CREATED = 1;
 
         static const int _ILLEGAL_MEET = 1000;
 };

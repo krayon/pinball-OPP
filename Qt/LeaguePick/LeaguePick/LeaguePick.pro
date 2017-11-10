@@ -24,7 +24,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 # win32:CONFIG(release, debug|release): LIBS += -L$$quote(C:/Program Files/Microsoft SDKs/Windows/v7.0/Lib/)
 # else:win64:CONFIG(release, debug|release): LIBS += -L$$quote(C:/Program Files/Microsoft SDKs/Windows/v7.0/Lib/x64/)
-LIBS += -L$$quote(C:/Program Files/Microsoft SDKs/Windows/v7.0/Lib/)
+win32: LIBS += -L$$quote(C:/Program Files/Microsoft SDKs/Windows/v7.0/Lib/)
 
 SOURCES += \
         main.cpp \

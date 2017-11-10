@@ -88,7 +88,7 @@ void GroupsVM::updMeet()
                         tmpInfo.plyrUid = offset + index;
                         _plyrGrpVect.push_back(tmpInfo);
                     }
-                    if ((1 << index) >= bfIter)
+                    if ((unsigned)(1 << index) >= bfIter)
                     {
                         break;
                     }

@@ -16,6 +16,7 @@ class MainWindow : public QMainWindow
         explicit MainWindow(QWidget *parent = 0);
         ~MainWindow();
         void updateSeasonPlayerVM();
+        void updateGrpBtns(bool enaAddLate, bool enaFinalGrps);
 
         static MainWindow *MainWin_p;
 
@@ -32,6 +33,9 @@ class MainWindow : public QMainWindow
         void meetGrpsChngSeason();
         void meetGrpsChngMeet();
         void crtGrpsPush();
+        void addLatePlyrPush();
+        void finalizeGrpsPush();
+        void clearGrpsPush();
         void changeSeason(int seasonUID);
 
 };
