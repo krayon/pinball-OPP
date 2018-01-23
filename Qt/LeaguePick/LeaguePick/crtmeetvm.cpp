@@ -41,7 +41,7 @@ QVariant CrtMeetVM::data(const QModelIndex &index, int role) const
         {
             if (index.column() == _LAST_NAME_IDX) return Player::getLastName(_crtMeetVect[index.row()].playerUid);
             if (index.column() == _FIRST_NAME_IDX) return Player::getFirstName(_crtMeetVect[index.row()].playerUid);
-            if (index.column() == _PRESENT_IDX) return (_crtMeetVect[index.row()].present ? QString("t") : QString("f"));
+            if (index.column() == _PRESENT_IDX) return (_crtMeetVect[index.row()].present ? QString(" ") : QString("  "));
             break;
         }
         case Qt::CheckStateRole:

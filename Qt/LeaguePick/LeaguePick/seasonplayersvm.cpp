@@ -54,11 +54,11 @@ QVariant SeasonPlayersVM::data(const QModelIndex &index, int role) const
             if (index.column() == _FIRST_NAME_IDX) return Player::getFirstName(index.row());
             if (index.column() == _PAID_IDX)
             {
-                return (Season::isPaid(Season::currSeason, index.row()) ? QString("t") : QString("f"));
+                return (Season::isPaid(Season::currSeason, index.row()) ? QString(" ") : QString("  "));
             }
             if (index.column() == _IN_SEASON_IDX)
             {
-                return (Season::isActPlyr(Season::currSeason, index.row()) ? QString("t") : QString("f"));
+                return (Season::isActPlyr(Season::currSeason, index.row()) ? QString(" ") : QString("  "));
             }
             break;
         }
