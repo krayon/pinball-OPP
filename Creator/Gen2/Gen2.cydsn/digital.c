@@ -553,7 +553,8 @@ void digital_task(void)
             else if (solState_p->solState == SOL_SUSTAIN_PWM)
             {
                if (((gen2g_info.solDrvProcCtl & currBit) == 0) &&
-                 ((solState_p->inpBits & inputs) != 0))
+			     ((solState_p->inpBits == 0) ||
+                 ((solState_p->inpBits & inputs) == solState_p->inpBits)))
                {
                   solState_p->clearRcvd = TRUE;
                }
@@ -615,7 +616,8 @@ void digital_task(void)
             else if (solState_p->solState == SOL_FULL_ON_SOLENOID)
             {
                if (((gen2g_info.solDrvProcCtl & currBit) == 0) &&
-                 ((solState_p->inpBits & inputs) != 0))
+			     ((solState_p->inpBits == 0) ||
+                 ((solState_p->inpBits & inputs) == solState_p->inpBits)))
                {
                   /* Switch is inactive, turn off drive signal */
                   stdldigio_write_port(solState_p->port, solState_p->bit, 0);

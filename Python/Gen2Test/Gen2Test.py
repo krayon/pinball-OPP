@@ -322,8 +322,6 @@ def rcvReadMatrixResp(cardNum):
         matrixInpData[cardNum][index] = ord(data[index + 2])
     return (0)
 
-rcvReadMatrixResp
-
 #send sol cfg cmd
 def sendSolCfgCmd(cardNum):
     global ser
