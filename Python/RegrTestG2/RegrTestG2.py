@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.03'
+testVers = '00.00.04'
 
 import sys
 import serial
@@ -328,7 +328,7 @@ def TestGoBoot():
     command = "cd ..\cyflash &" \
        "c:\Python27\python.exe -m cyflash.__main__" + \
        " --serial " + port + " --serial_baudrate 115200" + \
-       " ..\..\Creator\Gen2\Gen2.cydsn\CortexM0\ARM_GCC_493\Debug\Gen2.cyacd"
+       " ..\..\Creator\Gen2\Gen2.cydsn\CortexM0\ARM_GCC_541\Debug\Gen2.cyacd"
     print "Updating code to latest version."
     process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
@@ -409,7 +409,8 @@ def VerifyStdCfg():
         print "\nStandard configuration for solenoids failed."
         return 601
     print "\nTest read input cmd for input switches."
-    print "All inputs are configured in state mode."
+    print "Note:  First input switch is output for Neopixel, so not an input."
+    print "All other inputs are configured in state mode."
     print "Press (y) if working, (n) if not working."
     exitReq = False
     while (not exitReq):
@@ -672,25 +673,25 @@ def TestSolInputConfig():
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1903
-    # Verify third solenoid can be triggered using first input wing switch
-    sendSetSolInputCmd(0x10, 0x06)
+    # Verify third solenoid can be triggered using second input wing switch on wing 2
+    sendSetSolInputCmd(0x11, 0x06)
     retCode = rcvEomResp()
     if retCode: return (retCode)
-    print "\nVerify third solenoid is triggered using the first input switch on wing 2."
+    print "\nVerify third solenoid is triggered using the second input switch on wing 2."
     print "Press (y) if working, (n) if not working."
     ch = msvcrt.getch()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1904
     # Verify third solenoid triggers can be removed
-    sendSetSolInputCmd(0x08, 0x80)
+    sendSetSolInputCmd(0x08, 0x86)
     retCode = rcvEomResp()
     if retCode: return (retCode)
-    sendSetSolInputCmd(0x10, 0x86)
+    sendSetSolInputCmd(0x11, 0x86)
     retCode = rcvEomResp()
     if retCode: return (retCode)
     print "\nVerify third solenoid is not triggered with first solenoid input switch"
-    print "and first input switch on wing 2."
+    print "or second input switch on wing 2."
     print "Press (y) if working, (n) if not working."
     ch = msvcrt.getch()
     if (ch != 'y') and (ch != 'Y'):
@@ -714,6 +715,18 @@ def TestSolInputConfig():
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1906
+    print "\nVerify flipper is disabled when input is removed."
+    print "Press and hold first flipper input switch, verify flipper is held."
+    print "Press (y) while holding the flipper button"
+    ch = msvcrt.getch()
+    sendSetSolInputCmd(0x08, 0x84)
+    retCode = rcvEomResp()
+    print "\nVerify first solenoid (flipper) is now off."
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDisable solenoid when switch configuration removed failed."
+        return 1907
     return 0
 
 #Test incandescent commands.
@@ -766,6 +779,8 @@ def TestIncandCmds():
         return 2005
     # Send blink off command for all bulbs.  Test fast blink
     # to every other bulb
+    sendIncandCmd(0x03, 0xc0000000)
+    retCode = rcvEomResp()
     sendIncandCmd(0x06, 0xff000000)
     retCode = rcvEomResp()
     if retCode: return (retCode)
