@@ -1,0 +1,52 @@
+In the following instructions replace xxxxxx with the project name.  For example, if
+the project name is application, the project file for Kicad is application.pro.
+
+1.  Create a directory that is going to contain the electrical files.
+
+2.  Highlight the directory, right-click,TortoiseSVN->Export.  Under URL of repository:
+Choose https://svn.code.sf.net/p/open-pinball-project/code/trunk/Kicad/1019-SolPlankG2.
+This gets the most recent version of the board.
+
+3.  Create a directory that will contain the non-converted library parts.  It should be stored in a
+directory at ..\Libraries.  Highlight the directory, right-click,TortoiseSVN->Export.
+Under URL of repository:
+Choose https://svn.code.sf.net/p/open-pinball-project/code/trunk/Kicad/Libraries
+This extracts all the files from the repository.
+
+4.  Create a directory that will contain the new library parts.  It should be stored in a
+directory at ..\Libraries.pretty.  Highlight the directory, right-click,TortoiseSVN->Export.
+Under URL of repository:
+Choose https://svn.code.sf.net/p/open-pinball-project/code/trunk/Kicad/Libraries.pretty
+This extracts all the files from the repository.
+
+5.  Start Kicad
+
+6.  Under File->Open... Browse to the directory and choose xxxxxx.pro
+
+7.  To open the schematic file by double clicking on xxxxxx.sch file.
+
+7.1 To add footprint libraries, click on Footprint Editor icon.
+7.2 Choose Preferences->Footprint Libraries Wizard, Files on my computer, Next,
+      browse to repos/Kicad/Libaries.pretty, Next, Next,
+      To global library configuration, Finish
+7.3 Choose Preferences->Footprint Libraries Wizard, Files on my computer, Next,
+      browse to repos/Kicad/Libaries/commonlib.mod, Next, Next,
+      To global library configuration, Finish
+
+8.  To open the board file by double clicking on xxxxxx.kicad_pcb file.
+
+9.  To create the Gerber files do the following:  Choose File->Plot.  Set the output
+directory to Gerber/.  Under layers select F.Cu, B.Cu, B.SilkS, F.SilkS, B.Mask,
+and F.Mask.  Also select Edge.Cuts if this is a panel with multiple copies of the same
+board on it.  Disable the Do not tent vias if trying to pass FreeDFM.  Under Gerber
+Options choose Use Protel filename extensions.  Press the Plot button to create
+the Gerber files.
+
+10. To create the Drill file do the following:  Choose File->Plot.  Set the output
+directory to Gerber/.  Press the Generate Drill File button to open the drill file
+dialog.  Choose Drill Units Millimeters and press Ok.  Choose to save the
+file in the Gerber subdirectory.  Press Drill File to create the file.
+
+11.   To generate a zipped file to send to a PCB house, click the build.bat to zip
+the gerber and drill files into a single 1019.zip file.  (Requires 7-zip to be
+installed).

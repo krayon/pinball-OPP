@@ -74,6 +74,7 @@ class Timers:
     TIMEOUT_SAUCER_RETRY_TIMER       =  7
     TIMEOUT_GENERAL_TIMER            =  8
     TIMEOUT_DROP_TRGT_TIMER          =  9
+    TIMEOUT_SPINNER_TIMER            = 10
 
     timeouts = [
         [TIMEOUT_KICKOUT_TIMER, 1000],
@@ -85,5 +86,6 @@ class Timers:
         [TIMEOUT_SAUCER_TIMER, 3000],
         [TIMEOUT_SAUCER_RETRY_TIMER, 500],
         [TIMEOUT_GENERAL_TIMER, 10000],
-        [TIMEOUT_DROP_TRGT_TIMER, 2000] ]
+        [TIMEOUT_DROP_TRGT_TIMER, 2000],
+		[TIMEOUT_SPINNER_TIMER, 2000] ]
 

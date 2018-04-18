@@ -472,6 +472,9 @@ class CustomFunc:
             # double jukebox scores if spinner collected
             if ((self.stateProg[plyr] & CustomFunc.STATEPROG_JUKEBOX_COLLECTED) != 0):
                 CustomFunc.GameData.score[plyr] += self.spinMult
+            if (CustomFunc.GameData.StdFuncs.Expired(Timers.TIMEOUT_SPINNER_TIMER)):
+                CustomFunc.GameData.StdFuncs.Start(Timers.TIMEOUT_SPINNER_TIMER)
+                CustomFunc.GameData.StdFuncs.Sounds(Sounds.SOUND_AINT_TALKIN)
 
     ## Process Eddie
     #

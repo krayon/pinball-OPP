@@ -1,4 +1,4 @@
-update=1/23/2018 10:25:40 AM
+update=4/14/2018 7:01:35 AM
 version=1
 last_client=kicad
 [cvpcb]
@@ -43,7 +43,7 @@ LibName12=dip_sockets
 version=1
 [eeschema]
 version=1
-LibDir=../Libraries
+LibDir=../Libraries.pretty;../Libraries
 [eeschema/libraries]
 LibName1=commonpart
 LibName2=power

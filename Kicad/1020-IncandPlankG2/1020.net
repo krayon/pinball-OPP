@@ -1,7 +1,7 @@
 (export (version D)
   (design
-    (source C:/Users/hspahr/Desktop/Pinball/open-pinball-project/Kicad/1020-IncandPlankG2/1020.sch)
-    (date "1/25/2018 12:40:11 PM")
+    (source C:/Users/ellen/Desktop/Pinball/open-pinball-project/Kicad/1020-IncandPlankG2/1020.sch)
+    (date "4/13/2018 6:34:56 AM")
     (tool "Eeschema 4.0.7")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
@@ -412,13 +412,13 @@
         (pin (num 2) (name PM) (type passive)))))
   (libraries
     (library (logical commonpart)
-      (uri C:\Users\hspahr\Desktop\Pinball\open-pinball-project\Kicad\Libraries\commonpart.lib))
-    (library (logical 1020-cache)
-      (uri C:\Users\hspahr\Desktop\Pinball\open-pinball-project\Kicad\1020-IncandPlankG2\1020-cache.lib))
+      (uri C:\Users\ellen\Desktop\Pinball\open-pinball-project\Kicad\Libraries\commonpart.lib))
+    (library (logical device)
+      (uri "C:\\Program Files\\KiCad\\share\\kicad\\library\\device.lib"))
     (library (logical conn)
       (uri "C:\\Program Files\\KiCad\\share\\kicad\\library\\conn.lib"))
-    (library (logical device)
-      (uri "C:\\Program Files\\KiCad\\share\\kicad\\library\\device.lib")))
+    (library (logical 1020-cache)
+      (uri C:\Users\ellen\Desktop\Pinball\open-pinball-project\Kicad\1020-IncandPlankG2\1020-cache.lib)))
   (nets
     (net (code 1) (name "Net-(P8-Pad1)")
       (node (ref P8) (pin 1))
