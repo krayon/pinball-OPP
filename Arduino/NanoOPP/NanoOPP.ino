@@ -5,6 +5,7 @@ typedef enum
   INIT_KICK = 1,
   PWM_OFF = 2,
   PWM_ON = 3,
+  WAIT_SW_OFF = 4,
 } SOL_STATE_E;
 
 #define MAX_NUM_SOL 8
@@ -116,7 +117,7 @@ void loop()
           if (solState[sol].pwm == 0)
           {
             digitalWrite(OUT_PIN_MAP[sol], 0);
-            solState[sol].state = IDLE;
+            solState[sol].state = WAIT_SW_OFF;
           }
           else if (solState[sol].pwm == PWM_ALL_ON)
           {
@@ -148,7 +149,7 @@ void loop()
         }
         else
         {
-          // Check if input is low
+          // Check if input is high
           int value = digitalRead(INP_PIN_MAP[sol]);
           if (value == 1)
           {
@@ -187,7 +188,7 @@ void loop()
         }
         else
         {
-          // Check if input is low
+          // Check if input is high
           int value = digitalRead(INP_PIN_MAP[sol]);
           if (value == 1)
           {
@@ -208,6 +209,29 @@ void loop()
               solState[sol].state = PWM_OFF;
               solState[sol].time = currTime + (PWM_ALL_ON - solState[sol].pwm);
             }
+          }
+        }
+        break;
+      }
+      case WAIT_SW_OFF:
+      {
+        // Check if switch is inactive
+        if (sol < NUM_ANA_INP)
+        {
+          // Must read analog input instead of digital bit
+          int value = analogRead(INP_PIN_MAP[sol]);
+          if (value > HI_THRESH)
+          {
+            solState[sol].state = IDLE;
+          }
+        }
+        else
+        {
+          // Check if input is high
+          int value = digitalRead(INP_PIN_MAP[sol]);
+          if (value == 1)
+          {
+            solState[sol].state = IDLE;
           }
         }
         break;
