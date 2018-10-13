@@ -139,6 +139,7 @@ typedef enum
   ON_OFF_SOL                = 0x04,
   DLY_KICK_SOL              = 0x08,
   USE_MATRIX_INP            = 0x10,
+  CAN_CANCEL                = 0x20,
 } __attribute__((packed)) RS232I_CFG_SOL_TYPE_E;
 
 typedef enum

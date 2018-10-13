@@ -512,42 +512,57 @@ void digital_task(void)
             }
             else if (solState_p->solState == SOL_INITIAL_KICK)
             {
-               /* Check if elapsed time is over initial kick time */
-               elapsedTimeMs = timer_get_ms_count() - solState_p->startMs;
-               if (elapsedTimeMs >= solCfg_p->initKick)
+               if ((solCfg_p->cfg & CAN_CANCEL) != 0)
                {
-                  /* In all cases turn off the solenoid driver */
-                  stdldigio_write_port(solState_p->port, solState_p->bit, 0);
+                   if (((gen2g_info.solDrvProcCtl & currBit) == 0) &&
+    			     ((solState_p->inpBits == 0) ||
+                     ((solState_p->inpBits & inputs) == solState_p->inpBits)))
+                   {
+                      /* Switch is inactive, turn off drive signal */
+                      stdldigio_write_port(solState_p->port, solState_p->bit, 0);
+                      solState_p->solState = SOL_STATE_IDLE;
+                   }
+               }
+            
+               if (solState_p->solState == SOL_INITIAL_KICK)
+               {
+                   /* Check if elapsed time is over initial kick time */
+                   elapsedTimeMs = timer_get_ms_count() - solState_p->startMs;
+                   if (elapsedTimeMs >= solCfg_p->initKick)
+                   {
+                      /* In all cases turn off the solenoid driver */
+                      stdldigio_write_port(solState_p->port, solState_p->bit, 0);
 
-                  /* If this is a normal solenoid */
-                  if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL | USE_MATRIX_INP)) == 0)
-                  {
-                     /* See if this has a sustaining PWM */
-                     if (solCfg_p->minOffDuty & DUTY_CYCLE_MASK)
-                     {
-                        /* Make sure the input continues to be set */
-                        if (solState_p->clearRcvd)
-                        {
-                           solState_p->solState = SOL_MIN_TIME_OFF;
-                           solState_p->offCnt = 0;
-                        }
-                        else
-                        {
-                           solState_p->solState = SOL_SUSTAIN_PWM;
-                        }              
-                     }
-                     else
-                     {
-                        solState_p->solState = SOL_MIN_TIME_OFF;
-                        solState_p->offCnt = 0;
-                     }
-                  }
-                  else if ((solCfg_p->cfg & (DLY_KICK_SOL | USE_MATRIX_INP)) != 0)
-                  {
-                     solState_p->solState = SOL_MIN_TIME_OFF;
-                     solState_p->offCnt = 0;
-                  }
-                  solState_p->startMs = timer_get_ms_count();
+                      /* If this is a normal solenoid */
+                      if ((solCfg_p->cfg & (ON_OFF_SOL | DLY_KICK_SOL | USE_MATRIX_INP)) == 0)
+                      {
+                         /* See if this has a sustaining PWM */
+                         if (solCfg_p->minOffDuty & DUTY_CYCLE_MASK)
+                         {
+                            /* Make sure the input continues to be set */
+                            if (solState_p->clearRcvd)
+                            {
+                               solState_p->solState = SOL_MIN_TIME_OFF;
+                               solState_p->offCnt = 0;
+                            }
+                            else
+                            {
+                               solState_p->solState = SOL_SUSTAIN_PWM;
+                            }              
+                         }
+                         else
+                         {
+                            solState_p->solState = SOL_MIN_TIME_OFF;
+                            solState_p->offCnt = 0;
+                         }
+                      }
+                      else if ((solCfg_p->cfg & (DLY_KICK_SOL | USE_MATRIX_INP)) != 0)
+                      {
+                         solState_p->solState = SOL_MIN_TIME_OFF;
+                         solState_p->offCnt = 0;
+                      }
+                      solState_p->startMs = timer_get_ms_count();
+                   }
                }
             }
             else if (solState_p->solState == SOL_SUSTAIN_PWM)
