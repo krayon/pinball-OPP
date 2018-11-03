@@ -222,7 +222,7 @@ def rcvGetVersResp(version):
         print repr(data)
         return (200)
     if (data[1] != rs232Intf.GET_VERS_CMD):
-        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_GEN2_INP_CMD))
         print repr(data)
         return (201)
     tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
@@ -275,7 +275,7 @@ def rcvGetSerNumResp():
         print repr(data)
         return (300)
     if (data[1] != rs232Intf.GET_SER_NUM_CMD):
-        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_GEN2_INP_CMD))
         print repr(data)
         return (301)
     tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
@@ -729,6 +729,21 @@ def TestSolInputConfig():
         return 1907
     return 0
 
+#Test cancel solenoid config.
+def TestCancelSolConfig():
+    # Reconfigure first solenoid having maximum initial kick but able to be canceled
+    sendCfgIndSolCmd(0x04, 0x21, 0xff, 0x00)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    
+    print "\nVerify solenoid 0 can be canceled by tapping input switch"
+    print "Press (y) if working, (n) if not working."
+    ch = msvcrt.getch()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nCancel initial kick of solenoid failed."
+        return 2101
+    return 0
+
 #Test incandescent commands.
 def TestIncandCmds():
     print "\nVerify all LEDS are blinking slowly on the incandescent board."
@@ -912,7 +927,7 @@ def rcvReadInpResp():
         print repr(data)
         return (1000)
     if (data[1] != rs232Intf.READ_GEN2_INP_CMD):
-        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_INP_BRD_CMD))
+        print "\nData = %d, expected = %d" % (ord(data[1]),ord(rs232Intf.READ_GEN2_INP_CMD))
         print repr(data)
         return (1001)
     tmpData = [ data[0], data[1], data[2], data[3], data[4], data[5] ]
@@ -1211,6 +1226,9 @@ if not skipSolTests:
     if retCode != 0: sys.exit(retCode)
 
     retCode = TestSolInputConfig()
+    if retCode != 0: sys.exit(retCode)
+
+    retCode = TestCancelSolConfig()
     if retCode != 0: sys.exit(retCode)
 
 if not skipIncandTests:

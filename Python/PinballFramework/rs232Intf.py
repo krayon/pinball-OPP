@@ -73,14 +73,17 @@ CFG_IND_SOL_CMD     = '\x14'
 CFG_IND_INP_CMD     = '\x15'
 SET_IND_NEO_CMD     = '\x16'
 SET_SOL_INPUT_CMD   = '\x17'
-UPGRADE_OTHER_BRD   = '\x18'
-READ_MATRIX_INP     = '\x19'
+PASS_THRU_CMD       = '\x18'
+READ_MATRIX_INP_CMD = '\x19'
 
 INV_CMD             = '\xf0'
 EOM_CMD             = '\xff'
 
 CARD_ID_TYPE_MASK   = '\xf0'
+CARD_ID_SOL_CARD    = '\x00'
+CARD_ID_INP_CARD    = '\x10'
 CARD_ID_GEN2_CARD   = '\x20'
+
 MAX_NUM_GEN2_CARD   = 0x20
 
 NUM_G2_WING_PER_BRD = 4
@@ -93,10 +96,11 @@ WING_NEO            = '\x06'
 WING_HI_SIDE_INCAND = '\x07'
 
 NUM_G2_INP_PER_BRD  = 32
-NUM_MATRIX_INP      = 64
+NUM_G2_MATRIX_INP   = 64
 NUM_INP_PER_WING    = 8
 CFG_BYTES_PER_INP   = 1
 NUM_MATRIX_COL      = 8
+
 CFG_INP_STATE       = '\x00'
 CFG_INP_FALL_EDGE   = '\x01'
 CFG_INP_RISE_EDGE   = '\x02'
@@ -112,6 +116,7 @@ CFG_SOL_AUTO_CLR    = '\x02'
 CFG_SOL_ON_OFF      = '\x04'
 CFG_SOL_DLY_KICK    = '\x08'
 CFG_SOL_USE_MTRX_INP= '\x10'
+CFG_SOL_CAN_CANCEL  = '\x20'
 
 #Note:  Derived from above bits
 CFG_SOL_ON_OFF_USE_SW = '\x05'
@@ -129,9 +134,11 @@ INCAND_BLINK_FAST   = '\x05'
 INCAND_BLINK_OFF    = '\x06'
 INCAND_SET_ON_OFF   = '\x07'
 
-INCAND_SET_CMD          = '\x80'
-INCAND_SET_ON           = '\x01'
-INCAND_SET_BLINK_SLOW   = '\x02'
-INCAND_SET_BLINK_FAST   = '\x04'
+INCAND_SET_CMD              = '\x80'
+INCAND_SET_ON               = '\x01'
+INCAND_SET_BLINK_SLOW       = '\x02'
+INCAND_SET_BLINK_FAST       = '\x04'
 
 SOL_INP_CLEAR_SOL   = '\x80'
+
+NUM_CHARS_CLEAR_PASSTHRU = 65

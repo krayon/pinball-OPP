@@ -274,7 +274,7 @@ def getInventory(commThread):
             if (commThread.hasMatrix[index]):
                 cmdArr = []
                 cmdArr.append(commThread.gen2AddrArr[index])
-                cmdArr.append(rs232Intf.READ_MATRIX_INP)
+                cmdArr.append(rs232Intf.READ_MATRIX_INP_CMD)
                 cmdArr.append('\x00')
                 cmdArr.append('\x00')
                 cmdArr.append('\x00')
@@ -380,7 +380,7 @@ def readInputs(commThread):
                             if (commThread.hasInp[boardIndex]):
                                 InpBrd.update_status(GameData.inpBrd, boardIndex, wing, ord(data[index + (rs232Intf.NUM_G2_WING_PER_BRD - wing - 1) + 2]))
                     index += 7
-                elif (data[index + 1] == rs232Intf.READ_MATRIX_INP) and ((index + 10) < len(intData)):
+                elif (data[index + 1] == rs232Intf.READ_MATRIX_INP_CMD) and ((index + 10) < len(intData)):
                     rcvCmd = data[index: index + 10]
                     crc = calcCrc8(rcvCmd)
                     if (crc != data[index + 10]):

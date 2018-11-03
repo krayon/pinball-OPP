@@ -128,7 +128,7 @@ class InpBrd():
         if ((wingMask & InpBrd.HAS_MATRIX) != 0):
             validCols = 0
             InpBrd.hasMatrix[card] = True;
-            for index in xrange(rs232Intf.NUM_MATRIX_INP):
+            for index in xrange(rs232Intf.NUM_G2_MATRIX_INP):
                 if (GameData.InpBitNames.INP_BRD_MTRX_BIT_NAMES[card][index] != "Unused"):
                     validCols |= (1 << ((index & 0x38) >> 3))
             for col in xrange(rs232Intf.NUM_MATRIX_COL):
