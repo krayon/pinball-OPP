@@ -31,8 +31,6 @@ SOL_STATE_T solState[MAX_NUM_SOL] =
   {IDLE, 32, 0, 0}, {IDLE, 32, 0, 0}, {IDLE, 32, 0, 0}, {IDLE, 32, 0, 0},
 };
 
-bool ledOn = false;
-
 const int INP_PIN_MAP[MAX_NUM_SOL] = { A4, A5, A6, A7, 9, 10, 11, 12 };
 const int OUT_PIN_MAP[MAX_NUM_SOL] = { A0, A1, A2, A3, 6, 7, 8, 9 };
 
@@ -238,13 +236,8 @@ void loop()
       }
     }
   }
-  ledOn = !ledOn;
-  if (ledOn)
-  {
-    digitalWrite(LED_PIN, 1);
-  }
-  else
-  {
-    digitalWrite(LED_PIN, 0);
-  }
+
+  // Strobe LED pin
+  digitalWrite(LED_PIN, 1);
+  digitalWrite(LED_PIN, 0);
 }
