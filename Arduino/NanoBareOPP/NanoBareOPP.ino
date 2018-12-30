@@ -16,8 +16,8 @@ typedef enum
 // Set ADMUX to use Vcc as voltage ref, and left justify conversion
 #define ADMUX_INIT 0x60
 
-// Set ADSRA to ADC enabled, no auto trigger, enable intrpt, prescalar to 64
-#define ADCSRA_INIT 0x8e
+// Set ADSRA to ADC enabled, no auto trigger, enable intrpt, prescalar to 128
+#define ADCSRA_INIT 0x8f
 #define ADCSRA_START_CONVERT 0x40
 
 #define LOW_THRESH 0x40
@@ -25,6 +25,7 @@ typedef enum
 
 #define PWM_ALL_ON 7
 #define LED_PIN 13
+#define LED_BIT 0x20
 
 typedef struct
 {
@@ -41,8 +42,7 @@ SOL_STATE_T solState[MAX_NUM_SOL] =
 };
 
 int currAdcInp = 0;
-volatile char currData = 0xff;
-char prevData = 0xff;
+volatile unsigned char adcData = 0x0c;
 
 const int INP_PIN_MAP[MAX_NUM_SOL] = { A4, A5, A6, A7, 9, 10, 11, 12 };
 const int OUT_PIN_MAP[MAX_NUM_SOL] = { A0, A1, A2, A3, 5, 6, 7, 8 };
@@ -76,27 +76,28 @@ void setup()
   // setup ADC6, ADC7 as analog inputs
   for (int pin = A6; pin <= A7; pin++)
   {
-    pinMode(pin, INPUT_PULLUP);
+    pinMode(pin, INPUT);
   }
 
-  // setup PD5-7, PB0 (pins 9-12) as digital outputs and low 
-  for (int pin = 9; pin <= 12; pin++)
+  // setup PD5-7, PB0 (pins 5-8) as digital outputs and low 
+  for (int pin = 5; pin <= 8; pin++)
   {
     digitalWrite(pin, LOW);
     pinMode(pin, OUTPUT);
   }
   
-  // setup PB1 to PB4 (pins 14-17) as digital inputs 
-  for (int pin = 14; pin <= 17; pin++)
+  // setup PB1 to PB4 (pins 9-12) as digital inputs 
+  for (int pin = 9; pin <= 12; pin++)
   {
     pinMode(pin, INPUT_PULLUP);
   }
 
-  // for debugging loop speed set LED pin 13 as output
+  // for debugging loop speed set LED pin 13 as output and off
+  digitalWrite(LED_PIN, LOW);
   pinMode(LED_PIN, OUTPUT);
 
   // Setup ADC registers
-  ADMUX = ADMUX_INIT + FIRST_ANA_INP; // Read first ADC input (ADC4), left justified
+  ADMUX = ADMUX_INIT + FIRST_ANA_INP; // Read first ADC input (ADC6), left justified
   ADCSRB = 0; // Unused, setting to 0
   ADCSRA = ADCSRA_INIT; // Free running mode
 
@@ -105,20 +106,19 @@ void setup()
  
   // Start ADC conversion
   ADCSRA |= ADCSRA_START_CONVERT;
+
+#if DEBUG
+  Serial.begin(9600);
+#endif
 }  
 
 void loop() 
 {
   // Read inputs PC4, PC5, PB1, PB2, PB3, PB4
-  char pcInp = (PORTC & PORTC_MASK) >> PORTC_SHFT;
-  char pbInp = (PORTB & PORTB_MASK) << PORTB_SHFT;
+  unsigned char pcInp = (PINC & PORTC_MASK) >> PORTC_SHFT;
+  unsigned char pbInp = (PINB & PORTB_MASK) << PORTB_SHFT;
 
-  currData &= ~DIG_INP_MASK;
-  currData |= (pcInp | pbInp);
-
-  // Find changed bits
-  char changeBits = currData ^ prevData;
-  prevData = currData;
+  unsigned char currData = pcInp | pbInp | adcData;
 
   // put your main code here, to run repeatedly:
   for (int sol = 0; sol < MAX_NUM_SOL; sol++)
@@ -127,14 +127,18 @@ void loop()
     {
       case IDLE:
       {
-        bool changeState = false;
-        
         // Check if switch is active
-        if (currData & (1 << sol) == 0)
+        if ((currData & (1 << sol)) == 0)
         {
           solState[sol].state = INIT_KICK;
           digitalWrite(OUT_PIN_MAP[sol], 1);
           solState[sol].time = millis() + solState[sol].kickMs;
+
+#if DEBUG
+          char tmp[16];
+          sprintf(tmp, "Kick=%d", sol);
+          Serial.println(tmp);
+#endif
         }
         break;
       }
@@ -145,8 +149,14 @@ void loop()
         {
           if (solState[sol].pwm == 0)
           {
-            digitalWrite(OUT_PIN_MAP[sol], 0);
+            // digitalWrite(OUT_PIN_MAP[sol], 0);
             solState[sol].state = WAIT_SW_OFF;
+            
+#if DEBUG
+            char tmp[16];
+            sprintf(tmp, "WaitOff=%d", sol);
+            Serial.println(tmp);
+#endif
           }
           else if (solState[sol].pwm == PWM_ALL_ON)
           {
@@ -166,7 +176,7 @@ void loop()
         bool skipProc = false;
         
         // Check if switch is inactive
-        if (currData & (1 << sol) != 0)
+        if ((currData & (1 << sol)) != 0)
         {
             solState[sol].state = IDLE;
             skipProc = true;
@@ -189,7 +199,7 @@ void loop()
         bool skipProc = false;
         
         // Check if switch is inactive
-        if (currData & (1 << sol) != 0)
+        if ((currData & (1 << sol)) != 0)
         {
           digitalWrite(OUT_PIN_MAP[sol], 0);
           solState[sol].state = IDLE;
@@ -214,33 +224,39 @@ void loop()
       case WAIT_SW_OFF:
       {
         // Check if switch is inactive
-        if (currData & (1 << sol) != 0)
+        if ((currData & (1 << sol)) != 0)
         {
           solState[sol].state = IDLE;
+
+#if DEBUG          
+          char tmp[16];
+          sprintf(tmp, "Idle=%d", sol);
+          Serial.println(tmp);
+#endif
         }
         break;
       }
     }
   }
 
-  // Strobe LED pin
-  digitalWrite(LED_PIN, 1);
-  digitalWrite(LED_PIN, 0);
+  // Toggle LED bit twice so there is a rising pulse
+  PINB = LED_BIT;
+  PINB = LED_BIT;
 }
 
 // ADC interrupt routine
 ISR(ADC_vect)
 {
   // ADCH has bits eight bits of data since left justified
-  char currVal = ADCH;
+  unsigned char currVal = ADCH;
 
   if (currVal > HI_THRESH)
   {
-    currData |= 1 << (currAdcInp + ANA_INP_OFFSET);
+    adcData |= (1 << (currAdcInp + ANA_INP_OFFSET));
   }
   else if (currVal < LOW_THRESH)
   {
-    currData &= ~(1 << (currAdcInp + ANA_INP_OFFSET));
+    adcData &= ~(1 << (currAdcInp + ANA_INP_OFFSET));
   }
 
   currAdcInp++;
