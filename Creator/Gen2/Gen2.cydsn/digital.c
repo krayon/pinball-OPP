@@ -749,6 +749,7 @@ void digital_upd_sol_cfg(
       if ((updMask & currBit) != 0)
       {
          solState_p->solState = SOL_STATE_IDLE;
+         stdldigio_write_port(solState_p->port, solState_p->bit, 0);
          solDrvCfg_p = &gen2g_info.solDrvCfg_p->solCfg[index];
          if (solDrvCfg_p->cfg & USE_SWITCH)
          {

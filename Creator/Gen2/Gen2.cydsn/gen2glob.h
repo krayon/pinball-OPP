@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x01000000
+#define GEN2G_CODE_VERS       0x01000001
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -81,6 +81,7 @@ typedef enum
 #define GEN2G_STAT_FADE_FAST_DEC       0x02
 #define GEN2G_MAX_STATE_NUM            32      /* State num goes from 0 - 31 */
 #define GEN2G_SYNCH_OUT                0x04
+#define GEN2G_TIME_MAIN_LOOP           0x08
 
 typedef enum
 {
