@@ -510,6 +510,10 @@ void digital_task(void)
                   solState_p->clearRcvd = FALSE;
                }
             }
+            else if (solState_p->solState == SOL_STATE_IDLE)
+            {
+               stdldigio_write_port(solState_p->port, solState_p->bit, 0);
+            }
             else if (solState_p->solState == SOL_INITIAL_KICK)
             {
                if ((solCfg_p->cfg & CAN_CANCEL) != 0)
@@ -612,6 +616,7 @@ void digital_task(void)
                      solState_p->startMs = timer_get_ms_count();
                   }
                }
+               stdldigio_write_port(solState_p->port, solState_p->bit, 0);
             }
             else if (solState_p->solState == SOL_WAIT_BEFORE_KICK)
             {
