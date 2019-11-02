@@ -510,7 +510,10 @@ void digital_task(void)
                   solState_p->clearRcvd = FALSE;
                }
             }
-            else if (solState_p->solState == SOL_STATE_IDLE)
+            else if ((solState_p->solState == SOL_STATE_IDLE) &&
+               ((gen2g_info.solDrvProcCtl & currBit) == 0) &&
+			      ((solState_p->inpBits == 0) ||
+                     ((solState_p->inpBits & inputs) == solState_p->inpBits)))
             {
                stdldigio_write_port(solState_p->port, solState_p->bit, 0);
             }
