@@ -475,7 +475,7 @@ void rs232proc_task(void)
                            {
                               *dest_p++ = *src_p++;
                            }
-                           digital_upd_sol_cfg(0xffff);
+                           digital_upd_sol_cfg((1 << RS232I_NUM_GEN2_SOL) - 1);
                            break;
                         }
                         case RS232I_KICK_SOL:

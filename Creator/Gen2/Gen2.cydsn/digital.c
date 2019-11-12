@@ -101,6 +101,7 @@ typedef struct
 typedef struct
 {
    U32                        inpMask;
+   U16                        solMask;
    U32                        prevInputs;
    U32                        filtInputs;
    U32                        stateMask;
@@ -147,7 +148,6 @@ void digital_init(void)
    INT                        index;
    BOOL                       foundSol = FALSE;
    RS232I_CFG_INP_TYPE_E      *inpCfg_p;
-   U16                        solMask = 0;
    U8                         data;
    RS232I_SOL_CFG_T           *solCfg_p;
 
@@ -168,6 +168,7 @@ void digital_init(void)
          solState_p->inpBits = 0;
       }
       dig_info.inpMask = 0;
+      dig_info.solMask = 0;
       dig_info.filtInputs = 0;
      
       /* Set up digital ports, walk through wing boards */
@@ -217,7 +218,7 @@ void digital_init(void)
             
             /* Set up bit mask of valid inputs */
             dig_info.inpMask |= (SOL_INP_BIT_MASK << (index << 3));
-            solMask |= (SOL_INP_BIT_MASK << (index << 2));
+            dig_info.solMask |= (SOL_INP_BIT_MASK << (index << 2));
          }
          /* Check if wing 2 is WING_SW_MATRIX_IN, and wing 3 is WING_SW_MATRIX_OUT.
           *   Other positions are not allowed.
@@ -305,7 +306,7 @@ void digital_init(void)
       }
       
       /* Set up the initial state */
-      digital_upd_sol_cfg(solMask);
+      digital_upd_sol_cfg((1 << RS232I_NUM_GEN2_SOL) - 1);
       digital_upd_inp_cfg(dig_info.inpMask);
    }
 
@@ -511,9 +512,7 @@ void digital_task(void)
                }
             }
             else if ((solState_p->solState == SOL_STATE_IDLE) &&
-               ((gen2g_info.solDrvProcCtl & currBit) == 0) &&
-			      ((solState_p->inpBits == 0) ||
-                     ((solState_p->inpBits & inputs) == solState_p->inpBits)))
+               (dig_info.solMask & currBit))
             {
                stdldigio_write_port(solState_p->port, solState_p->bit, 0);
             }
@@ -751,6 +750,7 @@ void digital_upd_sol_cfg(
    DIG_INP_STATE_T            *inpState_p;
    
    /* Clear the solenoid state machines */
+   updMask &= dig_info.solMask;
    for (index = 0, solState_p = &dig_info.solState[0], currBit = 1;
       index < RS232I_NUM_GEN2_SOL; index++, solState_p++, currBit <<= 1)
    {
