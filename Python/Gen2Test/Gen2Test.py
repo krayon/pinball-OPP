@@ -46,18 +46,13 @@
 #
 #===============================================================================
 
-testVers = '00.00.08'
+testVers = '00.00.09'
 
 import sys
 import serial
 import array
 import time
 import re
-import platform
-windows = False
-if platform.system() == 'Windows':
-    windows = True
-    import msvcrt
 import rs232Intf
 import os
 
@@ -138,6 +133,41 @@ def calcCrc8(msgChars):
         crc8Byte = CRC8ByteLookup[crc8Byte ^ indInt];
     return (chr(crc8Byte))
 
+def getChar():
+    global windows
+    if windows:
+        return msvcrt.getch()
+    else:
+        fd = sys.stdin.fileno()
+        oldSettings = termios.tcgetattr(fd)
+
+        try:
+            tty.setcbreak(fd)
+            answer = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, oldSettings)
+
+        return answer
+
+def kbHit():
+    global windows
+    if windows:
+        return msvcrt.kbhit()
+    else:
+        return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
+
+def getAsynchChar():
+    global windows
+    if windows:
+        return msvcrt.getch()
+    else:
+        return sys.stdin.read(1)
+
+def writeNoCR(text):
+    global windows
+    sys.stdout.write(text)
+    if windows == False:
+        sys.stdout.flush()
 
 #grab data from serial port
 def getSerialData():
@@ -521,8 +551,8 @@ def rcvGetSerNumResp(cardNum):
         print "\nData = %d, expected = %d" % (ord(data[7]),ord(rs232Intf.EOM_CMD))
         return (1102)
     cardSerNum.append((ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5]))
-    if (cardSerNum[cardNum] != 0):
-        print "Card %d, has a serial num 0x%08x programmed, so it must be preserved" % (cardNum, cardSerNum[cardNum])
+    if (cardSerNum[cardNum] != 0xffffffff):
+        print "Card %d, has serial num 0x%08x programmed, so it must be preserved" % (cardNum, cardSerNum[cardNum])
     return (0)
 
 #send pass through command so card ignores serial data
@@ -596,18 +626,76 @@ def endTest(error):
     global errMsg
     print "\nError code =", error
     ser.close()
-    if windows:
-        print "\nPress any key to close window"
-        ch = msvcrt.getch()
+    print "\nPress any key to close window"
+    ch = getChar()
     sys.exit(error)
 
+def test1(card):
+    global hasMatrix
+    global currInpData
+    global matrixInpData
+
+    print "Press 'x' or 'X' to end the test."
+    count = 0
+    exitReq = False
+    while (not exitReq):
+        sendReadInpBrdCmd(card)
+        error = rcvReadInpResp(card)
+        if error:
+            print "\nCount = %d" % count
+            endTest(error)
+
+        if hasMatrix[card]:
+            sendReadMatrixCmd(card)
+            error = rcvReadMatrixResp(card)
+            if error:
+                print "\nCount = %d" % count
+                endTest(error)
+
+        outArr = []
+        outArr.append('\r')
+        for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
+            if (currInpData[card] & (1 << (rs232Intf.NUM_G2_INP_PER_BRD - loop - 1))):
+                outArr.append('1')
+            else:
+                outArr.append('0')
+        if hasMatrix[card]:
+            for loop in range(rs232Intf.NUM_G2_MATRIX_INP):
+                index = loop/8
+                offset = loop & 0x7
+                if (offset == 0):
+                    outArr.append(' ')
+                if (matrixInpData[card][index] & (1 << offset)):
+                    outArr.append('1')
+                else:
+                    outArr.append('0')
+
+        writeNoCR(''.join(outArr))
+        count = count + 1
+        
+        #Check if exit is requested, if non-windows, must hit ctl-c
+        while kbHit():
+            char = getAsynchChar()
+            if ((char == 'x') or (char == 'X')):
+                print "\nCount = %d" % count
+                exitReq = True
+
 #Main code
+try:
+    # for Windows-based systems
+    import msvcrt # If successful, we are on Windows
+    windows = True
+except ImportError:
+    # for POSIX-based systems (with termios & tty support)
+    import tty, sys, termios, select  # raises ImportError if unsupported
+    windows = False
 end = False
 boot = False
 saveCfg = False
 eraseCfg = False
 loadCfg = False
 upgrade = False
+progSer = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -615,12 +703,16 @@ for arg in sys.argv:
     testNum = int(arg.replace('-test=','',1))
   elif arg.startswith('-card='):
     card = int(arg.replace('-card=','',1))
+  elif arg.startswith('-ser='):
+    serNum = int(arg.replace('-ser=','',1))
+    progSer = True
   elif arg.startswith('-?'):
     print "python Gen2Test.py [OPTIONS]"
     print "    -?                 Options Help"
     print "    -port=portName     COM port number, defaults to COM1"
     print "    -test=testNum      test number, defaults to 0"
     print "    -card=cardNum      card number, 0-based, defaults to 0"
+    print "    -ser=serNum        program serial number"
     print "    -boot              force a single board into bootloader"
     print "    -saveCfg           save a cfg on a single board."
     print "        Only 1 board can be attached.  Load configuration option must also be set."
@@ -650,17 +742,15 @@ for arg in sys.argv:
     findNewestImage()
 
 if end:
-    if windows:
-        print "\nPress any key to close window"
-        ch = msvcrt.getch()
+    print "\nPress any key to close window"
+    ch = getChar()
     sys.exit(0)
 try:
     ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
 except serial.SerialException:
     print "\nCould not open " + port
-    if windows:
-        print "\nPress any key to close window"
-        ch = msvcrt.getch()
+    print "\nPress any key to close window"
+    ch = getChar()
     sys.exit(1)
 print "Sending inventory cmd"
 bad = False
@@ -675,16 +765,14 @@ for index in xrange(numGen2Brd):
         sendGetVersCmd(index)
         error = rcvGetVersResp(index)
         if error != 0:
-            if windows:
-                print "\nPress any key to close window"
-                ch = msvcrt.getch()
+            print "\nPress any key to close window"
+            ch = getChar()
             sys.exit(1)
         sendGetSerNumCmd(index)
         error = rcvGetSerNumResp(index)
         if error != 0:
-            if windows:
-                print "\nPress any key to close window"
-                ch = msvcrt.getch()
+            print "\nPress any key to close window"
+            ch = getChar()
             sys.exit(1)
 
 if (boot):
@@ -825,6 +913,17 @@ elif (upgrade):
                 sendSetSerNumCmd(upgCard, cardSerNum[upgCard]) 
                 rcvEomResp()
     print "Finished upgrade process"
+elif (progSer):
+    print "Programming serial number"
+    print "serNum = %d" % serNum
+    sendSetSerNumCmd(card, serNum)
+    rcvEomResp()
+    sendGetSerNumCmd(card)
+    error = rcvGetSerNumResp(card)
+    if error != 0:
+        print "\nPress any key to close window"
+        ch = getChar()
+        sys.exit(1)
 
 if (testNum == 0):
     for superLoop in range(10000):
@@ -845,49 +944,16 @@ if (testNum == 0):
             break;
         print "\nSuccessful loop."
 elif (testNum == 1):
-    exitReq = False
-    count = 0
-    while (not exitReq):
-        sendReadInpBrdCmd(card)
-        error = rcvReadInpResp(card)
-        if error:
-            print "\nCount = %d" % count
-            endTest(error)
+    if windows:
+        test1(card)
+    else:
+        old_settings = termios.tcgetattr(sys.stdin)
+        try:
+            tty.setcbreak(sys.stdin.fileno())
+            test1(card)
 
-        if hasMatrix[card]:
-            sendReadMatrixCmd(card)
-            error = rcvReadMatrixResp(card)
-            if error:
-                print "\nCount = %d" % count
-                endTest(error)
+        finally:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
 
-        outArr = []
-        outArr.append('\r')
-        for loop in range(rs232Intf.NUM_G2_INP_PER_BRD):
-            if (currInpData[card] & (1 << (rs232Intf.NUM_G2_INP_PER_BRD - loop - 1))):
-                outArr.append('1')
-            else:
-                outArr.append('0')
-        if hasMatrix[card]:
-            for loop in range(rs232Intf.NUM_G2_MATRIX_INP):
-                index = loop/8
-                offset = loop & 0x7
-                if (offset == 0):
-                    outArr.append(' ')
-                if (matrixInpData[card][index] & (1 << offset)):
-                    outArr.append('1')
-                else:
-                    outArr.append('0')
-
-        sys.stdout.write(''.join(outArr))
-        count = count + 1
-        
-        #Check if exit is requested, if non-windows, must hit ctl-c
-        if windows:
-            while msvcrt.kbhit():
-                char = msvcrt.getch()
-                if ((char == 'x') or (char == 'X')):
-                    print "\nCount = %d" % count
-                    exitReq = True
 ser.close()
 sys.exit(0)

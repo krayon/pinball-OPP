@@ -1,0 +1,13 @@
+1:  Start Stm32Workbench
+2:  File->Switch Workspace choose repos/Stm32Workbench
+3:  Go into Workbench (top right arrow)
+4:  File->Open Projects from File System..., Directory,
+       choose repos/Stm32Workbench/OppGen3 folder.  Press Finish
+5:  Expand OppGen3 project
+6:  Project->Build All
+7:  With OppGen3 project highlighted in Project Explorer, Project->Close Project
+8:  Project->Open Project (Refreshes Run/Debug Configurations)
+9:  Debugger can now be run
+
+Note:  Include paths seem to have absolute paths to plugin tools such as:
+/home/hugh-opp/Ac6/SystemWorkbench/plugins/fr.ac6.mcu.externaltools.arm-none.linux64_1.17.0.201812190825/tools/compiler/arm-none-eabi/include.  These paths will need to be altered depending on where eclipse installed plugins.

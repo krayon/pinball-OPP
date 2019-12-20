@@ -46,14 +46,13 @@
 #
 #===============================================================================
 
-testVers = '00.00.04'
+testVers = '00.00.05'
 
 import sys
 import serial
 import array
 import time
 import re
-import msvcrt
 import rs232Intf
 import subprocess
 import os
@@ -146,6 +145,55 @@ def calcCrc8(msgChars):
         crc8Byte = CRC8ByteLookup[crc8Byte ^ indInt];
     return (chr(crc8Byte))
 
+def getChar():
+    global windows
+    if windows:
+        return msvcrt.getch()
+    else:
+        fd = sys.stdin.fileno()
+        oldSettings = termios.tcgetattr(fd)
+
+        try:
+            tty.setcbreak(fd)
+            answer = sys.stdin.read(1)
+        finally:
+            termios.tcsetattr(fd, termios.TCSADRAIN, oldSettings)
+
+        return answer
+
+def kbHit():
+    global windows
+    if windows:
+        return msvcrt.kbhit()
+    else:
+        return select.select([sys.stdin], [], [], 0) == ([sys.stdin], [], [])
+
+def getAsynchChar():
+    global windows
+    if windows:
+        return msvcrt.getch()
+    else:
+        return sys.stdin.read(1)
+
+def runTest(test):
+    global windows
+    if windows:
+        retVal = test()
+    else:
+        old_settings = termios.tcgetattr(sys.stdin)
+        try:
+            tty.setcbreak(sys.stdin.fileno())
+            retVal = test()
+
+        finally:
+            termios.tcsetattr(sys.stdin, termios.TCSADRAIN, old_settings)
+    return retVal
+
+def writeNoCR(text):
+    global windows
+    sys.stdout.write(text)
+    if windows == False:
+        sys.stdout.flush()
 
 #grab data from serial port
 def getSerialData():
@@ -376,13 +424,19 @@ def ResetBoard():
 #Update board with standard configuration
 def TestStoreStdCfg():
     global ser
+    global windows
     
     print "\nStoring standard configuration on the card."
     ser.close()
 
-    command = "cd ..\Gen2Test & " \
-       "c:\Python27\python.exe Gen2Test.py -port=" + port + " -eraseCfg & " \
-       "c:\Python27\python.exe Gen2Test.py -port=" + port + " -saveCfg -loadCfg=regrCfg"
+    if windows:
+        command = "cd ..\Gen2Test & " \
+           "c:\Python27\python.exe Gen2Test.py -port=" + port + " -eraseCfg & " \
+           "c:\Python27\python.exe Gen2Test.py -port=" + port + " -saveCfg -loadCfg=regrCfg"
+    else:
+        command = "{}; {}; {}; {}".format("cd ../Gen2Test", "pwd", \
+            "sudo python Gen2Test.py -port=" + port + " -eraseCfg", \
+            "sudo python Gen2Test.py -port=" + port + " -saveCfg -loadCfg=regrCfg")
     process = subprocess.Popen(command,stdout=subprocess.PIPE, shell=True)
     proc_stdout = process.communicate()[0].strip()
     # Re-open the serial port.
@@ -404,12 +458,13 @@ def VerifyStdCfg():
     print "Verify 0 and 1 act like flippers."
     print "Verify 2 and 3 act like one-shots."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nStandard configuration for solenoids failed."
         return 601
     print "\nTest read input cmd for input switches."
-    print "Note:  First input switch is output for Neopixel, so not an input."
+    print "Note:  PSOC4200:  First input switch on right is output for Neopixel, so not an input."
+    print "Note:  STM32F103:  Fifth input switch from right is output for Neopixel, so not an input."
     print "All other inputs are configured in state mode."
     print "Press (y) if working, (n) if not working."
     exitReq = False
@@ -426,11 +481,11 @@ def VerifyStdCfg():
                 outArr.append('1')
             else:
                 outArr.append('0')
-        sys.stdout.write(''.join(outArr))
+        writeNoCR(''.join(outArr))
         
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nStandard configuration for inputs failed."
                 retCode = 602
@@ -456,8 +511,8 @@ def TestProcNoAutoClr():
         retCode = rcvEomResp()
         if retCode: return (retCode)
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nSolenoid kick command failed for flippers."
                 retCode = 1401
@@ -478,8 +533,8 @@ def TestProcNoAutoClr():
         retCode = rcvEomResp()
         if retCode: return (retCode)
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nSolenoid kick command failed for one shots."
                 retCode = 1402
@@ -508,8 +563,8 @@ def TestProcAutoClr():
         if retCode: return (retCode)
         time.sleep(1)
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nSolenoid kick command failed for flippers."
                 retCode = 1501
@@ -533,8 +588,8 @@ def TestProcAutoClr():
         if retCode: return (retCode)
         time.sleep(1)
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nSolenoid kick command failed for one shots."
                 retCode = 1502
@@ -560,7 +615,7 @@ def TestSolenoidConfig():
     print "Verify solenoid 2 is one shot with minimum (1 ms) init kick"
     print "Verify solenoid 3 is one shot with maximum (255 ms) init kick"
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nStandard configuration for solenoids failed."
         return 1601
@@ -575,7 +630,7 @@ def TestOnOffSolConfig():
     
     print "\nVerify solenoid 0 is fully on when the button is pressed (no flicker)"
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nStandard configuration for solenoids failed."
         return 1701
@@ -593,8 +648,8 @@ def TestOnOffSolConfig():
         retCode = rcvEomResp()
         if retCode: return (retCode)
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nSolenoid kick command failed for on/off solenoid."
                 retCode = 1702
@@ -624,8 +679,8 @@ def TestDelaySolConfig():
         if retCode: return (retCode)
         time.sleep(1)
         #Check if exit is requested
-        while msvcrt.kbhit():
-            char = msvcrt.getch()
+        while kbHit():
+            char = getAsynchChar()
             if (char != 'y') and (char != 'Y'):
                 print "\nSolenoid delay command failed."
                 retCode = 1801
@@ -645,7 +700,7 @@ def TestSolInputConfig():
     
     print "\nVerify first solenoid is not triggered using its input switch."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1901
@@ -659,7 +714,7 @@ def TestSolInputConfig():
     if retCode: return (retCode)
     print "\nVerify third solenoid is not triggered using its input switch."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1902
@@ -669,7 +724,7 @@ def TestSolInputConfig():
     if retCode: return (retCode)
     print "\nVerify third solenoid is triggered using the first solenoid input switch."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1903
@@ -679,7 +734,7 @@ def TestSolInputConfig():
     if retCode: return (retCode)
     print "\nVerify third solenoid is triggered using the second input switch on wing 2."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1904
@@ -693,7 +748,7 @@ def TestSolInputConfig():
     print "\nVerify third solenoid is not triggered with first solenoid input switch"
     print "or second input switch on wing 2."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1905
@@ -711,19 +766,19 @@ def TestSolInputConfig():
     print "\nVerify first solenoid (flipper) and third solenoid is triggered with"
     print "the first flipper input switch."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid switch configuration failed."
         return 1906
     print "\nVerify flipper is disabled when input is removed."
     print "Press and hold first flipper input switch, verify flipper is held."
     print "Press (y) while holding the flipper button"
-    ch = msvcrt.getch()
+    ch = getChar()
     sendSetSolInputCmd(0x08, 0x84)
     retCode = rcvEomResp()
     print "\nVerify first solenoid (flipper) is now off."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDisable solenoid when switch configuration removed failed."
         return 1907
@@ -738,7 +793,7 @@ def TestCancelSolConfig():
     
     print "\nVerify solenoid 0 can be canceled by tapping input switch"
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nCancel initial kick of solenoid failed."
         return 2101
@@ -748,7 +803,7 @@ def TestCancelSolConfig():
 def TestIncandCmds():
     print "\nVerify all LEDS are blinking slowly on the incandescent board."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nDefault incandescent state failed."
         return 2001
@@ -758,7 +813,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify first four LEDS are on, rest are blinking slowly."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent cmd override blinking failed."
         return 2002
@@ -768,7 +823,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify all LEDs are blinking slowly."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent cmd off goes back to blinking failed."
         return 2003
@@ -778,7 +833,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify last four LEDs are off."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent cmd blink off failed."
         return 2004
@@ -788,7 +843,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify last two LEDs are on."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent cmd turn on failed."
         return 2005
@@ -804,7 +859,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify every other bulb starting at first bulb is blinking fast."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent cmd blink fast failed."
         return 2006
@@ -815,7 +870,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify first four bulbs are on."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent cmd turn on failed."
         return 2007
@@ -825,7 +880,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify all bulbs are off."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent set state off failed."
         return 2008
@@ -835,7 +890,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify first four bulbs are blinking slowly."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent set state slow blink failed."
         return 2009
@@ -845,7 +900,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify last four bulbs are blinking fast."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent set state fast blink failed."
         return 2010
@@ -855,7 +910,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify all bulbs are on."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent on over-riding blinking failed."
         return 2011
@@ -865,7 +920,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify all bulbs are off."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent on/off comand clears blinking states."
         return 2012
@@ -875,7 +930,7 @@ def TestIncandCmds():
     if retCode: return (retCode)
     print "\nVerify every other bulb is on including last bulb."
     print "Press (y) if working, (n) if not working."
-    ch = msvcrt.getch()
+    ch = getChar()
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent on/off comand forces bulbs on/off failed."
         return 2013
@@ -1118,10 +1173,18 @@ def endTest(error):
     print "\nError code =", error
     ser.close()
     print "\nPress any key to close window"
-    ch = msvcrt.getch()
+    ch = getChar()
     sys.exit(error)
  
 #Main code
+try:
+    # for Windows-based systems
+    import msvcrt # If successful, we are on Windows
+    windows = True
+except ImportError:
+    # for POSIX-based systems (with termios & tty support)
+    import tty, sys, termios, select  # raises ImportError if unsupported
+    windows = False
 end = False
 skipProg = False
 skipSaveStdCfg = False
@@ -1153,14 +1216,14 @@ for arg in sys.argv:
 
 if end:
     print "\nPress any key to close window"
-    ch = msvcrt.getch()
+    ch = getChar()
     sys.exit(0)
 try:
     ser=serial.Serial(port, baudrate=115200, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=.1)
 except serial.SerialException:
     print "\nCould not open " + port
     print "\nPress any key to close window"
-    ch = msvcrt.getch()
+    ch = getChar()
     sys.exit(1)
 print "Sending inventory cmd"
 sendInvCmd()
@@ -1206,23 +1269,23 @@ else:
     #rerunning regression tests will work
     ResetBoard()
 
-retCode = VerifyStdCfg()
+retCode = runTest(VerifyStdCfg)
 if retCode != 0: sys.exit(retCode)
 
 if not skipSolTests:
-    retCode = TestProcNoAutoClr()
+    retCode = runTest(TestProcNoAutoClr)
     if retCode != 0: sys.exit(retCode)
 
-    retCode = TestProcAutoClr()
+    retCode = runTest(TestProcAutoClr)
     if retCode != 0: sys.exit(retCode)
 
     retCode = TestSolenoidConfig()
     if retCode != 0: sys.exit(retCode)
 
-    retCode = TestOnOffSolConfig()
+    retCode = runTest(TestOnOffSolConfig)
     if retCode != 0: sys.exit(retCode)
 
-    retCode = TestDelaySolConfig()
+    retCode = runTest(TestDelaySolConfig)
     if retCode != 0: sys.exit(retCode)
 
     retCode = TestSolInputConfig()
@@ -1237,5 +1300,5 @@ if not skipIncandTests:
 
 print "\nSuccessful completion."
 print "\nPress any key to close window"
-ch = msvcrt.getch()
+ch = getChar()
 sys.exit(0)
