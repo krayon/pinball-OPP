@@ -5,7 +5,8 @@
        choose repos/Stm32Workbench/OppGen3 folder.  Press Finish
 5:  Expand OppGen3 project
 6:  Project->Build All
-7:  With OppGen3 project highlighted in Project Explorer, Project->Close Project
+7:  With OppGen3 project highlighted in Project Explorer, File->Refresh
+8:  Project->Close Project
 8:  Project->Open Project (Refreshes Run/Debug Configurations)
 9:  Debugger can now be run
 

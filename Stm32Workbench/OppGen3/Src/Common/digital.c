@@ -113,6 +113,7 @@ typedef struct
 
 #define MATRIX_FIRE_SOL       0x80
 #define MATRIX_SOL_MASK       0x07
+#define MATRIX_WAIT_CNT       2
 
 typedef struct
 {
@@ -123,6 +124,7 @@ typedef struct
 typedef struct
 {
    U8                         index;
+   U8                         waitCnt;
    DIG_MTRX_BIT_INFO_T        info[RS232I_SW_MATRX_INP];
 } DIG_MATRIX_DATA_T;
 
@@ -143,7 +145,7 @@ typedef struct
    U32                        outputUpd;
    U32                        outputMask;
    DIG_PORT_DATA_T            updPort[STDLI_NUM_DIG_PORT];
-   DIG_MATRIX_DATA_T          *matrix_p;
+   DIG_MATRIX_DATA_T          mtrxData;
    DIG_INP_STATE_T            inpState[RS232I_NUM_GEN2_INP];
    DIG_SOL_STATE_T            solState[RS232I_NUM_GEN2_SOL];
 } DIG_GLOB_T;
@@ -275,8 +277,8 @@ void digital_init(void)
          {
             if ((index == 2) && (gen2g_info.nvCfgInfo.wingCfg[3] == WING_SW_MATRIX_IN))
             {
-               dig_info.matrix_p = malloc(sizeof(DIG_MATRIX_DATA_T));
-               dig_info.matrix_p->index = 0;
+               dig_info.mtrxData.index = 0;
+               dig_info.mtrxData.waitCnt = 0;
 #if GEN2G_DEBUG_PORT == 0
                outputMask |= MTRX_OUTPUT_BIT_MASK;
 #else
@@ -388,8 +390,8 @@ void digital_init(void)
          /* Initialize the counts and solenoid info */
          for (index = 0; index < RS232I_SW_MATRX_INP; index++)
          {
-            dig_info.matrix_p->info[index].cnt = 0;
-            dig_info.matrix_p->info[index].sol = 0;
+            dig_info.mtrxData.info[index].cnt = 0;
+            dig_info.mtrxData.info[index].sol = 0;
          }
          /* Set up the solenoids to autofire using the switch matrix */
          for (index = 0, solCfg_p = &gen2g_info.solDrvCfg_p->solCfg[0];
@@ -397,7 +399,7 @@ void digital_init(void)
          {
             if (solCfg_p->cfg & USE_MATRIX_INP)
             {
-               dig_info.matrix_p->info[solCfg_p->minOffDuty].sol = MATRIX_FIRE_SOL | index;
+               dig_info.mtrxData.info[solCfg_p->minOffDuty].sol = MATRIX_FIRE_SOL | index;
             }
          }
       }
@@ -510,55 +512,64 @@ void digital_task(void)
 
       if ((gen2g_info.typeWingBrds & (1 << WING_SW_MATRIX_IN)) != 0)
       {
-    	 data = (U8)(stdldigio_read_all_ports(dig_info.mtrxInpMask) >> 24);
-         chngU8 = data ^ gen2g_info.matrixPrev[dig_info.matrix_p->index];
-         gen2g_info.matrixPrev[dig_info.matrix_p->index] = data;
-         matrixBitInfo_p = &dig_info.matrix_p->info[dig_info.matrix_p->index * 8];
-         for (index = 0, currBit = 1; index < 8; index++, currBit <<= 1, matrixBitInfo_p++)
+         if (dig_info.mtrxData.waitCnt >= MATRIX_WAIT_CNT)
          {
-            /* If bit has changed, reset count */
-            if ((currBit & chngU8) != 0)
+        	dig_info.mtrxData.waitCnt = 0;
+    	    data = (U8)(stdldigio_read_all_ports(dig_info.mtrxInpMask) >> 24);
+            chngU8 = data ^ gen2g_info.matrixPrev[dig_info.mtrxData.index];
+            gen2g_info.matrixPrev[dig_info.mtrxData.index] = data;
+            matrixBitInfo_p = &dig_info.mtrxData.info[dig_info.mtrxData.index * 8];
+            for (index = 0, currBit = 1; index < 8; index++, currBit <<= 1, matrixBitInfo_p++)
             {
-               matrixBitInfo_p->cnt = 0;
-            }
-            else
-            {
-               if (matrixBitInfo_p->cnt <= MATRIX_THRESH)
+               /* If bit has changed, reset count */
+               if ((currBit & chngU8) != 0)
                {
-                  matrixBitInfo_p->cnt++;
+                  matrixBitInfo_p->cnt = 0;
                }
-               /* Just passed the threshold so update data byte */
-               if (matrixBitInfo_p->cnt == MATRIX_THRESH)
+               else
                {
-                  if (data & currBit)
+                  if (matrixBitInfo_p->cnt <= MATRIX_THRESH)
                   {
-                     /* This only sets bits, bits are cleared when main controller
-                      * reads matrix inputs to guarantee a change isn't missed.
-                      */
-                     gen2g_info.matrixInp[dig_info.matrix_p->index] |= currBit;
-                     if (matrixBitInfo_p->sol != 0)
+                     matrixBitInfo_p->cnt++;
+                  }
+                  /* Just passed the threshold so update data byte */
+                  if (matrixBitInfo_p->cnt == MATRIX_THRESH)
+                  {
+                     if (data & currBit)
                      {
-                        gen2g_info.solDrvProcCtl |=
-                           (1 << (matrixBitInfo_p->sol & MATRIX_SOL_MASK));
+                        /* This only sets bits, bits are cleared when main controller
+                         * reads matrix inputs to guarantee a change isn't missed.
+                         */
+                        gen2g_info.matrixInp[dig_info.mtrxData.index] |= currBit;
+                        if (matrixBitInfo_p->sol != 0)
+                        {
+                           gen2g_info.solDrvProcCtl |=
+                              (1 << (matrixBitInfo_p->sol & MATRIX_SOL_MASK));
+                        }
                      }
                   }
                }
             }
          }
-         /* Move to next column */
-         dig_info.matrix_p->index++;
-         if (dig_info.matrix_p->index >= RS232I_MATRX_COL)
+
+         if (dig_info.mtrxData.waitCnt == 0)
          {
-            dig_info.matrix_p->index = 0;
-         }
+            /* Move to next column */
+            dig_info.mtrxData.index++;
+            if (dig_info.mtrxData.index >= RS232I_MATRX_COL)
+            {
+               dig_info.mtrxData.index = 0;
+            }
          
-         /* Reverse column numbering to match Bally documentation */
+            /* Reverse column numbering to match Bally documentation */
 #if GEN2G_DEBUG_PORT == 0
-         dig_info.outputMask |= MTRX_OUTPUT_BIT_MASK;
+            dig_info.outputMask |= MTRX_OUTPUT_BIT_MASK;
 #else
-         dig_info.outputMask |= DBG_MTRX_OUT_BIT_MASK;
+            dig_info.outputMask |= DBG_MTRX_OUT_BIT_MASK;
 #endif
-         dig_info.outputUpd |= ((1 << (RS232I_MATRX_COL - 1 - dig_info.matrix_p->index)) << 16);
+            dig_info.outputUpd |= ((1 << (RS232I_MATRX_COL - 1 - dig_info.mtrxData.index)) << 16);
+         }
+         dig_info.mtrxData.waitCnt++;
       }
       
       if ((gen2g_info.typeWingBrds & (1 << WING_SOL)) != 0)
@@ -801,11 +812,11 @@ void digital_set_solenoid_input(
       {
          if (solIndex & SOL_INP_CLEAR_SOL)
          {
-            dig_info.matrix_p->info[inpIndex - RS232I_NUM_GEN2_INP].sol = 0;
+            dig_info.mtrxData.info[inpIndex - RS232I_NUM_GEN2_INP].sol = 0;
          }
          else
          {
-            dig_info.matrix_p->info[inpIndex - RS232I_NUM_GEN2_INP].sol =
+            dig_info.mtrxData.info[inpIndex - RS232I_NUM_GEN2_INP].sol =
                MATRIX_FIRE_SOL | (solIndex & SOL_INP_SOL_MASK);
          }
       }
