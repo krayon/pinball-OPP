@@ -156,7 +156,7 @@ void stdldigio_write_all_ports(
 	  ((clrBits & 0x00000001) << 29) |
       ((clrBits & 0x000000e0) << 19) |
 	  ((clrBits & 0x00000100) << 23) |
-	  ((clrBits & 0x00010000) >> 14) |
+	  ((clrBits & 0x00010000) << 14) |
 	  ((clrBits & 0x0ff00000) >> 4);
    portBBsrr = ((setBits & 0x0000001e) << 11) |
       ((setBits & 0x0000fe00) >> 6) |

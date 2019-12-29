@@ -24,7 +24,7 @@
  * @date:   12/02/2012
  *
  * @note:   Open Pinball Project
- *          Copyright� 2012-2015, Hugh Spahr
+ *          Copyright� 2012-2019, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -532,7 +532,7 @@ void digital_task(void)
                   {
                      matrixBitInfo_p->cnt++;
                   }
-                  /* Just passed the threshold so update data byte */
+                  /* Just passed the threshold so update data bit */
                   if (matrixBitInfo_p->cnt == MATRIX_THRESH)
                   {
                      if (data & currBit)

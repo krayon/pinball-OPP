@@ -24,7 +24,7 @@
  * @date:   9/16/2015
  *
  * @note:   Open Pinball Project
- *          Copyright� 2015, Hugh Spahr
+ *          Copyright� 2015-2019, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x01000102
+#define GEN2G_CODE_VERS       0x01000103
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01

@@ -24,7 +24,7 @@
  * @date:   11/30/2012
  *
  * @note:   Open Pinball Project
- *          Copyright© 2012, Hugh Spahr
+ *          Copyrightï¿½ 2012-2019, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -52,7 +52,7 @@
 #define INPGLOB_H
  
 #include "stdtypes.h"
-#include "errintf.h"
+#include "rs232intf.h"
 
 #define INPG_WARNING       0x000  /* Used to create 12 bit event IDs */
 #define INPG_ERROR         0xe00  /* Used to create 12 bit event IDs */
