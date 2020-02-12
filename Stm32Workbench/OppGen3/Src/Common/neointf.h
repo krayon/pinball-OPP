@@ -61,14 +61,18 @@
 GEN2G_ERROR_E neo_init(
    U8                   numPixels);
 void neo_task();
-void neo_update_pixel_color(
-   INT                  pixel,
-   INT                  colorTblIdx);
-void neo_update_pixel_cmd(
-   INT                  pixel,
-   INT                  cmd);
-void neo_update_color_tbl(
-   INT                  index,
-   U32                  color);
+void neo_update_pixel_data(
+   INT                  offset,
+   U8                   *data_p,
+   INT                  numBytes);
+void neo_fade_pixel_data(
+   INT                  offset,
+   U8                   *data_p,
+   INT                  numBytes,
+   INT                  time);
+void neo_fill_out_dma_data(
+   INT                  offset,
+   U8                   *srcData_p,
+   INT                  numBytes);
 
 /* [] END OF FILE */

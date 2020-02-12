@@ -462,7 +462,6 @@ void rs232proc_task(void)
                         case RS232I_RESET:
                         {
                            NVIC_SystemReset();
-                           ResetProc;
                            break;
                         }
                         case RS232I_GO_BOOT:
@@ -576,7 +575,7 @@ void rs232proc_task(void)
                            {
                               if ((currBit & mask) != 0)
                               {
-                                 neo_update_pixel_cmd(index + tmpU32, (INT)rs232_glob.rxBuf[NEO_CMD_OFFSET]);
+                                 /* HRS:  neo_update_pixel_cmd(index + tmpU32, (INT)rs232_glob.rxBuf[NEO_CMD_OFFSET]); */
                               }
                            }
                            break;
@@ -593,7 +592,7 @@ void rs232proc_task(void)
                            {
                               if ((currBit & mask) != 0)
                               {
-                                 neo_update_pixel_color(index + tmpU32, (INT)rs232_glob.rxBuf[NEO_COLOR_OFFSET]);
+                                 /* HRS:  neo_update_pixel_color(index + tmpU32, (INT)rs232_glob.rxBuf[NEO_COLOR_OFFSET]); */
                               }
                            }
                            break;
@@ -601,10 +600,11 @@ void rs232proc_task(void)
                         case RS232I_CHNG_NEO_COLOR_TBL:
                         {
                            /* tmpU32 is the new color table color */
+                           /* HRS:  Remove
                            tmpU32 = ((U32)rs232_glob.rxBuf[NEO_GREEN_OFFSET] << 16) |
                               ((U32)rs232_glob.rxBuf[NEO_RED_OFFSET] << 8) |
                               (U32)rs232_glob.rxBuf[NEO_BLUE_OFFSET];
-                           neo_update_color_tbl((INT)rs232_glob.rxBuf[NEO_CMD_OFFSET], tmpU32);
+                           neo_update_color_tbl((INT)rs232_glob.rxBuf[NEO_CMD_OFFSET], tmpU32); */
                            break;
                         }
                         case RS232I_INCAND_CMD:
@@ -639,10 +639,10 @@ void rs232proc_task(void)
                         }
                         case RS232I_SET_IND_NEO:
                         {
-                           neo_update_pixel_cmd(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
+                           /* HRS:  neo_update_pixel_cmd(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
                               (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
                            neo_update_pixel_color(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
-                              (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
+                              (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]); */
                            break;
                         }
                         case RS232I_SET_SOL_INPUT:
@@ -728,11 +728,12 @@ void rs232proc_task(void)
                if (index == 2)
                {
                   /* New color table entry completed */
+                  /* HRS:  Remove
                   tmpU32 = ((U32)rs232_glob.rxBuf[0] << 16) |
                      ((U32)rs232_glob.rxBuf[1] << 8) |
                      (U32)rs232_glob.rxBuf[2];
                   index = rs232_glob.currIndex / 3;
-                  neo_update_color_tbl(index, tmpU32);
+                  neo_update_color_tbl(index, tmpU32); */
                }
                rs232_glob.currIndex++;
                if (rs232_glob.currIndex < rs232_glob.cmdLen)
@@ -769,7 +770,6 @@ void rs232proc_task(void)
                if (rs232_glob.currIndex >= BOOT_MAX_XFER_SIZE + 1)
                {
                   NVIC_SystemReset();
-                  ResetProc;
                }
                break;
             }

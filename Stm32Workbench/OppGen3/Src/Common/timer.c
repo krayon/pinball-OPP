@@ -55,12 +55,13 @@ typedef struct
 {
    INT               msCnt;
    INT               neoCnt;
+   INT               incandCnt;
 } TMR_INFO;
 
 TMR_INFO tmrInfo;
 
 /* Prototypes */
-void neo_40ms_tick();
+void neo_10ms_tick();
 void incand_40ms_tick();
 
 /*
@@ -87,6 +88,7 @@ void timer_init()
 {
    tmrInfo.msCnt = 0;
    tmrInfo.neoCnt = 0;
+   tmrInfo.incandCnt = 5;   /* Offset neoCnt and incandCnt by 5 ms */
    gen2g_info.ledStateNum = 0;
    gen2g_info.ledStatus = 0;
     
@@ -137,8 +139,8 @@ void timer_overflow_isr()
       /* Call the neopixel timer.  This will eventually be a registered
        *  recurring timer event with a function pointer.
        */
-      tmrInfo.neoCnt++;
-      if (tmrInfo.neoCnt >= 40)
+      tmrInfo.incandCnt++;
+      if (tmrInfo.incandCnt >= 40)
       {
          /* Move to next LED state */
          gen2g_info.ledStateNum++;
@@ -161,9 +163,13 @@ void timer_overflow_isr()
             }
          }
         
-         tmrInfo.neoCnt = 0;
-         neo_40ms_tick();
          incand_40ms_tick();
+      }
+      tmrInfo.neoCnt++;
+      if (tmrInfo.neoCnt >= 40)
+      {
+         tmrInfo.neoCnt = 0;
+         neo_10ms_tick();
       }
    }
 }

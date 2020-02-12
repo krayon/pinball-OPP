@@ -72,7 +72,7 @@ typedef enum
 typedef struct
 {
   INP_STATE_E               state;
-  RS232I_CFG_INP_TYPE_E     inpCfg[RS232I_NUM_INP];
+  RS232I_CFG_INP_TYPE_E     inpCfg[RS232I_NUM_GEN2_INP];
   U16                       inpSwitch;
   U16                       stateMask;
 } INPG_GLOB_T;
