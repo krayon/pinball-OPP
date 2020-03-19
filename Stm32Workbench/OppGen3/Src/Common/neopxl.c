@@ -91,10 +91,13 @@ typedef struct
 {
    U8                stat;                /* Status */
    BOOL              tickOcc;             /* 10 ms tick occurred */
+   BOOL              updImmed;            /* Update DMA data immediately */
    INT               numPixels;           /* Number of pixels */
    INT               bytesPerPixel;       /* Number of bytes per pixel */
    INT               underflow;           /* Underflow count */
    INT               complUpd;            /* Number of completed updates */
+   INT               numRcvBytes;         /* Number of rcv data bytes */
+   INT               rcvOffset;           /* Current rcv offset */
    FADE_INFO         fadeInfo[NUM_FADES]; /* Number of fade groups supported */
    U8                *currPxlVal_p;       /* Ptr to array of current pixel values */
    U8                *newPxlVal_p;        /* Ptr to array of future pixel values */
@@ -108,74 +111,40 @@ NEO_INFO neoInfo;
 const U32                   NEO_BYTE_EXPAND[256] =
   { 0x88888888, 0x8c888888, 0xc8888888, 0xcc888888, 0x888c8888, 0x8c8c8888, 0xc88c8888, 0xcc8c8888,	/* 0x00 - 0x07 */
     0x88c88888, 0x8cc88888, 0xc8c88888, 0xccc88888, 0x88cc8888, 0x8ccc8888, 0xc8cc8888, 0xcccc8888,	/* 0x08 - 0x0f */
-	0x88888c88, 0x8c888c88, 0xc8888c88, 0xcc888c88, 0x888c8c88, 0x8c8c8c88, 0xc88c8c88, 0xcc8c8c88,	/* 0x10 - 0x17 */
-	0x88c88c88, 0x8cc88c88, 0xc8c88c88, 0xccc88c88, 0x88cc8c88, 0x8ccc8c88, 0xc8cc8c88, 0xcccc8c88,	/* 0x18 - 0x1f */
-	0x8888c888, 0x8c88c888, 0xc888c888, 0xcc88c888, 0x888cc888, 0x8c8cc888, 0xc88cc888, 0xcc8cc888,	/* 0x20 - 0x07 */
-	0x88c8c888, 0x8cc8c888, 0xc8c8c888, 0xccc8c888, 0x88ccc888, 0x8cccc888, 0xc8ccc888, 0xccccc888,	/* 0x28 - 0x2f */
-	0x8888cc88, 0x8c88cc88, 0xc888cc88, 0xcc88cc88, 0x888ccc88, 0x8c8ccc88, 0xc88ccc88, 0xcc8ccc88,	/* 0x30 - 0x37 */
-	0x88c8cc88, 0x8cc8cc88, 0xc8c8cc88, 0xccc8cc88, 0x88cccc88, 0x8ccccc88, 0xc8cccc88, 0xcccccc88,	/* 0x38 - 0x3f */
-	0x8888888c, 0x8c88888c, 0xc888888c, 0xcc88888c, 0x888c888c, 0x8c8c888c, 0xc88c888c, 0xcc8c888c,	/* 0x40 - 0x47 */
+    0x88888c88, 0x8c888c88, 0xc8888c88, 0xcc888c88, 0x888c8c88, 0x8c8c8c88, 0xc88c8c88, 0xcc8c8c88,	/* 0x10 - 0x17 */
+    0x88c88c88, 0x8cc88c88, 0xc8c88c88, 0xccc88c88, 0x88cc8c88, 0x8ccc8c88, 0xc8cc8c88, 0xcccc8c88,	/* 0x18 - 0x1f */
+    0x8888c888, 0x8c88c888, 0xc888c888, 0xcc88c888, 0x888cc888, 0x8c8cc888, 0xc88cc888, 0xcc8cc888,	/* 0x20 - 0x07 */
+    0x88c8c888, 0x8cc8c888, 0xc8c8c888, 0xccc8c888, 0x88ccc888, 0x8cccc888, 0xc8ccc888, 0xccccc888,	/* 0x28 - 0x2f */
+    0x8888cc88, 0x8c88cc88, 0xc888cc88, 0xcc88cc88, 0x888ccc88, 0x8c8ccc88, 0xc88ccc88, 0xcc8ccc88,	/* 0x30 - 0x37 */
+    0x88c8cc88, 0x8cc8cc88, 0xc8c8cc88, 0xccc8cc88, 0x88cccc88, 0x8ccccc88, 0xc8cccc88, 0xcccccc88,	/* 0x38 - 0x3f */
+    0x8888888c, 0x8c88888c, 0xc888888c, 0xcc88888c, 0x888c888c, 0x8c8c888c, 0xc88c888c, 0xcc8c888c,	/* 0x40 - 0x47 */
     0x88c8888c, 0x8cc8888c, 0xc8c8888c, 0xccc8888c, 0x88cc888c, 0x8ccc888c, 0xc8cc888c, 0xcccc888c,	/* 0x48 - 0x4f */
-	0x88888c8c, 0x8c888c8c, 0xc8888c8c, 0xcc888c8c, 0x888c8c8c, 0x8c8c8c8c, 0xc88c8c8c, 0xcc8c8c8c,	/* 0x50 - 0x57 */
-	0x88c88c8c, 0x8cc88c8c, 0xc8c88c8c, 0xccc88c8c, 0x88cc8c8c, 0x8ccc8c8c, 0xc8cc8c8c, 0xcccc8c8c,	/* 0x58 - 0x5f */
-	0x8888c88c, 0x8c88c88c, 0xc888c88c, 0xcc88c88c, 0x888cc88c, 0x8c8cc88c, 0xc88cc88c, 0xcc8cc88c,	/* 0x60 - 0x67 */
-	0x88c8c88c, 0x8cc8c88c, 0xc8c8c88c, 0xccc8c88c, 0x88ccc88c, 0x8cccc88c, 0xc8ccc88c, 0xccccc88c,	/* 0x68 - 0x6f */
-	0x8888cc8c, 0x8c88cc8c, 0xc888cc8c, 0xcc88cc8c, 0x888ccc8c, 0x8c8ccc8c, 0xc88ccc8c, 0xcc8ccc8c,	/* 0x70 - 0x77 */
-	0x88c8cc8c, 0x8cc8cc8c, 0xc8c8cc8c, 0xccc8cc8c, 0x88cccc8c, 0x8ccccc8c, 0xc8cccc8c, 0xcccccc8c,	/* 0x78 - 0x7f */
-	0x888888c8, 0x8c8888c8, 0xc88888c8, 0xcc8888c8, 0x888c88c8, 0x8c8c88c8, 0xc88c88c8, 0xcc8c88c8,	/* 0x80 - 0x87 */
+    0x88888c8c, 0x8c888c8c, 0xc8888c8c, 0xcc888c8c, 0x888c8c8c, 0x8c8c8c8c, 0xc88c8c8c, 0xcc8c8c8c,	/* 0x50 - 0x57 */
+    0x88c88c8c, 0x8cc88c8c, 0xc8c88c8c, 0xccc88c8c, 0x88cc8c8c, 0x8ccc8c8c, 0xc8cc8c8c, 0xcccc8c8c,	/* 0x58 - 0x5f */
+    0x8888c88c, 0x8c88c88c, 0xc888c88c, 0xcc88c88c, 0x888cc88c, 0x8c8cc88c, 0xc88cc88c, 0xcc8cc88c,	/* 0x60 - 0x67 */
+    0x88c8c88c, 0x8cc8c88c, 0xc8c8c88c, 0xccc8c88c, 0x88ccc88c, 0x8cccc88c, 0xc8ccc88c, 0xccccc88c,	/* 0x68 - 0x6f */
+    0x8888cc8c, 0x8c88cc8c, 0xc888cc8c, 0xcc88cc8c, 0x888ccc8c, 0x8c8ccc8c, 0xc88ccc8c, 0xcc8ccc8c,	/* 0x70 - 0x77 */
+    0x88c8cc8c, 0x8cc8cc8c, 0xc8c8cc8c, 0xccc8cc8c, 0x88cccc8c, 0x8ccccc8c, 0xc8cccc8c, 0xcccccc8c,	/* 0x78 - 0x7f */
+    0x888888c8, 0x8c8888c8, 0xc88888c8, 0xcc8888c8, 0x888c88c8, 0x8c8c88c8, 0xc88c88c8, 0xcc8c88c8,	/* 0x80 - 0x87 */
     0x88c888c8, 0x8cc888c8, 0xc8c888c8, 0xccc888c8, 0x88cc88c8, 0x8ccc88c8, 0xc8cc88c8, 0xcccc88c8,	/* 0x88 - 0x8f */
-	0x88888cc8, 0x8c888cc8, 0xc8888cc8, 0xcc888cc8, 0x888c8cc8, 0x8c8c8cc8, 0xc88c8cc8, 0xcc8c8cc8,	/* 0x90 - 0x97 */
-	0x88c88cc8, 0x8cc88cc8, 0xc8c88cc8, 0xccc88cc8, 0x88cc8cc8, 0x8ccc8cc8, 0xc8cc8cc8, 0xcccc8cc8,	/* 0x98 - 0x9f */
-	0x8888c8c8, 0x8c88c8c8, 0xc888c8c8, 0xcc88c8c8, 0x888cc8c8, 0x8c8cc8c8, 0xc88cc8c8, 0xcc8cc8c8,	/* 0xa0 - 0xa7 */
-	0x88c8c8c8, 0x8cc8c8c8, 0xc8c8c8c8, 0xccc8c8c8, 0x88ccc8c8, 0x8cccc8c8, 0xc8ccc8c8, 0xccccc8c8,	/* 0xa8 - 0xaf */
-	0x8888ccc8, 0x8c88ccc8, 0xc888ccc8, 0xcc88ccc8, 0x888cccc8, 0x8c8cccc8, 0xc88cccc8, 0xcc8cccc8,	/* 0xb0 - 0xb7 */
-	0x88c8ccc8, 0x8cc8ccc8, 0xc8c8ccc8, 0xccc8ccc8, 0x88ccccc8, 0x8cccccc8, 0xc8ccccc8, 0xccccccc8,	/* 0xb8 - 0xbf */
-	0x888888cc, 0x8c8888cc, 0xc88888cc, 0xcc8888cc, 0x888c88cc, 0x8c8c88cc, 0xc88c88cc, 0xcc8c88cc,	/* 0xc0 - 0xc7 */
+    0x88888cc8, 0x8c888cc8, 0xc8888cc8, 0xcc888cc8, 0x888c8cc8, 0x8c8c8cc8, 0xc88c8cc8, 0xcc8c8cc8,	/* 0x90 - 0x97 */
+    0x88c88cc8, 0x8cc88cc8, 0xc8c88cc8, 0xccc88cc8, 0x88cc8cc8, 0x8ccc8cc8, 0xc8cc8cc8, 0xcccc8cc8,	/* 0x98 - 0x9f */
+    0x8888c8c8, 0x8c88c8c8, 0xc888c8c8, 0xcc88c8c8, 0x888cc8c8, 0x8c8cc8c8, 0xc88cc8c8, 0xcc8cc8c8,	/* 0xa0 - 0xa7 */
+    0x88c8c8c8, 0x8cc8c8c8, 0xc8c8c8c8, 0xccc8c8c8, 0x88ccc8c8, 0x8cccc8c8, 0xc8ccc8c8, 0xccccc8c8,	/* 0xa8 - 0xaf */
+    0x8888ccc8, 0x8c88ccc8, 0xc888ccc8, 0xcc88ccc8, 0x888cccc8, 0x8c8cccc8, 0xc88cccc8, 0xcc8cccc8,	/* 0xb0 - 0xb7 */
+    0x88c8ccc8, 0x8cc8ccc8, 0xc8c8ccc8, 0xccc8ccc8, 0x88ccccc8, 0x8cccccc8, 0xc8ccccc8, 0xccccccc8,	/* 0xb8 - 0xbf */
+    0x888888cc, 0x8c8888cc, 0xc88888cc, 0xcc8888cc, 0x888c88cc, 0x8c8c88cc, 0xc88c88cc, 0xcc8c88cc,	/* 0xc0 - 0xc7 */
     0x88c888cc, 0x8cc888cc, 0xc8c888cc, 0xccc888cc, 0x88cc88cc, 0x8ccc88cc, 0xc8cc88cc, 0xcccc88cc,	/* 0xc8 - 0xcf */
-	0x88888ccc, 0x8c888ccc, 0xc8888ccc, 0xcc888ccc, 0x888c8ccc, 0x8c8c8ccc, 0xc88c8ccc, 0xcc8c8ccc,	/* 0xd0 - 0xd7 */
-	0x88c88ccc, 0x8cc88ccc, 0xc8c88ccc, 0xccc88ccc, 0x88cc8ccc, 0x8ccc8ccc, 0xc8cc8ccc, 0xcccc8ccc,	/* 0xd8 - 0xdf */
-	0x8888c8cc, 0x8c88c8cc, 0xc888c8cc, 0xcc88c8cc, 0x888cc8cc, 0x8c8cc8cc, 0xc88cc8cc, 0xcc8cc8cc,	/* 0xe0 - 0xe7 */
-	0x88c8c8cc, 0x8cc8c8cc, 0xc8c8c8cc, 0xccc8c8cc, 0x88ccc8cc, 0x8cccc8cc, 0xc8ccc8cc, 0xccccc8cc,	/* 0xe8 - 0xef */
-	0x8888cccc, 0x8c88cccc, 0xc888cccc, 0xcc88cccc, 0x888ccccc, 0x8c8ccccc, 0xc88ccccc, 0xcc8ccccc,	/* 0xf0 - 0xf7 */
-	0x88c8cccc, 0x8cc8cccc, 0xc8c8cccc, 0xccc8cccc, 0x88cccccc, 0x8ccccccc, 0xc8cccccc, 0xcccccccc,	/* 0xf8 - 0xff */
-  };
-
-const U32                   NEO_NIBBLE_EXPAND[16] =
-  { 0x13131313, 0x26131313, 0x13261313, 0x26261313,	/* 0x00 - 0x03 */
-    0x13132613, 0x26132613, 0x13262613, 0x26262613, /* 0x04 - 0x07 */
-    0x13131326, 0x26131326, 0x13261326, 0x26261326,	/* 0x08 - 0x0b */
-    0x13132626, 0x26132626, 0x13262626, 0x26262626, /* 0x0c - 0x0f */
+    0x88888ccc, 0x8c888ccc, 0xc8888ccc, 0xcc888ccc, 0x888c8ccc, 0x8c8c8ccc, 0xc88c8ccc, 0xcc8c8ccc,	/* 0xd0 - 0xd7 */
+    0x88c88ccc, 0x8cc88ccc, 0xc8c88ccc, 0xccc88ccc, 0x88cc8ccc, 0x8ccc8ccc, 0xc8cc8ccc, 0xcccc8ccc,	/* 0xd8 - 0xdf */
+    0x8888c8cc, 0x8c88c8cc, 0xc888c8cc, 0xcc88c8cc, 0x888cc8cc, 0x8c8cc8cc, 0xc88cc8cc, 0xcc8cc8cc,	/* 0xe0 - 0xe7 */
+    0x88c8c8cc, 0x8cc8c8cc, 0xc8c8c8cc, 0xccc8c8cc, 0x88ccc8cc, 0x8cccc8cc, 0xc8ccc8cc, 0xccccc8cc,	/* 0xe8 - 0xef */
+    0x8888cccc, 0x8c88cccc, 0xc888cccc, 0xcc88cccc, 0x888ccccc, 0x8c8ccccc, 0xc88ccccc, 0xcc8ccccc,	/* 0xf0 - 0xf7 */
+    0x88c8cccc, 0x8cc8cccc, 0xc8c8cccc, 0xccc8cccc, 0x88cccccc, 0x8ccccccc, 0xc8cccccc, 0xcccccccc,	/* 0xf8 - 0xff */
   };
 
 /* Prototypes */
 void neo_process_fade_record();
-
-/*
- * ===============================================================================
- * 
- * Name: neopxl_init
- * 
- * ===============================================================================
- */
-/**
- * Initialize the neopixel driver
- * 
- * Set the neopixel color table pointer.
- * 
- * @param   None
- * @return  None
- * 
- * @pre     None 
- * @note    None
- * 
- * ===============================================================================
- */
-void neopxl_init()
-{
-   /* Set the location of the configuration data */
-   gen2g_info.neoCfg_p = (GEN2G_NEO_CFG_T *)gen2g_info.freeCfg_p;
-   gen2g_info.freeCfg_p += sizeof(GEN2G_NEO_CFG_T);
-} /* neopxl_init */
 
 /*
  * ===============================================================================
@@ -189,7 +158,6 @@ void neopxl_init()
  * 
  * Turn pixels to default output, allocate memory, and reset state machine.
  * 
- * @param   numPixels   [in]        Number of pixels
  * @param   None 
  * @return  None
  * 
@@ -198,18 +166,21 @@ void neopxl_init()
  * 
  * ===============================================================================
  */
-GEN2G_ERROR_E neo_init(
-   U8                numPixels)
+GEN2G_ERROR_E neo_init()
 {
    INT               index;
    INT               offset;
    U8                *tmp1_p;
    U8                *tmp2_p;
 
-#define SPI2_NEO 1
-
-   /* HRS: Debug, should be configurable */
-   neoInfo.bytesPerPixel = 3;
+   if ((gen2g_info.nvCfgInfo.bytesPerPxl == 0xff) || (gen2g_info.nvCfgInfo.bytesPerPxl == 0x00))
+   {
+      neoInfo.bytesPerPixel = 3;
+   }
+   else
+   {
+      neoInfo.bytesPerPixel = gen2g_info.nvCfgInfo.bytesPerPxl;
+   }
 
    /* Only initialize if Neo pixels are configured */
    neoInfo.stat = STAT_DISABLED;
@@ -220,10 +191,10 @@ GEN2G_ERROR_E neo_init(
       neoInfo.tickOcc = FALSE;
       neoInfo.underflow = 0;
       neoInfo.complUpd = 0;
-      neoInfo.numPixels = numPixels;
-      if (numPixels == 0)
+      neoInfo.numPixels = gen2g_info.nvCfgInfo.numNeoPxls;
+      if (gen2g_info.nvCfgInfo.numNeoPxls == 0)
       {
-         neoInfo.numPixels = MAX_NEOPIXELS;
+    	  neoInfo.numPixels = MAX_NEOPIXELS;
       }
       for (index = 0; index < NUM_FADES; index++)
       {
@@ -246,24 +217,15 @@ GEN2G_ERROR_E neo_init(
       }
 
       /* Allocate neopixel DMA buffer memory */
-#if PWM1_NEO
-      neoInfo.buf_p = malloc((neoInfo.numPixels * neoInfo.bytesPerPixel * PWM_BITS_PER_NEO_BIT) + 1);
-#endif
-#if SPI2_NEO
       neoInfo.buf_p = malloc((neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1);
-#endif
       if (neoInfo.buf_p == NULL)
       {
          gen2g_info.error = ERR_MALLOC_FAIL;
          return(ERR_MALLOC_FAIL);
       }
-#if PWM1_NEO
-      // Count of zero turns off PWM at end of string
-      *((U8 *)neoInfo.buf_p + (neoInfo.numPixels * neoInfo.bytesPerPixel * PWM_BITS_PER_NEO_BIT)) = 0;
-#endif
-#if SPI2_NEO
+
+      /* Zero byte turns off PWM at end of string */
       *((U8 *)neoInfo.buf_p + (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT)) = 0;
-#endif
     
       for (tmp1_p = neoInfo.currPxlVal_p, tmp2_p = neoInfo.newPxlVal_p;
          tmp1_p < neoInfo.currPxlVal_p + (neoInfo.numPixels * neoInfo.bytesPerPixel); tmp1_p++, tmp2_p++)
@@ -282,9 +244,7 @@ GEN2G_ERROR_E neo_init(
 
       neo_fill_out_dma_data(0, neoInfo.currPxlVal_p, neoInfo.numPixels * neoInfo.bytesPerPixel);
 
-#if SPI2_NEO
-      /* HRS:  For SPI2 */
-      /* Setup GPIO port */
+      /* Setup SPI2 GPIO port */
       gpioBBase_p->CRH &= ~0xf0000000;
       gpioBBase_p->CRH |= 0xb0000000;  // Alternate function push/pull output 50MHz
       gpioBBase_p->BSRR = 0x80000000;
@@ -302,44 +262,10 @@ GEN2G_ERROR_E neo_init(
       dma1Base_p->CMAR5 = (R32)neoInfo.buf_p;
       dma1Base_p->CNDTR5 = (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1;
       dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
-#endif
-
-#if PWM1_NEO
-      /* HRS: For PWM1 */
-      /* Setup GPIO port */
-      gpioBBase_p->CRH &= ~0xf0000000;
-      gpioBBase_p->CRH |= 0xb0000000;  // Alternate function push/pull output 50MHz
-      gpioBBase_p->BSRR = 0x80000000;
-
-      /* Enable clocks to TIM1 and DMA1 */
-      rccBase_p->AHBENR |= 0x00000001;  // DMA1
-      rccBase_p->APB2ENR |= 0x00000800;  // TIM1
-
-      tim1Base_p->PSC = 0;
-      tim1Base_p->ARR = 56;
-      // tim1Base_p->CCR3 = 0x13;  // HRS:  No DMA set duty cycle
-      tim1Base_p->CCMR1 = 0x0000;
-      tim1Base_p->CCMR2 = 0x0068;
-      tim1Base_p->EGR = 0x0001;
-      tim1Base_p->SMCR = 0x0000;
-      // DMA bits
-      tim1Base_p->DIER = 0x0800; // CC3DE = 1
-      tim1Base_p->BDTR = 0x8000; // MOE = 1, OSSR = 0, OSSI = x
-      tim1Base_p->CCER = 0x0400; // CC3NP = 0, CC3NE = 1, CC3P = x, CC3E = 0
-      tim1Base_p->CR2 = 0x0000;
-      tim1Base_p->CR1 = 0x0001;
-
-      /* Set up DMA1 Chan 6 */
-      dma1Base_p->CPAR6 = (R32)&tim1Base_p->CCR3;
-      dma1Base_p->CMAR6 = (R32)neoInfo.buf_p;
-      dma1Base_p->CNDTR6 = (neoInfo.numPixels * neoInfo.bytesPerPixel * PWM_BITS_PER_NEO_BIT) + 1;
-      dma1Base_p->CCR6 = DMAx_CCR_PSIZE16 | DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
-#endif
 
       neoInfo.stat = STAT_DMA_DATA;
    }
     
-   /* Register a 40ms repeating tick function, register FIFO empty if necessary */
    return(NO_ERRORS);
 }
 
@@ -402,6 +328,7 @@ void neo_task()
       {
          /* Look for a fade update group */
          neoInfo.fade_p = &neoInfo.fadeInfo[0];
+         neoInfo.stat = STAT_UPDATE_FADE;
       }
       if (neoInfo.stat == STAT_UPDATE_FADE)
       {
@@ -422,14 +349,14 @@ void neo_task()
             neoInfo.stat = STAT_WAIT_FOR_TICK;
          }
       }
-      if ((neoInfo.stat == STAT_WAIT_FOR_TICK) && neoInfo.tickOcc)
+      else if ((neoInfo.stat == STAT_WAIT_FOR_TICK) && neoInfo.tickOcc)
       {
          neoInfo.stat = STAT_DMA_DATA;
-#if SPI2_NEO
+
+         dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR;
          dma1Base_p->CNDTR5 = (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1;
          dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
-#endif
-       }
+      }
    }
 }
 
@@ -469,7 +396,7 @@ void neo_process_fade_record()
    src_p = neoInfo.newPxlVal_p + neoInfo.fade_p->offset;
    dst_p = neoInfo.currPxlVal_p + neoInfo.fade_p->offset;
    dma_p = neoInfo.buf_p +  neoInfo.fade_p->offset;
-   if (neoInfo.fade_p->totTicks >= neoInfo.fade_p->currTick)
+   if (neoInfo.fade_p->currTick >= neoInfo.fade_p->totTicks)
    {
       for (index = 0; index < neoInfo.fade_p->numBytes; index++)
       {
@@ -505,8 +432,8 @@ void neo_process_fade_record()
              currData -= diff;
          }
          *dma_p++ = NEO_BYTE_EXPAND[currData];
-         neoInfo.fade_p->currTick++;
       }
+      neoInfo.fade_p->currTick++;
    }
 }
 
@@ -541,18 +468,113 @@ void neo_fill_out_dma_data(
    U8                   *end_p;
    U8                   data;
 
-   dst_p = neoInfo.buf_p + (offset << 1);
+   dst_p = neoInfo.buf_p + offset;
    for (end_p = srcData_p + numBytes; srcData_p < end_p; srcData_p++)
    {
       data = *srcData_p;
-#if PWM1_NEO
-      *dst_p++ = NEO_NIBBLE_EXPAND[data >> 4];
-      *dst_p++ = NEO_NIBBLE_EXPAND[data & 0x0f];
-#endif
-#if SPI2_NEO
       *dst_p++ = NEO_BYTE_EXPAND[data];
-#endif
    }
+}
+
+/*
+ * ===============================================================================
+ *
+ * Name: neopxl_update_rcv_cmd
+ *
+ * ===============================================================================
+ */
+/**
+ * Neopixel update receive command
+ *
+ * Create a new fade command
+ *
+ * @param   offset      [in]        Byte offset for fade update
+ * @param   numBytes    [in]        Number of bytes to update
+ * @param   fadeTime    [in]        Fade time in ms
+ * @return  None
+ *
+ * @pre     None
+ * @note    None
+ *
+ * ===============================================================================
+ */
+void neopxl_update_rcv_cmd(
+   U16                  offset,
+   U16                  numBytes,
+   U16                  fadeTime)
+{
+   INT index;
+
+   /* If fade time == 0 ms, then immediately update data */
+   if (fadeTime == 0)
+   {
+      neoInfo.numRcvBytes = numBytes;
+      neoInfo.updImmed = TRUE;
+      neoInfo.rcvOffset = offset;
+   }
+   else
+   {
+      for (index = 0; index < NUM_FADES; index++)
+      {
+         /* Find an empty fade record */
+         if (neoInfo.fadeInfo[index].numBytes == 0)
+         {
+            break;
+         }
+      }
+
+      if (index < NUM_FADES)
+      {
+         /* Tot ticks is fadeTime in ms/10 ms tick */
+         neoInfo.fadeInfo[index].totTicks = fadeTime/10;
+         neoInfo.fadeInfo[index].currTick = 0;
+         neoInfo.fadeInfo[index].offset = offset;
+         neoInfo.fadeInfo[index].numBytes = numBytes;
+         neoInfo.numRcvBytes = numBytes;
+         neoInfo.updImmed = FALSE;
+         neoInfo.rcvOffset = offset;
+      }
+   }
+}
+
+/*
+ * ===============================================================================
+ *
+ * Name: neopxl_update_rcv_data
+ *
+ * ===============================================================================
+ */
+/**
+ * Neopixel update receive data
+ *
+ * Update fade command final data
+ *
+ * @param   data        [in]        Byte of data
+ * @return  TRUE if update is finished
+ *
+ * @pre     None
+ * @note    Last byte is CRC8, so not saved as data
+ *
+ * ===============================================================================
+ */
+BOOL neopxl_update_rcv_data(
+   U8                   data)
+{
+   if (neoInfo.numRcvBytes != 0)
+   {
+      neoInfo.numRcvBytes--;
+      if (neoInfo.updImmed)
+      {
+         neo_fill_out_dma_data(neoInfo.rcvOffset, &data, 1);
+         *(neoInfo.currPxlVal_p + neoInfo.rcvOffset++) = data;
+      }
+      else
+      {
+         *(neoInfo.newPxlVal_p + neoInfo.rcvOffset++) = data;
+      }
+      return (FALSE);
+   }
+   return (TRUE);
 }
 
 /* [] END OF FILE */

@@ -76,6 +76,8 @@ SET_SOL_INPUT_CMD   = '\x17'
 PASS_THRU_CMD       = '\x18'
 READ_MATRIX_INP_CMD = '\x19'
 
+RS232I_NEO_FADE_CMD = '\x40'
+
 INV_CMD             = '\xf0'
 EOM_CMD             = '\xff'
 

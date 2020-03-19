@@ -61,33 +61,33 @@
 #define STDL_FILE_ID          2
 
 #define TX_BUF_SIZE           0x10
-#define RX_BUF_SIZE           0x04
+#define RX_BUF_SIZE           0x400
 #define MAX_RCV_CMD_LEN       0x34     /* Must include space for CRC8 */
 
 typedef enum
 {
    RS232_WAIT_FOR_CARD_ID     = 0x00,
    RS232_WAIT_FOR_CMD         = 0x01,
-   RS232_PASSTHRU_CMD         = 0x02,
-   RS232_STRIP_CMD            = 0x03,
-   RS232_RCV_DATA_CMD         = 0x04,  /* Also strips the data */
-   RS232_INVENTORY_CMD        = 0x05,  /* Special case since unknown length */
-   RS232_NEO_COLOR_TBL        = 0x06,  /* Special case goes directly into memory */
-   RS232_UPGRADE_OTHER_BRD    = 0x07,  /* Upgrade another brd, watch for ending cmd */
+   RS232_STRIP_CMD            = 0x02,
+   RS232_RCV_DATA_CMD         = 0x03,  /* Also strips the data */
+   RS232_INVENTORY_CMD        = 0x04,  /* Special case since unknown length */
+   RS232_NEO_COLOR_TBL        = 0x05,
+   RS232_RCV_NEO_HDR          = 0x06,
+   RS232_RCV_NEO_DATA         = 0x07,
 } RS232_STATE_E;
 
 typedef struct
 {
    RS232_STATE_E              state;
-   BOOL                       rcvChar;
-   BOOL                       myCmd;
-   U8                         myAddr;
    U8                         cmdLen;
    RS232I_CMD_E               currCmd;
    U8                         currIndex;
    U8                         crc8;
+   U8                         *rcvHead_p;
+   U8                         *rcvTail_p;
    U8                         txBuf[TX_BUF_SIZE];
-   U8                         rxBuf[MAX_RCV_CMD_LEN];
+   U8                         rxBuf[RX_BUF_SIZE];
+   U8                         rxTmpBuf[MAX_RCV_CMD_LEN];
    STDLI_SER_INFO_T           serInfo;
 } RS232_GLOB_T;
 
@@ -101,8 +101,9 @@ void digital_upd_sol_cfg(
    U16                        updMask);
 void digital_upd_inp_cfg(
    U32                        updMask);
-void rs232proc_rx_ser_char(
-  void                        *cbParam_p);
+void rs232proc_rx_buffer(
+   U8                          *rcv_p,
+   U32                         length);
 void rs232proc_bswap_copy_dest(
    U32                        *data_p,
    U8                         *dst_p);
@@ -120,6 +121,12 @@ void stdlser_get_xmt_info(
    U8                         **data_pp,
    U16                        *numChar_p);
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
+void neopxl_update_rcv_cmd(
+   U16                  offset,
+   U16                  numBytes,
+   U16                  fadeTime);
+BOOL neopxl_update_rcv_data(
+   U8                   data);
 
 /*
  * ===============================================================================
@@ -145,13 +152,12 @@ void rs232proc_init(void)
 {
    /* Initialize the global structure */
    rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-   rs232_glob.rcvChar = FALSE;
-   rs232_glob.myCmd = FALSE;
+   rs232_glob.rcvHead_p = &rs232_glob.rxBuf[0];
+   rs232_glob.rcvTail_p = &rs232_glob.rxBuf[0];
   
    /* Initialize the serial port */
    rs232_glob.serInfo.txBuf_p = &rs232_glob.txBuf[0];
    rs232_glob.serInfo.txBufSize = TX_BUF_SIZE;
-   rs232_glob.serInfo.rxSerChar_fp = rs232proc_rx_ser_char;
    rs232_glob.serInfo.cbParm_p = 0;
 } /* End rs232proc_init */
 
@@ -185,19 +191,11 @@ void rs232proc_task(void)
    UINT                       index;
    U32                        mask;
    U32                        tmpU32;
-   U32                        currBit;
    uint8_t                    *xmtData_p;
    uint16_t                   xmtLength;
 
 #define MAGIC_NUM             0xa5a5a5a5
 #define RAM_FIRST_ADDR        0x00000000
-#define NEO_CMD_OFFSET        0
-#define NEO_COLOR_OFFSET      0
-#define NEO_INDEX_OFFSET      1
-#define NEO_START_MASK_OFFSET 2
-#define NEO_GREEN_OFFSET      1
-#define NEO_RED_OFFSET        2
-#define NEO_BLUE_OFFSET       3
 #define INCAND_CMD_OFFSET     0
 #define INCAND_MASK_OFFSET    1
 #define CONFIG_NUM_OFFSET     0
@@ -205,589 +203,487 @@ void rs232proc_task(void)
 #define BOOT_MAX_XFER_SIZE    64
   
    /* Check if received a char */
-   if (rs232_glob.rcvChar)
+   while (rs232_glob.rcvTail_p != rs232_glob.rcvHead_p)
    {
-      rs232_glob.rcvChar = FALSE;
-      while (stdlser_get_rcv_data(&data))
+      data = *rs232_glob.rcvTail_p++;
+      if (rs232_glob.rcvTail_p >= &rs232_glob.rxBuf[RX_BUF_SIZE])
       {
-         switch (rs232_glob.state)
+    	  rs232_glob.rcvTail_p = &rs232_glob.rxBuf[0];
+      }
+      switch (rs232_glob.state)
+      {
+         case RS232_WAIT_FOR_CARD_ID:
          {
-            case RS232_WAIT_FOR_CARD_ID:
+            if (data == RS232I_INVENTORY)
             {
-               rs232_glob.myCmd = FALSE;
-               
-               if (data == RS232I_INVENTORY)
-               {
-                  rs232_glob.state = RS232_INVENTORY_CMD;
-                  rs232_glob.myAddr = MAX_U8;
-                  (void)stdlser_xmt_data(&data, 1);
-               }
-               else if (data == RS232I_EOM)
-               {
-                  (void)stdlser_xmt_data(&data, 1);
-               }
-               else if (data == rs232_glob.myAddr)
-               {
-                  /* It is my command, it may or may not need stripped */
-                  rs232_glob.crc8 = 0xff;
-                  stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
-                  rs232_glob.state = RS232_WAIT_FOR_CMD;
-                  rs232_glob.myCmd = TRUE;
-               }
-               else if ((data & CARD_ID_TYPE_MASK) == CARD_ID_GEN2_CARD)
-               {
-                  /* It is not my cmd but use command to figure out length */
-                  rs232_glob.state = RS232_WAIT_FOR_CMD;
-                  (void)stdlser_xmt_data(&data, 1);
-               }
-               else
-               {
-                  /* Lost synchronization.  Keep looking for a valid card ID */
-               }
-               break;
+               rs232_glob.state = RS232_INVENTORY_CMD;
+               (void)stdlser_xmt_data(&data, 1);
             }
-            case RS232_WAIT_FOR_CMD:
+            else if (data == RS232I_EOM)
             {
-               rs232_glob.currIndex = 0;
-               if (data < RS232I_NUM_CMDS)
+               (void)stdlser_xmt_data(&data, 1);
+            }
+            else if (data == CARD_ID_GEN2_CARD)
+            {
+               /* It is my command, it may or may not need stripped */
+               rs232_glob.crc8 = 0xff;
+               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+               rs232_glob.state = RS232_WAIT_FOR_CMD;
+            }
+            else
+            {
+               /* Lost synchronization.  Keep looking for a valid card ID */
+            }
+            break;
+         }
+         case RS232_WAIT_FOR_CMD:
+         {
+            rs232_glob.currIndex = 0;
+            if (data < RS232I_NUM_CMDS)
+            {
+               /* Save the current command and the length */
+               rs232_glob.currCmd = data;
+               rs232_glob.cmdLen = CMD_LEN[data] + 1;
+
+               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+               txBuf[0] = CARD_ID_GEN2_CARD;
+               txBuf[1] = data;
+
+               switch (data)
                {
-                  /* Save the current command and the length */
-                  rs232_glob.currCmd = data;
-                  rs232_glob.cmdLen = CMD_LEN[data] + 1;
-                  if (rs232_glob.myCmd)
+                  case RS232I_GET_SER_NUM:
                   {
-                     stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
-                     txBuf[0] = rs232_glob.myAddr;
-                     txBuf[1] = data;
-                     
-                     switch (data)
-                     {
-                        case RS232I_GET_SER_NUM:
-                        {
-                           rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[2]);
-                           rs232_glob.state = RS232_STRIP_CMD;
-                           txBuf[6] = 0xff;
-                           stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
-                           (void)stdlser_xmt_data(&txBuf[0], 7);
-                           break;
-                        }
-                        case RS232I_GET_PROD_ID:
-                        case RS232I_GET_GEN2_CFG:
-                        {
-                           /* Product ID is uniquely identified by wing board cfg */
-                           rs232proc_copy_dest(&gen2g_info.nvCfgInfo.wingCfg[0], &txBuf[2], RS232I_NUM_WING);
-                           rs232_glob.state = RS232_STRIP_CMD;
-                           txBuf[6] = 0xff;
-                           stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
-                           (void)stdlser_xmt_data(&txBuf[0], 7);
-                           break;
-                        }
-                        case RS232I_GET_VERS:
-                        {
-                           rs232proc_bswap_copy_dest((U32 *)&appStart.codeVers, &txBuf[2]);
-                           rs232_glob.state = RS232_STRIP_CMD;
-                           txBuf[6] = 0xff;
-                           stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
-                           (void)stdlser_xmt_data(&txBuf[0], 7);
-                           break;
-                        }
-                        case RS232I_SET_SER_NUM:
-                        {
-                           /* Check if serial number is blank, strip cmd */
-                           if (gen2g_persist_p->serNum == 0xffffffff)
-                           {
-                              rs232_glob.state = RS232_RCV_DATA_CMD;
-                           }
-                           else
-                           {
-                              /* Already set, so respond with serial number */
-                              rs232_glob.state = RS232_STRIP_CMD;
-                              rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[2]);
-                              stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
-                              (void)stdlser_xmt_data(&txBuf[0], 7);
-                           }
-                           break;
-                        }
-                        case RS232I_RESET:
-                        case RS232I_GO_BOOT:
-                        case RS232I_CONFIG_SOL:
-                        case RS232I_KICK_SOL:
-                        case RS232I_CONFIG_INP:
-                        case RS232I_SAVE_CFG:
-                        case RS232I_ERASE_CFG:
-                        case RS232I_SET_GEN2_CFG:
-                        case RS232I_CHNG_NEO_CMD:
-                        case RS232I_CHNG_NEO_COLOR:
-                        case RS232I_CHNG_NEO_COLOR_TBL:
-                        case RS232I_INCAND_CMD:
-                        case RS232I_CONFIG_IND_SOL:
-                        case RS232I_CONFIG_IND_INP:
-                        case RS232I_SET_IND_NEO:
-                        case RS232I_SET_SOL_INPUT:
-                        case RS232I_UPGRADE_OTHER_BRD:
-                        {
-                           /* Verify CRC to be sure */
-                           rs232_glob.state = RS232_RCV_DATA_CMD;
-                           break;
-                        }
-                        case RS232I_READ_GEN2_INP:
-                        {
-                           DisableInterrupts;
-                           tmpU32 = gen2g_info.validSwitch;
-                           gen2g_info.validSwitch = 0;
-                           EnableInterrupts;
-                           rs232proc_bswap_copy_dest(&tmpU32, &txBuf[2]);
-                           rs232_glob.state = RS232_STRIP_CMD;
-                           txBuf[6] = 0xff;
-                           stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
-                           (void)stdlser_xmt_data(&txBuf[0], 7);
-                           break;
-                        }
-                        case RS232I_SET_NEO_COLOR_TBL:
-                        {
-                           rs232_glob.state = RS232_NEO_COLOR_TBL;
-                           break;
-                        }
-                        case RS232I_READ_MATRIX_INP:
-                        {
-                           /* Only state is supported for switch matrices */
-                           rs232proc_copy_dest(&gen2g_info.matrixInp[0], &txBuf[2], RS232I_MATRX_COL);
-                           rs232_glob.state = RS232_STRIP_CMD;
-                           txBuf[10] = 0xff;
-                           stdlser_calc_crc8(&txBuf[10], 10, &txBuf[0]);
-                           (void)stdlser_xmt_data(&txBuf[0], 11);
-                           
-                           /* Clear bits currently not active.  This means that a bit
-                            * that is active won't be cleared until it is read by the processor.
-                            */
-                           for (index = 0, dest_p = &gen2g_info.matrixInp[0],
-                              src_p = &gen2g_info.matrixPrev[0];
-                              index < RS232I_MATRX_COL;
-                              index++, src_p++, dest_p++)
-                           {
-                              *dest_p &= *src_p; 
-                           }
-                           break;
-                        }
-                        case RS232I_GEN2_UNUSED:
-                        default:
-                        {
-                           /* Bad command received, send EOM */
-                           data = RS232I_EOM;
-                           (void)stdlser_xmt_data(&data, 1);
-                           rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-                           break;
-                        }
-                     }
+                     rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[2]);
+                     rs232_glob.state = RS232_STRIP_CMD;
+                     txBuf[6] = 0xff;
+                     stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
+                     (void)stdlser_xmt_data(&txBuf[0], 7);
+                     break;
                   }
-                  else
+                  case RS232I_GET_PROD_ID:
+                  case RS232I_GET_GEN2_CFG:
                   {
-                     /* Not my command, so send it through */
-                     rs232_glob.state = RS232_PASSTHRU_CMD;
+                     /* Product ID is uniquely identified by wing board cfg */
+                     rs232proc_copy_dest(&gen2g_info.nvCfgInfo.wingCfg[0], &txBuf[2], RS232I_NUM_WING);
+                     rs232_glob.state = RS232_STRIP_CMD;
+                     txBuf[6] = 0xff;
+                     stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
+                     (void)stdlser_xmt_data(&txBuf[0], 7);
+                     break;
+                  }
+                  case RS232I_GET_VERS:
+                  {
+                     rs232proc_bswap_copy_dest((U32 *)&appStart.codeVers, &txBuf[2]);
+                     rs232_glob.state = RS232_STRIP_CMD;
+                     txBuf[6] = 0xff;
+                     stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
+                     (void)stdlser_xmt_data(&txBuf[0], 7);
+                     break;
+                  }
+                  case RS232I_SET_SER_NUM:
+                  {
+                     /* Check if serial number is blank, strip cmd */
+                     if (gen2g_persist_p->serNum == 0xffffffff)
+                     {
+                        rs232_glob.state = RS232_RCV_DATA_CMD;
+                     }
+                     else
+                     {
+                        /* Already set, so respond with serial number */
+                        rs232_glob.state = RS232_STRIP_CMD;
+                        rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[2]);
+                        stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
+                        (void)stdlser_xmt_data(&txBuf[0], 7);
+                     }
+                     break;
+                  }
+                  case RS232I_RESET:
+                  case RS232I_GO_BOOT:
+                  case RS232I_CONFIG_SOL:
+                  case RS232I_KICK_SOL:
+                  case RS232I_CONFIG_INP:
+                  case RS232I_SAVE_CFG:
+                  case RS232I_ERASE_CFG:
+                  case RS232I_SET_GEN2_CFG:
+                  case RS232I_INCAND_CMD:
+                  case RS232I_CONFIG_IND_SOL:
+                  case RS232I_CONFIG_IND_INP:
+                  case RS232I_SET_IND_NEO:
+                  case RS232I_SET_SOL_INPUT:
+                  {
+                     /* Verify CRC to be sure */
+                     rs232_glob.state = RS232_RCV_DATA_CMD;
+                     break;
+                  }
+                  case RS232I_READ_GEN2_INP:
+                  {
+                     DisableInterrupts;
+                     tmpU32 = gen2g_info.validSwitch;
+                     gen2g_info.validSwitch = 0;
+                     EnableInterrupts;
+                     rs232proc_bswap_copy_dest(&tmpU32, &txBuf[2]);
+                     rs232_glob.state = RS232_STRIP_CMD;
+                     txBuf[6] = 0xff;
+                     stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
+                     (void)stdlser_xmt_data(&txBuf[0], 7);
+                     break;
+                  }
+                  case RS232I_SET_NEO_COLOR_TBL:
+                  {
+                     rs232_glob.state = RS232_NEO_COLOR_TBL;
+                     break;
+                  }
+                  case RS232I_READ_MATRIX_INP:
+                  {
+                     /* Only state is supported for switch matrices */
+                     rs232proc_copy_dest(&gen2g_info.matrixInp[0], &txBuf[2], RS232I_MATRX_COL);
+                     rs232_glob.state = RS232_STRIP_CMD;
+                     txBuf[10] = 0xff;
+                     stdlser_calc_crc8(&txBuf[10], 10, &txBuf[0]);
+                     (void)stdlser_xmt_data(&txBuf[0], 11);
+
+                     /* Clear bits currently not active.  This means that a bit
+                      * that is active won't be cleared until it is read by the processor.
+                      */
+                     for (index = 0, dest_p = &gen2g_info.matrixInp[0],
+                        src_p = &gen2g_info.matrixPrev[0];
+                        index < RS232I_MATRX_COL;
+                        index++, src_p++, dest_p++)
+                     {
+                        *dest_p &= *src_p;
+                     }
+                     break;
+                  }
+                  case RS232I_CHNG_NEO_CMD:
+                  case RS232I_CHNG_NEO_COLOR:
+                  case RS232I_CHNG_NEO_COLOR_TBL:
+                  case RS232I_GEN2_UNUSED:
+                  case RS232I_UPGRADE_OTHER_BRD:
+                  default:
+                  {
+                     /* Bad command received, send EOM */
+                     data = RS232I_EOM;
                      (void)stdlser_xmt_data(&data, 1);
-                  }
-               }
-               else
-               {
-                  /* Bad command received, send EOM */
-                  data = RS232I_EOM;
-                  (void)stdlser_xmt_data(&data, 1);
-                  rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-               }
-               break;
-            }
-            case RS232_PASSTHRU_CMD:
-            {
-               /* Not my command, or RS232I_SET_SER_NUM and serial number has
-                * already been set.
-                */
-               (void)stdlser_xmt_data(&data, 1);
-               rs232_glob.currIndex++;
-               if (rs232_glob.currIndex >= rs232_glob.cmdLen)
-               {
-                  /* Whole command has been passed on, now wait for next cmd */
-                  rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-               }
-               break;
-            }
-            case RS232_STRIP_CMD:
-            {
-               /* The following commands are stripped:  RS232I_GET_SER_NUM,
-                * RS232I_GET_PROD_ID, RS232I_GET_GEN2_CFG, RS232I_GET_VERS,
-                * RS232I_READ_GEN2_INP, and RS232I_READ_MATRIX_INP.
-                * Responses are sent when first rcv'd.
-                */
-               rs232_glob.currIndex++;
-               if (rs232_glob.currIndex < rs232_glob.cmdLen)
-               {
-                  stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
-               }
-               else
-               {
-                  if (data != rs232_glob.crc8)
-                  {
-                     gen2g_info.crcErr++;
-                  }
-                  
-                  /* Whole command has been passed on, now wait for next cmd */
-                  rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-               }
-               break;
-            }
-            case RS232_RCV_DATA_CMD:
-            {
-               /* Copy the data into the rcv buffer, and calculate CRC */
-               rs232_glob.rxBuf[rs232_glob.currIndex++] = data;
-               if (rs232_glob.currIndex < rs232_glob.cmdLen)
-               {
-                  stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
-               }
-               else
-               {
-                  /* Whole command has been received */
-                  if (data == rs232_glob.crc8)
-                  {
-                     /* Do command special processing */
-                     switch(rs232_glob.currCmd)
-                     {
-                        case RS232I_SET_SER_NUM:
-                        {
-                           gen2g_info.serNum = (U32)rs232_glob.rxBuf[3] |
-                              ((U32)rs232_glob.rxBuf[2] << 8) |
-                              ((U32)rs232_glob.rxBuf[1] << 16) |
-                              ((U32)rs232_glob.rxBuf[0] << 24);
-                           stdlflash_write((U16 *)&gen2g_info.serNum, (U16 *)(&gen2g_persist_p->serNum), sizeof(U32));
-                           break;
-                        }
-                        case RS232I_RESET:
-                        {
-                           NVIC_SystemReset();
-                           break;
-                        }
-                        case RS232I_GO_BOOT:
-                        {
-                           /* This command resets the processor */
-#if 0
-                           /* HRS:  Fill this out */
-#endif
-                           break;
-                        }
-                        case RS232I_CONFIG_SOL:
-                        {
-                           for (index = 0, src_p = &rs232_glob.rxBuf[0],
-                              dest_p = (U8 *)gen2g_info.solDrvCfg_p;
-                              index < sizeof(GEN2G_SOL_DRV_CFG_T);
-                              index++)
-                           {
-                              *dest_p++ = *src_p++;
-                           }
-                           digital_upd_sol_cfg((1 << RS232I_NUM_GEN2_SOL) - 1);
-                           break;
-                        }
-                        case RS232I_KICK_SOL:
-                        {
-                           DisableInterrupts;
-                           gen2g_info.solDrvProcCtl = (gen2g_info.solDrvProcCtl & 
-                              ~(((U16)rs232_glob.rxBuf[2] << 8) | (U16)rs232_glob.rxBuf[3])) |
-                              (((U16)rs232_glob.rxBuf[0] << 8) | (U16)rs232_glob.rxBuf[1]);
-                           EnableInterrupts;
-                           break;
-                        }
-                        case RS232I_CONFIG_INP:
-                        {
-                           for (index = 0, src_p = &rs232_glob.rxBuf[0],
-                              dest_p = (U8 *)gen2g_info.inpCfg_p;
-                              index < sizeof(GEN2G_INP_CFG_T);
-                              index++)
-                           {
-                              *dest_p++ = *src_p++;
-                           }
-                           digital_upd_inp_cfg(0xffffffff);
-                           break;
-                        }
-                        case RS232I_SAVE_CFG:
-                        {
-                           /* Calculate the CRC */
-                           gen2g_info.nvCfgInfo.nvCfgCrc = 0xff;
-                           stdlser_calc_crc8(&gen2g_info.nvCfgInfo.nvCfgCrc, 0xfc,
-                              &gen2g_info.nvCfgInfo.wingCfg[0]);
-                           
-                           stdlflash_write((U16 *)&gen2g_info.nvCfgInfo,
-                              (U16 *)GEN2G_CFG_TBL, sizeof(GEN2G_NV_CFG_T));
-                           gen2g_info.validCfg = TRUE;
-                           break;
-                        }
-                        case RS232I_ERASE_CFG:
-                        {
-                           gen2g_info.validCfg = FALSE;
-                           gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
-                           gen2g_info.typeWingBrds = 0;
-                           gen2g_info.inpCfg_p = NULL;
-                           gen2g_info.neoCfg_p = NULL;
-                           for (index = 0, dest_p = &gen2g_info.nvCfgInfo.cfgData[0];
-                              index < sizeof(gen2g_info.nvCfgInfo.cfgData);
-                              index++)
-                           {
-                              *dest_p++ = 0;
-                           }
-                           stdlflash_sector_erase((U16 *)GEN2G_CFG_TBL);
-                           if (gen2g_info.serNum != 0xffffffff)
-                           {
-                               stdlflash_write((U16 *)&gen2g_info.serNum, (U16 *)(&gen2g_persist_p->serNum), sizeof(U32));
-                           }
-                           if (gen2g_info.prodId != 0xffffffff)
-                           {
-                               stdlflash_write((U16 *)&gen2g_info.prodId, (U16 *)(&gen2g_persist_p->prodId), sizeof(U32));
-                           }
-                           break;
-                        }
-                        case RS232I_SET_GEN2_CFG:
-                        {
-                           for (index = 0; index < RS232I_NUM_WING; index++)
-                           {
-                              gen2g_info.nvCfgInfo.wingCfg[index] = rs232_glob.rxBuf[index];
-                              if (gen2g_info.nvCfgInfo.wingCfg[index] != WING_UNUSED)
-                              {
-                                 gen2g_info.typeWingBrds |= (1 << gen2g_info.nvCfgInfo.wingCfg[index]);
-                              }
-                           }
-                           
-                           /* Walk through types and call init functions using jump table, sets up config ptrs */
-                           for (index = WING_UNUSED + 1; index < MAX_WING_TYPES; index++)
-                           {
-                              if (((gen2g_info.typeWingBrds & (1 << index)) != 0) &&
-                                 (GEN2G_INIT_FP[index] != NULL))
-                              {
-                                 GEN2G_INIT_FP[index]();
-                              }
-                           }
-                           break;
-                        }
-                        case RS232I_CHNG_NEO_CMD:
-                        {
-                           /* tmpU32 starting index of pixels to change */
-                           tmpU32 = (U32)rs232_glob.rxBuf[NEO_INDEX_OFFSET];
-                           mask = (U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 3] |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 2] << 8) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 16) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET] << 24);
-                           for (index = 0, currBit = 1; index < 32; index++, currBit <<= 1)
-                           {
-                              if ((currBit & mask) != 0)
-                              {
-                                 /* HRS:  neo_update_pixel_cmd(index + tmpU32, (INT)rs232_glob.rxBuf[NEO_CMD_OFFSET]); */
-                              }
-                           }
-                           break;
-                        }
-                        case RS232I_CHNG_NEO_COLOR:
-                        {
-                           /* tmpU32 starting index of pixels to change */
-                           tmpU32 = (U32)rs232_glob.rxBuf[NEO_INDEX_OFFSET];
-                           mask = (U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 3] |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 2] << 8) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET + 1] << 16) |
-                              ((U32)rs232_glob.rxBuf[NEO_START_MASK_OFFSET] << 24);
-                           for (index = 0, currBit = 1; index < 32; index++, currBit <<= 1)
-                           {
-                              if ((currBit & mask) != 0)
-                              {
-                                 /* HRS:  neo_update_pixel_color(index + tmpU32, (INT)rs232_glob.rxBuf[NEO_COLOR_OFFSET]); */
-                              }
-                           }
-                           break;
-                        }
-                        case RS232I_CHNG_NEO_COLOR_TBL:
-                        {
-                           /* tmpU32 is the new color table color */
-                           /* HRS:  Remove
-                           tmpU32 = ((U32)rs232_glob.rxBuf[NEO_GREEN_OFFSET] << 16) |
-                              ((U32)rs232_glob.rxBuf[NEO_RED_OFFSET] << 8) |
-                              (U32)rs232_glob.rxBuf[NEO_BLUE_OFFSET];
-                           neo_update_color_tbl((INT)rs232_glob.rxBuf[NEO_CMD_OFFSET], tmpU32); */
-                           break;
-                        }
-                        case RS232I_INCAND_CMD:
-                        {
-                           mask = ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET] << 24) |
-                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 1] << 16) |
-                              ((U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 2] << 8) |
-                              (U32)rs232_glob.rxBuf[INCAND_MASK_OFFSET + 3];
-                           incand_proc_cmd(rs232_glob.rxBuf[INCAND_CMD_OFFSET], mask);
-                           break;
-                        }
-                        case RS232I_CONFIG_IND_SOL:
-                        {
-                           /* First byte contains solenoid number [0-15] */
-                           for (index = 0, src_p = &rs232_glob.rxBuf[CONFIG_DATA_OFFSET],
-                              dest_p = ((U8 *)gen2g_info.solDrvCfg_p) +
-                                 (rs232_glob.rxBuf[CONFIG_NUM_OFFSET] * sizeof(RS232I_SOL_CFG_T));
-                              index < sizeof(RS232I_SOL_CFG_T);
-                              index++)
-                           {
-                              *dest_p++ = *src_p++;
-                           }
-                           digital_upd_sol_cfg(1 << rs232_glob.rxBuf[CONFIG_NUM_OFFSET]);
-                           break;
-                        }
-                        case RS232I_CONFIG_IND_INP:
-                        {
-                           gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxBuf[CONFIG_NUM_OFFSET]] =
-                              rs232_glob.rxBuf[CONFIG_DATA_OFFSET];
-                           digital_upd_inp_cfg(1 << rs232_glob.rxBuf[CONFIG_NUM_OFFSET]);
-                           break;
-                        }
-                        case RS232I_SET_IND_NEO:
-                        {
-                           /* HRS:  neo_update_pixel_cmd(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
-                              (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
-                           neo_update_pixel_color(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
-                              (INT)rs232_glob.rxBuf[CONFIG_DATA_OFFSET]); */
-                           break;
-                        }
-                        case RS232I_SET_SOL_INPUT:
-                        {
-                           digital_set_solenoid_input(rs232_glob.rxBuf[CONFIG_NUM_OFFSET],
-                              rs232_glob.rxBuf[CONFIG_DATA_OFFSET]);
-                           break;
-                        }
-                        case RS232I_UPGRADE_OTHER_BRD:
-                        {
-                           rs232_glob.state = RS232_UPGRADE_OTHER_BRD;
-                           rs232_glob.currIndex = 0;
-                           break;
-                        }
-                        default:
-                        {
-                           /* Invalid cmd for RS232_RCV_DATA_CMD, send EOM */
-                           data = RS232I_EOM;
-                           (void)stdlser_xmt_data(&data, 1);
-                           rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-                           break;
-                        }
-                     }
-                  }
-                  else
-                  {
-                     gen2g_info.crcErr++;
-                  }
-                  
-                  /* Whole command has been received */
-                  if (rs232_glob.state != RS232_UPGRADE_OTHER_BRD)
-                  {
                      rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+                     break;
                   }
                }
-               break;
             }
-            case RS232_INVENTORY_CMD:
+            else if (data == RS232I_NEO_FADE_CMD)
             {
-               if (data == RS232I_EOM)
-               {
-                  /* Rcv'd EOM, so my addr is next addr */
-                  if (rs232_glob.myAddr == MAX_U8)
-                  {
-                     rs232_glob.myAddr = CARD_ID_GEN2_CARD;
-                     gen2g_info.firstCard = TRUE;
-                  }
-                  else
-                  {
-                     rs232_glob.myAddr++;
-                  }
-                  txBuf[0] = rs232_glob.myAddr;
-                  txBuf[1] = RS232I_EOM;
-                  (void)stdlser_xmt_data(&txBuf[0], 2);
-                  rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-                  
-                  if (gen2g_info.firstCard)
-                  {
-                     /* Start driving the synchronize time line */
-                	 GPIO_InitTypeDef           pinCfg;
-		             pinCfg.Mode = GPIO_MODE_OUTPUT_PP;
-		             pinCfg.Speed = GPIO_SPEED_FREQ_LOW;
-                     HAL_GPIO_Init(GPIOB, &pinCfg);
-                  }
-               }
-               else if ((data & CARD_ID_TYPE_MASK) == CARD_ID_GEN2_CARD)
-               {
-                  rs232_glob.myAddr = data;
-                  (void)stdlser_xmt_data(&data, 1);
-               }
-               else
-               {
-                  /* Not my card type and make no assumptions, pass thru */
-                  (void)stdlser_xmt_data(&data, 1);
-               }
-               break;
+               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+               rs232_glob.state = RS232_RCV_NEO_HDR;
             }
-            case RS232_NEO_COLOR_TBL:
+            else
             {
-               /* Copy the data into the rcv buffer, and calculate CRC */
-               index = rs232_glob.currIndex % 3;
-               rs232_glob.rxBuf[index] = data;
-               if (index == 2)
-               {
-                  /* New color table entry completed */
-                  /* HRS:  Remove
-                  tmpU32 = ((U32)rs232_glob.rxBuf[0] << 16) |
-                     ((U32)rs232_glob.rxBuf[1] << 8) |
-                     (U32)rs232_glob.rxBuf[2];
-                  index = rs232_glob.currIndex / 3;
-                  neo_update_color_tbl(index, tmpU32); */
-               }
-               rs232_glob.currIndex++;
-               if (rs232_glob.currIndex < rs232_glob.cmdLen)
-               {
-                  stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
-               }
-               else
-               {
-                  /* rcvBuf[0] contains the number of Neopixels */
-                  gen2g_info.nvCfgInfo.numNeoPxls = rs232_glob.rxBuf[0];
-                  
-                  /* Whole command has been received */
-                  if (data != rs232_glob.crc8)
-                  {
-                     gen2g_info.crcErr++;
-                  }
-                  
-                  /* Whole command has been passed on, now wait for next cmd */
-                  rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-               }
-               break;
-            }
-            case RS232_UPGRADE_OTHER_BRD:
-            {
-               if (data == RS232I_EOM)
-               {
-                  rs232_glob.currIndex++;
-               }
-               else
-               {
-                  rs232_glob.currIndex = 0;
-               }
-               (void)stdlser_xmt_data(&data, 1);
-               if (rs232_glob.currIndex >= BOOT_MAX_XFER_SIZE + 1)
-               {
-                  NVIC_SystemReset();
-               }
-               break;
-            }
-            default:
-            {
-               /* Invalid state, send EOM */
+               /* Bad command received, send EOM */
                data = RS232I_EOM;
                (void)stdlser_xmt_data(&data, 1);
                rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
-               break;
             }
+            break;
+         }
+         case RS232_STRIP_CMD:
+         {
+            /* The following commands are stripped:  RS232I_GET_SER_NUM,
+             * RS232I_GET_PROD_ID, RS232I_GET_GEN2_CFG, RS232I_GET_VERS,
+             * RS232I_READ_GEN2_INP, and RS232I_READ_MATRIX_INP.
+             * Responses are sent when first rcv'd.
+             */
+            rs232_glob.currIndex++;
+            if (rs232_glob.currIndex < rs232_glob.cmdLen)
+            {
+               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+            }
+            else
+            {
+               if (data != rs232_glob.crc8)
+               {
+                  gen2g_info.crcErr++;
+               }
+
+               /* Whole command has been passed on, now wait for next cmd */
+               rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+            }
+            break;
+         }
+         case RS232_RCV_DATA_CMD:
+         {
+            /* Copy the data into the rcv buffer, and calculate CRC */
+            rs232_glob.rxTmpBuf[rs232_glob.currIndex++] = data;
+            if (rs232_glob.currIndex < rs232_glob.cmdLen)
+            {
+               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+            }
+            else
+            {
+               /* Whole command has been received */
+               if (data == rs232_glob.crc8)
+               {
+                  /* Do command special processing */
+                  switch(rs232_glob.currCmd)
+                  {
+                     case RS232I_SET_SER_NUM:
+                     {
+                        gen2g_info.serNum = (U32)rs232_glob.rxTmpBuf[3] |
+                           ((U32)rs232_glob.rxTmpBuf[2] << 8) |
+                           ((U32)rs232_glob.rxTmpBuf[1] << 16) |
+                           ((U32)rs232_glob.rxTmpBuf[0] << 24);
+                        stdlflash_write((U16 *)&gen2g_info.serNum, (U16 *)(&gen2g_persist_p->serNum), sizeof(U32));
+                        break;
+                     }
+                     case RS232I_RESET:
+                     {
+                        NVIC_SystemReset();
+                        break;
+                     }
+                     case RS232I_GO_BOOT:
+                     {
+                        /* This command resets the processor */
+#if 0
+                        /* HRS:  STM32 doesn't support bootloading */
+#endif
+                        break;
+                     }
+                     case RS232I_CONFIG_SOL:
+                     {
+                        for (index = 0, src_p = &rs232_glob.rxTmpBuf[0],
+                           dest_p = (U8 *)gen2g_info.solDrvCfg_p;
+                           index < sizeof(GEN2G_SOL_DRV_CFG_T);
+                           index++)
+                        {
+                           *dest_p++ = *src_p++;
+                        }
+                        digital_upd_sol_cfg((1 << RS232I_NUM_GEN2_SOL) - 1);
+                        break;
+                     }
+                     case RS232I_KICK_SOL:
+                     {
+                        DisableInterrupts;
+                        gen2g_info.solDrvProcCtl = (gen2g_info.solDrvProcCtl &
+                           ~(((U16)rs232_glob.rxTmpBuf[2] << 8) | (U16)rs232_glob.rxTmpBuf[3])) |
+                           (((U16)rs232_glob.rxTmpBuf[0] << 8) | (U16)rs232_glob.rxTmpBuf[1]);
+                        EnableInterrupts;
+                        break;
+                     }
+                     case RS232I_CONFIG_INP:
+                     {
+                        for (index = 0, src_p = &rs232_glob.rxTmpBuf[0],
+                           dest_p = (U8 *)gen2g_info.inpCfg_p;
+                           index < sizeof(GEN2G_INP_CFG_T);
+                           index++)
+                        {
+                           *dest_p++ = *src_p++;
+                        }
+                        digital_upd_inp_cfg(0xffffffff);
+                        break;
+                     }
+                     case RS232I_SAVE_CFG:
+                     {
+                        /* Calculate the CRC */
+                        gen2g_info.nvCfgInfo.nvCfgCrc = 0xff;
+                        stdlser_calc_crc8(&gen2g_info.nvCfgInfo.nvCfgCrc, 0xfc,
+                           &gen2g_info.nvCfgInfo.wingCfg[0]);
+
+                        stdlflash_write((U16 *)&gen2g_info.nvCfgInfo,
+                           (U16 *)GEN2G_CFG_TBL, sizeof(GEN2G_NV_CFG_T));
+                        gen2g_info.validCfg = TRUE;
+                        break;
+                     }
+                     case RS232I_ERASE_CFG:
+                     {
+                        gen2g_info.validCfg = FALSE;
+                        gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
+                        gen2g_info.typeWingBrds = 0;
+                        gen2g_info.inpCfg_p = NULL;
+                        for (index = 0, dest_p = &gen2g_info.nvCfgInfo.cfgData[0];
+                           index < sizeof(gen2g_info.nvCfgInfo.cfgData);
+                           index++)
+                        {
+                           *dest_p++ = 0;
+                        }
+                        stdlflash_sector_erase((U16 *)GEN2G_CFG_TBL);
+                        if (gen2g_info.serNum != 0xffffffff)
+                        {
+                            stdlflash_write((U16 *)&gen2g_info.serNum, (U16 *)(&gen2g_persist_p->serNum), sizeof(U32));
+                        }
+                        if (gen2g_info.prodId != 0xffffffff)
+                        {
+                            stdlflash_write((U16 *)&gen2g_info.prodId, (U16 *)(&gen2g_persist_p->prodId), sizeof(U32));
+                        }
+                        break;
+                     }
+                     case RS232I_SET_GEN2_CFG:
+                     {
+                        for (index = 0; index < RS232I_NUM_WING; index++)
+                        {
+                           gen2g_info.nvCfgInfo.wingCfg[index] = rs232_glob.rxTmpBuf[index];
+                           if (gen2g_info.nvCfgInfo.wingCfg[index] != WING_UNUSED)
+                           {
+                              gen2g_info.typeWingBrds |= (1 << gen2g_info.nvCfgInfo.wingCfg[index]);
+                           }
+                        }
+                           
+                        /* Walk through types and call init functions using jump table, sets up config ptrs */
+                        for (index = WING_UNUSED + 1; index < MAX_WING_TYPES; index++)
+                        {
+                           if (((gen2g_info.typeWingBrds & (1 << index)) != 0) &&
+                              (GEN2G_INIT_FP[index] != NULL))
+                           {
+                              GEN2G_INIT_FP[index]();
+                           }
+                        }
+                        break;
+                     }
+                     case RS232I_INCAND_CMD:
+                     {
+                        mask = ((U32)rs232_glob.rxTmpBuf[INCAND_MASK_OFFSET] << 24) |
+                           ((U32)rs232_glob.rxTmpBuf[INCAND_MASK_OFFSET + 1] << 16) |
+                           ((U32)rs232_glob.rxTmpBuf[INCAND_MASK_OFFSET + 2] << 8) |
+                           (U32)rs232_glob.rxTmpBuf[INCAND_MASK_OFFSET + 3];
+                        incand_proc_cmd(rs232_glob.rxTmpBuf[INCAND_CMD_OFFSET], mask);
+                        break;
+                     }
+                     case RS232I_CONFIG_IND_SOL:
+                     {
+                        /* First byte contains solenoid number [0-15] */
+                        for (index = 0, src_p = &rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET],
+                           dest_p = ((U8 *)gen2g_info.solDrvCfg_p) +
+                              (rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET] * sizeof(RS232I_SOL_CFG_T));
+                           index < sizeof(RS232I_SOL_CFG_T);
+                           index++)
+                        {
+                           *dest_p++ = *src_p++;
+                        }
+                        digital_upd_sol_cfg(1 << rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]);
+                        break;
+                     }
+                     case RS232I_CONFIG_IND_INP:
+                     {
+                        gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]] =
+                           rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET];
+                        digital_upd_inp_cfg(1 << rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]);
+                        break;
+                     }
+                     case RS232I_SET_SOL_INPUT:
+                     {
+                        digital_set_solenoid_input(rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET],
+                           rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET]);
+                        break;
+                     }
+                     default:
+                     {
+                        /* Invalid cmd for RS232_RCV_DATA_CMD, send EOM */
+                        data = RS232I_EOM;
+                        (void)stdlser_xmt_data(&data, 1);
+                        rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+                        break;
+                     }
+                  }
+               }
+               else
+               {
+                  gen2g_info.crcErr++;
+               }
+
+               /* Whole command has been received */
+               rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+            }
+            break;
+         }
+         case RS232_INVENTORY_CMD:
+         {
+            if (data == RS232I_EOM)
+            {
+               /* Rcv'd EOM, so my addr is next addr */
+               txBuf[0] = CARD_ID_GEN2_CARD;
+               txBuf[1] = RS232I_EOM;
+               (void)stdlser_xmt_data(&txBuf[0], 2);
+               rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+            }
+            else
+            {
+               /* Not my card type and make no assumptions, pass thru */
+               (void)stdlser_xmt_data(&data, 1);
+            }
+            break;
+         }
+         case RS232_NEO_COLOR_TBL:
+         {
+            /* Command only passes num NeoPixels and bytesPerPixel */
+            if (rs232_glob.currIndex == 0)
+            {
+               gen2g_info.nvCfgInfo.bytesPerPxl = data;
+            }
+            else if (rs232_glob.currIndex == 1)
+            {
+               gen2g_info.nvCfgInfo.numNeoPxls = data;
+            }
+            rs232_glob.currIndex++;
+            if (rs232_glob.currIndex < rs232_glob.cmdLen)
+            {
+               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+            }
+            else
+            {
+               /* Whole command has been received */
+               if (data != rs232_glob.crc8)
+               {
+                  gen2g_info.crcErr++;
+               }
+
+               /* Whole command has been passed on, now wait for next cmd */
+               rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+            }
+            break;
+         }
+         case RS232_RCV_NEO_HDR:
+         {
+       	    // Data = offset (2 bytes), num bytes (2 bytes), time of fade (2 bytes), data..., CRC8
+            stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+            rs232_glob.rxTmpBuf[rs232_glob.currIndex++] = data;
+            if (rs232_glob.currIndex == 6)
+            {
+               neopxl_update_rcv_cmd((rs232_glob.rxTmpBuf[0] << 8) | rs232_glob.rxTmpBuf[1],
+                  (rs232_glob.rxTmpBuf[2] << 8) | rs232_glob.rxTmpBuf[3],
+                  (rs232_glob.rxTmpBuf[4] << 8) | rs232_glob.rxTmpBuf[5]);
+               rs232_glob.state = RS232_RCV_NEO_DATA;
+            }
+            break;
+         }
+         case RS232_RCV_NEO_DATA:
+         {
+            BOOL done = neopxl_update_rcv_data(data);
+            if (!done)
+            {
+                stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+            }
+            else
+            {
+               if (data != rs232_glob.crc8)
+               {
+                  gen2g_info.crcErr++;
+               }
+
+               /* Whole command has been rcvd, now wait for next cmd */
+               rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+            }
+            break;
+         }
+         default:
+         {
+            /* Invalid state, send EOM */
+            data = RS232I_EOM;
+            (void)stdlser_xmt_data(&data, 1);
+            rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
+            break;
          }
       }
-      stdlser_get_xmt_info(&xmtData_p, &xmtLength);
-      if (xmtLength)
-      {
-         CDC_Transmit_FS(xmtData_p, xmtLength);
-      }
+   }
+   stdlser_get_xmt_info(&xmtData_p, &xmtLength);
+   if (xmtLength)
+   {
+      CDC_Transmit_FS(xmtData_p, xmtLength);
    }
 } /* End rs232proc_task */
 
@@ -799,25 +695,46 @@ void rs232proc_task(void)
  * ===============================================================================
  */
 /**
- * Receive serial character
+ * Receive a buffer
  * 
- * Grab the serial character.  Save the character and mark the flag.
+ * Receive a data buffer from USB.  Save the buffer, length, and mark the flag.
  * 
- * @param   None 
- * @return  None
+ * @param   rcv_p - received buffer pointer
+ * @param   length - amount of data received
+ * @return  TRUE if buffer overflow occurs
  * 
  * @pre     None 
  * @note    None
  * 
  * ===============================================================================
  */
-void rs232proc_rx_ser_char(
-   void                        *cbParam_p)
+void rs232proc_rx_buffer(
+   U8                          *rcv_p,
+   U32                         length)
 {
-   cbParam_p = 0;
-  
-   rs232_glob.rcvChar = TRUE;
-} /* End rs232proc_rx_ser_char */
+   U8                          *nxt_p;
+
+   nxt_p = rs232_glob.rcvHead_p;
+   while (length != 0)
+   {
+      /* Verify write won't overflow the queue */
+      nxt_p++;
+      if (nxt_p >= &rs232_glob.rxBuf[RX_BUF_SIZE])
+      {
+         nxt_p = &rs232_glob.rxBuf[0];
+      }
+      if (nxt_p != rs232_glob.rcvTail_p)
+      {
+         *rs232_glob.rcvHead_p = *rcv_p++;
+         rs232_glob.rcvHead_p = nxt_p;
+         length--;
+      }
+      else
+      {
+         break;
+      }
+   }
+} /* End rs232proc_rx_buffer */
 
 /*
  * ===============================================================================

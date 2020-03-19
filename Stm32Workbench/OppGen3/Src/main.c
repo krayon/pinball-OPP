@@ -94,8 +94,6 @@ static void MX_GPIO_Init(void);
 void debug_save_nv_cfg();
 
 /* Prototype declarations */
-void neo_fifo_trigger_isr();
-
 void timer_init();
 void timer_overflow_isr();
 
@@ -167,7 +165,7 @@ int main(void)
    rs232proc_init();
 
    /* Initialize tasks */
-   gen2g_info.error = neo_init(gen2g_info.nvCfgInfo.numNeoPxls);
+   gen2g_info.error = neo_init();
    timer_init();
 
    EnableInterrupts; /* Enable global interrupts. */
@@ -243,27 +241,11 @@ void SystemClock_Config(void)
   */
 static void MX_GPIO_Init(void)
 {
-#if 0 /* HRS */
-   GPIO_InitTypeDef GPIO_InitStruct = {0};
-#endif
-
    /* GPIO Ports Clock Enable */
    __HAL_RCC_GPIOC_CLK_ENABLE();
    __HAL_RCC_GPIOD_CLK_ENABLE();
    __HAL_RCC_GPIOB_CLK_ENABLE();
    __HAL_RCC_GPIOA_CLK_ENABLE();
-
-#if 0 /* HRS */
-   /*Configure GIO pin Output Level */
-   HAL_GPIO_WritePin(GPIOC, GPIO_PIN_13, GPIO_PIN_SET);
-
-   /*Configure GPIO pin : PC13 */
-   GPIO_InitStruct.Pin = GPIO_PIN_13;
-   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-   GPIO_InitStruct.Pull = GPIO_NOPULL;
-   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-   HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
-#endif
 }
 
 /* USER CODE BEGIN 4 */
@@ -300,7 +282,6 @@ void main_copy_flash_to_ram()
    gen2g_info.error = NO_ERRORS;
    gen2g_info.validCfg = FALSE;
    gen2g_info.haveNeo = FALSE;
-   gen2g_info.firstCard = FALSE;
    gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    gen2g_info.prodId = gen2g_persist_p->prodId;
    gen2g_info.serNum = gen2g_persist_p->serNum;

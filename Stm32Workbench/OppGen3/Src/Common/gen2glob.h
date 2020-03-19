@@ -73,14 +73,13 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x01000104
+#define GEN2G_CODE_VERS       0x02000000
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
 #define GEN2G_STAT_BLINK_FAST_ON       0x02
 #define GEN2G_STAT_FADE_FAST_DEC       0x02
 #define GEN2G_MAX_STATE_NUM            32      /* State num goes from 0 - 31 */
-#define GEN2G_SYNCH_OUT                0x0004
 #define GEN2G_TIME_MAIN_LOOP           0x08
 
 typedef enum
@@ -107,7 +106,8 @@ typedef struct
    U8                         res1[3];
    RS232I_GEN2_WING_TYPE_E    wingCfg[RS232I_NUM_WING];
    U8                         numNeoPxls;
-   U8                         res2[7];
+   U8                         bytesPerPxl;
+   U8                         res2[6];
    U8                         cfgData[0xf0];
 } GEN2G_NV_CFG_T;
 
@@ -189,7 +189,6 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
 
 /* Init prototypes */
 void digital_init();
-void neopxl_init();
 void incand_init();
 
 #ifndef GEN2G_INSTANTIATE
@@ -203,7 +202,7 @@ void incand_init();
       incand_init,                  /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
       digital_init,                 /* WING_SW_MATRIX_IN */
-      neopxl_init,                  /* WING_NEO */
+      NULL,                         /* WING_NEO, no init needed */
       incand_init,                  /* WING_HI_SIDE_INCAND */
   }
 #endif
@@ -214,7 +213,6 @@ typedef struct
    BOOL                       validCfg;
    BOOL                       haveNeo;
    GEN2G_ERROR_E              error;
-   BOOL                       firstCard;
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
    U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */
@@ -228,7 +226,6 @@ typedef struct
    GEN2G_NV_CFG_T             nvCfgInfo;
    GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
    GEN2G_INP_CFG_T            *inpCfg_p;
-   GEN2G_NEO_CFG_T            *neoCfg_p;
    U8                         *freeCfg_p;
 } GEN2G_INFO;
 

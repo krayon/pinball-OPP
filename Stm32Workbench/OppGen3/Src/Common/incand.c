@@ -43,8 +43,7 @@
  */
 /**
  * This is the file for driving the incandescent wing boards.  It requires
- * a 40ms tick for the blinking.  The blinks should be synchronized across
- * all the boards so look nice.
+ * a 40ms tick for the blinking.
  *
  *===============================================================================
  */
@@ -57,7 +56,6 @@ typedef struct
    BOOL              startProc;
    U8                validMask;
    U8                invertMask;  /* 1 if wing is high side incand */
-   U32               prevSynch;
    U32               ledOnBitfield;
    U32               ledBlinkSlowBitfield;
    U32               ledBlinkFastBitfield;
@@ -169,7 +167,6 @@ void incand_task()
 {
    U32                        ledOut;
    INT                        index;
-   U32                        synch;
    
    if (gen2g_info.validCfg)
    {
@@ -209,20 +206,6 @@ void incand_task()
                }
             }
          }
-      }
-      
-      /* Synchronize cards */
-      if (!gen2g_info.firstCard)
-      {
-         synch = stdldigio_read_port(STDLI_DIG_PORT_B, GEN2G_SYNCH_OUT);
-         
-         /* If synch signal changed and new value is set */
-         if ((synch ^ incandInfo.prevSynch) && (synch == GEN2G_SYNCH_OUT))
-         {
-            gen2g_info.ledStateNum = 0;
-            gen2g_info.ledStatus = 0;
-         }
-         incandInfo.prevSynch = synch;
       }
    }
 }

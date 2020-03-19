@@ -24,7 +24,7 @@
  * @date:   12/07/2012
  *
  * @note:   Open Pinball Project
- *          Copyright© 2012-2015, Hugh Spahr
+ *          Copyrightï¿½ 2012-2015, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -94,6 +94,8 @@ typedef enum
   RS232I_READ_MATRIX_INP    = 0x19,
   RS232I_NUM_CMDS,
   
+  RS232I_NEO_FADE_CMD       = 0x40,
+
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
   RS232I_EOM                = 0xff,
 } __attribute__((packed)) RS232I_CMD_E;

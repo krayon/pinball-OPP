@@ -142,31 +142,25 @@ void timer_overflow_isr()
       tmrInfo.incandCnt++;
       if (tmrInfo.incandCnt >= 40)
       {
+         tmrInfo.incandCnt = 0;
+
          /* Move to next LED state */
          gen2g_info.ledStateNum++;
          gen2g_info.ledStateNum &= (GEN2G_MAX_STATE_NUM - 1);
          if ((gen2g_info.ledStateNum & 0x7) == 0)
          {
             gen2g_info.ledStatus ^= GEN2G_STAT_BLINK_FAST_ON;
-            if ((gen2g_info.firstCard) && (gen2g_info.ledStateNum == 8))
-            {
-               stdldigio_write_port(STDLI_DIG_PORT_B, GEN2G_SYNCH_OUT, 0);
-            }
          }
          if (gen2g_info.ledStateNum == 0)
          {
             gen2g_info.ledStatus ^= GEN2G_STAT_BLINK_SLOW_ON;
-            if (gen2g_info.firstCard && 
-               ((gen2g_info.ledStatus & GEN2G_STAT_BLINK_SLOW_ON) == 0))
-            {
-               stdldigio_write_port(STDLI_DIG_PORT_B, GEN2G_SYNCH_OUT, GEN2G_SYNCH_OUT);
-            }
          }
         
          incand_40ms_tick();
       }
+
       tmrInfo.neoCnt++;
-      if (tmrInfo.neoCnt >= 40)
+      if (tmrInfo.neoCnt >= 10)
       {
          tmrInfo.neoCnt = 0;
          neo_10ms_tick();

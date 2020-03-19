@@ -63,9 +63,6 @@
 
 typedef struct
 {
-   U8                         *rcvHead_p;
-   U8                         *rcvTail_p;
-   U8                         rcvData[STDLSER_RCV_BUF_SZ];
    U8                         xmtData[32];
    INT                        xmtIndex;
 } STDLSER_GLOB_T;
@@ -73,8 +70,6 @@ typedef struct
 STDLSER_GLOB_T                stdlser_glob;
 
 /* Prototypes */
-void rs232proc_rx_ser_char(
-   void                        *cbParam_p);
 
 /*
  * ===============================================================================
@@ -97,99 +92,9 @@ void rs232proc_rx_ser_char(
  */
 void stdlser_init()
 {
-	stdlser_glob.rcvHead_p = &stdlser_glob.rcvData[0];
-	stdlser_glob.rcvTail_p = &stdlser_glob.rcvData[0];
 	stdlser_glob.xmtIndex = 0;
 
 } /* End stdlser_init */
-
-/*
- * ===============================================================================
- *
- * Name: stdlser_update_rcvd_data
- *
- * ===============================================================================
- */
-/**
- * Function for updating received data
- *
- * Update the read data pointer and the length of data received.
- *
- * @param   data_p      [in]    Pointer to the received data
- * @param   length      [in]    Length of data
- * @return  TRUE if serial character is available
- *
- * @pre     None
- * @note    None
- *
- * ===============================================================================
- */
-void stdlser_update_rcvd_data(
-   U8                         *data_p,      /* Pointer to received data */
-   U32                        length)       /* Number of bytes received */
-{
-   U8                         *nxt_p;
-
-   while (length)
-   {
-      nxt_p = stdlser_glob.rcvHead_p;
-      nxt_p++;
-      if (nxt_p == &stdlser_glob.rcvData[STDLSER_RCV_BUF_SZ])
-      {
-    	  nxt_p = &stdlser_glob.rcvData[0];
-      }
-
-      /* Check if circular queue would overflow (head/tail equal) */
-      if (nxt_p == stdlser_glob.rcvTail_p)
-      {
-         break;
-      }
-      length--;
-      *stdlser_glob.rcvHead_p = *data_p++;
-      stdlser_glob.rcvHead_p = nxt_p;
-   }
-   rs232proc_rx_ser_char(NULL);
-
-} /* End stdlser_update_rcvd_data */
-
-/*
- * ===============================================================================
- * 
- * Name: stdlser_get_rcv_data
- *
- * ===============================================================================
- */
-/**
- * Function for getting serial port char
- *
- * Read the rcv data, to clear the ISR.  Check if a rcv function has been
- * registered.  If so, call the rcv function.
- *
- * @param   portNum     [in]    Either STDLI_SER_PORT_1 or STDLI_SER_PORT_2
- * @return  TRUE if serial character is available
- *
- * @pre     None
- * @note    None
- *
- * ===============================================================================
- */
-BOOL stdlser_get_rcv_data(
-   U8                         *data_p)      /* Rcv'd character */
-{
-   if (stdlser_glob.rcvTail_p != stdlser_glob.rcvHead_p)
-   {
-      *data_p = *stdlser_glob.rcvTail_p++;
-      if (stdlser_glob.rcvTail_p == &stdlser_glob.rcvData[STDLSER_RCV_BUF_SZ])
-      {
-    	  stdlser_glob.rcvTail_p = &stdlser_glob.rcvData[0];
-      }
-      return (TRUE);
-   }
-   else
-   {
-      return (FALSE);
-   }
-} /* End stdlser_get_rcv_data */
 
 /*
  * ===============================================================================
@@ -265,7 +170,7 @@ void stdlser_get_xmt_info(
  * Function for calculating the CRC8 of a data stream
  * 
  * Set the initial value of the CRC8 to 0xff, and run the CRC8 calculation using
- * a 16 entry lookup table.
+ * a 256 entry lookup table.
  * 
  * @param   crc8_p      [in]    Ptr to the CRC8.  Data should be 0xff initially
  * @param   length      [in]    Num chars in data stream
@@ -278,10 +183,6 @@ void stdlser_get_xmt_info(
  * 
  * ===============================================================================
  */
-const U8                    CRC8_NIBBLE_LOOKUP[16] = 
-  { 0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
-    0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d };
-
 const U8                    CRC8_BYTE_LOOKUP[256] =
 {
    0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15, 0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d, \
@@ -307,15 +208,12 @@ void stdlser_calc_crc8(
    INT                       length,       /* Num chars in data stream */
    U8                        *data_p)      /* Ptr to data stream */
 {
-   U8                        currCrc;
    U16                       count;
    U8                        crc8Byte;
 
-   for (count = 0, currCrc = *crc8_p, crc8Byte = *crc8_p; count < length; count++)
+   for (count = 0, crc8Byte = *crc8_p; count < length; count++)
    {
-      currCrc = ((currCrc << 4) & 0xf0) ^ CRC8_NIBBLE_LOOKUP[((currCrc ^ data_p[count]) >> 4) & 0x0f];
-      currCrc = ((currCrc << 4) & 0xf0) ^ CRC8_NIBBLE_LOOKUP[(((currCrc >> 4) & 0x0f) ^ (data_p[count])) & 0x0f];
       crc8Byte = CRC8_BYTE_LOOKUP[crc8Byte ^ data_p[count]];
    }
-   *crc8_p = currCrc;
+   *crc8_p = crc8Byte;
 } /* End stdlser_calc_crc8 */

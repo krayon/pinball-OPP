@@ -23,6 +23,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "Common/stdtypes.h"
 
 /* USER CODE END INCLUDE */
 
@@ -50,9 +51,9 @@
   */
 
 /* USER CODE BEGIN PRIVATE_TYPES */
-void stdlser_update_rcvd_data(
-   uint8_t                    *data_p,      /* Pointer to received data */
-   uint32_t                   length);      /* Number of bytes received */
+void rs232proc_rx_buffer(
+   U8                          *rcv_p,
+   U32                         length);
 
 /* USER CODE END PRIVATE_TYPES */
 
@@ -68,8 +69,8 @@ void stdlser_update_rcvd_data(
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  1000
-#define APP_TX_DATA_SIZE  1000
+#define APP_RX_DATA_SIZE  128
+#define APP_TX_DATA_SIZE  64
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -160,7 +161,7 @@ static int8_t CDC_Init_FS(void)
   /* USER CODE BEGIN 3 */
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &UserRxBufferFS[0]);
   return (USBD_OK);
   /* USER CODE END 3 */
 }
@@ -266,9 +267,9 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  stdlser_update_rcvd_data(Buf, *Len);
+  rs232proc_rx_buffer(Buf, *Len);
 
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &UserRxBufferFS[0]);
   USBD_CDC_ReceivePacket(&hUsbDeviceFS);
   return (USBD_OK);
   /* USER CODE END 6 */

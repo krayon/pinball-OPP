@@ -936,6 +936,157 @@ def TestIncandCmds():
         return 2013
     return 0
 
+#Test Neopixel commands.
+def TestNeopixelCmds():
+    print "\nVerify Neopixels display green, red, blue, green, red, blue, green, red."
+    print "Press (y) if working, (n) if not working."
+    ch = getChar()
+
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nDefault Neopixel state failed."
+        return 2101
+    # Verify set color
+    neoData = ['\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00']
+    sendNeoCmd(0, 0, neoData)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    print "\nVerify Neopixels are all off."
+    print "Press (y) if working, (n) if not working."
+    ch = getChar()
+    if (ch != 'y') and (ch != 'Y'):
+        print "\nNeopixel set color failed."
+        return 2102
+    # Verify fade on/fade off works
+    print "\nVerify Neopixel fade on/fade off working."
+    print "Fading to 100% on in 2s, wait .1s, fade to off in 2s."
+    print "Colors are green, red, blue, yellow,"
+    print "magenta, cyan, white, 1/2 bright white."
+    print "Press (y) if working, (n) if not working."
+    exitReq = False
+    while (not exitReq):
+        neoData = ['\xff', '\x00', '\x00', '\x00', '\xff', '\x00', \
+            '\x00', '\x00', '\xff', '\xff', '\xff', '\x00', \
+            '\x00', '\xff', '\xff', '\xff', '\x00', '\xff', \
+            '\xff', '\xff', '\xff', '\x80', '\x80', '\x80']
+        sendNeoCmd(0, 2000, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(2.1)
+        neoData = ['\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+            '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+            '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+            '\x00', '\x00', '\x00', '\x00', '\x00', '\x00']
+        sendNeoCmd(0, 2000, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        #Check if exit is requested
+        while kbHit():
+            char = getAsynchChar()
+            if (char != 'y') and (char != 'Y'):
+                print "\nNeopixel fade on/off failed."
+                retCode = 2103
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(2.1)
+    if retCode: return (retCode)
+
+    # Verify offset and multiple fade rates
+    print "\nVerify offset and multiple fade rates working."
+    print "Fade red LEDs in 250ms,500ms, 750ms, 1s, 1.25s, 1.5s, 1.75s and 2s"
+    print "Fade off at same rates (fastest to slowest)"
+    print "Press (y) if working, (n) if not working."
+    numNeopixels = 8
+    exitReq = False
+    while (not exitReq):
+        offset = 0
+        fadeTime = 0
+        neoData = ['\xff']
+        for i in range(numNeopixels):
+            sendNeoCmd(offset, fadeTime, neoData)
+            retCode = rcvEomResp()
+            if retCode: return (retCode)
+            offset = offset + 3
+            fadeTime = fadeTime + 250
+        time.sleep(2.1)
+        offset = 0
+        fadeTime = 0
+        neoData = ['\x00']
+        for i in range(numNeopixels):
+            sendNeoCmd(offset, fadeTime, neoData)
+            retCode = rcvEomResp()
+            if retCode: return (retCode)
+            offset = offset + 3
+            fadeTime = fadeTime + 250
+        #Check if exit is requested
+        while kbHit():
+            char = getAsynchChar()
+            if (char != 'y') and (char != 'Y'):
+                print "\nNeopixel offset and multiple fade rates failed."
+                retCode = 2104
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(2.1)
+    if retCode: return (retCode)
+
+    # Verify partial brightness fades
+    print "\nVerify partial brightness fades working."
+    print "Fade 0%-25%, 25%-50%, 50%-75%, 75%-100%,"
+    print "25%-0%, 50%-25%, 75%-50%, 100%-75% and fade back"
+    print "Press (y) if working, (n) if not working."
+    neoData = ['\x00', '\x00', '\x00', '\x40', '\x40', '\x40', \
+        '\x80', '\x80', '\x80', '\xc0', '\xc0', '\xc0', \
+        '\x40', '\x40', '\x40', '\x80', '\x80', '\x80', \
+        '\xc0', '\xc0', '\xc0', '\xff', '\xff', '\xff']
+    sendNeoCmd(0, 0, neoData)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    exitReq = False
+    while (not exitReq):
+        neoData = ['\x40', '\x40', '\x40', '\x80', '\x80', '\x80', \
+            '\xc0', '\xc0', '\xc0', '\xff', '\xff', '\xff', \
+            '\x00', '\x00', '\x00', '\x40', '\x40', '\x40', \
+            '\x80', '\x80', '\x80', '\xc0', '\xc0', '\xc0']
+        sendNeoCmd(0, 2000, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        time.sleep(2.1)
+        neoData = ['\x00', '\x00', '\x00', '\x40', '\x40', '\x40', \
+            '\x80', '\x80', '\x80', '\xc0', '\xc0', '\xc0', \
+            '\x40', '\x40', '\x40', '\x80', '\x80', '\x80', \
+            '\xc0', '\xc0', '\xc0', '\xff', '\xff', '\xff']
+        sendNeoCmd(0, 2000, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        #Check if exit is requested
+        while kbHit():
+            char = getAsynchChar()
+            if (char != 'y') and (char != 'Y'):
+                print "\nNeopixel fade on/off failed."
+                retCode = 2105
+            else:
+                retCode = 0
+            exitReq = True
+        if not exitReq:
+            time.sleep(2.1)
+    if retCode: return (retCode)
+
+    # Turn all LEDs off
+    neoData = ['\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00', \
+        '\x00', '\x00', '\x00', '\x00', '\x00', '\x00']
+    sendNeoCmd(0, 0, neoData)
+    retCode = rcvEomResp()
+    if retCode: return (retCode)
+    return 0
+
 #send input cfg cmd
 def sendInpCfgCmd(cfgNum):
     global ser
@@ -1166,6 +1317,27 @@ def sendIncandCmd(subCmd, mask):
     ser.write(sendCmd)
     return (0)
 
+#send Neopixel cmd
+def sendNeoCmd(offset, fadeTime, data):
+    global ser
+    global gen2AddrArr
+    cmdArr = []
+    cmdArr.append(gen2AddrArr[0])
+    cmdArr.append(rs232Intf.RS232I_NEO_FADE_CMD)
+    cmdArr.append(chr((offset >> 8) & 0xff))
+    cmdArr.append(chr(offset & 0xff))
+    dataLen = len(data)
+    cmdArr.append(chr((dataLen >> 8) & 0xff))
+    cmdArr.append(chr(dataLen & 0xff))
+    cmdArr.append(chr((fadeTime >> 8) & 0xff))
+    cmdArr.append(chr(fadeTime & 0xff))
+    for tmp in data:
+        cmdArr.append(tmp)
+    cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
 
 def endTest(error):
     global ser
@@ -1190,6 +1362,7 @@ skipProg = False
 skipSaveStdCfg = False
 skipSolTests = False
 skipIncandTests = False
+skipNeopixelTests = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -1203,6 +1376,11 @@ for arg in sys.argv:
     skipSolTests = True
   elif arg.startswith('-skipIncandTests'):
     skipIncandTests = True
+  elif arg.startswith('-psoc4200'):
+    skipNeopixelTests = True
+  elif arg.startswith('-stm32'):
+    skipProg = True
+    skipSaveStdCfg = True
   elif arg.startswith('-?'):
     print "python RegrTestG2.py [OPTIONS]"
     print "    -?                 Options Help"
@@ -1212,6 +1390,8 @@ for arg in sys.argv:
     print "    -skipSaveStdCfg    Skip saving standard config (used for debugging tests)"
     print "    -skipSolTests      Skip solenoid tests"
     print "    -skipIncandTests   Skip incandescent tests"
+    print "    -psoc4200          Test PSOC4200"
+    print "    -stm32             Test STM32 (skips programming and saving standard config)"
     end = True
 
 if end:
@@ -1269,10 +1449,10 @@ else:
     #rerunning regression tests will work
     ResetBoard()
 
-retCode = runTest(VerifyStdCfg)
-if retCode != 0: sys.exit(retCode)
-
 if not skipSolTests:
+    retCode = runTest(VerifyStdCfg)
+    if retCode != 0: sys.exit(retCode)
+
     retCode = runTest(TestProcNoAutoClr)
     if retCode != 0: sys.exit(retCode)
 
@@ -1296,6 +1476,10 @@ if not skipSolTests:
 
 if not skipIncandTests:
     retCode = TestIncandCmds()
+    if retCode != 0: sys.exit(retCode)
+
+if not skipNeopixelTests:
+    retCode = runTest(TestNeopixelCmds)
     if retCode != 0: sys.exit(retCode)
 
 print "\nSuccessful completion."
