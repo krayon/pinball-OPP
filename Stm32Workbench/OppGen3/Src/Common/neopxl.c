@@ -351,6 +351,7 @@ void neo_task()
       }
       else if ((neoInfo.stat == STAT_WAIT_FOR_TICK) && neoInfo.tickOcc)
       {
+    	 neoInfo.tickOcc = FALSE;
          neoInfo.stat = STAT_DMA_DATA;
 
          dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR;

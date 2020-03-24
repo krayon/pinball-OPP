@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.05'
+testVers = '00.00.06'
 
 import sys
 import serial
@@ -991,13 +991,12 @@ def TestNeopixelCmds():
             else:
                 retCode = 0
             exitReq = True
-        if not exitReq:
-            time.sleep(2.1)
+        time.sleep(2.1)
     if retCode: return (retCode)
 
     # Verify offset and multiple fade rates
     print "\nVerify offset and multiple fade rates working."
-    print "Fade red LEDs in 250ms,500ms, 750ms, 1s, 1.25s, 1.5s, 1.75s and 2s"
+    print "Fade green LEDs in 250ms,500ms, 750ms, 1s, 1.25s, 1.5s, 1.75s and 2s"
     print "Fade off at same rates (fastest to slowest)"
     print "Press (y) if working, (n) if not working."
     numNeopixels = 8
@@ -1007,21 +1006,23 @@ def TestNeopixelCmds():
         fadeTime = 0
         neoData = ['\xff']
         for i in range(numNeopixels):
-            sendNeoCmd(offset, fadeTime, neoData)
-            retCode = rcvEomResp()
-            if retCode: return (retCode)
+            sendNeoCmd(offset, fadeTime, neoData, False)
             offset = offset + 3
             fadeTime = fadeTime + 250
+        sendEom()
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
         time.sleep(2.1)
         offset = 0
         fadeTime = 0
         neoData = ['\x00']
         for i in range(numNeopixels):
-            sendNeoCmd(offset, fadeTime, neoData)
-            retCode = rcvEomResp()
-            if retCode: return (retCode)
+            sendNeoCmd(offset, fadeTime, neoData, False)
             offset = offset + 3
             fadeTime = fadeTime + 250
+        sendEom()
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
         #Check if exit is requested
         while kbHit():
             char = getAsynchChar()
@@ -1031,8 +1032,7 @@ def TestNeopixelCmds():
             else:
                 retCode = 0
             exitReq = True
-        if not exitReq:
-            time.sleep(2.1)
+        time.sleep(2.1)
     if retCode: return (retCode)
 
     # Verify partial brightness fades
@@ -1073,8 +1073,7 @@ def TestNeopixelCmds():
             else:
                 retCode = 0
             exitReq = True
-        if not exitReq:
-            time.sleep(2.1)
+        time.sleep(2.1)
     if retCode: return (retCode)
 
     # Turn all LEDs off
@@ -1101,6 +1100,14 @@ def sendInpCfgCmd(cfgNum):
         else:
             cmdArr.append(inpCfg[cfgNum][loop])
     cmdArr.append(calcCrc8(cmdArr))
+    cmdArr.append(rs232Intf.EOM_CMD)
+    sendCmd = ''.join(cmdArr)
+    ser.write(sendCmd)
+    return (0)
+
+#rcv end of message resp
+def sendEom():
+    cmdArr = []
     cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
@@ -1318,7 +1325,7 @@ def sendIncandCmd(subCmd, mask):
     return (0)
 
 #send Neopixel cmd
-def sendNeoCmd(offset, fadeTime, data):
+def sendNeoCmd(offset, fadeTime, data, sendEom=True):
     global ser
     global gen2AddrArr
     cmdArr = []
@@ -1334,7 +1341,8 @@ def sendNeoCmd(offset, fadeTime, data):
     for tmp in data:
         cmdArr.append(tmp)
     cmdArr.append(calcCrc8(cmdArr))
-    cmdArr.append(rs232Intf.EOM_CMD)
+    if (sendEom):
+        cmdArr.append(rs232Intf.EOM_CMD)
     sendCmd = ''.join(cmdArr)
     ser.write(sendCmd)
     return (0)
@@ -1363,6 +1371,7 @@ skipSaveStdCfg = False
 skipSolTests = False
 skipIncandTests = False
 skipNeopixelTests = False
+stm32 = False
 for arg in sys.argv:
   if arg.startswith('-port='):
     port = arg.replace('-port=','',1)
@@ -1381,6 +1390,7 @@ for arg in sys.argv:
   elif arg.startswith('-stm32'):
     skipProg = True
     skipSaveStdCfg = True
+    stm32 = True
   elif arg.startswith('-?'):
     print "python RegrTestG2.py [OPTIONS]"
     print "    -?                 Options Help"
@@ -1447,7 +1457,8 @@ if not skipSaveStdCfg:
 else:
     #Reset the board to get back to the stored configuration so
     #rerunning regression tests will work
-    ResetBoard()
+    if not stm32:
+        ResetBoard()
 
 if not skipSolTests:
     retCode = runTest(VerifyStdCfg)
