@@ -165,7 +165,6 @@ int main(void)
    rs232proc_init();
 
    /* Initialize tasks */
-   gen2g_info.error = neo_init();
    timer_init();
 
    EnableInterrupts; /* Enable global interrupts. */

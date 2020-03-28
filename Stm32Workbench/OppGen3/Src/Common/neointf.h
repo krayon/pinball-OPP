@@ -58,7 +58,7 @@
 #define NEOI_COLOR_TBL_SIZE 0x20
 
 /* Prototypes */
-GEN2G_ERROR_E neo_init();
+void neo_init();
 void neo_task();
 void neo_update_pixel_data(
    INT                  offset,

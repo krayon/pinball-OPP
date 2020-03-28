@@ -610,15 +610,8 @@ void rs232proc_task(void)
          }
          case RS232_NEO_COLOR_TBL:
          {
-            /* Command only passes num NeoPixels and bytesPerPixel */
-            if (rs232_glob.currIndex == 0)
-            {
-               gen2g_info.nvCfgInfo.bytesPerPxl = data;
-            }
-            else if (rs232_glob.currIndex == 1)
-            {
-               gen2g_info.nvCfgInfo.numNeoPxls = data;
-            }
+            /* Command only passes bytesPerPixel, numPixels, and initial color */
+        	*((U8 *)gen2g_info.neoCfg_p + rs232_glob.currIndex) = data;
             rs232_glob.currIndex++;
             if (rs232_glob.currIndex < rs232_glob.cmdLen)
             {

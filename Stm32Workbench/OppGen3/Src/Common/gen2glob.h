@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x02000001
+#define GEN2G_CODE_VERS       0x02000002
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -90,13 +90,6 @@ typedef enum
    NVCFG_COLOR_TBL            = 0x03,
 } __attribute__((packed)) GEN2G_NVCFG_TYPE_E;
 
-typedef struct
-{
-   U8                         green;
-   U8                         red;
-   U8                         blue;
-} GEN2G_NEO_COLOR_TBL_T;
-   
 /* Non-volatile configuration stored in flash on Gen2 boards.
  * Requires 256 bytes of flash.
  */
@@ -105,9 +98,7 @@ typedef struct
    U8                         nvCfgCrc;   /* CRC from wingCfg to end of cfgData */
    U8                         res1[3];
    RS232I_GEN2_WING_TYPE_E    wingCfg[RS232I_NUM_WING];
-   U8                         numNeoPxls;
-   U8                         bytesPerPxl;
-   U8                         res2[6];
+   U8                         res2[8];
    U8                         cfgData[0xf0];
 } GEN2G_NV_CFG_T;
 
@@ -162,7 +153,10 @@ typedef struct
 
 typedef struct
 {
-   GEN2G_NEO_COLOR_TBL_T      colorTbl[RS232I_SZ_COLOR_TBL];
+   U8                         bytesPerPixel;
+   U8                         numPixel;
+   U8                         initColor[4];
+   U8                         unused[90];
 } GEN2G_NEO_CFG_T;
 
 typedef struct
@@ -190,6 +184,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
 /* Init prototypes */
 void digital_init();
 void incand_init();
+void neo_init();
 
 #ifndef GEN2G_INSTANTIATE
    extern
@@ -202,7 +197,7 @@ void incand_init();
       incand_init,                  /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
       digital_init,                 /* WING_SW_MATRIX_IN */
-      NULL,                         /* WING_NEO, no init needed */
+      neo_init,                     /* WING_NEO */
       incand_init,                  /* WING_HI_SIDE_INCAND */
   }
 #endif
@@ -226,6 +221,7 @@ typedef struct
    GEN2G_NV_CFG_T             nvCfgInfo;
    GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
    GEN2G_INP_CFG_T            *inpCfg_p;
+   GEN2G_NEO_CFG_T            *neoCfg_p;
    U8                         *freeCfg_p;
 } GEN2G_INFO;
 

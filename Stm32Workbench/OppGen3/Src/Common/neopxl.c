@@ -58,17 +58,8 @@
 
 #define SPI_BITS_PER_NEO_BIT     4       /* 4 SPI bits are needed for a single NeoPixel bit */
                                          /* SPI clock is 48MHz/16 = 3MHz or 333ns/tick */
-#define PWM_BITS_PER_NEO_BIT     8       /* 1 PWM byte is needed to send a single NeoPixel bit */
-                                         /* PWM clock is 57/48MHz = 1.19us per NeoPixel bit */
 #define MAX_NEOPIXELS            256
 
-#define MAX_MULT_FACT_SHFT       5       /* 2^5 or 32 */
-    
-#define CMD_MASK                 0xe0
-#define CMD_FADE_CMDS            0x40
-#define CMD_COLOR_TBL_MASK       (NEOI_COLOR_TBL_SIZE - 1)
-#define CMD_FAST_CMD             0x20
-    
 #define STAT_DMA_DATA            0
 #define STAT_UPDATE_FADE         1
 #define STAT_WAIT_FOR_TICK       2
@@ -166,64 +157,70 @@ void neo_process_fade_record();
  * 
  * ===============================================================================
  */
-GEN2G_ERROR_E neo_init()
+void neo_init()
 {
    INT               index;
    INT               offset;
    U8                *tmp1_p;
    U8                *tmp2_p;
+   BOOL              dfltOutput = TRUE;
 
-   if ((gen2g_info.nvCfgInfo.bytesPerPxl == 0xff) || (gen2g_info.nvCfgInfo.bytesPerPxl == 0x00))
+   gen2g_info.neoCfg_p = (GEN2G_NEO_CFG_T *)gen2g_info.freeCfg_p;
+   gen2g_info.freeCfg_p += sizeof(GEN2G_NEO_CFG_T);
+
+   if ((gen2g_info.neoCfg_p->bytesPerPixel == 0xff) || (gen2g_info.neoCfg_p->bytesPerPixel == 0x00))
    {
       neoInfo.bytesPerPixel = 3;
    }
    else
    {
-      neoInfo.bytesPerPixel = gen2g_info.nvCfgInfo.bytesPerPxl;
+      neoInfo.bytesPerPixel = gen2g_info.neoCfg_p->bytesPerPixel;
    }
 
-   /* Only initialize if Neo pixels are configured */
+   /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
    neoInfo.stat = STAT_DISABLED;
-   if ((gen2g_info.typeWingBrds & (1 << WING_NEO)) != 0)
+   gen2g_info.haveNeo = TRUE;
+   neoInfo.tickOcc = FALSE;
+   neoInfo.underflow = 0;
+   neoInfo.complUpd = 0;
+   neoInfo.numPixels = gen2g_info.neoCfg_p->numPixel;
+   if (gen2g_info.neoCfg_p->numPixel == 0)
    {
-      /* Initialize the state machine to turn off all the LEDs, set indices to 0 */
-      gen2g_info.haveNeo = TRUE;
-      neoInfo.tickOcc = FALSE;
-      neoInfo.underflow = 0;
-      neoInfo.complUpd = 0;
-      neoInfo.numPixels = gen2g_info.nvCfgInfo.numNeoPxls;
-      if (gen2g_info.nvCfgInfo.numNeoPxls == 0)
-      {
-    	  neoInfo.numPixels = MAX_NEOPIXELS;
-      }
-      for (index = 0; index < NUM_FADES; index++)
-      {
-         neoInfo.fadeInfo[index].numBytes = 0;
-      }
+      neoInfo.numPixels = MAX_NEOPIXELS;
+   }
+   for (index = 0; index < NUM_FADES; index++)
+   {
+      neoInfo.fadeInfo[index].numBytes = 0;
+   }
     
-      /* Test for null on commands */
-      neoInfo.currPxlVal_p = malloc(neoInfo.numPixels * neoInfo.bytesPerPixel);
-      if (neoInfo.currPxlVal_p == NULL)
-      {
-         gen2g_info.error = ERR_MALLOC_FAIL;
-         return(ERR_MALLOC_FAIL);
-      }
+   /* Test for null on commands */
+   neoInfo.currPxlVal_p = malloc(neoInfo.numPixels * neoInfo.bytesPerPixel);
+   if (neoInfo.currPxlVal_p == NULL)
+   {
+      gen2g_info.error = ERR_MALLOC_FAIL;
+   }
 
-      neoInfo.newPxlVal_p = malloc(neoInfo.numPixels * neoInfo.bytesPerPixel);
+   if (gen2g_info.error == NO_ERRORS)
+   {
+	  neoInfo.newPxlVal_p = malloc(neoInfo.numPixels * neoInfo.bytesPerPixel);
       if (neoInfo.newPxlVal_p == NULL)
       {
          gen2g_info.error = ERR_MALLOC_FAIL;
-         return(ERR_MALLOC_FAIL);
       }
+   }
 
+   if (gen2g_info.error == NO_ERRORS)
+   {
       /* Allocate neopixel DMA buffer memory */
       neoInfo.buf_p = malloc((neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1);
       if (neoInfo.buf_p == NULL)
       {
          gen2g_info.error = ERR_MALLOC_FAIL;
-         return(ERR_MALLOC_FAIL);
       }
+   }
 
+   if (gen2g_info.error == NO_ERRORS)
+   {
       /* Zero byte turns off PWM at end of string */
       *((U8 *)neoInfo.buf_p + (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT)) = 0;
     
@@ -234,12 +231,33 @@ GEN2G_ERROR_E neo_init()
          *tmp2_p = PIXEL_OFF;
       }
 
+      for (index = 0; index < neoInfo.bytesPerPixel; index++)
+      {
+         if (gen2g_info.neoCfg_p->initColor[index] != 0xff)
+         {
+            dfltOutput = FALSE;
+         }
+      }
+
       /* Set initial values to verify NeoPixels are working */
       for (index = 0; index < neoInfo.numPixels; index++)
       {
-    	  offset = index % neoInfo.bytesPerPixel;
-    	  *(neoInfo.currPxlVal_p + ((index * neoInfo.bytesPerPixel) + offset)) = PIXEL_HALF_ON;
-    	  *(neoInfo.newPxlVal_p + ((index * neoInfo.bytesPerPixel) + offset)) = PIXEL_HALF_ON;
+         if (dfltOutput)
+         {
+            offset = index % neoInfo.bytesPerPixel;
+            *(neoInfo.currPxlVal_p + ((index * neoInfo.bytesPerPixel) + offset)) = PIXEL_HALF_ON;
+            *(neoInfo.newPxlVal_p + ((index * neoInfo.bytesPerPixel) + offset)) = PIXEL_HALF_ON;
+         }
+         else
+         {
+            for (offset = 0; offset < neoInfo.bytesPerPixel; offset++)
+            {
+               *(neoInfo.currPxlVal_p + ((index * neoInfo.bytesPerPixel) + offset)) =
+                  gen2g_info.neoCfg_p->initColor[offset];
+               *(neoInfo.newPxlVal_p + ((index * neoInfo.bytesPerPixel) + offset)) =
+                  gen2g_info.neoCfg_p->initColor[offset];
+            }
+         }
       }
 
       neo_fill_out_dma_data(0, neoInfo.currPxlVal_p, neoInfo.numPixels * neoInfo.bytesPerPixel);
@@ -265,8 +283,6 @@ GEN2G_ERROR_E neo_init()
 
       neoInfo.stat = STAT_DMA_DATA;
    }
-    
-   return(NO_ERRORS);
 }
 
 /*
@@ -318,10 +334,6 @@ void neo_10ms_tick()
  */
 void neo_task()
 {
-#define STAT_DMA_DATA            0
-#define STAT_UPDATE_FADE         1
-#define STAT_WAIT_FOR_TICK       2
-#define STAT_DISABLED            0xff
    if (gen2g_info.validCfg && gen2g_info.haveNeo)
    {
       if ((neoInfo.stat == STAT_DMA_DATA) && (dma1Base_p->CNDTR5 == 0))
