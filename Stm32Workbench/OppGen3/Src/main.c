@@ -100,6 +100,7 @@ void timer_overflow_isr();
 void main_copy_flash_to_ram();
 void main_call_wing_inits();
 
+void digital_init();
 void digital_task(void);
 void digital_write_outputs();
 
@@ -348,6 +349,7 @@ void main_call_wing_inits()
       }
 
       /* Walk through types and call init functions using jump table */
+      digital_init();
       for (index = WING_UNUSED + 1; index < MAX_WING_TYPES; index++)
       {
          if (((gen2g_info.typeWingBrds & (1 << index)) != 0) &&

@@ -424,6 +424,8 @@ def rcvReadWingCfgResp(cardNum):
             outStr += "NEO_WING"
         elif data[index + 2] == rs232Intf.WING_HI_SIDE_INCAND:
             outStr += "INCAND_HI_WING"
+        elif data[index + 2] == rs232Intf.WING_NEO_SOL:
+            outStr += "NEO_SOL_WING"
         else:
             outStr += "Error"
         if index < rs232Intf.NUM_G2_WING_PER_BRD - 1:

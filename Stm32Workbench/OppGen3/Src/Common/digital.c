@@ -200,12 +200,12 @@ void digital_init(void)
 #define DBG_INPUT_BIT_MASK    0xfe
 #define INCAND_OUTP_MASK      0xff
 #define DBG_INCAND_OUTP_MASK  0xfe
-#define NEO_W0_INP_BIT_MASK   0xef
-#define DBG_NEO_W0_INP_BIT_MASK   0xee
-#define NEO_W0_OUT_BIT_MASK   0x10
-#define NEO_W13_INP_BIT_MASK  0xf7
-#define NEO_W13_OUT_BIT_MASK  0x08
-#define NEO_OUTP_BIT_MASK     0x01
+#define NEO_INP_BIT_MASK      0xef
+#define DBG_NEO_INP_BIT_MASK  0xee
+#define NEO_OUT_BIT_MASK      0x10
+#define NEO_SOL_INP_BIT_MASK  0x0e
+#define NEO_SOL_OUT_BIT_MASK  0xf1
+#define DBG_NEO_SOL_OUT_BIT_MASK  0xf0
 #define SOL_INP_BIT_MASK      0x0f  
 #define DBG_SOL_INP_BIT_MASK  0x0e
 #define SOL_OUTP_BIT_MASK     0xf0
@@ -291,22 +291,35 @@ void digital_init(void)
                gen2g_info.error = ERR_SW_MATRIX_WING_BAD_LOC;
             }
          }
-         /* NEO wing can be wing 0, wing 1, or wing 3 */
+         /* Neo wing can only be wing 0 */
          else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_NEO)
          {
             if (index == 0)
             {
 #if GEN2G_DEBUG_PORT == 0
-               dig_info.inpMask |= (NEO_W0_INP_BIT_MASK << (index << 3));
+               dig_info.inpMask |= (NEO_INP_BIT_MASK << (index << 3));
 #else
-               dig_info.inpMask |= (DBG_NEO_W0_INP_BIT_MASK << (index << 3));
+               dig_info.inpMask |= (DBG_NEO_INP_BIT_MASK << (index << 3));
 #endif
-               outputMask |= (NEO_W0_OUT_BIT_MASK << (index << 3));
+               outputMask |= (NEO_OUT_BIT_MASK << (index << 3));
             }
-            else if ((index == 1) || (index == 3))
+            else
             {
-                dig_info.inpMask |= (NEO_W13_INP_BIT_MASK << (index << 3));
-                outputMask |= (NEO_W13_OUT_BIT_MASK << (index << 3));
+               gen2g_info.error = ERR_NEO_WING_BAD_LOC;
+            }
+         }
+         /* NeoSol wing can only be wing 0 */
+         else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_NEO_SOL)
+         {
+            if (index == 0)
+            {
+               dig_info.inpMask |= (NEO_SOL_INP_BIT_MASK << (index << 3));
+#if GEN2G_DEBUG_PORT == 0
+               outputMask |= (NEO_SOL_OUT_BIT_MASK << (index << 3));
+#else
+               outputMask |= (DBG_NEO_SOL_OUT_BIT_MASK << (index << 3));
+#endif
+               dig_info.solState[0].bit = 1;
             }
             else
             {
@@ -866,7 +879,12 @@ void digital_upd_sol_cfg(
          {
             inpState_p = &dig_info.inpState[((index & 0x0c) << 1) + (index & 0x03)];
             inpState_p->cnt = 0;
-            solState_p->inpBits |= (1 << (((index & 0x0c) << 1) + (index & 0x03)));
+
+            /* Don't set input bit if solenoid 0 and NeoSol wing */
+            if ((index != 0) || (gen2g_info.nvCfgInfo.wingCfg[0] != WING_NEO_SOL))
+            {
+               solState_p->inpBits |= (1 << (((index & 0x0c) << 1) + (index & 0x03)));
+            }
          }
          else
          {

@@ -163,6 +163,7 @@ void neo_init()
    INT               offset;
    U8                *tmp1_p;
    U8                *tmp2_p;
+   U8                *strtDma_p;
    BOOL              dfltOutput = TRUE;
 
    gen2g_info.neoCfg_p = (GEN2G_NEO_CFG_T *)gen2g_info.freeCfg_p;
@@ -211,8 +212,9 @@ void neo_init()
 
    if (gen2g_info.error == NO_ERRORS)
    {
-      /* Allocate neopixel DMA buffer memory */
-      neoInfo.buf_p = malloc((neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1);
+      /* Allocate neopixel DMA buffer memory, allocate four extra bytes */
+      /* First transmitted bit must not be data since first bit will be extended to match clock */
+      neoInfo.buf_p = malloc((neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + sizeof(U32) + 1);
       if (neoInfo.buf_p == NULL)
       {
          gen2g_info.error = ERR_MALLOC_FAIL;
@@ -221,6 +223,13 @@ void neo_init()
 
    if (gen2g_info.error == NO_ERRORS)
    {
+      /* First byte is zero to synch with clock, since serial LEDs, end of cycle always low, so no extra data  */
+      *neoInfo.buf_p = 0;
+      strtDma_p = (U8 *)neoInfo.buf_p;
+
+      /* Make buf_p point to first U32 of neopixel data */
+      neoInfo.buf_p++;
+
       /* Zero byte turns off PWM at end of string */
       *((U8 *)neoInfo.buf_p + (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT)) = 0;
     
@@ -277,8 +286,8 @@ void neo_init()
 
       /* Set up DMA */
       dma1Base_p->CPAR5 = (R32)&spi2Base_p->DR;
-      dma1Base_p->CMAR5 = (R32)neoInfo.buf_p;
-      dma1Base_p->CNDTR5 = (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1;
+      dma1Base_p->CMAR5 = (R32)strtDma_p;
+      dma1Base_p->CNDTR5 = (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + sizeof(U32) + 1;
       dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
 
       neoInfo.stat = STAT_DMA_DATA;
@@ -367,7 +376,7 @@ void neo_task()
          neoInfo.stat = STAT_DMA_DATA;
 
          dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR;
-         dma1Base_p->CNDTR5 = (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + 1;
+         dma1Base_p->CNDTR5 = (neoInfo.numPixels * neoInfo.bytesPerPixel * SPI_BITS_PER_NEO_BIT) + sizeof(U32) + 1;
          dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
       }
    }

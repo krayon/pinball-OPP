@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x02000002
+#define GEN2G_CODE_VERS       0x02000003
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -177,6 +177,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
       0,                            /* WING_SW_MATRIX_IN */
       sizeof(GEN2G_NEO_CFG_T),      /* WING_NEO */
       0,                            /* WING_HI_SIDE_INCAND */
+      sizeof(GEN2G_NEO_CFG_T),      /* WING_NEO_SOL */
   }
 #endif
 ;
@@ -192,13 +193,14 @@ void neo_init();
  void (*GEN2G_INIT_FP[MAX_WING_TYPES])()
 #ifdef GEN2G_INSTANTIATE
  ={   NULL,                         /* WING_UNUSED */
-      digital_init,                 /* WING_SOL */
-      digital_init,                 /* WING_INP */
+      NULL,                         /* WING_SOL */
+      NULL,                         /* WING_INP */
       incand_init,                  /* WING_INCAND */
       NULL,                         /* WING_SW_MATRIX_OUT */
-      digital_init,                 /* WING_SW_MATRIX_IN */
+      NULL,                         /* WING_SW_MATRIX_IN */
       neo_init,                     /* WING_NEO */
       incand_init,                  /* WING_HI_SIDE_INCAND */
+      neo_init,                     /* WING_NEO_SOL */
   }
 #endif
 ;

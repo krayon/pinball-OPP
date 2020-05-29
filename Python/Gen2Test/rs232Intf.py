@@ -25,7 +25,7 @@
 # @date:   12/20/2012
 #
 # @note:   Open Pinball Project
-#          Copyright 2012-2015, Hugh Spahr
+#          Copyright 2012-2020, Hugh Spahr
 #
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -47,7 +47,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.03'
+testVers = '00.00.04'
 
 #Public data
 GET_SER_NUM_CMD     = '\x00'
@@ -94,6 +94,7 @@ WING_SW_MATRIX_OUT  = '\x04'
 WING_SW_MATRIX_IN   = '\x05'
 WING_NEO            = '\x06'
 WING_HI_SIDE_INCAND = '\x07'
+WING_NEO_SOL        = '\x08'
 
 NUM_G2_INP_PER_BRD  = 32
 NUM_G2_MATRIX_INP   = 64
