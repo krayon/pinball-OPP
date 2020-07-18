@@ -282,6 +282,7 @@ void main_copy_flash_to_ram()
    gen2g_info.error = NO_ERRORS;
    gen2g_info.validCfg = FALSE;
    gen2g_info.haveNeo = FALSE;
+   gen2g_info.haveSpi = FALSE;
    gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    gen2g_info.prodId = gen2g_persist_p->prodId;
    gen2g_info.serNum = gen2g_persist_p->serNum;

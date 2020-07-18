@@ -58,6 +58,10 @@
 #define RS232I_SZ_COLOR_TBL 32
 #define RS232I_SW_MATRX_INP 64
 #define RS232I_MATRX_COL    8
+#define RS232I_TIMESTAMP_BYTES 64
+#define RS232I_CMD_HDR      2  /* CardAddr + Cmd */
+#define RS232I_CRC8_SZ      1
+#define RS232I_MAX_TX_BUF_SZ   (RS232I_CMD_HDR + RS232I_TIMESTAMP_BYTES + RS232I_CRC8_SZ)
 
 /* Each command starts with the Card ID except for inventory and EOM.  Next comes the
  *  command, then any data.
@@ -92,9 +96,11 @@ typedef enum
   RS232I_SET_SOL_INPUT      = 0x17,
   RS232I_UPGRADE_OTHER_BRD  = 0x18,
   RS232I_READ_MATRIX_INP    = 0x19,
+  RS232I_GET_INP_TIMESTAMP  = 0x1a,
   RS232I_NUM_CMDS,
   
   RS232I_NEO_FADE_CMD       = 0x40,
+  RS232I_SPI_CMD            = 0x40,
 
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
   RS232I_EOM                = 0xff,
@@ -118,6 +124,7 @@ const U8                    CMD_LEN[RS232I_NUM_CMDS]
     4,  /* RS232I_CONFIG_IND_SOL */    2,  /* RS232I_CONFIG_IND_INP */
     2,  /* RS232I_SET_IND_NEO */       2,  /* RS232I_SET_SOL_INPUT */
     0,  /* RS232I_UPGRADE_OTHER_BRD */ 8,  /* RS232I_READ_MATRIX_INP */
+    0,  /* RS232I_GET_INP_TIMESTAMP */
   }
 #endif
 ;
@@ -178,20 +185,10 @@ typedef enum
   WING_NEO                  = 0x06,
   WING_HI_SIDE_INCAND       = 0x07,
   WING_NEO_SOL              = 0x08,
+  WING_SPI                  = 0x09,
    
   MAX_WING_TYPES
 } __attribute__((packed)) RS232I_GEN2_WING_TYPE_E;
-
-typedef enum
-{
-  NEOCMD_BLINK_SLOW         = 0x00,
-  NEOCMD_BLINK_FAST         = 0x20,
-  NEOCMD_FADE_SLOW          = 0x40,
-  NEOCMD_FADE_FAST          = 0x60,
-  NEOCMD_ON                 = 0x80,   /* overrides other cmds */
-  NEOCMD_MASK               = 0xe0,
-  NEOCMD_COLOR_TBL_MASK     = 0x1f,
-} __attribute__((packed)) RS232I_GEN2_NEO_CMD_E;
 
 typedef enum
 {
@@ -216,5 +213,11 @@ typedef enum
 
   SOL_INP_CLEAR_SOL         = 0x80,
 } __attribute__((packed)) RS232I_SET_SOL_INP_E;
+
+typedef enum
+{
+  SPI_READ                  = 0x01,
+  SPI_WRITE                 = 0x02,
+} __attribute__((packed)) RS232I_SPI_CMD_E;
 
 #endif

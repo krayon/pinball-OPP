@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x02000003
+#define GEN2G_CODE_VERS       0x02000004
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -209,6 +209,7 @@ typedef struct
 {
    BOOL                       validCfg;
    BOOL                       haveNeo;
+   BOOL                       haveSpi;
    GEN2G_ERROR_E              error;
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
@@ -220,6 +221,7 @@ typedef struct
    U32                        crcErr;
    U32                        prodId;
    U32                        serNum;
+   U16                        inpTimestamp[RS232I_NUM_GEN2_INP];
    GEN2G_NV_CFG_T             nvCfgInfo;
    GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;
    GEN2G_INP_CFG_T            *inpCfg_p;

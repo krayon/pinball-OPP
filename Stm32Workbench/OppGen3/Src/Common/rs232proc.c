@@ -185,7 +185,7 @@ void rs232proc_init(void)
 void rs232proc_task(void)
 {
    U8                         data;
-   U8                         txBuf[12];
+   U8                         txBuf[RS232I_MAX_TX_BUF_SZ];
    U8                         *src_p;
    U8                         *dest_p;
    UINT                       index;
@@ -227,7 +227,7 @@ void rs232proc_task(void)
             {
                /* It is my command, it may or may not need stripped */
                rs232_glob.crc8 = 0xff;
-               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+               stdlser_calc_crc8(&rs232_glob.crc8, RS232I_CRC8_SZ, &data);
                rs232_glob.state = RS232_WAIT_FOR_CMD;
             }
             else
@@ -243,9 +243,9 @@ void rs232proc_task(void)
             {
                /* Save the current command and the length */
                rs232_glob.currCmd = data;
-               rs232_glob.cmdLen = CMD_LEN[data] + 1;
+               rs232_glob.cmdLen = CMD_LEN[data] + RS232I_CRC8_SZ;
 
-               stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);
+               stdlser_calc_crc8(&rs232_glob.crc8, RS232I_CRC8_SZ, &data);
                txBuf[0] = CARD_ID_GEN2_CARD;
                txBuf[1] = data;
 
@@ -253,7 +253,7 @@ void rs232proc_task(void)
                {
                   case RS232I_GET_SER_NUM:
                   {
-                     rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[2]);
+                     rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[RS232I_CMD_HDR]);
                      rs232_glob.state = RS232_STRIP_CMD;
                      txBuf[6] = 0xff;
                      stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
@@ -264,7 +264,7 @@ void rs232proc_task(void)
                   case RS232I_GET_GEN2_CFG:
                   {
                      /* Product ID is uniquely identified by wing board cfg */
-                     rs232proc_copy_dest(&gen2g_info.nvCfgInfo.wingCfg[0], &txBuf[2], RS232I_NUM_WING);
+                     rs232proc_copy_dest(&gen2g_info.nvCfgInfo.wingCfg[0], &txBuf[RS232I_CMD_HDR], RS232I_NUM_WING);
                      rs232_glob.state = RS232_STRIP_CMD;
                      txBuf[6] = 0xff;
                      stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
@@ -273,7 +273,7 @@ void rs232proc_task(void)
                   }
                   case RS232I_GET_VERS:
                   {
-                     rs232proc_bswap_copy_dest((U32 *)&appStart.codeVers, &txBuf[2]);
+                     rs232proc_bswap_copy_dest((U32 *)&appStart.codeVers, &txBuf[RS232I_CMD_HDR]);
                      rs232_glob.state = RS232_STRIP_CMD;
                      txBuf[6] = 0xff;
                      stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
@@ -291,7 +291,7 @@ void rs232proc_task(void)
                      {
                         /* Already set, so respond with serial number */
                         rs232_glob.state = RS232_STRIP_CMD;
-                        rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[2]);
+                        rs232proc_bswap_copy_dest((U32 *)(&gen2g_persist_p->serNum), &txBuf[RS232I_CMD_HDR]);
                         stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
                         (void)stdlser_xmt_data(&txBuf[0], 7);
                      }
@@ -321,7 +321,7 @@ void rs232proc_task(void)
                      tmpU32 = gen2g_info.validSwitch;
                      gen2g_info.validSwitch = 0;
                      EnableInterrupts;
-                     rs232proc_bswap_copy_dest(&tmpU32, &txBuf[2]);
+                     rs232proc_bswap_copy_dest(&tmpU32, &txBuf[RS232I_CMD_HDR]);
                      rs232_glob.state = RS232_STRIP_CMD;
                      txBuf[6] = 0xff;
                      stdlser_calc_crc8(&txBuf[6], 6, &txBuf[0]);
@@ -336,7 +336,7 @@ void rs232proc_task(void)
                   case RS232I_READ_MATRIX_INP:
                   {
                      /* Only state is supported for switch matrices */
-                     rs232proc_copy_dest(&gen2g_info.matrixInp[0], &txBuf[2], RS232I_MATRX_COL);
+                     rs232proc_copy_dest(&gen2g_info.matrixInp[0], &txBuf[RS232I_CMD_HDR], RS232I_MATRX_COL);
                      rs232_glob.state = RS232_STRIP_CMD;
                      txBuf[10] = 0xff;
                      stdlser_calc_crc8(&txBuf[10], 10, &txBuf[0]);
@@ -352,6 +352,16 @@ void rs232proc_task(void)
                      {
                         *dest_p &= *src_p;
                      }
+                     break;
+                  }
+                  case RS232I_GET_INP_TIMESTAMP:
+                  {
+                     rs232proc_copy_dest((U8 *)&gen2g_info.inpTimestamp[0], &txBuf[RS232I_CMD_HDR], RS232I_TIMESTAMP_BYTES);
+                     rs232_glob.state = RS232_STRIP_CMD;
+                     txBuf[RS232I_CMD_HDR + RS232I_TIMESTAMP_BYTES] = 0xff;
+                     stdlser_calc_crc8(&txBuf[RS232I_CMD_HDR + RS232I_TIMESTAMP_BYTES],
+                        RS232I_CMD_HDR + RS232I_TIMESTAMP_BYTES, &txBuf[0]);
+                     (void)stdlser_xmt_data(&txBuf[0], RS232I_CMD_HDR + RS232I_TIMESTAMP_BYTES + RS232I_CRC8_SZ);
                      break;
                   }
                   case RS232I_CHNG_NEO_CMD:
@@ -525,6 +535,7 @@ void rs232proc_task(void)
                         }
                            
                         /* Walk through types and call init functions using jump table, sets up config ptrs */
+                        digital_init();
                         for (index = WING_UNUSED + 1; index < MAX_WING_TYPES; index++)
                         {
                            if (((gen2g_info.typeWingBrds & (1 << index)) != 0) &&

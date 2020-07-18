@@ -297,11 +297,11 @@ void digital_init(void)
             if (index == 0)
             {
 #if GEN2G_DEBUG_PORT == 0
-               dig_info.inpMask |= (NEO_INP_BIT_MASK << (index << 3));
+               dig_info.inpMask |= NEO_INP_BIT_MASK;
 #else
-               dig_info.inpMask |= (DBG_NEO_INP_BIT_MASK << (index << 3));
+               dig_info.inpMask |= DBG_NEO_INP_BIT_MASK;
 #endif
-               outputMask |= (NEO_OUT_BIT_MASK << (index << 3));
+               outputMask |= NEO_OUT_BIT_MASK;
             }
             else
             {
@@ -313,11 +313,11 @@ void digital_init(void)
          {
             if (index == 0)
             {
-               dig_info.inpMask |= (NEO_SOL_INP_BIT_MASK << (index << 3));
+               dig_info.inpMask |= NEO_SOL_INP_BIT_MASK;
 #if GEN2G_DEBUG_PORT == 0
-               outputMask |= (NEO_SOL_OUT_BIT_MASK << (index << 3));
+               outputMask |= NEO_SOL_OUT_BIT_MASK;
 #else
-               outputMask |= (DBG_NEO_SOL_OUT_BIT_MASK << (index << 3));
+               outputMask |= DBG_NEO_SOL_OUT_BIT_MASK;
 #endif
                dig_info.solState[0].bit = 1;
             }
@@ -504,6 +504,7 @@ void digital_task(void)
                            DisableInterrupts;
                            gen2g_info.validSwitch |= currBit;
                            EnableInterrupts;
+                           gen2g_info.inpTimestamp[index] = (U16)timer_get_ms_count();
                         }
                      }
                      else
@@ -515,6 +516,7 @@ void digital_task(void)
                            DisableInterrupts;
                            gen2g_info.validSwitch |= currBit;
                            EnableInterrupts;
+                           gen2g_info.inpTimestamp[index] = (U16)timer_get_ms_count();
                         }
                      }
                   }
