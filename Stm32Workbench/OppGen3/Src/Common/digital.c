@@ -206,6 +206,8 @@ void digital_init(void)
 #define NEO_SOL_INP_BIT_MASK  0x0e
 #define NEO_SOL_OUT_BIT_MASK  0xf1
 #define DBG_NEO_SOL_OUT_BIT_MASK  0xf0
+#define SOL_MASK              0x0f
+#define DBG_NEO_SOL_MASK      0x0e
 #define SOL_INP_BIT_MASK      0x0f  
 #define DBG_SOL_INP_BIT_MASK  0x0e
 #define SOL_OUTP_BIT_MASK     0xf0
@@ -254,7 +256,7 @@ void digital_init(void)
             foundSol = TRUE;
             
             outputMask |= (SOL_OUTP_BIT_MASK << (index << 3));
-            dig_info.solMask |= (SOL_INP_BIT_MASK << (index << 2));
+            dig_info.solMask |= (SOL_MASK << (index << 2));
             
 #if GEN2G_DEBUG_PORT == 0
             /* Set up bit mask of valid inputs */
@@ -313,10 +315,13 @@ void digital_init(void)
          {
             if (index == 0)
             {
+               foundSol = TRUE;
                dig_info.inpMask |= NEO_SOL_INP_BIT_MASK;
 #if GEN2G_DEBUG_PORT == 0
+               dig_info.solMask |= SOL_MASK;
                outputMask |= NEO_SOL_OUT_BIT_MASK;
 #else
+               dig_info.solMask |= DBG_NEO_SOL_MASK;
                outputMask |= DBG_NEO_SOL_OUT_BIT_MASK;
 #endif
                dig_info.solState[0].bit = 1;
