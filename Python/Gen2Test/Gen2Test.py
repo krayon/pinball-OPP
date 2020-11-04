@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.09'
+testVers = '00.00.10'
 
 import sys
 import serial
@@ -759,17 +759,17 @@ bad = False
 sendInvCmd()
 rcvInvResp()
 for index in xrange(numGen2Brd):
+    sendGetVersCmd(index)
+    error = rcvGetVersResp(index)
+    if error != 0:
+        print "\nPress any key to close window"
+        ch = getChar()
+        sys.exit(1)
     sendReadWingCfgCmd(index)
     rcvReadWingCfgResp(index)
 
     # If upgrading, collect versions of firmware plus serial numbers
     if upgrade:
-        sendGetVersCmd(index)
-        error = rcvGetVersResp(index)
-        if error != 0:
-            print "\nPress any key to close window"
-            ch = getChar()
-            sys.exit(1)
         sendGetSerNumCmd(index)
         error = rcvGetSerNumResp(index)
         if error != 0:
