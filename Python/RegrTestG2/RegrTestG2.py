@@ -1371,6 +1371,7 @@ skipSaveStdCfg = False
 skipSolTests = False
 skipIncandTests = False
 skipNeopixelTests = False
+skipSerNumTests = False
 stm32 = False
 for arg in sys.argv:
   if arg.startswith('-port='):
@@ -1385,6 +1386,10 @@ for arg in sys.argv:
     skipSolTests = True
   elif arg.startswith('-skipIncandTests'):
     skipIncandTests = True
+  elif arg.startswith('-skipSerNumTests'):
+    skipSerNumTests = True
+  elif arg.startswith('-skipNeopixelTests'):
+    skipNeopixelTests = True
   elif arg.startswith('-psoc4200'):
     skipNeopixelTests = True
   elif arg.startswith('-stm32'):
@@ -1400,6 +1405,8 @@ for arg in sys.argv:
     print "    -skipSaveStdCfg    Skip saving standard config (used for debugging tests)"
     print "    -skipSolTests      Skip solenoid tests"
     print "    -skipIncandTests   Skip incandescent tests"
+    print "    -skipSerNumTests   Skip serial number tests"
+    print "    -skipNeopixelTests Skip Neopixel tests"
     print "    -psoc4200          Test PSOC4200"
     print "    -stm32             Test STM32 (skips programming and saving standard config)"
     end = True
@@ -1444,8 +1451,9 @@ retCode = TestGetVersion(vers)
 if retCode != 0: sys.exit(retCode)
 
 # Verify Get Serial Number command
-retCode = TestGetSerialNum()
-if retCode != 0: sys.exit(retCode)
+if not skipSerNumTests:
+    retCode = TestGetSerialNum()
+    if retCode != 0: sys.exit(retCode)
 
 # Program the standard configuration
 # Erases the configuration and stores the standard configuration

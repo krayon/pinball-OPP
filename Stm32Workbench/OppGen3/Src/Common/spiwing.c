@@ -65,7 +65,8 @@ typedef struct
    U8                numBytes;
    BOOL              tickOcc;             /* 10 ms tick occurred */
    U8                lastCmd;
-   U8                *buf_p;
+   U8                *txBuf_p;
+   U8                *rxBuf_p;
 } SPI_INFO;
 
 SPI_INFO spiInfo;
@@ -107,10 +108,20 @@ void spi_init()
    gen2g_info.haveSpi = TRUE;
     
    /* Test for null on commands */
-   spiInfo.buf_p = malloc(SPI_DATA_BUF_SZ);
-   if (spiInfo.buf_p == NULL)
+   spiInfo.txBuf_p = malloc(SPI_DATA_BUF_SZ);
+   if (spiInfo.txBuf_p == NULL)
    {
       gen2g_info.error = ERR_MALLOC_FAIL;
+   }
+
+   /* Test for null on commands */
+   if (gen2g_info.error == NO_ERRORS)
+   {
+      spiInfo.rxBuf_p = malloc(SPI_DATA_BUF_SZ);
+      if (spiInfo.rxBuf_p == NULL)
+      {
+         gen2g_info.error = ERR_MALLOC_FAIL;
+      }
    }
 
    if (gen2g_info.error == NO_ERRORS)
@@ -130,11 +141,15 @@ void spi_init()
 
       /* SPI tx DMA is dma1-5 */
       dma1Base_p->CPAR5 = (R32)&spi2Base_p->DR;
-      dma1Base_p->CMAR5 = (R32)spiInfo.buf_p;
+      dma1Base_p->CMAR5 = (R32)spiInfo.txBuf_p;
       dma1Base_p->CNDTR5 = spiInfo.numBytes;
       dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
 
-      /* SPI rx DMA is dma?? */
+      /* SPI rx DMA is dma1-4 */
+      dma1Base_p->CPAR4 = (R32)&spi2Base_p->DR;
+      dma1Base_p->CMAR4 = (R32)spiInfo.rxBuf_p;
+      dma1Base_p->CNDTR4 = spiInfo.numBytes;
+      dma1Base_p->CCR4 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
    }
 }
 

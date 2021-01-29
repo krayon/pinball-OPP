@@ -121,11 +121,11 @@ void stdlser_get_xmt_info(
    U8                         **data_pp,
    U16                        *numChar_p);
 uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len);
-void neopxl_update_rcv_cmd(
+void fade_update_rcv_cmd(
    U16                  offset,
    U16                  numBytes,
    U16                  fadeTime);
-BOOL neopxl_update_rcv_data(
+BOOL fade_update_rcv_data(
    U8                   data);
 
 /*
@@ -648,7 +648,7 @@ void rs232proc_task(void)
             rs232_glob.rxTmpBuf[rs232_glob.currIndex++] = data;
             if (rs232_glob.currIndex == 6)
             {
-               neopxl_update_rcv_cmd((rs232_glob.rxTmpBuf[0] << 8) | rs232_glob.rxTmpBuf[1],
+               fade_update_rcv_cmd((rs232_glob.rxTmpBuf[0] << 8) | rs232_glob.rxTmpBuf[1],
                   (rs232_glob.rxTmpBuf[2] << 8) | rs232_glob.rxTmpBuf[3],
                   (rs232_glob.rxTmpBuf[4] << 8) | rs232_glob.rxTmpBuf[5]);
                rs232_glob.state = RS232_RCV_NEO_DATA;
@@ -657,7 +657,7 @@ void rs232proc_task(void)
          }
          case RS232_RCV_NEO_DATA:
          {
-            BOOL done = neopxl_update_rcv_data(data);
+            BOOL done = fade_update_rcv_data(data);
             if (!done)
             {
                 stdlser_calc_crc8(&rs232_glob.crc8, 1, &data);

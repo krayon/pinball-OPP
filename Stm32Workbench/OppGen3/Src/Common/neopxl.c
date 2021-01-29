@@ -61,45 +61,20 @@
 #define MAX_NEOPIXELS            256
 
 #define STAT_DMA_DATA            0
-#define STAT_UPDATE_FADE         1
+#define STAT_WAIT_FADE_DONE      1
 #define STAT_WAIT_FOR_TICK       2
 #define STAT_DISABLED            0xff
 
 #define PIXEL_HALF_ON            0x80
 #define PIXEL_OFF                0x00
 
-#define NUM_FADES                32
-
-typedef struct
-{
-   INT              totTicks;
-   INT              currTick;
-   INT              offset;
-   INT              numBytes;
-} FADE_INFO;
-
-typedef struct
-{
-   U16              totTicks;
-   U16              currTick;
-} FADE_BYTE_INFO;
-
 typedef struct
 {
    U8                stat;                /* Status */
-   U16               rcvTotTicks;         /* Total ticks received */
    BOOL              tickOcc;             /* 10 ms tick occurred */
+   BOOL              fadeDone;            /* Fade processing is done */
    INT               numDataBytes;        /* Number of dataBytes (pixels * bytesPerPixel) */
-   INT               maxProcBytes;        /* Max num data bytes to process at a time */
-   INT               underflow;           /* Underflow count */
-   INT               complUpd;            /* Number of completed updates */
-   INT               rcvNumBytes;         /* Number of rcv data bytes */
-   INT               rcvOffset;           /* Current rcv offset */
-   INT               currByteOffset;      /* Current fade byte offset */
-   U8                *currPxlVal_p;       /* Ptr to array of current pixel values */
-   U8                *newPxlVal_p;        /* Ptr to array of future pixel values */
    U32               *dma_p;              /* Holds pixel data to be DMA'd */
-   FADE_BYTE_INFO    *fadeByte_p;         /* Current fade byte info being updated */
 } NEO_INFO;
 
 NEO_INFO neoInfo;
@@ -141,7 +116,17 @@ const U32                   NEO_BYTE_EXPAND[256] =
   };
 
 /* Prototypes */
-void neo_process_fade_bytes();
+void neo_fade_proc(
+   INT                  offset,
+   U8                   newData);
+void neo_end_fade_proc();
+void fade_init_rec(
+   INT               startOffset,
+   INT               numFadeBytes,
+   U8                **currPxlVal_pp,
+   U8                **newPxlVal_pp,
+   void              (*fadeProc_fp)(INT offset, U8 newData),
+   void              (*endFadeProc_fp)());
 
 /*
  * ===============================================================================
@@ -171,9 +156,10 @@ void neo_init()
    U8                *tmp2_p;
    U8                *strtDma_p;
    BOOL              dfltOutput = TRUE;
-   FADE_BYTE_INFO    *tmpFadeByte_p;
    INT               numPixels;
    INT               bytesPerPixel;
+   U8                *currPxlVal_p;       /* Ptr to array of current pixel values */
+   U8                *newPxlVal_p;        /* Ptr to array of future pixel values */
 
    gen2g_info.neoCfg_p = (GEN2G_NEO_CFG_T *)gen2g_info.freeCfg_p;
    gen2g_info.freeCfg_p += sizeof(GEN2G_NEO_CFG_T);
@@ -191,9 +177,7 @@ void neo_init()
    neoInfo.stat = STAT_DISABLED;
    gen2g_info.haveNeo = TRUE;
    neoInfo.tickOcc = FALSE;
-   neoInfo.underflow = 0;
-   neoInfo.complUpd = 0;
-   neoInfo.currByteOffset = 0;
+   neoInfo.fadeDone = FALSE;
    numPixels = gen2g_info.neoCfg_p->numPixel;
    if (gen2g_info.neoCfg_p->numPixel == 0)
    {
@@ -202,45 +186,8 @@ void neo_init()
 
    /* Calculate maximum number of bytes to process at a time */
    neoInfo.numDataBytes = numPixels * bytesPerPixel;
-   neoInfo.maxProcBytes = neoInfo.numDataBytes/16;
-   if (neoInfo.maxProcBytes < 16)
-   {
-      neoInfo.maxProcBytes = 16;
-   }
-
-   /* Test for null on commands */
-   neoInfo.currPxlVal_p = malloc(neoInfo.numDataBytes);
-   if (neoInfo.currPxlVal_p == NULL)
-   {
-      gen2g_info.error = ERR_MALLOC_FAIL;
-   }
-
-   if (gen2g_info.error == NO_ERRORS)
-   {
-	  neoInfo.newPxlVal_p = malloc(neoInfo.numDataBytes);
-      if (neoInfo.newPxlVal_p == NULL)
-      {
-         gen2g_info.error = ERR_MALLOC_FAIL;
-      }
-   }
-
-   if (gen2g_info.error == NO_ERRORS)
-   {
-	  neoInfo.fadeByte_p = malloc(neoInfo.numDataBytes * sizeof(FADE_BYTE_INFO));
-      if (neoInfo.fadeByte_p == NULL)
-      {
-         gen2g_info.error = ERR_MALLOC_FAIL;
-      }
-      else
-      {
-
-         for (index = 0, tmpFadeByte_p = neoInfo.fadeByte_p;
-            index < neoInfo.numDataBytes; index++, tmpFadeByte_p++)
-         {
-            tmpFadeByte_p->totTicks = 0;
-         }
-      }
-   }
+   fade_init_rec(RS232I_FADE_NEO_OFFSET, neoInfo.numDataBytes,
+      &currPxlVal_p, &newPxlVal_p, neo_fade_proc, neo_end_fade_proc);
 
    if (gen2g_info.error == NO_ERRORS)
    {
@@ -265,8 +212,8 @@ void neo_init()
       /* Zero byte turns off PWM at end of string */
       *((U8 *)neoInfo.dma_p + (neoInfo.numDataBytes * SPI_BITS_PER_NEO_BIT)) = 0;
     
-      for (tmp1_p = neoInfo.currPxlVal_p, tmp2_p = neoInfo.newPxlVal_p;
-         tmp1_p < neoInfo.currPxlVal_p + neoInfo.numDataBytes; tmp1_p++, tmp2_p++)
+      for (tmp1_p = currPxlVal_p, tmp2_p = newPxlVal_p;
+         tmp1_p < currPxlVal_p + neoInfo.numDataBytes; tmp1_p++, tmp2_p++)
       {
          *tmp1_p = PIXEL_OFF;
          *tmp2_p = PIXEL_OFF;
@@ -286,22 +233,22 @@ void neo_init()
          if (dfltOutput)
          {
             offset = index % bytesPerPixel;
-            *(neoInfo.currPxlVal_p + ((index * bytesPerPixel) + offset)) = PIXEL_HALF_ON;
-            *(neoInfo.newPxlVal_p + ((index * bytesPerPixel) + offset)) = PIXEL_HALF_ON;
+            *(currPxlVal_p + ((index * bytesPerPixel) + offset)) = PIXEL_HALF_ON;
+            *(newPxlVal_p + ((index * bytesPerPixel) + offset)) = PIXEL_HALF_ON;
          }
          else
          {
             for (offset = 0; offset < bytesPerPixel; offset++)
             {
-               *(neoInfo.currPxlVal_p + ((index * bytesPerPixel) + offset)) =
+               *(currPxlVal_p + ((index * bytesPerPixel) + offset)) =
                   gen2g_info.neoCfg_p->initColor[offset];
-               *(neoInfo.newPxlVal_p + ((index * bytesPerPixel) + offset)) =
+               *(newPxlVal_p + ((index * bytesPerPixel) + offset)) =
                   gen2g_info.neoCfg_p->initColor[offset];
             }
          }
       }
 
-      neo_fill_out_dma_data(0, neoInfo.currPxlVal_p, neoInfo.numDataBytes);
+      neo_fill_out_dma_data(0, currPxlVal_p, neoInfo.numDataBytes);
 
       /* Setup SPI2 GPIO port */
       gpioBBase_p->CRH &= ~0xf0000000;
@@ -354,6 +301,58 @@ void neo_10ms_tick()
 /*
  * ===============================================================================
  * 
+ * Name: neo_fade_proc
+ *
+ * ===============================================================================
+ */
+/**
+ * Neopixel fade processing
+ *
+ * Special processing for NeoPixels.  Used to fill out DMA data stream.
+ *
+ * @param   None
+ * @return  None
+ *
+ * @pre     None
+ * @note    None
+ *
+ * ===============================================================================
+ */
+void neo_fade_proc(
+   INT                  offset,
+   U8                   newData)
+{
+   *(neoInfo.dma_p + offset) = NEO_BYTE_EXPAND[newData];
+}
+
+/*
+ * ===============================================================================
+ *
+ * Name: neo_end_fade_proc
+ *
+ * ===============================================================================
+ */
+/**
+ * Neopixel end fade processing
+ *
+ * Special processing occurs when fade processing is completed.
+ *
+ * @param   None
+ * @return  None
+ *
+ * @pre     None
+ * @note    None
+ *
+ * ===============================================================================
+ */
+void neo_end_fade_proc()
+{
+   neoInfo.fadeDone = TRUE;
+}
+
+/*
+ * ===============================================================================
+ *
  * Name: neo_task
  * 
  * ===============================================================================
@@ -379,15 +378,14 @@ void neo_task()
    {
       if ((neoInfo.stat == STAT_DMA_DATA) && (dma1Base_p->CNDTR5 == 0))
       {
-         neoInfo.currByteOffset = 0;
-         neoInfo.stat = STAT_UPDATE_FADE;
+         neoInfo.stat = STAT_WAIT_FADE_DONE;
       }
-      if (neoInfo.stat == STAT_UPDATE_FADE)
+      if ((neoInfo.stat == STAT_WAIT_FADE_DONE) && neoInfo.fadeDone)
       {
-         /* Process this fade bytes */
-      	 neo_process_fade_bytes();
+         neoInfo.fadeDone = FALSE;
+         neoInfo.stat = STAT_WAIT_FOR_TICK;
       }
-      else if ((neoInfo.stat == STAT_WAIT_FOR_TICK) && neoInfo.tickOcc)
+      if ((neoInfo.stat == STAT_WAIT_FOR_TICK) && neoInfo.tickOcc)
       {
     	 neoInfo.tickOcc = FALSE;
          neoInfo.stat = STAT_DMA_DATA;
@@ -396,98 +394,6 @@ void neo_task()
          dma1Base_p->CNDTR5 = (neoInfo.numDataBytes * SPI_BITS_PER_NEO_BIT) + sizeof(U32) + 1;
          dma1Base_p->CCR5 = DMAx_CCR_MINC | DMAx_CCR_DIR | DMAx_CCR_EN;
       }
-   }
-}
-
-/*
- * ===============================================================================
- * 
- * Name: neo_process_fade_bytes
- * 
- * ===============================================================================
- */
-/**
- * Neopixel process fade bytes
- * 
- * Process a fade bytes (up to 64 are processed at a time)
- * 
- * @param   None
- * @return  None
- * 
- * @pre     None 
- * @note    None
- * 
- * ===============================================================================
- */
-void neo_process_fade_bytes()
-{
-   U8                *src_p;
-   U8                *dst_p;
-   U32               *dma_p;
-   U8                newData;
-   U8                currData;
-   U8                diff;
-   BOOL              yield = FALSE;
-   FADE_BYTE_INFO    *tmpFadeByte_p;
-
-   src_p = neoInfo.newPxlVal_p + neoInfo.currByteOffset;
-   dst_p = neoInfo.currPxlVal_p + neoInfo.currByteOffset;
-   dma_p = neoInfo.dma_p +  neoInfo.currByteOffset;
-   tmpFadeByte_p = neoInfo.fadeByte_p + neoInfo.currByteOffset;
-   while ((neoInfo.currByteOffset < neoInfo.numDataBytes) && !yield)
-   {
-      if (tmpFadeByte_p->totTicks != 0)
-      {
-         if (tmpFadeByte_p->currTick >= tmpFadeByte_p->totTicks)
-         {
-            newData = *src_p++;
-            *dst_p++ = newData;
-            *dma_p++ = NEO_BYTE_EXPAND[newData];
-            tmpFadeByte_p->totTicks = 0;
-         }
-         else
-         {
-            newData = *src_p++;
-            currData = *dst_p++;
-            if (newData > currData)
-            {
-               diff = newData - currData;
-            }
-            else
-            {
-               diff = currData - newData;
-            }
-            diff = (U8)(((UINT)diff * (UINT)tmpFadeByte_p->currTick)/(UINT)tmpFadeByte_p->totTicks);
-            if (newData > currData)
-            {
-               currData += diff;
-            }
-            else
-            {
-                currData -= diff;
-            }
-            *dma_p++ = NEO_BYTE_EXPAND[currData];
-            tmpFadeByte_p->currTick++;
-         }
-      }
-      else
-      {
-         src_p++;
-         dst_p++;
-         dma_p++;
-      }
-      tmpFadeByte_p++;
-      neoInfo.currByteOffset++;
-
-      /* Check if should yield to reduce main loop latency */
-      if ((neoInfo.currByteOffset % neoInfo.maxProcBytes) == 0)
-      {
-         yield = TRUE;
-      }
-   }
-   if (neoInfo.currByteOffset >= neoInfo.numDataBytes)
-   {
-      neoInfo.stat = STAT_WAIT_FOR_TICK;
    }
 }
 
@@ -528,106 +434,6 @@ void neo_fill_out_dma_data(
       data = *srcData_p;
       *dma_p++ = NEO_BYTE_EXPAND[data];
    }
-}
-
-/*
- * ===============================================================================
- *
- * Name: neopxl_update_rcv_cmd
- *
- * ===============================================================================
- */
-/**
- * Neopixel update receive command
- *
- * Create a new fade command
- *
- * @param   offset      [in]        Byte offset for fade update
- * @param   numBytes    [in]        Number of bytes to update
- * @param   fadeTime    [in]        Fade time in ms
- * @return  None
- *
- * @pre     None
- * @note    None
- *
- * ===============================================================================
- */
-void neopxl_update_rcv_cmd(
-   U16                  offset,
-   U16                  numBytes,
-   U16                  fadeTime)
-{
-   neoInfo.rcvOffset = offset;
-   neoInfo.rcvNumBytes = numBytes;
-   neoInfo.rcvTotTicks = fadeTime/10;
-}
-
-/*
- * ===============================================================================
- *
- * Name: neopxl_update_rcv_data
- *
- * ===============================================================================
- */
-/**
- * Neopixel update receive data
- *
- * Update fade command final data
- *
- * @param   data        [in]        Byte of data
- * @return  TRUE if update is finished
- *
- * @pre     None
- * @note    Last byte is CRC8, so not saved as data
- *
- * ===============================================================================
- */
-BOOL neopxl_update_rcv_data(
-   U8                   data)
-{
-   FADE_BYTE_INFO    *tmpFadeByte_p;
-   U8                prevNewByte;
-
-   if (neoInfo.rcvNumBytes != 0)
-   {
-      neoInfo.rcvNumBytes--;
-      tmpFadeByte_p = neoInfo.fadeByte_p + neoInfo.rcvOffset;
-      if (neoInfo.rcvTotTicks == 0)
-      {
-         *(neoInfo.currPxlVal_p + neoInfo.rcvOffset) = data;
-         tmpFadeByte_p->totTicks = 0;
-    	 *(neoInfo.dma_p + neoInfo.rcvOffset) = NEO_BYTE_EXPAND[data];
-      }
-      else
-      {
-         /* If currently fading, set byte to end value of prev fade */
-         if (tmpFadeByte_p->totTicks != 0)
-         {
-            prevNewByte = *(neoInfo.newPxlVal_p + neoInfo.rcvOffset);
-            *(neoInfo.currPxlVal_p + neoInfo.rcvOffset) = prevNewByte;
-            *(neoInfo.dma_p + neoInfo.rcvOffset) = NEO_BYTE_EXPAND[prevNewByte];
-         }
-         else
-         {
-             prevNewByte = *(neoInfo.currPxlVal_p + neoInfo.rcvOffset);
-         }
-
-         /* Only fade if prevByte does not match new value */
-         if (prevNewByte == data)
-         {
-        	 tmpFadeByte_p->totTicks = 0;
-         }
-         else
-         {
-        	 tmpFadeByte_p->totTicks = neoInfo.rcvTotTicks;
-        	 tmpFadeByte_p->currTick = 0;
-             *(neoInfo.newPxlVal_p + neoInfo.rcvOffset) = data;
-         }
-      }
-      neoInfo.rcvOffset++;
-      return (FALSE);
-   }
-   return (TRUE);
 }
 
 /* [] END OF FILE */

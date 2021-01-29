@@ -62,7 +62,8 @@ TMR_INFO tmrInfo;
 
 /* Prototypes */
 void neo_10ms_tick();
-void incand_40ms_tick();
+void incand_10ms_tick();
+void fade_10ms_tick();
 
 /*
  * ===============================================================================
@@ -155,8 +156,6 @@ void timer_overflow_isr()
          {
             gen2g_info.ledStatus ^= GEN2G_STAT_BLINK_SLOW_ON;
          }
-        
-         incand_40ms_tick();
       }
 
       tmrInfo.neoCnt++;
@@ -164,7 +163,9 @@ void timer_overflow_isr()
       {
          tmrInfo.neoCnt = 0;
          neo_10ms_tick();
-      }
+         incand_10ms_tick();
+         fade_10ms_tick();
+     }
    }
 }
 

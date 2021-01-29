@@ -63,6 +63,10 @@
 #define RS232I_CRC8_SZ      1
 #define RS232I_MAX_TX_BUF_SZ   (RS232I_CMD_HDR + RS232I_TIMESTAMP_BYTES + RS232I_CRC8_SZ)
 
+#define RS232I_FADE_NEO_OFFSET        0x0000
+#define RS232I_FADE_INCAND_OFFSET     0x1000
+#define RS232I_FADE_LMP_MATRIX_OFFSET 0x2000
+
 /* Each command starts with the Card ID except for inventory and EOM.  Next comes the
  *  command, then any data.
  */
@@ -100,7 +104,7 @@ typedef enum
   RS232I_NUM_CMDS,
   
   RS232I_NEO_FADE_CMD       = 0x40,
-  RS232I_SPI_CMD            = 0x40,
+  RS232I_SPI_CMD            = 0x41,
 
   RS232I_INVENTORY          = 0xf0,     /* Each card adds byte for card type */
   RS232I_EOM                = 0xff,

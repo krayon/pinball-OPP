@@ -108,6 +108,11 @@ void rs232proc_init();
 void rs232proc_task();
 
 void incand_task(void);
+
+void fade_init();
+void fade_start();
+void fade_task();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -159,8 +164,10 @@ int main(void)
    debug_save_nv_cfg();
 #endif
 
+   fade_init();
    main_copy_flash_to_ram();
    main_call_wing_inits();
+   fade_start();
 
    stdlser_init();
    rs232proc_init();
@@ -181,6 +188,7 @@ int main(void)
 
       /* USER CODE BEGIN 3 */
       timer_overflow_isr();
+      fade_task();
       neo_task();
       digital_task();
       incand_task();
@@ -283,6 +291,7 @@ void main_copy_flash_to_ram()
    gen2g_info.validCfg = FALSE;
    gen2g_info.haveNeo = FALSE;
    gen2g_info.haveSpi = FALSE;
+   gen2g_info.haveFade = FALSE;
    gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    gen2g_info.prodId = gen2g_persist_p->prodId;
    gen2g_info.serNum = gen2g_persist_p->serNum;
