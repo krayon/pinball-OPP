@@ -113,6 +113,8 @@ void fade_init();
 void fade_start();
 void fade_task();
 
+void lampmtrx_task();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -192,6 +194,7 @@ int main(void)
       neo_task();
       digital_task();
       incand_task();
+      lampmtrx_task();
       rs232proc_task();
       digital_write_outputs();
       /* USER CODE END 3 */
@@ -292,6 +295,7 @@ void main_copy_flash_to_ram()
    gen2g_info.haveNeo = FALSE;
    gen2g_info.haveSpi = FALSE;
    gen2g_info.haveFade = FALSE;
+   gen2g_info.haveLampMtrx = FALSE;
    gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    gen2g_info.prodId = gen2g_persist_p->prodId;
    gen2g_info.serNum = gen2g_persist_p->serNum;

@@ -61,8 +61,6 @@
 #define SERNUM_ADDR         0xfc00
 #define BOOT_SECTOR_ADDR    0xfc00
 
-#define INPG_SWITCH_THRESH  50    /* Switch threshold in usecs */
-
 typedef enum
 {
   INP_STATE_INIT            = 0x00,

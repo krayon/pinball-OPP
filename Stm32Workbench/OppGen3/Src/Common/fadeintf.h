@@ -19,12 +19,12 @@
  *               PPP     OOOOOOOOOO     PPP
  *              PPPPP      OOOOOO      PPPPP
  *
- * @file:   neointf.h
+ * @file:   fadeintf.h
  * @author: Hugh Spahr
- * @date:   9/16/2015
+ * @date:   2/3/2021
  *
  * @note:   Open Pinball Project
- *          Copyright© 2015, Hugh Spahr
+ *          Copyright© 2021, Hugh Spahr
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,19 +42,23 @@
  *===============================================================================
  */
 /**
- * This is the neopixel interface file.
+ * This is the fade interface file.
  *
  *===============================================================================
  */
 #include "stdtypes.h"
 #include "gen2glob.h"
 
+/* Convert 32 levels of intensity to PWM mask */
+extern const U32 FADE_DIM_MASK[32];
+
 /* Prototypes */
-void neo_init();
-void neo_task();
-void neo_fill_out_dma_data(
-   INT                  offset,
-   U8                   *srcData_p,
-   INT                  numBytes);
+void fade_init_rec(
+   INT               startOffset,
+   INT               numFadeBytes,
+   U8                **currPxlVal_pp,
+   U8                **newPxlVal_pp,
+   void              (*fadeProc_fp)(INT offset, U8 newData),
+   void              (*endFadeProc_fp)());
 
 /* [] END OF FILE */

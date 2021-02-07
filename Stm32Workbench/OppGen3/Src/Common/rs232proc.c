@@ -342,7 +342,7 @@ void rs232proc_task(void)
                      stdlser_calc_crc8(&txBuf[10], 10, &txBuf[0]);
                      (void)stdlser_xmt_data(&txBuf[0], 11);
 
-                     /* Clear bits currently not active.  This means that a bit
+                     /* Clear bits/set bits currently not active.  This means that a bit
                       * that is active won't be cleared until it is read by the processor.
                       */
                      for (index = 0, dest_p = &gen2g_info.matrixInp[0],
@@ -350,7 +350,14 @@ void rs232proc_task(void)
                         index < RS232I_MATRX_COL;
                         index++, src_p++, dest_p++)
                      {
-                        *dest_p &= *src_p;
+                        if (gen2g_info.switchMtrxActHigh)
+                        {
+                           *dest_p &= *src_p;
+                        }
+                        else
+                        {
+                           *dest_p &= ~(*src_p);
+                        }
                      }
                      break;
                   }

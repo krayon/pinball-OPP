@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x02000100
+#define GEN2G_CODE_VERS       0x02000107
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -178,6 +178,10 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
       sizeof(GEN2G_NEO_CFG_T),      /* WING_NEO */
       0,                            /* WING_HI_SIDE_INCAND */
       sizeof(GEN2G_NEO_CFG_T),      /* WING_NEO_SOL */
+	  0,                            /* WING_SPI */
+	  0,                            /* WING_SW_MATRIX_OUT_LOW */
+	  0,                            /* WING_LAMP_MATRIX_COL */
+	  0,                            /* WING_LAMP_MATRIX_ROW */
   }
 #endif
 ;
@@ -186,6 +190,7 @@ const U8                      CFG_SIZE[MAX_WING_TYPES]
 void digital_init();
 void incand_init();
 void neo_init();
+void lampmtrx_init();
 
 #ifndef GEN2G_INSTANTIATE
    extern
@@ -201,6 +206,10 @@ void neo_init();
       neo_init,                     /* WING_NEO */
       incand_init,                  /* WING_HI_SIDE_INCAND */
       neo_init,                     /* WING_NEO_SOL */
+	  NULL,                         /* WING_SPI */
+	  NULL,                         /* WING_SW_MATRIX_OUT_LOW */
+	  lampmtrx_init,                /* WING_LAMP_MATRIX_COL */
+	  NULL,                         /* WING_LAMP_MATRIX_ROW */
   }
 #endif
 ;
@@ -211,6 +220,8 @@ typedef struct
    BOOL                       haveNeo;
    BOOL                       haveSpi;
    BOOL                       haveFade;
+   BOOL                       haveLampMtrx;
+   BOOL                       switchMtrxActHigh;
    GEN2G_ERROR_E              error;
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */

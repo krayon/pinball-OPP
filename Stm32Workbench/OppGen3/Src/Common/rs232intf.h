@@ -178,6 +178,9 @@ typedef enum
   RISE_EDGE                 = 0x02,
 } __attribute__((packed)) RS232I_CFG_INP_TYPE_E;
 
+#define RS232I_MTRX_WAIT_THRESH_INDX        16
+#define RS232I_MTRX_DEBOUNCE_THRESH_INDX    17
+
 typedef enum
 {
   WING_UNUSED               = 0x00,
@@ -190,6 +193,9 @@ typedef enum
   WING_HI_SIDE_INCAND       = 0x07,
   WING_NEO_SOL              = 0x08,
   WING_SPI                  = 0x09,
+  WING_SW_MATRIX_OUT_LOW    = 0x0a,
+  WING_LAMP_MATRIX_COL      = 0x0b,
+  WING_LAMP_MATRIX_ROW      = 0x0c,
    
   MAX_WING_TYPES
 } __attribute__((packed)) RS232I_GEN2_WING_TYPE_E;

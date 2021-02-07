@@ -55,6 +55,7 @@
 #include "procdefs.h"
 #include "gen2glob.h"
 #include "neointf.h"
+#include "fadeintf.h"
 
 #define SPI_BITS_PER_NEO_BIT     4       /* 4 SPI bits are needed for a single NeoPixel bit */
                                          /* SPI clock is 48MHz/16 = 3MHz or 333ns/tick */
@@ -120,13 +121,6 @@ void neo_fade_proc(
    INT                  offset,
    U8                   newData);
 void neo_end_fade_proc();
-void fade_init_rec(
-   INT               startOffset,
-   INT               numFadeBytes,
-   U8                **currPxlVal_pp,
-   U8                **newPxlVal_pp,
-   void              (*fadeProc_fp)(INT offset, U8 newData),
-   void              (*endFadeProc_fp)());
 
 /*
  * ===============================================================================

@@ -43,33 +43,16 @@
  */
 /**
  * This is the file for driving the incandescent wing boards.  It requires
- * a 40ms tick for the blinking.
+ * a 10ms tick for to support fading.
  *
  *===============================================================================
  */
 #include <stdlib.h>
 #include "stdtypes.h"
 #include "gen2glob.h"
+#include "fadeintf.h"
 
 #define INCAND_MAX_INCAND   32
-
-const U32                   INCAND_FADE_MASK[32] =
-{
-   0x00000000, 0x00010001, 0x00010101, 0x01010101,
-   0x01010111, 0x01110111, 0x01111111, 0x11111111,
-   0x11111115, 0x11151115, 0x11151515, 0x15151515,
-   0x15151555, 0x15551555, 0x15555555, 0x55555555,
-   0x55555557, 0x55575557, 0x55575757, 0x57575757,
-   0x57575777, 0x57775777, 0x57777777, 0x77777777,
-   0x7777777f, 0x777f777f, 0x777f7f7f, 0x7f7f7f7f,
-   0x7f7f7fff, 0x7fff7fff, 0x7fffffff, 0xffffffff
-};
-
-typedef struct
-{
-   U16              totTicks;
-   U16              currTick;
-} FADE_BYTE_INFO;
 
 typedef struct
 {
@@ -80,9 +63,6 @@ typedef struct
    U32               ledCurrFadeBit;
    U32               ledBlinkSlowBitfield;
    U32               ledBlinkFastBitfield;
-   U8                *currVal_p;          /* Ptr to array of current incand values */
-   U8                *newVal_p;           /* Ptr to array of future incand values */
-   FADE_BYTE_INFO    *fadeByte_p;         /* Current fade byte info being updated */
 } INCAND_INFO;
 
 INCAND_INFO incandInfo;
@@ -95,13 +75,6 @@ void incand_fade_proc(
    INT                  offset,
    U8                   newData);
 void incand_end_fade_proc();
-void fade_init_rec(
-   INT               startOffset,
-   INT               numFadeBytes,
-   U8                **currPxlVal_pp,
-   U8                **newPxlVal_pp,
-   void              (*fadeProc_fp)(INT offset, U8 newData),
-   void              (*endFadeProc_fp)());
 
 /*
  * ===============================================================================
@@ -161,10 +134,13 @@ void incand_init()
       /* Malloc memory for support of fade commands */
       fade_init_rec(RS232I_FADE_INCAND_OFFSET, INCAND_MAX_INCAND,
          &currPxlVal_p, &newPxlVal_p, incand_fade_proc, incand_end_fade_proc);
-      for (index = 0; index < RS232I_NUM_WING; index++)
+      if (gen2g_info.error == NO_ERRORS)
       {
-        *currPxlVal_p++ = 0;
-        *newPxlVal_p++ = 0;
+         for (index = 0; index < INCAND_MAX_INCAND; index++)
+         {
+            *currPxlVal_p++ = 0;
+            *newPxlVal_p++ = 0;
+         }
       }
    }
 } /* incand_init */
@@ -218,7 +194,7 @@ void incand_fade_proc(
    INT                  offset,
    U8                   newData)
 {
-   incandInfo.currFadeBitMask[offset] = INCAND_FADE_MASK[newData >> 3];
+   incandInfo.currFadeBitMask[offset] = FADE_DIM_MASK[newData >> 3];
 }
 
 /*
@@ -441,7 +417,7 @@ void incand_rot_right(
 /**
  * Incandescent process a command
  * 
- * Process a command receeived on the serial port
+ * Process a command received on the serial port
  * 
  * @param   cmd         [in]        Command
  * @param   mask        [in]        Mask
