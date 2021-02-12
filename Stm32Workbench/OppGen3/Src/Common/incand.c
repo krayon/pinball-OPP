@@ -42,8 +42,7 @@
  *===============================================================================
  */
 /**
- * This is the file for driving the incandescent wing boards.  It requires
- * a 10ms tick for to support fading.
+ * This is the file for driving the incandescent wing boards.
  *
  *===============================================================================
  */
@@ -56,11 +55,9 @@
 
 typedef struct
 {
-   BOOL              startProc;
    U8                validMask;
    U8                invertMask;  /* 1 if wing is high side incand */
-   U32               currFadeBitMask[INCAND_MAX_INCAND];
-   U32               ledCurrFadeBit;
+   U32               intenDur[INCAND_MAX_INCAND];
    U32               ledBlinkSlowBitfield;
    U32               ledBlinkFastBitfield;
 } INCAND_INFO;
@@ -71,6 +68,7 @@ INCAND_INFO incandInfo;
 void digital_upd_outputs(
    U32                        value,
    U32                        mask);
+U16 timer_get_us_count();
 void incand_fade_proc(
    INT                  offset,
    U8                   newData);
@@ -100,15 +98,13 @@ void incand_init()
    U8                         *currPxlVal_p;       /* Ptr to array of current pixel values */
    U8                         *newPxlVal_p;        /* Ptr to array of future pixel values */
    
-   incandInfo.startProc = FALSE;
    incandInfo.validMask = 0;
    incandInfo.invertMask = 0;
    incandInfo.ledBlinkSlowBitfield = 0;
    incandInfo.ledBlinkFastBitfield = 0;
-   incandInfo.ledCurrFadeBit = 0x00000001;
    for (index = 0; index < INCAND_MAX_INCAND; index++)
    {
-      incandInfo.currFadeBitMask[index] = 0;
+      incandInfo.intenDur[index] = 0;
    }
    
    /* Set up digital ports, walk through wing boards */
@@ -147,31 +143,6 @@ void incand_init()
 
 /*
  * ===============================================================================
- * 
- * Name: incand_10ms_tick
- * 
- * ===============================================================================
- */
-/**
- * 10 ms tick function.
- * 
- * Starts the incand processing setting a flag.
- * 
- * @param   None 
- * @return  None
- * 
- * @pre     None 
- * @note    None
- * 
- * ===============================================================================
- */
-void incand_10ms_tick()
-{
-   incandInfo.startProc = TRUE;
-} /* incand_10ms_tick */
-
-/*
- * ===============================================================================
  *
  * Name: incand_fade_proc
  *
@@ -194,7 +165,7 @@ void incand_fade_proc(
    INT                  offset,
    U8                   newData)
 {
-   incandInfo.currFadeBitMask[offset] = FADE_DIM_MASK[newData >> 3];
+   incandInfo.intenDur[offset] = FADE_USEC_DUR[newData >> 3];
 }
 
 /*
@@ -245,14 +216,13 @@ void incand_task()
 {
    U32                        ledOut;
    INT                        index;
+   U16                        currUsTime;
    
    if (gen2g_info.validCfg)
    {
       /* Check if new cycle needs to be started */
-      if (incandInfo.startProc)
+      if (incandInfo.validMask)
       {
-         incandInfo.startProc = FALSE;
-         
          if (gen2g_info.ledStatus & GEN2G_STAT_BLINK_SLOW_ON)
          {
             ledOut = incandInfo.ledBlinkSlowBitfield;
@@ -265,17 +235,13 @@ void incand_task()
          {
             ledOut |= incandInfo.ledBlinkFastBitfield;
          }
+         currUsTime = timer_get_us_count();
          for (index = 0; index < INCAND_MAX_INCAND; index++)
          {
-            if (incandInfo.currFadeBitMask[index] & incandInfo.ledCurrFadeBit)
+            if (incandInfo.intenDur[index] > currUsTime)
             {
             	ledOut |= (1 << index);
             }
-         }
-         incandInfo.ledCurrFadeBit <<= 1;
-         if (incandInfo.ledCurrFadeBit == 0)
-         {
-            incandInfo.ledCurrFadeBit = 0x00000001;
          }
 
          /* Write the new values */
@@ -335,13 +301,13 @@ void incand_rot_left(
          if (!foundFirstBit)
          {
             foundFirstBit = TRUE;
-            prevData = incandInfo.currFadeBitMask[index];
+            prevData = incandInfo.intenDur[index];
             firstBit = index;
          }
          else
          {
-            data = incandInfo.currFadeBitMask[index];
-            incandInfo.currFadeBitMask[index] = prevData;
+            data = incandInfo.intenDur[index];
+            incandInfo.intenDur[index] = prevData;
             prevData = data;
          }
       }
@@ -349,7 +315,7 @@ void incand_rot_left(
    
    if (foundFirstBit)
    {
-      incandInfo.currFadeBitMask[firstBit] = prevData;
+      incandInfo.intenDur[firstBit] = prevData;
    }
 } /* end incand_rot_left */
 
@@ -389,13 +355,13 @@ void incand_rot_right(
          if (!foundFirstBit)
          {
              foundFirstBit = TRUE;
-             prevData = incandInfo.currFadeBitMask[index];
+             prevData = incandInfo.intenDur[index];
              firstBit = index;
          }
          else
          {
-             data = incandInfo.currFadeBitMask[index];
-             incandInfo.currFadeBitMask[index] = prevData;
+             data = incandInfo.intenDur[index];
+             incandInfo.intenDur[index] = prevData;
              prevData = data;
          }
       }
@@ -403,7 +369,7 @@ void incand_rot_right(
    
    if (foundFirstBit)
    {
-      incandInfo.currFadeBitMask[firstBit] = prevData;
+      incandInfo.intenDur[firstBit] = prevData;
    }
 } /* end incand_rot_right */
 
@@ -452,7 +418,7 @@ void incand_proc_cmd(
          {
             if ((1 << index) & mask)
             {
-               incandInfo.currFadeBitMask[index] = 0xffffffff;
+               incandInfo.intenDur[index] = 1000;
             }
          }
          break;
@@ -463,7 +429,7 @@ void incand_proc_cmd(
          {
             if ((1 << index) & mask)
             {
-               incandInfo.currFadeBitMask[index] = 0x00000000;
+               incandInfo.intenDur[index] = 0;
             }
          }
          break;
@@ -476,7 +442,7 @@ void incand_proc_cmd(
          {
             if ((1 << index) & mask)
             {
-               incandInfo.currFadeBitMask[index] = 0x00000000;
+               incandInfo.intenDur[index] = 0;
             }
          }
          break;
@@ -489,7 +455,7 @@ void incand_proc_cmd(
          {
             if ((1 << index) & mask)
             {
-               incandInfo.currFadeBitMask[index] = 0x00000000;
+               incandInfo.intenDur[index] = 0;
             }
          }
          break;
@@ -506,11 +472,11 @@ void incand_proc_cmd(
          {
             if ((1 << index) & mask)
             {
-               incandInfo.currFadeBitMask[index] = 0xffffffff;
+               incandInfo.intenDur[index] = 1000;
             }
             else
             {
-               incandInfo.currFadeBitMask[index] = 0x00000000;
+               incandInfo.intenDur[index] = 0;
             }
          }
          incandInfo.ledBlinkSlowBitfield = 0;
@@ -527,7 +493,7 @@ void incand_proc_cmd(
                {
                   if ((1 << index) & mask)
                   {
-                     incandInfo.currFadeBitMask[index] = 0xffffffff;
+                     incandInfo.intenDur[index] = 1000;
                   }
                }
             }
@@ -537,7 +503,7 @@ void incand_proc_cmd(
                {
                   if ((1 << index) & mask)
                   {
-                     incandInfo.currFadeBitMask[index] = 0x00000000;
+                     incandInfo.intenDur[index] = 0;
                   }
                }
             }
@@ -550,7 +516,7 @@ void incand_proc_cmd(
                {
                   if ((1 << index) & mask)
                   {
-                     incandInfo.currFadeBitMask[index] = 0x00000000;
+                     incandInfo.intenDur[index] = 0;
                   }
                }
             }
@@ -562,7 +528,7 @@ void incand_proc_cmd(
                {
                   if ((1 << index) & mask)
                   {
-                     incandInfo.currFadeBitMask[index] = 0x00000000;
+                     incandInfo.intenDur[index] = 0;
                   }
                }
             }

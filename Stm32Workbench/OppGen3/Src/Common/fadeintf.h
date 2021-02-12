@@ -49,8 +49,8 @@
 #include "stdtypes.h"
 #include "gen2glob.h"
 
-/* Convert 32 levels of intensity to PWM mask */
-extern const U32 FADE_DIM_MASK[32];
+/* Convert 32 levels of intensity to pulse width in usec of 1 ms tick */
+extern const U16 FADE_USEC_DUR[32];
 
 /* Prototypes */
 void fade_init_rec(

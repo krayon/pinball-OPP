@@ -53,8 +53,9 @@
 
 typedef struct
 {
+   U16               loopUsec;
    INT               msCnt;
-   INT               neoCnt;
+   INT               cnt10ms;
    INT               incandCnt;
 } TMR_INFO;
 
@@ -62,7 +63,6 @@ TMR_INFO tmrInfo;
 
 /* Prototypes */
 void neo_10ms_tick();
-void incand_10ms_tick();
 void fade_10ms_tick();
 
 /*
@@ -88,8 +88,8 @@ void fade_10ms_tick();
 void timer_init()
 {
    tmrInfo.msCnt = 0;
-   tmrInfo.neoCnt = 0;
-   tmrInfo.incandCnt = 5;   /* Offset neoCnt and incandCnt by 5 ms */
+   tmrInfo.cnt10ms = 0;
+   tmrInfo.incandCnt = 5;   /* Offset cnt10ms by 5 ms */
    gen2g_info.ledStateNum = 0;
    gen2g_info.ledStatus = 0;
     
@@ -129,10 +129,18 @@ void timer_init()
  */
 void timer_overflow_isr()
 {
+   tmrInfo.loopUsec = (U16)tim2Base_p->CNT;
+
    /* Statement added so interface can be polled instead of interrupt driven */
    if (tim2Base_p->SR & TIMx_SR_UIF)
    {
       tmrInfo.msCnt++;
+
+      /* If timer overflowed after reading usec, just set it to 0 */
+      if (tmrInfo.loopUsec > 900)
+      {
+    	  tmrInfo.loopUsec = 0;
+      }
        
       /* Clear isr pending bit */
       tim2Base_p->SR = 0;
@@ -158,12 +166,11 @@ void timer_overflow_isr()
          }
       }
 
-      tmrInfo.neoCnt++;
-      if (tmrInfo.neoCnt >= 10)
+      tmrInfo.cnt10ms++;
+      if (tmrInfo.cnt10ms >= 10)
       {
-         tmrInfo.neoCnt = 0;
+         tmrInfo.cnt10ms = 0;
          neo_10ms_tick();
-         incand_10ms_tick();
          fade_10ms_tick();
      }
    }
@@ -190,6 +197,29 @@ void timer_overflow_isr()
 INT timer_get_ms_count()
 {
    return(tmrInfo.msCnt);
+}
+
+/*
+ * ===============================================================================
+ *
+ * Name: timer_get_us_count
+ *
+ * ===============================================================================
+ */
+/**
+ * Get us count
+ *
+ * @param   None
+ * @return  us count
+ *
+ * @pre     None
+ * @note    None
+ *
+ * ===============================================================================
+ */
+U16 timer_get_us_count()
+{
+   return(tmrInfo.loopUsec);
 }
 
 /* [] END OF FILE */

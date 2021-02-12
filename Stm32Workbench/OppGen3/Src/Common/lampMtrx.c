@@ -42,8 +42,7 @@
  *===============================================================================
  */
 /**
- * This is the file for driving the Cobra lamp matrix plank.  It requires
- * a 10ms tick for fading.
+ * This is the file for driving the Cobra lamp matrix plank.
  *
  *===============================================================================
  */
@@ -66,8 +65,7 @@ typedef struct
    BOOL              blinkSlow;
    U8                currCol;
    INT               lastTime;
-   U32               ledCurrFadeBit;
-   U32               *fadeData_p;
+   U16               *intenData_p;
    U32               currFadeBitMask[LAMPMTRX_MAX_LAMPS];
 } LAMPMTRX_INFO;
 
@@ -78,6 +76,7 @@ void digital_upd_outputs(
    U32                        value,
    U32                        mask);
 INT timer_get_ms_count();
+U16 timer_get_us_count();
 void lampmtrx_fade_proc(
    INT                  offset,
    U8                   newData);
@@ -113,9 +112,8 @@ void lampmtrx_init()
       gen2g_info.haveLampMtrx = TRUE;
       lampInfo.blinkSlow = TRUE;
       lampInfo.currCol = 0;
-      lampInfo.ledCurrFadeBit = 0x00000001;
-      lampInfo.fadeData_p = (U32 *)malloc(sizeof(U32) * LAMPMTRX_MAX_LAMPS);
-      if (lampInfo.fadeData_p == NULL)
+      lampInfo.intenData_p = (U16 *)malloc(sizeof(U16) * LAMPMTRX_MAX_LAMPS);
+      if (lampInfo.intenData_p == NULL)
       {
          gen2g_info.error = ERR_MALLOC_FAIL;
       }
@@ -123,7 +121,7 @@ void lampmtrx_init()
       {
          for (index = 0; index < LAMPMTRX_MAX_LAMPS; index++)
          {
-            lampInfo.fadeData_p[index] = 0;
+            lampInfo.intenData_p[index] = 0;
          }
 
          /* Malloc memory for support of fade commands */
@@ -167,7 +165,7 @@ void lampmtrx_fade_proc(
 {
    /* Disable initial test blinking after receiving first fade command */
    lampInfo.blinkSlow = FALSE;
-   lampInfo.fadeData_p[offset] = FADE_DIM_MASK[newData >> 3];
+   lampInfo.intenData_p[offset] = FADE_USEC_DUR[newData >> 3];
 }
 
 /*
@@ -218,28 +216,30 @@ void lampmtrx_task()
 {
    U32                        ledOut;
    INT                        index;
-   INT                        currTime;
+   INT                        currMsTime;
+   U16                        currUsTime;
    
    if (gen2g_info.haveLampMtrx)
    {
       /* Check if new cycle needs to be started */
-      currTime = timer_get_ms_count();
-      if (lampInfo.lastTime != currTime)
+      /* Switching column so no row/col bits to prevent ghosting */
+      currMsTime = timer_get_ms_count();
+      if (lampInfo.lastTime != currMsTime)
       {
-         lampInfo.lastTime = currTime;
+         lampInfo.lastTime = currMsTime;
          lampInfo.currCol++;
          if (lampInfo.currCol >= NUM_COLUMNS)
          {
             lampInfo.currCol = 0;
-            lampInfo.ledCurrFadeBit <<= 1;
-            if (lampInfo.ledCurrFadeBit == 0)
-            {
-               lampInfo.ledCurrFadeBit = 0x00000001;
-            }
          }
+         ledOut = 0;
+      }
+      else
+      {
+         /* Set correct column drive bit */
+         ledOut = 1 << lampInfo.currCol;
 
          /* Calculate bits to update */
-         ledOut = 1 << lampInfo.currCol;
          if ((gen2g_info.ledStatus & GEN2G_STAT_BLINK_SLOW_ON) &&
             lampInfo.blinkSlow)
          {
@@ -247,18 +247,19 @@ void lampmtrx_task()
          }
          else
          {
+            currUsTime = timer_get_us_count();
             for (index = 0; index < NUM_ROW_BITS; index++)
             {
-               if (lampInfo.fadeData_p[index + (lampInfo.currCol * NUM_ROW_BITS)] & lampInfo.ledCurrFadeBit)
+               if (lampInfo.intenData_p[index + (lampInfo.currCol * NUM_ROW_BITS)] > currUsTime)
                {
                   ledOut |= (1 << (index + LAMP_DATA_OFFSET));
                }
             }
          }
-
-         /* Write the new values */
-         digital_upd_outputs(ledOut, LAMPMTRX_CTL_MASK);
       }
+
+      /* Write the new values */
+      digital_upd_outputs(ledOut, LAMPMTRX_CTL_MASK);
    }
 }
 
