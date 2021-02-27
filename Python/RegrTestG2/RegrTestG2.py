@@ -46,7 +46,7 @@
 #
 #===============================================================================
 
-testVers = '00.00.06'
+testVers = '00.00.07'
 
 import sys
 import serial
@@ -66,6 +66,7 @@ currInpData = []
 numGen2Brd = 0
 gen2AddrArr = []
 currWingCfg = []
+versInt = 0
 
 CRC8ByteLookup = \
     [ 0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15, 0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d, \
@@ -264,6 +265,7 @@ def rcvGetVersResp(version):
     global gen2AddrArr
     global currInpData
     global currWingCfg
+    global versInt
     data = getSerialData();
     if (data[0] != gen2AddrArr[0]):
         print "\nData = %d, expected = %d" % (ord(data[0]),ord(gen2AddrArr[0]))
@@ -289,6 +291,7 @@ def rcvGetVersResp(version):
             print "\n!!! Fail !!! Version does not match expected version.\n"
             print "Data = %s, expected = %s" % (versResp, version)
             return (204)
+    versInt = (ord(data[2]) << 24) | (ord(data[3]) << 16) | (ord(data[4]) << 8) | ord(data[5])
     return (0)
 
 #send get serial number cmd
@@ -801,6 +804,7 @@ def TestCancelSolConfig():
 
 #Test incandescent commands.
 def TestIncandCmds():
+    global versInt
     print "\nVerify all LEDS are blinking slowly on the incandescent board."
     print "Press (y) if working, (n) if not working."
     ch = getChar()
@@ -934,6 +938,78 @@ def TestIncandCmds():
     if (ch != 'y') and (ch != 'Y'):
         print "\nIncandescent on/off comand forces bulbs on/off failed."
         return 2013
+    # If version supports incand fades
+    if (versInt >= 0x02010000):
+        print "\n\nTesting incand fade cmds."
+        # Turn off all the bulbs
+        sendIncandCmd(0x07, 0x00000000)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        # Verify turn bulbs on using fade cmd
+        neoData = ['\xff', '\xff', '\xff', '\xff', \
+            '\xff', '\xff', '\xff', '\xff']
+        sendNeoCmd(4096 + 24, 0, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        print "\nVerify all incand bulbs are on."
+        print "Press (y) if working, (n) if not working."
+        ch = getChar()
+        if (ch != 'y') and (ch != 'Y'):
+            print "\nIncandescent On using fade failed."
+            return 2014
+        # Verify turn bulbs off using fade cmd
+        neoData = ['\x00', '\x00', '\x00', '\x00', \
+            '\x00', '\x00', '\x00', '\x00']
+        sendNeoCmd(4096 + 24, 0, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        print "\nVerify all incand bulbs are off."
+        print "Press (y) if working, (n) if not working."
+        ch = getChar()
+        if (ch != 'y') and (ch != 'Y'):
+            print "\nIncandescent Off using fade failed."
+            return 2015
+        # Verify intensities work
+        neoData = ['\x20', '\x40', '\x60', '\x80', \
+            '\xa0', '\xc0', '\xe0', '\xff']
+        sendNeoCmd(4096 + 24, 0, neoData)
+        retCode = rcvEomResp()
+        if retCode: return (retCode)
+        print "\nVerify incand bulbs are on from 12.5%, 25%...to 100% On."
+        print "Press (y) if working, (n) if not working."
+        ch = getChar()
+        if (ch != 'y') and (ch != 'Y'):
+            print "Incandescent Intensity support using fade failed."
+            return 2016
+        # Verify fade on/fade off works
+        print "\nVerify Incand fade on/fade off working."
+        print "Fading from low intensity to high intensity"
+        print "in 2s, wait .1s, fade to off in 2s."
+        print "Press (y) if working, (n) if not working."
+        exitReq = False
+        while (not exitReq):
+            neoData = ['\x20', '\x40', '\x60', '\x80', \
+                '\xa0', '\xc0', '\xe0', '\xff']
+            sendNeoCmd(4096 + 24, 2000, neoData)
+            retCode = rcvEomResp()
+            if retCode: return (retCode)
+            time.sleep(2.1)
+            neoData = ['\x00', '\x00', '\x00', '\x00', \
+                '\x00', '\x00', '\x00', '\x00']
+            sendNeoCmd(4096 + 24, 2000, neoData)
+            retCode = rcvEomResp()
+            if retCode: return (retCode)
+            #Check if exit is requested
+            while kbHit():
+                char = getAsynchChar()
+                if (char != 'y') and (char != 'Y'):
+                    print "\nIncand fade on/off failed."
+                    retCode = 2017
+                else:
+                    retCode = 0
+                exitReq = True
+            time.sleep(2.1)
+        if retCode: return (retCode)
     return 0
 
 #Test Neopixel commands.
@@ -1494,7 +1570,7 @@ if not skipSolTests:
     if retCode != 0: sys.exit(retCode)
 
 if not skipIncandTests:
-    retCode = TestIncandCmds()
+    retCode = runTest(TestIncandCmds)
     if retCode != 0: sys.exit(retCode)
 
 if not skipNeopixelTests:
