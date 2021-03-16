@@ -73,7 +73,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x02010000
+#define GEN2G_CODE_VERS       0x02010001
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -81,6 +81,10 @@ typedef enum
 #define GEN2G_STAT_FADE_FAST_DEC       0x02
 #define GEN2G_MAX_STATE_NUM            32      /* State num goes from 0 - 31 */
 #define GEN2G_TIME_MAIN_LOOP           0x08
+
+#define GEN2G_STAT_LED_ON              0x00000004
+#define GEN2G_STAT_TOGGLE_LED          0x00040004
+#define GEN2G_STAT_BSRR_PTR            0x40010c10
 
 typedef enum
 {
@@ -233,6 +237,7 @@ typedef struct
    U32                        crcErr;
    U32                        prodId;
    U32                        serNum;
+   U32                        statusBlink;
    U16                        inpTimestamp[RS232I_NUM_GEN2_INP];
    GEN2G_NV_CFG_T             nvCfgInfo;
    GEN2G_SOL_DRV_CFG_T        *solDrvCfg_p;

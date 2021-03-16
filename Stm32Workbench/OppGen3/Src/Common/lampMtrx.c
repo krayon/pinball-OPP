@@ -240,14 +240,18 @@ void lampmtrx_task()
          ledOut = 1 << lampInfo.currCol;
 
          /* Calculate bits to update */
+         currUsTime = timer_get_us_count();
          if ((gen2g_info.ledStatus & GEN2G_STAT_BLINK_SLOW_ON) &&
             lampInfo.blinkSlow)
          {
-            ledOut |= LAMPMTRX_ALL_ON_MASK;
+            /* For white wood test blinking only light lamps 50% intensity */
+            if (currUsTime < 500)
+            {
+               ledOut |= LAMPMTRX_ALL_ON_MASK;
+            }
          }
          else
          {
-            currUsTime = timer_get_us_count();
             for (index = 0; index < NUM_ROW_BITS; index++)
             {
                if (lampInfo.intenData_p[index + (lampInfo.currCol * NUM_ROW_BITS)] > currUsTime)

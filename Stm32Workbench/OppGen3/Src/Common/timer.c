@@ -163,6 +163,10 @@ void timer_overflow_isr()
          if (gen2g_info.ledStateNum == 0)
          {
             gen2g_info.ledStatus ^= GEN2G_STAT_BLINK_SLOW_ON;
+
+            /* Blink status LED */
+            gen2g_info.statusBlink ^= GEN2G_STAT_TOGGLE_LED;
+            *((R32 *)GEN2G_STAT_BSRR_PTR) = gen2g_info.statusBlink;
          }
       }
 

@@ -356,7 +356,7 @@ void rs232proc_task(void)
                         }
                         else
                         {
-                           *dest_p &= ~(*src_p);
+                           *dest_p |= *src_p;
                         }
                      }
                      break;
@@ -418,6 +418,12 @@ void rs232proc_task(void)
                {
                   gen2g_info.crcErr++;
                }
+               else
+               {
+                  /* Blink status LED */
+                  gen2g_info.statusBlink ^= GEN2G_STAT_TOGGLE_LED;
+                  *((R32 *)GEN2G_STAT_BSRR_PTR) = gen2g_info.statusBlink;
+               }
 
                /* Whole command has been passed on, now wait for next cmd */
                rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
@@ -434,6 +440,10 @@ void rs232proc_task(void)
             }
             else
             {
+               /* Blink status LED */
+               gen2g_info.statusBlink ^= GEN2G_STAT_TOGGLE_LED;
+               *((R32 *)GEN2G_STAT_BSRR_PTR) = gen2g_info.statusBlink;
+
                /* Whole command has been received */
                if (data == rs232_glob.crc8)
                {
@@ -674,6 +684,12 @@ void rs232proc_task(void)
                if (data != rs232_glob.crc8)
                {
                   gen2g_info.crcErr++;
+               }
+               else
+               {
+                  /* Blink status LED */
+                  gen2g_info.statusBlink ^= GEN2G_STAT_TOGGLE_LED;
+                  *((R32 *)GEN2G_STAT_BSRR_PTR) = gen2g_info.statusBlink;
                }
 
                /* Whole command has been rcvd, now wait for next cmd */

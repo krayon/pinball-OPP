@@ -401,6 +401,12 @@ void digital_init(void)
           }
       }
       dig_info.filtInputs = stdldigio_read_all_ports(dig_info.inpMask | dig_info.mtrxInpMask);
+
+      /* Setup GPB2 as output for status (available on STM32F103CB boards) */
+      pinCfg.Pin = GPIO_PIN_2;
+      pinCfg.Mode = GPIO_MODE_OUTPUT_PP;
+      pinCfg.Speed = GPIO_SPEED_FREQ_LOW;
+      HAL_GPIO_Init(GPIOB, &pinCfg);
       
       /* Set the location of the configuration data */
       gen2g_info.inpCfg_p = (GEN2G_INP_CFG_T *)gen2g_info.freeCfg_p;
@@ -602,10 +608,15 @@ void digital_task(void)
                      if (((data & currBit) && gen2g_info.switchMtrxActHigh) ||
                        (((data & currBit) == 0) && !gen2g_info.switchMtrxActHigh))
                      {
-                        /* This only sets bits, bits are cleared when main controller
-                         * reads matrix inputs to guarantee a change isn't missed.
-                         */
-                        gen2g_info.matrixInp[dig_info.mtrxData.column] |= currBit;
+                        /* Set or clear bit depending if active high or low */
+                        if (gen2g_info.switchMtrxActHigh)
+                        {
+                           gen2g_info.matrixInp[dig_info.mtrxData.column] |= currBit;
+                        }
+                        else
+                        {
+                           gen2g_info.matrixInp[dig_info.mtrxData.column] &= ~currBit;
+                        }
                         if (matrixBitInfo_p->sol != 0)
                         {
                            gen2g_info.solDrvProcCtl |=
@@ -631,17 +642,8 @@ void digital_task(void)
 #else
             dig_info.outputMask |= DBG_MTRX_OUT_BIT_MASK;
 #endif
-            if (gen2g_info.switchMtrxActHigh)
-            {
-               /* Reverse column numbering to match Bally documentation */
-               dig_info.outputUpd |= (1 << (MATRIX_COL_OFFS + RS232I_MATRX_COL - 1 - dig_info.mtrxData.column));
-            }
-            else
-            {
-               /* Normal column number to match Williams */
-               dig_info.outputUpd |= ((~(1 << (MATRIX_COL_OFFS + dig_info.mtrxData.column))) &
-                  MATRIX_COL_MASK);
-            }
+            /* Reverse column numbering to match Bally documentation */
+            dig_info.outputUpd |= (1 << (MATRIX_COL_OFFS + RS232I_MATRX_COL - 1 - dig_info.mtrxData.column));
          }
          dig_info.mtrxData.waitCnt++;
       }

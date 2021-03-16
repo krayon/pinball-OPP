@@ -290,6 +290,7 @@ void main_copy_flash_to_ram()
    /* Init gen2g structure */
    gen2g_info.typeWingBrds = 0;
    gen2g_info.crcErr = 0;
+   gen2g_info.statusBlink = GEN2G_STAT_LED_ON;
    gen2g_info.error = NO_ERRORS;
    gen2g_info.validCfg = FALSE;
    gen2g_info.haveNeo = FALSE;
