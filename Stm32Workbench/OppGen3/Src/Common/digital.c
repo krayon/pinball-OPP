@@ -471,6 +471,18 @@ void digital_init(void)
                dig_info.mtrxData.info[solCfg_p->minOffDuty].sol = MATRIX_FIRE_SOL | index;
             }
          }
+         /* Initialize matrix input for rs232 reports */
+         for (index = 0; index < RS232I_MATRX_COL; index++)
+         {
+            if (gen2g_info.switchMtrxActHigh)
+            {
+               gen2g_info.matrixInp[index] = 0;
+            }
+            else
+            {
+               gen2g_info.matrixInp[index] = 0xff;
+            }
+         }
       }
       
       /* Set up the initial state */
@@ -643,7 +655,15 @@ void digital_task(void)
             dig_info.outputMask |= DBG_MTRX_OUT_BIT_MASK;
 #endif
             /* Reverse column numbering to match Bally documentation */
-            dig_info.outputUpd |= (1 << (MATRIX_COL_OFFS + RS232I_MATRX_COL - 1 - dig_info.mtrxData.column));
+            if (gen2g_info.switchMtrxActHigh)
+            {
+               dig_info.outputUpd |= (1 << (MATRIX_COL_OFFS + RS232I_MATRX_COL - 1 - dig_info.mtrxData.column));
+            }
+            else
+            {
+               dig_info.outputUpd |= ((~(1 << (MATRIX_COL_OFFS + RS232I_MATRX_COL - 1 - dig_info.mtrxData.column))) &
+                  MATRIX_COL_MASK);
+            }
          }
          dig_info.mtrxData.waitCnt++;
       }
