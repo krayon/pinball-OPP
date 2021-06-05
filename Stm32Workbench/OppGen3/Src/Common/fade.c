@@ -93,6 +93,7 @@ typedef struct
 {
    BOOL              tickOcc;
    BOOL              fadeRunning;
+   BOOL              fadeRcvCmdErr;
    U16               rcvTotTicks;         /* Total ticks received */
    INT               totNumBytes;
    INT               maxProcBytes;        /* Max num data bytes to process at a time */
@@ -100,6 +101,7 @@ typedef struct
    INT               rcvOffset;           /* Current rcv offset */
    INT               currByteOffset;      /* Current fade byte offset */
    INT               totBytesProc;
+   FADE_INFO_REC     *rcvCmdFadeRec_p;    /* Fade record being updated by rcvd cmd */
    FADE_INFO_REC     *currFadeRec_p;      /* Current fade record being processed */
    FADE_INFO_REC     fadeRec[MAX_FADE_RECS];
 } FADE_INFO;
@@ -472,9 +474,19 @@ void fade_update_rcv_cmd(
    U16                  numBytes,
    U16                  fadeTime)
 {
-   fadeInfo.rcvOffset = offset;
+   fadeInfo.fadeRcvCmdErr = TRUE;
+   fadeInfo.rcvTotTicks = 0;
    fadeInfo.rcvNumBytes = numBytes;
-   fadeInfo.rcvTotTicks = fadeTime/10;
+   if ((offset >> 12) < MAX_FADE_RECS)
+   {
+      fadeInfo.rcvCmdFadeRec_p = &fadeInfo.fadeRec[offset >> 12];
+      fadeInfo.rcvOffset = offset & 0xfff;
+      if ((fadeInfo.rcvOffset + numBytes) <= fadeInfo.rcvCmdFadeRec_p->numDataBytes)
+      {
+         fadeInfo.rcvTotTicks = fadeTime/10;
+         fadeInfo.fadeRcvCmdErr = FALSE;
+      }
+   }
 }
 
 /*
@@ -502,48 +514,47 @@ BOOL fade_update_rcv_data(
 {
    FADE_BYTE_INFO    *tmpFadeByte_p;
    U8                prevNewByte;
-   FADE_INFO_REC     *currFadeRec_p;      /* Current fade record being processed */
-   INT               tmpOffset;
 
    if (fadeInfo.rcvNumBytes != 0)
    {
       fadeInfo.rcvNumBytes--;
-      currFadeRec_p = &fadeInfo.fadeRec[fadeInfo.rcvOffset >> 12];
-      tmpOffset = fadeInfo.rcvOffset & 0xfff;
-      tmpFadeByte_p = currFadeRec_p->fadeByte_p + tmpOffset;
-      if (fadeInfo.rcvTotTicks == 0)
+      if (!fadeInfo.fadeRcvCmdErr)
       {
-         *(currFadeRec_p->currPxlVal_p + tmpOffset) = data;
-         tmpFadeByte_p->totTicks = 0;
-         currFadeRec_p->fadeProc_fp(tmpOffset, data);
-      }
-      else
-      {
-         /* If currently fading, set byte to end value of prev fade */
-         if (tmpFadeByte_p->totTicks != 0)
+         tmpFadeByte_p = fadeInfo.rcvCmdFadeRec_p->fadeByte_p + fadeInfo.rcvOffset;
+         if (fadeInfo.rcvTotTicks == 0)
          {
-            prevNewByte = *(currFadeRec_p->newPxlVal_p + tmpOffset);
-            *(currFadeRec_p->currPxlVal_p + tmpOffset) = prevNewByte;
-            currFadeRec_p->fadeProc_fp(tmpOffset, prevNewByte);
+            *(fadeInfo.rcvCmdFadeRec_p->currPxlVal_p + fadeInfo.rcvOffset) = data;
+            tmpFadeByte_p->totTicks = 0;
+            fadeInfo.rcvCmdFadeRec_p->fadeProc_fp(fadeInfo.rcvOffset, data);
          }
          else
          {
-             prevNewByte = *(currFadeRec_p->currPxlVal_p + tmpOffset);
-         }
+            /* If currently fading, set byte to end value of prev fade */
+            if (tmpFadeByte_p->totTicks != 0)
+            {
+               prevNewByte = *(fadeInfo.rcvCmdFadeRec_p->newPxlVal_p + fadeInfo.rcvOffset);
+               *(fadeInfo.rcvCmdFadeRec_p->currPxlVal_p + fadeInfo.rcvOffset) = prevNewByte;
+               fadeInfo.rcvCmdFadeRec_p->fadeProc_fp(fadeInfo.rcvOffset, prevNewByte);
+            }
+            else
+            {
+               prevNewByte = *(fadeInfo.rcvCmdFadeRec_p->currPxlVal_p + fadeInfo.rcvOffset);
+            }
 
-         /* Only fade if prevByte does not match new value */
-         if (prevNewByte == data)
-         {
-        	 tmpFadeByte_p->totTicks = 0;
+            /* Only fade if prevByte does not match new value */
+            if (prevNewByte == data)
+            {
+               tmpFadeByte_p->totTicks = 0;
+            }
+            else
+            {
+               tmpFadeByte_p->totTicks = fadeInfo.rcvTotTicks;
+    	       tmpFadeByte_p->currTick = 0;
+               *(fadeInfo.rcvCmdFadeRec_p->newPxlVal_p + fadeInfo.rcvOffset) = data;
+            }
          }
-         else
-         {
-        	 tmpFadeByte_p->totTicks = fadeInfo.rcvTotTicks;
-        	 tmpFadeByte_p->currTick = 0;
-             *(currFadeRec_p->newPxlVal_p + tmpOffset) = data;
-         }
+         fadeInfo.rcvOffset++;
       }
-      fadeInfo.rcvOffset++;
       return (FALSE);
    }
    return (TRUE);

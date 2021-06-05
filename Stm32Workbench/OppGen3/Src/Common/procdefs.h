@@ -230,6 +230,8 @@ SPIxRegs * volatile spi2Base_p
 #define SPIx_CR1_SPE      0x00000040
 #define SPIx_CR1_BR_16    0x00000018
 #define SPIx_CR1_BR_8     0x00000010
+#define SPIx_CR1_SSM      0x00000200
+#define SPIx_CR1_SSI      0x00000100
 #define SPIx_CR1_MSTR     0x00000004
 #define SPIx_CR2_TXDMAEN  0x00000002
 

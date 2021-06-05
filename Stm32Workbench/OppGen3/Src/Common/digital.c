@@ -899,7 +899,7 @@ void digital_set_solenoid_input(
          solState_p->inpBits &= ~(1 << inpIndex);
       }
    }
-   else
+   else if ((inpIndex - RS232I_NUM_GEN2_INP) < RS232I_SW_MATRX_INP)
    {
       /* Inputs 32 to 96 are from the switch matrix, first verify
        * there is a switch matrix.

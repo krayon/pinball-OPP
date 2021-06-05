@@ -85,10 +85,8 @@ typedef struct
    U8                         crc8;
    U8                         *rcvHead_p;
    U8                         *rcvTail_p;
-   U8                         txBuf[TX_BUF_SIZE];
    U8                         rxBuf[RX_BUF_SIZE];
    U8                         rxTmpBuf[MAX_RCV_CMD_LEN];
-   STDLI_SER_INFO_T           serInfo;
 } RS232_GLOB_T;
 
 RS232_GLOB_T                  rs232_glob;
@@ -154,11 +152,6 @@ void rs232proc_init(void)
    rs232_glob.state = RS232_WAIT_FOR_CARD_ID;
    rs232_glob.rcvHead_p = &rs232_glob.rxBuf[0];
    rs232_glob.rcvTail_p = &rs232_glob.rxBuf[0];
-  
-   /* Initialize the serial port */
-   rs232_glob.serInfo.txBuf_p = &rs232_glob.txBuf[0];
-   rs232_glob.serInfo.txBufSize = TX_BUF_SIZE;
-   rs232_glob.serInfo.cbParm_p = 0;
 } /* End rs232proc_init */
 
 /*
@@ -194,13 +187,10 @@ void rs232proc_task(void)
    uint8_t                    *xmtData_p;
    uint16_t                   xmtLength;
 
-#define MAGIC_NUM             0xa5a5a5a5
-#define RAM_FIRST_ADDR        0x00000000
 #define INCAND_CMD_OFFSET     0
 #define INCAND_MASK_OFFSET    1
 #define CONFIG_NUM_OFFSET     0
 #define CONFIG_DATA_OFFSET    1
-#define BOOT_MAX_XFER_SIZE    64
   
    /* Check if received a char */
    while (rs232_glob.rcvTail_p != rs232_glob.rcvHead_p)
@@ -574,23 +564,29 @@ void rs232proc_task(void)
                      }
                      case RS232I_CONFIG_IND_SOL:
                      {
-                        /* First byte contains solenoid number [0-15] */
-                        for (index = 0, src_p = &rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET],
-                           dest_p = ((U8 *)gen2g_info.solDrvCfg_p) +
-                              (rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET] * sizeof(RS232I_SOL_CFG_T));
-                           index < sizeof(RS232I_SOL_CFG_T);
-                           index++)
+                        if (rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET] < RS232I_NUM_GEN2_SOL)
                         {
-                           *dest_p++ = *src_p++;
+                           /* First byte contains solenoid number [0-15] */
+                           for (index = 0, src_p = &rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET],
+                              dest_p = ((U8 *)gen2g_info.solDrvCfg_p) +
+                                 (rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET] * sizeof(RS232I_SOL_CFG_T));
+                              index < sizeof(RS232I_SOL_CFG_T);
+                              index++)
+                           {
+                              *dest_p++ = *src_p++;
+                           }
+                           digital_upd_sol_cfg(1 << rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]);
                         }
-                        digital_upd_sol_cfg(1 << rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]);
                         break;
                      }
                      case RS232I_CONFIG_IND_INP:
                      {
-                        gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]] =
-                           rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET];
-                        digital_upd_inp_cfg(1 << rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]);
+                        if (rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET] < RS232I_NUM_GEN2_INP)
+                        {
+                           gen2g_info.inpCfg_p->inpCfg[rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]] =
+                              rs232_glob.rxTmpBuf[CONFIG_DATA_OFFSET];
+                           digital_upd_inp_cfg(1 << rs232_glob.rxTmpBuf[CONFIG_NUM_OFFSET]);
+                        }
                         break;
                      }
                      case RS232I_SET_SOL_INPUT:

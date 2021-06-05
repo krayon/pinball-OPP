@@ -136,7 +136,7 @@ void spi_init()
       rccBase_p->APB1ENR |= 0x00004000;  // SPI2
 
       /* Set up SPI2 */
-      spi2Base_p->CR1 = SPIx_CR1_SPE | SPIx_CR1_BR_8 | SPIx_CR1_MSTR;
+      spi2Base_p->CR1 = SPIx_CR1_SPE | SPIx_CR1_BR_8 | SPIx_CR1_MSTR | SPIx_CR1_SSM | SPIx_CR1_SSI;
       spi2Base_p->CR2 = SPIx_CR2_TXDMAEN;
 
       /* SPI tx DMA is dma1-5 */
