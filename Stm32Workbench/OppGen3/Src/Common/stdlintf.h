@@ -60,41 +60,9 @@
  
 #include "stdtypes.h"
 
-/*
- * Generic structures/enumerations used for Standard Library.
- */
-typedef enum
-{
-   STDLI_TOO_MANY_TICK_FUNCS  = 0x01,
-   STDLI_ILLEGAL_CB_FUNC      = 0x02,
-   STDLI_BAD_NUM_TICKS        = 0x03,  
-   STDLI_TIMER_NOT_CFG        = 0x08,
-   STDLI_SW_ERROR             = 0x0c,
-} STDLI_ERR_E;
-
 /* 
  * API for serial functions
  */
-/* Serial interface structures/enumerations */
-typedef enum
-{
-  STDLI_POLL_SER_PORT         = 0x80
-} STDLI_SER_PORT_E;
-
-#define STDLI_NUM_SER_PORT  1
-
-typedef struct
-{
-   U8                         *txBuf_p;
-   U8                         txBufSize;
-   void                       (*rxSerChar_fp)(void *cbParm_p);
-   void                       *cbParm_p;
-   U8                         curTxHead;    /* Filled by utility */
-   U8                         curTxTail;    /* Filled by utility */
-   BOOL                       txAct;        /* Filled by utility */
-   BOOL                       poll;         /* Filled by utility */
-} STDLI_SER_INFO_T;
-
 void stdlser_init();
 void stdlser_xmt_data(
    U8                         *data_p,       /* Ptr to data to xmt */
@@ -103,62 +71,9 @@ void stdlser_calc_crc8(
    U8                         *crc8_p,       /* Ptr to crc8 */
    INT                        length,        /* Num chars in data stream */
    U8                         *data_p);      /* Ptr to data stream */
-BOOL stdlser_get_rcv_data(
-   U8                         *data_p);      /* Rcv'd character */
-
-/* 
- * API for timing functions
- */
-/* Timing interface structures/enumerations */
-typedef enum
-{
-   TIMER_POLL                 = 0x01,
-} STDLI_TIMER_E;
-
-typedef struct
-{
-   U16                        usec;
-   U16                        msec;
-   U32                        sec;
-} STDLI_TIMER_T;
-
-typedef struct
-{
-   STDLI_TIMER_T              startTime;
-   STDLI_TIMER_T              elapsedTime;  
-} STDLI_ELAPSED_TIME_T;
-
-#define STDLI_REPETITIVE_EVT        0x8000
-
-typedef struct stdli_timer_s
-{
-   U16                        time;
-   void                       (*timeout_fp)(U16 cbParm);
-   U16                        cbParm;
-   U16                        timeoutTicks; /* Filled by utility */
-   struct stdli_timer_s       *next_p;      /* Filled by utility */
-} STDLI_TIMER_EVENT_T;
-
-/* To install timing functions, add INTRPT_TPM2_OVFL to POPULATED_INTS in
- *  projintrpts.h file.  Add the following lines to install the isr:
- *      interrupt void stdltime_timer2_isr(void);
- *      #define vector14 stdltime_timer2_isr
- * To install timing polled functions, call stdltime_start_timing_clock
- * with poll set to TRUE, and call stdltime_timer2_poll to poll interrupt.
- */
-/* Timing function prototypes */
-void stdltime_start_timing_clock(
-   STDLI_TIMER_E              params);      /* TIMER_POLL or TIMER_FAST_OSC */
-void stdltime_get_curr_time(
-   STDLI_TIMER_T              *time_p);     /* ptr to returned current time struct */
-void stdltime_get_elapsed_time(
-   STDLI_ELAPSED_TIME_T       *elapsed_p);  /* ptr to elapsed time struct*/
-void stdltime_start_tick(
-   U8                         numMsec);     /* num msec per system tick */
-STDLI_ERR_E stdltime_reg_timer_func(
-   STDLI_TIMER_EVENT_T        *timeEvt_p,   /* ptr to time event struct to insert */
-   U8                         offset);      /* offset to first timer event, only repetitive */
-void stdltime_timer2_poll(void);
+void stdlser_get_xmt_info(
+   U8                         **data_pp,
+   U16                        *numChar_p);
 
 /* 
  * API for digital I/O functions
@@ -185,18 +100,9 @@ U32 stdldigio_read_all_ports(
 void stdldigio_write_all_ports(
    U32                        data,         /* data bits to write */
    U32                        mask);        /* mask of bits to write */
-void stdldigio_config_dig_port(
-   STDLI_DIG_PORT_INFO_E      portInfo,     /* port, input/output, drive, and pullup */
-   U32                        mask,         /* mask of data bits to change */
-   U32                        data);        /* data if output bits, unused if input */
 U32 stdldigio_read_port(
    STDLI_DIG_PORT_INFO_E      port,         /* data port, ex. STDLI_DIG_PORT_A */
    U32                        mask);        /* mask of data bits to read */
-void stdldigio_write_port(
-   STDLI_DIG_PORT_INFO_E      port,         /* data port, ex. STDLI_DIG_PORT_A */
-   U32                        mask,         /* mask of data bits to write */
-   U32                        data);        /* data to write */
-#endif
 
 /* 
  * API for erasing and writing to flash
@@ -207,5 +113,7 @@ BOOL stdlflash_write(
    U16                        *src_p,       /* ptr to source of data */
    U16                        *dest_p,      /* ptr to destination of data in flash */
    INT                        numBytes);    /* number of bytes */
+
+#endif
 
 /* [] END OF FILE */

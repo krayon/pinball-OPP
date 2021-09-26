@@ -67,17 +67,13 @@ typedef struct TIMx
    R32 DIER;
    R32 SR;
    R32 EGR;
-   R32 CCMR1;
-   R32 CCMR2;
+   R32 CCMR[2];
    R32 CCER;
    R32 CNT;
    R32 PSC;
    R32 ARR;
    R32 Unused1;
-   R32 CCR1;
-   R32 CCR2;
-   R32 CCR3;
-   R32 CCR4;
+   R32 CCR[4];
    R32 BDTR;
    R32 DCR;
    R32 DMAR;
@@ -98,6 +94,24 @@ extern
    TIMxRegs * volatile tim2Base_p
 #ifdef INSTANTIATE_PROC
    = (TIMxRegs * volatile)0x40000000
+#endif
+;
+
+#ifndef INSTANTIATE_PROC
+extern
+#endif
+   TIMxRegs * volatile tim3Base_p
+#ifdef INSTANTIATE_PROC
+   = (TIMxRegs * volatile)0x40000400
+#endif
+;
+
+#ifndef INSTANTIATE_PROC
+extern
+#endif
+   TIMxRegs * volatile tim4Base_p
+#ifdef INSTANTIATE_PROC
+   = (TIMxRegs * volatile)0x40000800
 #endif
 ;
 
@@ -164,6 +178,23 @@ extern
    RCCRegs * volatile rccBase_p
 #ifdef INSTANTIATE_PROC
    = (RCCRegs * volatile)0x40021000
+#endif
+;
+
+typedef struct AFIORegs
+{
+   R32 EVCR;
+   R32 MAPR;
+   R32 EXTICR[4];
+   R32 MAPR2;
+} AFIORegs;
+
+#ifndef INSTANTIATE_PROC
+extern
+#endif
+   AFIORegs * volatile afioBase_p
+#ifdef INSTANTIATE_PROC
+   = (AFIORegs * volatile)0x40010000
 #endif
 ;
 

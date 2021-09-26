@@ -66,6 +66,7 @@ typedef enum
    NEO_REC                    = 0,
    INCAND_REC,
    LAMP_MATRIX_REC,
+   SERVO_REC,
    MAX_FADE_RECS
 } FADE_REC_T;
 

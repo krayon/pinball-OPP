@@ -66,6 +66,7 @@
 #define RS232I_FADE_NEO_OFFSET        0x0000
 #define RS232I_FADE_INCAND_OFFSET     0x1000
 #define RS232I_FADE_LMP_MATRIX_OFFSET 0x2000
+#define RS232I_FADE_SERVO_OFFSET      0x3000
 
 /* Each command starts with the Card ID except for inventory and EOM.  Next comes the
  *  command, then any data.
@@ -176,6 +177,8 @@ typedef enum
   STATE_INPUT               = 0x00,
   FALL_EDGE                 = 0x01,
   RISE_EDGE                 = 0x02,
+
+  SERVO_OUTPUT_THRESH       = 0x40  /* If wing 1, threshold for pin configured as servo */
 } __attribute__((packed)) RS232I_CFG_INP_TYPE_E;
 
 #define RS232I_MTRX_WAIT_THRESH_INDX        16

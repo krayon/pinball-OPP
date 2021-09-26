@@ -201,6 +201,7 @@ void digital_init(void)
    U32                        outputMask = 0;
    GPIO_InitTypeDef           pinCfg;
    BOOL                       usedBit;
+   INT                        input;
 
 #define INPUT_BIT_MASK        0xff
 #define DBG_INPUT_BIT_MASK    0xfe
@@ -235,7 +236,12 @@ void digital_init(void)
       dig_info.solMask = 0;
       dig_info.filtInputs = 0;
       dig_info.mtrxInpMask = 0;
+      gen2g_info.servoMask = 0;
      
+      /* Set the location of the input configuration data */
+      gen2g_info.inpCfg_p = (GEN2G_INP_CFG_T *)gen2g_info.freeCfg_p;
+      gen2g_info.freeCfg_p += sizeof(GEN2G_INP_CFG_T);
+
       /* Set up digital ports, walk through wing boards */
       for (index = 0; index < RS232I_NUM_WING; index++)
       {
@@ -255,6 +261,22 @@ void digital_init(void)
                  dig_info.inpMask |= (INPUT_BIT_MASK << (index << 3));
              }
 #endif
+             /* Check if there are any servo outputs, since pins 8 to 16 are inputs,
+              *  they can be specially configured as servo outputs
+              */
+             if (index == 1)
+             {
+                 for (input = GEN2G_SERVO_FIRST_INDX;
+                    input < GEN2G_SERVO_FIRST_INDX + GEN2G_SERVO_NUM_INP_WING_SERVO; input++)
+                 {
+                	if (gen2g_info.inpCfg_p->inpCfg[input] >= SERVO_OUTPUT_THRESH)
+                	{
+                		dig_info.inpMask &= ~(1 << input);
+                		gen2g_info.servoMask |= (1 << (input - GEN2G_SERVO_FIRST_INDX));
+                		outputMask |= (1 << input);
+                	}
+                 }
+             }
          }
          /* Check if this wing board is a solenoid driver */
          else if (gen2g_info.nvCfgInfo.wingCfg[index] == WING_SOL)
@@ -277,6 +299,22 @@ void digital_init(void)
                  dig_info.inpMask |= (SOL_INP_BIT_MASK << (index << 3));
              }
 #endif
+             /* Check if there are any servo outputs, since pins 8 to 16 are inputs,
+              *  they can be specially configured as servo outputs
+              */
+             if (index == 1)
+             {
+                 for (input = GEN2G_SERVO_FIRST_INDX;
+                    input < GEN2G_SERVO_FIRST_INDX + GEN2G_SERVO_NUM_SOL_WING_SERVO; input++)
+                 {
+                	if (gen2g_info.inpCfg_p->inpCfg[input] >= SERVO_OUTPUT_THRESH)
+                	{
+                		dig_info.inpMask &= ~(1 << input);
+                		gen2g_info.servoMask |= (1 << (input - GEN2G_SERVO_FIRST_INDX));
+                		outputMask |= (1 << input);
+                	}
+                 }
+             }
          }
          /* Check if wing 2 is WING_SW_MATRIX_OUT, and wing 3 is WING_SW_MATRIX_IN.
           *   Other positions are not allowed.
@@ -391,8 +429,18 @@ void digital_init(void)
           }
           else if ((outputMask & (1 << index)) != 0)
           {
-        	  pinCfg.Mode = GPIO_MODE_OUTPUT_PP;
+              /* Check if servo output which uses alternate function */
               pinCfg.Speed = GPIO_SPEED_FREQ_LOW;
+              if ((index >= GEN2G_SERVO_FIRST_INDX) &&
+                 (index < GEN2G_SERVO_FIRST_INDX + GEN2G_SERVO_NUM_INP_WING_SERVO) &&
+				 (gen2g_info.servoMask & 1 << (index - GEN2G_SERVO_FIRST_INDX)))
+              {
+                 pinCfg.Mode = GPIO_MODE_AF_PP;
+              }
+              else
+              {
+                 pinCfg.Mode = GPIO_MODE_OUTPUT_PP;
+              }
         	  usedBit = TRUE;
           }
           if (usedBit)
@@ -408,9 +456,7 @@ void digital_init(void)
       pinCfg.Speed = GPIO_SPEED_FREQ_LOW;
       HAL_GPIO_Init(GPIOB, &pinCfg);
       
-      /* Set the location of the configuration data */
-      gen2g_info.inpCfg_p = (GEN2G_INP_CFG_T *)gen2g_info.freeCfg_p;
-      gen2g_info.freeCfg_p += sizeof(GEN2G_INP_CFG_T);
+      /* Set the location of solenoid configuration data if it exists */
       if (foundSol)
       {
          gen2g_info.solDrvCfg_p = (GEN2G_SOL_DRV_CFG_T *)gen2g_info.freeCfg_p;
@@ -427,7 +473,10 @@ void digital_init(void)
                inpCfg_p < &gen2g_info.inpCfg_p->inpCfg[(index << 3) + 8];
                inpCfg_p++)
             {
-               *inpCfg_p = STATE_INPUT;
+               if (*inpCfg_p < SERVO_OUTPUT_THRESH)
+               {
+            	   *inpCfg_p = STATE_INPUT;
+               }
             }
          }
       }
@@ -947,6 +996,7 @@ void digital_upd_sol_cfg(
    DIG_SOL_STATE_T            *solState_p;
    RS232I_SOL_CFG_T           *solDrvCfg_p;
    DIG_INP_STATE_T            *inpState_p;
+   U32                        inputBit;
    
    /* Clear the solenoid state machines */
    updMask &= dig_info.solMask;
@@ -966,7 +1016,11 @@ void digital_upd_sol_cfg(
             /* Don't set input bit if solenoid 0 and NeoSol wing */
             if ((index != 0) || (gen2g_info.nvCfgInfo.wingCfg[0] != WING_NEO_SOL))
             {
-               solState_p->inpBits |= (1 << (((index & 0x0c) << 1) + (index & 0x03)));
+               inputBit = (1 << (((index & 0x0c) << 1) + (index & 0x03)));
+               if (inputBit & dig_info.inpMask)
+               {
+                  solState_p->inpBits |= inputBit;
+               }
             }
          }
          else
@@ -1014,13 +1068,16 @@ void digital_upd_inp_cfg(
       if ((updMask & currBit) != 0)
       {
          inpState_p->cnt = 0;
-         if (*inpCfg_p == STATE_INPUT)
+         if (*inpCfg_p < SERVO_OUTPUT_THRESH)
          {
-            dig_info.stateMask |= currBit;
-         }
-         else
-         {
-            dig_info.stateMask &= ~currBit;
+             if (*inpCfg_p == STATE_INPUT)
+             {
+                dig_info.stateMask |= currBit;
+             }
+             else
+             {
+                dig_info.stateMask &= ~currBit;
+             }
          }
       }
    }

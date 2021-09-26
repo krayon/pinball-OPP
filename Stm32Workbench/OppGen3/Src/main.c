@@ -115,6 +115,8 @@ void fade_task();
 
 void lampmtrx_task();
 
+void servo_init();
+
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -286,6 +288,7 @@ void main_copy_flash_to_ram()
    U8                         crc;
    U32                        *src_p;
    U32                        *dst_p;
+   INT                        index;
 
    /* Init gen2g structure */
    gen2g_info.typeWingBrds = 0;
@@ -300,6 +303,10 @@ void main_copy_flash_to_ram()
    gen2g_info.freeCfg_p = &gen2g_info.nvCfgInfo.cfgData[0];
    gen2g_info.prodId = gen2g_persist_p->prodId;
    gen2g_info.serNum = gen2g_persist_p->serNum;
+   for (index = 0; index < RS232I_NUM_GEN2_INP; index++)
+   {
+      gen2g_info.inpTimestamp[index] = 0;
+   }
 
    while (!gen2g_info.validCfg)
    {
@@ -373,6 +380,7 @@ void main_call_wing_inits()
             GEN2G_INIT_FP[index]();
          }
       }
+      servo_init();
    }
 } /* End main_call_wing_inits */
 /* USER CODE END 4 */

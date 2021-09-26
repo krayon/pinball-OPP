@@ -62,9 +62,6 @@ typedef enum
    ERR_MALLOC_FAIL            = 0x01,
    ERR_SW_MATRIX_WING_BAD_LOC = 0x02,
    ERR_NEO_WING_BAD_LOC       = 0x03,
-   
-   /* OR'd with STDLI_ERR_E so error codes don't conflict */
-   ERR_STDL_ERR_MASK          = 0x80,
 } __attribute__((packed)) GEN2G_ERROR_E;
 
 #define GEN2G_CFG_TBL         0x0800fc00
@@ -73,7 +70,7 @@ typedef enum
 #define GEN2G_NV_PARM_SIZE    0xfc
 #define GEN2G_NUM_NVCFG       4
 #define GEN2G_APP_TBL_ADDR    0x00007f80
-#define GEN2G_CODE_VERS       0x02020000
+#define GEN2G_CODE_VERS       0x02020002
 
 #define GEN2G_STAT_BLINK_SLOW_ON       0x01
 #define GEN2G_STAT_FADE_SLOW_DEC       0x01
@@ -85,6 +82,10 @@ typedef enum
 #define GEN2G_STAT_LED_ON              0x00000004
 #define GEN2G_STAT_TOGGLE_LED          0x00040004
 #define GEN2G_STAT_BSRR_PTR            0x40010c10
+
+#define GEN2G_SERVO_FIRST_INDX         8
+#define GEN2G_SERVO_NUM_INP_WING_SERVO 8
+#define GEN2G_SERVO_NUM_SOL_WING_SERVO 4
 
 typedef enum
 {
@@ -225,6 +226,7 @@ typedef struct
    U16                        solDrvProcCtl;
    U8                         ledStateNum;   /* 0 - 31 counter used to fade/blink LEDs */
    U8                         ledStatus;     /* If blinking LED is on/fading LED is brighter */
+   U8                         servoMask;
    U8                         matrixInp[RS232I_MATRX_COL]; /* Note:  written in reverse column order to match Bally numbering. */
    U8                         matrixPrev[RS232I_MATRX_COL];
    U32                        typeWingBrds;  /* Bit mask of types of populated wing boards */

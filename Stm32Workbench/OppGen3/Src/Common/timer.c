@@ -93,16 +93,16 @@ void timer_init()
    gen2g_info.ledStateNum = 0;
    gen2g_info.ledStatus = 0;
     
-   // Enable TIM2 clock
-   rccBase_p->APB1ENR |= 0x00000001;
+   // Enable TIM1 clock
+   rccBase_p->APB2ENR |= 0x00000800;
 
-   // Initialize TIM2 1 ms timer
-   tim2Base_p->PSC = 48;
-   tim2Base_p->ARR = 999;
-   tim2Base_p->CR1 = 0x0001;
-   tim2Base_p->CR2 = 0x0000;
-   tim2Base_p->SMCR = 0x0000;
-   tim2Base_p->DIER = 0x0000;
+   // Initialize TIM1 1 ms timer
+   tim1Base_p->PSC = 47;
+   tim1Base_p->ARR = 999;
+   tim1Base_p->CR1 = 0x0001;
+   tim1Base_p->CR2 = 0x0000;
+   tim1Base_p->SMCR = 0x0000;
+   tim1Base_p->DIER = 0x0000;
 
    /* Register the timer isr, start the timer */
 }
@@ -129,10 +129,10 @@ void timer_init()
  */
 void timer_overflow_isr()
 {
-   tmrInfo.loopUsec = (U16)tim2Base_p->CNT;
+   tmrInfo.loopUsec = (U16)tim1Base_p->CNT;
 
    /* Statement added so interface can be polled instead of interrupt driven */
-   if (tim2Base_p->SR & TIMx_SR_UIF)
+   if (tim1Base_p->SR & TIMx_SR_UIF)
    {
       tmrInfo.msCnt++;
 
@@ -143,7 +143,7 @@ void timer_overflow_isr()
       }
        
       /* Clear isr pending bit */
-      tim2Base_p->SR = 0;
+      tim1Base_p->SR = 0;
         
       /* Call the neopixel timer.  This will eventually be a registered
        *  recurring timer event with a function pointer.

@@ -60,7 +60,6 @@
 #define SPI_BITS_PER_NEO_BIT     4       /* 4 SPI bits are needed for a single NeoPixel bit */
                                          /* SPI clock is 48MHz/16 = 3MHz or 333ns/tick */
 #define MAX_NEOPIXELS            256
-#define NEO_STATE_TIMEOUT        20
 
 #define STAT_DMA_DATA            0
 #define STAT_WAIT_FADE_DONE      1

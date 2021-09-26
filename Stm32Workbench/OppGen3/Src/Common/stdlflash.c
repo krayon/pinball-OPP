@@ -64,7 +64,7 @@ typedef struct
    BOOL                       locked;
 } STDLFLASH_INFO_T;
 
-STDLFLASH_INFO_T              stdltime_glob = { TRUE };
+STDLFLASH_INFO_T              stdlflash_glob = { TRUE };
 
 /*
  * ===============================================================================
@@ -93,7 +93,7 @@ void stdlflash_unlock_flash()
    /* Write key values to unlock flash erase/writes */
    flashBase_p->KEYR = KEY1;
    flashBase_p->KEYR = KEY2;
-   stdltime_glob.locked = FALSE;
+   stdlflash_glob.locked = FALSE;
 
 } /* End stdlflash_unlock_flash */
 
@@ -122,7 +122,7 @@ BOOL stdlflash_sector_erase(
 {
 #define FLASH_TIMEOUT   10000
 
-   if (stdltime_glob.locked)
+   if (stdlflash_glob.locked)
    {
       stdlflash_unlock_flash();
    }
@@ -179,7 +179,7 @@ BOOL stdlflash_write(
    U16                        *dest_p,      /* ptr to destination of data in flash */
    INT                        numBytes)     /* number of bytes */
 {
-   if (stdltime_glob.locked)
+   if (stdlflash_glob.locked)
    {
 	   stdlflash_unlock_flash();
    }
